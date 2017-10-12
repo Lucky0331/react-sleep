@@ -1,0 +1,56 @@
+.com-header{
+  position: sticky;
+  z-index:999;
+  top:0;
+  height: 40px;
+  line-height: 40px;
+  box-sizing: border-box;
+  padding:0 10px;
+  color: #fefefe;
+  background-color: #222222;
+  font-size: 14px;
+  .header-menu{
+    display: inline-block;
+    li{
+      display: inline-block;
+      .logo{
+        color: #fefefe;
+        text-decoration: none;
+      }
+      .active{
+        color: #67DAF9;
+        background-color: #333;
+      }
+      a {
+        display: block;
+        color: #fefefe;
+        width: 100%;
+        height: 100%;
+        padding: 0 15px;
+        text-decoration: none;
+        transition: all 200ms;
+      }
+    }
+  }
+  .header-userinfo{
+    float: right;
+    color: #fefefe;
+    font-size: 12px;
+    width: auto;
+    .logout{
+      background-color: transparent;
+      color: #fefefe;
+      border: none;
+      &:hover{
+        color: #ff3333;
+      }
+    }
+    li{
+      display: inline-block;
+      margin-left: 10px;
+      a {
+        color: #cccccc;
+      }
+    }
+  }
+}

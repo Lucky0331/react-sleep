@@ -1,0 +1,27 @@
+{
+  "presets": [
+    "babel-preset-react",
+    [
+      'babel-preset-env',
+      {
+        modules: false,
+        targets: {
+          ie9: true
+        },
+        uglify: true
+      }
+    ]
+  ],
+  "plugins": [
+	  "transform-runtime",
+    "transform-decorators-legacy",
+    "react-hot-loader/babel",
+    [
+      "import",
+      {
+	      "libraryName": "antd",
+	      "style": true
+      }
+    ]
+  ]
+}
