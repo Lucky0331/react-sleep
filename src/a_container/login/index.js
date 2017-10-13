@@ -59,6 +59,11 @@ class LoginContainer extends React.Component {
             password: all.uncompile(userLoginInfo.password),
         });
       }
+      if (!userLoginInfo) {
+          document.getElementById('username').focus();
+        } else {
+          document.getElementById('vcode').focus();
+        }
   }
   // 用户提交登陆
   onSubmit() {
@@ -126,14 +131,14 @@ class LoginContainer extends React.Component {
                   {getFieldDecorator('username', {
                       rules: [{max: 12, message: '最大长度为12位字符'}, {required: true, whitespace: true, message: '请输入用户名'}],
                   })(
-                      <Input prefix={<Icon type="user" style={{ fontSize: 13 }} />} placeholder="用户名" />
+                      <Input prefix={<Icon type="user" style={{ fontSize: 13 }} />} placeholder="用户名" id='form_username'/>
                   )}
               </FormItem>
               <FormItem>
                   {getFieldDecorator('password', {
                       rules: [{ required: true, message: '请输入密码' },{max: 18, message: '最大长度18个字符'}],
                   })(
-                      <Input prefix={<Icon type="lock" style={{ fontSize: 13 }} />} type="password" placeholder="密码" />
+                      <Input prefix={<Icon type="lock" style={{ fontSize: 13 }} />} type="password" placeholder="密码" id='form_password' />
                   )}
               </FormItem>
               <FormItem>
@@ -156,7 +161,7 @@ class LoginContainer extends React.Component {
                     }}
                   ],
                 })(
-                  <Input style={{ width:'200px' }} placeholder="请输入验证码"/>
+                  <Input style={{ width:'200px' }} placeholder="请输入验证码" id='form_vcode' />
                 )}
                 <Vcode
                   height={32}
