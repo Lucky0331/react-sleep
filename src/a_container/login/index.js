@@ -9,6 +9,7 @@ import P from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Form, Input, Button, Icon, Checkbox, message } from 'antd';
+import Vcode from 'react-vcode';
 import all from '../../util/all';
 import './index.scss';
 // ==================
@@ -16,6 +17,7 @@ import './index.scss';
 // ==================
 
 import Header from '../../a_component/header';
+import LogoImg from '../../assets/logo.png';
 
 // ==================
 // 本页面所需action
@@ -34,6 +36,7 @@ class LoginContainer extends React.Component {
     this.state = {
       loginLoading: false, // 是否处于正在登陆状态
       rememberPassword: false, // 是否记住密码
+      codeValue: '00000', // 当前验证码的值
     };
   }
 
@@ -96,14 +99,27 @@ class LoginContainer extends React.Component {
           rememberPassword: e.target.checked,
       });
    }
+
+  // 验证码改变时触发
+  onVcodeChange(code) {
+    const form = this.props.form;
+    form.setFieldsValue({
+      vcode: '',
+    });
+    this.setState({
+      codeValue: code,
+    });
+  }
+
   render() {
+    const me = this;
     const { getFieldDecorator } = this.props.form;
     return (
       <div className="page-login" >
         <Header history={this.props.history}/>
         <div className="login-box">
           <Form>
-            <div className="title">登陆</div>
+            <div className="title"><img src={LogoImg} alt="logo"/></div>
             <div>
               <FormItem>
                   {getFieldDecorator('username', {
@@ -119,7 +135,39 @@ class LoginContainer extends React.Component {
                       <Input prefix={<Icon type="lock" style={{ fontSize: 13 }} />} type="password" placeholder="密码" />
                   )}
               </FormItem>
-              <div>
+              <FormItem>
+              {getFieldDecorator('vcode', {
+                  rules: [
+                  { validator: (rule, value, callback) => {
+                      const v = all.trim(value);
+                      console.log('重新校验了吗：',v.toLowerCase(), me.state.codeValue.toLowerCase());
+                      if (v) {
+                        if (v.length > 4) {
+                          callback('验证码为4位字符');
+                        } else if (v.toLowerCase() !== me.state.codeValue.toLowerCase()){
+                          callback('验证码错误');
+                        } else {
+                          callback();
+                        }
+                      } else {
+                        callback('请输入验证码');
+                      }
+                    }}
+                  ],
+                })(
+                  <Input style={{ width:'200px' }} placeholder="请输入验证码"/>
+                )}
+                <Vcode
+                  height={32}
+                  width={150}
+                  onChange={(code) => this.onVcodeChange(code)}
+                  className='vcode'
+                  options={{
+                    lines: 16,
+                  }}
+                />
+              </FormItem>
+              <div style={{ lineHeight: '28px' }}>
                 <Checkbox checked={this.state.rememberPassword} onChange={(e) => this.onRemember(e)}>记住密码</Checkbox>
                 <Button className='submit-btn' type="primary" loading={this.state.loginLoading} onClick={() => this.onSubmit()}>{this.state.loginLoading ? '请稍后' : '登陆'}</Button>
               </div>

@@ -4,6 +4,7 @@ import { NavLink, Link } from 'react-router-dom';
 import P from 'prop-types';
 import './index.scss';
 import { Button } from 'antd';
+import LogoImg from '../../assets/logo-img.png';
 
 class Header extends React.Component {
     constructor(props) {
@@ -15,7 +16,6 @@ class Header extends React.Component {
 
     // 组件初始化完毕时触发
     componentDidMount() {
-        console.log('都有什么：', this.props);
         this.getUserInfo();
     }
 
@@ -49,11 +49,11 @@ class Header extends React.Component {
         return (
             <div className="com-header">
                 <ul className="header-menu">
-                    <li><Link to="/home" className="logo">翼猫睡眠管理系统</Link></li>
+                    <li><Link to="/home" className="logo"><img src={LogoImg} alt='logo'/>翼猫科技</Link></li>
                     {
                         this.state.user ? [
                             <li key="0"><NavLink to="/home">首页</NavLink></li>,
-                            <li key="1"><NavLink to="/features">模块1</NavLink></li> ,
+                            <li key="1"><NavLink to="/features">模块111</NavLink></li> ,
                             <li key="2"><NavLink to={{ pathname: '/test', search: '?a=123&b=abc', state: { c: '456', d: 'ABC'} }}>模块2</NavLink></li>
                         ] : null
                     }

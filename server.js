@@ -1,19 +1,38 @@
-var webpack = require('webpack');
-var WebpackDevServer = require('webpack-dev-server');
-var config = require('./webpack.dev.config.js');
+const path = require("path");
+const express = require("express");
+const webpack = require("webpack");
 
-var server = new WebpackDevServer(webpack(config), {
-	publicPath: config.output.publicPath,	// 服务的公共路径
-	hot: true,								// 启动热更新，wepack-dev-server中需相应配置
-	inline: true,							// inline模式，另外一种模式是iframe，webpackDevServer的启动模式而已
-	historyApiFallback: true,				// 如果访问路径404了，是否返回index.html
-	stats: { colors: true },				// 控制台输出的配置，启用不同信息不同的颜色
+const webpackDevMiddleware = require("webpack-dev-middleware");
+const webpackHotMiddleware = require("webpack-hot-middleware");
+const webpackConfig = require('./webpack.dev.config.js');
+
+const app = express();
+const DIST_DIR = webpackConfig.output.path;
+const PORT = 8888;
+const compiler = webpack(webpackConfig);
+
+app.use(webpackDevMiddleware(compiler, {
+    publicPath: webpackConfig.output.publicPath,
+    quiet: false, // 清静模式，是否不输入启动时的相关信息
+    stats: {
+        colors: true // 不同信息不同颜色
+    },
+}));
+app.use(webpackHotMiddleware(compiler));
+
+app.get("*", (req, res, next) =>{ // 所有请求都返回index.html
+    const filename = path.join(DIST_DIR, 'index.html');
+
+    compiler.outputFileSystem.readFile(filename, (err, result) =>{
+        if(err){
+            return(next(err))
+        }
+        res.set('content-type', 'text/html');
+        res.send(result);
+        res.end();
+    })
 });
 
-//将其他路由，全部返回index.html
-server.app.get('*', function(req, res) {
-	res.sendFile(__dirname + '/src/index.html');
-});
-server.listen(8888, function() {
-	console.log('正常打开8888端口');
+app.listen(PORT, function(){
+    console.log('启动地址: http://localhost:'+PORT);
 });

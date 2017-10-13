@@ -16,6 +16,13 @@
       .logo{
         color: #fefefe;
         text-decoration: none;
+        padding-left: 0;
+        img{
+          height: 22px;
+          vertical-align: middle;
+          margin-top: -3px;
+          margin-right: 5px;
+        }
       }
       .active{
         color: #67DAF9;

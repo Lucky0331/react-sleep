@@ -39,7 +39,7 @@ class HomePageContainer extends React.Component {
       <div key='page' className="page-home">
           <div className="box">
               <img src={ImgLogo} />
-              <div className="title">React-Luo</div>
+              <div className="title">React16.1111</div>
               <div className="info">react、red46ux、webpack3、eslint、babel6、antd</div>
           </div>
       </div>]

@@ -129,12 +129,10 @@ module.exports = {
         // 此插件详细教程 http://www.cnblogs.com/haogj/p/5160821.html
         new HtmlWebpackPlugin({                     //根据模板插入css/js等生成最终HTML
             filename: '../index.html',              //生成的html存放路径，相对于 output.path
-            template: './src/index_template.html',  //html模板路径
+            template: './src/index.html',           //html模板路径
             favicon: 'favicon.ico',                 // 自动把根目录下的favicon.ico图片加入html
-            inject: true,                           // 是否将js放在body的末尾
-            hash: false,                            // 是否为本页面所有资源文件添加一个独特的hash值
+            inject: true,                           // 是否自动引入js并将js放在body的末尾
         }),
-
     ],
     // 解析器， webpack提供的各种方便的工具函数
     resolve: {

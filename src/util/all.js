@@ -41,6 +41,7 @@ const allobj = {
   },
   // 去掉字符串两端空格
   trim(str) {
+    if (!str) return '';
     const reg = /^\s*|\s*$/g;
     return str.replace(reg, '');
   },

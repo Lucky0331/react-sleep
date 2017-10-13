@@ -13,9 +13,8 @@
     ]
   ],
   "plugins": [
-	  "transform-runtime",
+	"transform-runtime",
     "transform-decorators-legacy",
-    "react-hot-loader/babel",
     [
       "import",
       {
