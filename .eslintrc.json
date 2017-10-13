@@ -19,10 +19,6 @@
         "react"
     ],
     "rules": {
-        "semi": [
-            "error",
-            "always"
-        ],
         "no-cond-assign": "error",
         "no-debugger": "error",
         "no-dupe-args": "error",

@@ -17,6 +17,7 @@ import './index.scss';
 // ==================
 
 import Header from '../../a_component/header';
+import CanvasBack from '../../a_component/canvasBack';
 import LogoImg from '../../assets/logo.png';
 
 // ==================
@@ -173,6 +174,9 @@ class LoginContainer extends React.Component {
               </div>
             </div>
           </Form>
+        </div>
+        <div className='login-back'>
+          <CanvasBack />
         </div>
       </div>
     );

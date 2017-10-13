@@ -61,7 +61,7 @@ class RootContainer extends React.Component {
     return (
       [
         <div className="boss" key="boss">
-          <BrowserRouter>
+          <BrowserRouter basename='/build'>
             <div>
               <Switch>
                 <Redirect exact from='/' to='/home'/>
