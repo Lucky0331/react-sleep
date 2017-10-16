@@ -31,7 +31,7 @@ class CanvasBack extends React.Component {
         canvas.style.width = `${screen.availWidth}px`;
         const c2d = canvas.getContext('2d');
 
-        c2d.strokeStyle = 'rgba(0,0,0,0.01)',
+        c2d.strokeStyle = 'rgba(0,0,0,0.02)',
         c2d.strokeWidth = 1,
         c2d.fillStyle = 'rgba(0,0,0,0.03)';
 

@@ -39,6 +39,7 @@ import NotFound from '../notfound';
 
 import Footer from '../../a_component/footer';
 
+
 class RootContainer extends React.Component {
   constructor(props) {
     super(props);
@@ -46,6 +47,7 @@ class RootContainer extends React.Component {
 
   /* 权限控制 */
   onEnter(Component, props) {
+    console.log('权限控制：', props);
     if (sessionStorage.getItem('user')) {
       return <Component {...props} />;
     } else {
@@ -54,30 +56,24 @@ class RootContainer extends React.Component {
   }
 
   componentDidMount() {
-
+    console.log('root:' );
   }
   render() {
-      console.log('root:', this.props);
-    return (
-      [
-        <div className="boss" key="boss">
-          <BrowserRouter basename='/build'>
-            <div>
-              <Switch>
-                <Redirect exact from='/' to='/home'/>
-                <Route path="/login" component={Login} />
-                <Route path="/home" render={(props) => this.onEnter(Home, props)} />
-                <Route path="/features" render={(props) => this.onEnter(Features, props)} />
-                <Route path="/test" render={(props) => this.onEnter(Test, props)} />
-
-                <Route component={NotFound} />
-              </Switch>
-            </div>
-          </BrowserRouter>
-        </div>,
-        <Footer key="footer"/>
-      ]
-    );
+    return ([
+      <BrowserRouter basename='/build' key='browserrouter'>
+        <div className="boss">
+            <Switch>
+              <Redirect exact from='/' to='/home' />
+              <Route path="/login" component={Login} />
+              <Route path="/home" render={(props) => this.onEnter(Home, props)} />
+              <Route path="/features" render={(props) => this.onEnter(Features, props)} />
+              <Route path="/test" render={(props) => this.onEnter(Test, props)} />
+              <Route component={NotFound} />
+            </Switch>
+        </div>
+      </BrowserRouter>,
+      <Footer key="footer"/>
+    ]);
   }
 }
 
@@ -89,6 +85,7 @@ RootContainer.propTypes = {
   dispatch: P.func,
   children: P.any,
   location: P.any,
+  history: P.any,
 };
 
 // ==================

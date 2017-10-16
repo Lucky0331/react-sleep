@@ -1,9 +1,11 @@
 /* SASS测试 */
 $blue: #108EE9; // 标准蓝色
 $blue-a: #67DAF9; // 标准蓝色active
+
 .boss{
 	min-height: calc(100vh - 30px);
 	min-width: 1200px;
+	width: 100%;
 }
 .scss_btn{
   $color: #ff0000;
