@@ -7,6 +7,8 @@ const initState = {
   fetchvalue: [],
   systemURL: null, // system 当前子路由选中哪一个
   deviceURL: null, // device 当前子路由选中哪一个
+  healthURL: null, // health
+  dataURL: null,    // data
 };
 
 // ============================================
@@ -42,6 +44,10 @@ const saveURL = (state, action) => {
       break;
     case 'user':
       obj.userURL = payload;
+    case 'health':
+      obj.healthURL = payload;
+    case 'data':
+      obj.dataURL = payload;
       break;
   }
   return Object.assign({}, state, obj);

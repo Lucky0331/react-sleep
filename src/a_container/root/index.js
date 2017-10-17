@@ -31,11 +31,16 @@ import { bindActionCreators } from 'redux';
 //     {(NotFound) => NotFound ? <NotFound {...props} /> : <Loading /> }
 //   </Bundle>
 // );
-import Home from '../home';
+
 import Login from '../login';
+
+import Home from '../home';
 import System from '../system';
 import User from '../user';
 import Device from '../device';
+import Health from '../health';
+import DataStat from '../datastat';
+
 import Test from '../test';
 import NotFound from '../notfound';
 
@@ -50,6 +55,7 @@ class RootContainer extends React.Component {
   /* 权限控制 */
   onEnter(Component, props) {
     console.log('权限控制：', props);
+    // 如果没有登陆，直接跳转至login页
     if (sessionStorage.getItem('user')) {
       return <Component {...props} />;
     } else {
@@ -71,14 +77,14 @@ class RootContainer extends React.Component {
               <Route path="/system" render={(props) => this.onEnter(System, props)} />
               <Route path="/device" render={(props) => this.onEnter(Device, props)} />
               <Route path="/user" render={(props) => this.onEnter(User, props)} />
-              <Route path="/health" render={(props) => this.onEnter(Features, props)} />
-              <Route path="/data" render={(props) => this.onEnter(Features, props)} />
-              <Route path="/operate" render={(props) => this.onEnter(Features, props)} />
-              <Route path="/physical" render={(props) => this.onEnter(Features, props)} />
-              <Route path="/log" render={(props) => this.onEnter(Features, props)} />
-              <Route path="/cost" render={(props) => this.onEnter(Features, props)} />
-              <Route path="/open" render={(props) => this.onEnter(Features, props)} />
-              <Route path="/activity" render={(props) => this.onEnter(Features, props)} />
+              <Route path="/health" render={(props) => this.onEnter(Health, props)} />
+              <Route path="/data" render={(props) => this.onEnter(DataStat, props)} />
+              <Route path="/operate" render={(props) => this.onEnter(Home, props)} />
+              <Route path="/physical" render={(props) => this.onEnter(Home, props)} />
+              <Route path="/log" render={(props) => this.onEnter(Home, props)} />
+              <Route path="/cost" render={(props) => this.onEnter(Home, props)} />
+              <Route path="/open" render={(props) => this.onEnter(Home, props)} />
+              <Route path="/activity" render={(props) => this.onEnter(Home, props)} />
               <Route component={NotFound} />
             </Switch>
         </div>
