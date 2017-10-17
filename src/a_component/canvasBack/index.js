@@ -7,7 +7,7 @@ class CanvasBack extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            point: 50, // 生成35个点
+            point: 35, // 生成35个点
             context: null,
         };
         this.context = null;

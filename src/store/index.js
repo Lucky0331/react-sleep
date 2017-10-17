@@ -7,12 +7,12 @@ import RootReducer from '../a_reducer';
 
 const store = createStore(RootReducer, applyMiddleware(ReduxThunk));
 
-if(module.hot) {
-    module.hot.accept('../a_reducer', () => {
-        const nextRootReducer = require('../a_reducer/index').default;
-        store.replaceReducer(nextRootReducer);
-    });
-}
+// if(module.hot) {
+//     module.hot.accept('../a_reducer', () => {
+//         const nextRootReducer = require('../a_reducer/index').default;
+//         store.replaceReducer(nextRootReducer);
+//     });
+// }
 
 
 export default store;

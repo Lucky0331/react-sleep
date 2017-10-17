@@ -9,7 +9,6 @@ import 'babel-polyfill';
 import store from './store';
 // 所有的CSS全部引入到入口文件即可
 import './css/css.css';
-import './css/less.less';
 import './css/scss.scss';
 
 const rootDom = document.getElementById('app-root');

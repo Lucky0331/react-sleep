@@ -33,7 +33,9 @@ import { bindActionCreators } from 'redux';
 // );
 import Home from '../home';
 import Login from '../login';
-import Features from '../features';
+import System from '../system';
+import User from '../user';
+import Device from '../device';
 import Test from '../test';
 import NotFound from '../notfound';
 
@@ -60,14 +62,23 @@ class RootContainer extends React.Component {
   }
   render() {
     return ([
-      <BrowserRouter basename='/build' key='browserrouter'>
+      <BrowserRouter key='browserrouter'>
         <div className="boss">
             <Switch>
               <Redirect exact from='/' to='/home' />
               <Route path="/login" component={Login} />
               <Route path="/home" render={(props) => this.onEnter(Home, props)} />
-              <Route path="/features" render={(props) => this.onEnter(Features, props)} />
-              <Route path="/test" render={(props) => this.onEnter(Test, props)} />
+              <Route path="/system" render={(props) => this.onEnter(System, props)} />
+              <Route path="/device" render={(props) => this.onEnter(Device, props)} />
+              <Route path="/user" render={(props) => this.onEnter(User, props)} />
+              <Route path="/health" render={(props) => this.onEnter(Features, props)} />
+              <Route path="/data" render={(props) => this.onEnter(Features, props)} />
+              <Route path="/operate" render={(props) => this.onEnter(Features, props)} />
+              <Route path="/physical" render={(props) => this.onEnter(Features, props)} />
+              <Route path="/log" render={(props) => this.onEnter(Features, props)} />
+              <Route path="/cost" render={(props) => this.onEnter(Features, props)} />
+              <Route path="/open" render={(props) => this.onEnter(Features, props)} />
+              <Route path="/activity" render={(props) => this.onEnter(Features, props)} />
               <Route component={NotFound} />
             </Switch>
         </div>

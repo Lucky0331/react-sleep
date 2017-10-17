@@ -2,13 +2,14 @@ import _ from 'lodash';
 import Fetchapi from '../util/fetch-api';
 import { message } from 'antd';
 
-
+// 测试
 export function onTestAdd(num) {
   return {
     type: 'TEST::add',
     payload: num + 1,
   };
 }
+
 // 用户登录
 export function onLogin(params) {
     console.log('用户登录参数：', params);
@@ -28,6 +29,15 @@ export function onLogin(params) {
         });
     };
 }
+
+// 路由切换状态保存
+export function saveURL(url) {
+  return {
+    type: 'APP::saveURL',
+    payload: url,
+  };
+}
+
 // Fetchapi 异步请求测试
 export function fetchApi(params) {
   return (dispatch) => {

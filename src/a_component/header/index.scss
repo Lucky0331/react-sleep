@@ -1,14 +1,16 @@
 .com-header{
-  position: sticky;
+  position: fixed;
+  width: 100%;
+  min-width: 1200px;
   z-index:999;
   top:0;
-  height: 40px;
-  line-height: 40px;
+  height: 35px;
+  line-height: 35px;
   box-sizing: border-box;
-  padding:0 10px;
+  padding:0 5px;
   color: #fefefe;
   background-color: #222222;
-  font-size: 14px;
+  font-size: 12px;
   .header-menu{
     display: inline-block;
     li{
@@ -18,24 +20,27 @@
         text-decoration: none;
         padding-left: 0;
         img{
-          height: 22px;
+          height: 20px;
           vertical-align: middle;
           margin-top: -3px;
           margin-right: 5px;
         }
       }
       .active{
-        color: #67DAF9;
-        background-color: #333;
+        color: #fff;
+        background-color: #666;
       }
       a {
         display: block;
-        color: #fefefe;
+        color: #cecece;
         width: 100%;
         height: 100%;
         padding: 0 15px;
         text-decoration: none;
         transition: all 200ms;
+        &:hover{
+          color: #fff;
+        }
       }
     }
   }
@@ -49,7 +54,7 @@
       color: #fefefe;
       border: none;
       &:hover{
-        color: #ff3333;
+        color: #00ff00;
       }
     }
     li{
@@ -60,4 +65,8 @@
       }
     }
   }
+}
+.header-station{
+  width: 100%;
+  height: 35px;
 }

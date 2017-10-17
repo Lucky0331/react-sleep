@@ -1,4 +1,4 @@
-/* 主页 */
+/* Organization 系统管理/组织机构管理 */
 
 // ==================
 // 所需的各种插件
@@ -13,19 +13,14 @@ import P from 'prop-types';
 // 所需的所有组件
 // ==================
 
-import ImgLogo from '../../assets/react-logo.jpg';
-import Header from '../../a_component/header';
-
 // ==================
 // 本页面所需action
 // ==================
 
-import appAction from '../../a_action/app-action';
-
 // ==================
 // Definition
 // ==================
-class HomePageContainer extends React.Component {
+class Organization extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -33,23 +28,12 @@ class HomePageContainer extends React.Component {
   }
 
   componentDidMount() {
-    console.log('PROPS:', this.props);
-  }
 
-  onTest(){
-    this.props.history.push('/test');
   }
 
   render() {
-    return ([
-      <Header key='h' history={this.props.history}/>,
-      <div key='page' className="page-home">
-          <div className="box">
-              <img src={ImgLogo} />
-              <div className="title" onClick={() => this.onTest()}>React16</div>
-              <div className="info">react、red46ux、webpack3、eslint、babel6、antd</div>
-          </div>
-      </div>]
+    return (
+      <div>5</div>
     );
   }
 }
@@ -58,7 +42,7 @@ class HomePageContainer extends React.Component {
 // PropTypes
 // ==================
 
-HomePageContainer.propTypes = {
+Organization.propTypes = {
   location: P.any,
   history: P.any,
 };
@@ -75,4 +59,4 @@ export default connect(
   (dispatch) => ({
     actions: bindActionCreators({}, dispatch),
   })
-)(HomePageContainer);
+)(Organization);
