@@ -76,7 +76,7 @@ class LoginContainer extends React.Component {
       });
       this.props.actions.onLogin({username: values.username, password: values.password}).then((res) => {
         if (res) {
-          message.success('登陆成功');
+          message.success('登录成功');
           // 如果选择了记住密码，用户名和密码加密保存到localStorage,否则清除
             if (this.state.rememberPassword) {
                 localStorage.setItem('userLoginInfo', JSON.stringify({username: values.username, password: all.compile(values.password)}));
@@ -85,7 +85,7 @@ class LoginContainer extends React.Component {
             }
           this.props.history.push('/home');
         } else {
-          message.error('登陆失败，请重试');
+          message.error('登录失败，请重试');
           this.setState({
             loginLoading: false
           });
@@ -189,7 +189,7 @@ class LoginContainer extends React.Component {
               </FormItem>
               <div style={{ lineHeight: '28px' }}>
                 <Checkbox checked={this.state.rememberPassword} onChange={(e) => this.onRemember(e)}>记住密码</Checkbox>
-                <Button className='submit-btn' type="primary" loading={this.state.loginLoading} onClick={() => this.onSubmit()}>{this.state.loginLoading ? '请稍后' : '登陆'}</Button>
+                <Button className='submit-btn' type="primary" loading={this.state.loginLoading} onClick={() => this.onSubmit()}>{this.state.loginLoading ? '请稍后' : '登录'}</Button>
               </div>
             </div>
           </Form>

@@ -14,13 +14,11 @@ import P from 'prop-types';
 // ==================
 
 import ImgLogo from '../../assets/react-logo.jpg';
-import Header from '../../a_component/header';
 
 // ==================
 // 本页面所需action
 // ==================
 
-import appAction from '../../a_action/app-action';
 
 // ==================
 // Definition
@@ -33,7 +31,7 @@ class HomePageContainer extends React.Component {
   }
 
   componentDidMount() {
-    console.log('PROPS:', this.props);
+
   }
 
   onTest(){
@@ -68,8 +66,6 @@ HomePageContainer.propTypes = {
 
 export default connect(
   (state) => ({
-    testvalue: state.app.inputvalue,
-    fetchValue: state.app.fetchvalue,
   }), 
   (dispatch) => ({
     actions: bindActionCreators({}, dispatch),

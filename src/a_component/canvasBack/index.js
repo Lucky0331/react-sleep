@@ -40,7 +40,7 @@ class CanvasBack extends React.Component {
         });
 
         for (let i = 0; i < this.state.point; i++) {
-            this.circleArr.push(this.drawCricle(c2d, this.num(canvas.width * 1.5, -canvas.width * 0.5), this.num(canvas.height * 1.5, -canvas.height * 0.5), this.num(10, 3), this.num(20, -20)/40, this.num(20, -20)/40));
+            this.circleArr.push(this.drawCricle(c2d, this.num(canvas.width * 1.5, -canvas.width * 0.5), this.num(canvas.height * 1.5, -canvas.height * 0.5), this.num(10, 3), this.num(30, -30)/40, this.num(30, -30)/40));
         }
         setTimeout(()=>{this.animate()}, 16);
     }
@@ -118,8 +118,8 @@ class CanvasBack extends React.Component {
                     const A = Math.abs(this.circleArr[i+j].x - this.circleArr[i].x),
                         B = Math.abs(this.circleArr[i+j].y - this.circleArr[i].y);
                     const lineLength = Math.sqrt(A*A + B*B);
-                    const C = 1/lineLength*7-0.009;
-                    const lineOpacity = C > 0.03 ? 0.03 : C;
+                    const C = 1/lineLength*7 + 0.005;
+                    const lineOpacity = C > 0.06 ? 0.06 : C;
                     if (lineOpacity > 0) {
                         this.drawLine(this.state.context, this.circleArr[i].x, this.circleArr[i].y, this.circleArr[i+j].x, this.circleArr[i+j].y, lineOpacity);
                     }
