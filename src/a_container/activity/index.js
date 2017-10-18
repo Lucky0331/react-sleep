@@ -19,7 +19,6 @@ import Gift from './container/Gift';
 import Category from './container/Category';
 import Exchange from './container/Exchange';
 
-import Header from '../../a_component/header';
 // ==================
 // 本页面所需action
 // ==================
@@ -44,8 +43,7 @@ class Activity extends React.Component {
   }
 
   render() {
-    return ([
-      <Header key='h' history={this.props.history}/>,
+    return (
       <BrowserRouter key='browser'>
         <div key='page' className="allpage">
             <div className='left'>
@@ -75,7 +73,6 @@ class Activity extends React.Component {
           </div>
       </div>
       </BrowserRouter>
-      ]
     );
   }
 }

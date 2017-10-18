@@ -48,8 +48,7 @@ class SystemContainer extends React.Component {
   }
 
   render() {
-    return ([
-      <Header key='h' history={this.props.history}/>,
+    return (
       <BrowserRouter key='browser'>
         <div key='page' className="allpage page-system">
             <div className='left'>
@@ -93,9 +92,8 @@ class SystemContainer extends React.Component {
                   <Route exact path='/device/history' component={History} />
               </Switch>
           </div>
-      </div>
+        </div>
       </BrowserRouter>
-      ]
     );
   }
 }

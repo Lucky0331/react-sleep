@@ -17,7 +17,6 @@ import './index.scss';
 
 import Developer from './container/developer';
 
-import Header from '../../a_component/header';
 // ==================
 // 本页面所需action
 // ==================
@@ -42,8 +41,7 @@ class Open extends React.Component {
   }
 
   render() {
-    return ([
-      <Header key='h' history={this.props.history}/>,
+    return (
       <BrowserRouter key='browser'>
         <div key='page' className="allpage">
             <div className='left'>
@@ -63,9 +61,8 @@ class Open extends React.Component {
                   <Route exact path='/open/developer' component={Developer} />
               </Switch>
           </div>
-      </div>
+        </div>
       </BrowserRouter>
-      ]
     );
   }
 }

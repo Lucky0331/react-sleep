@@ -20,7 +20,6 @@ import Organization from './container/organization';
 import Role from './container/role';
 import Version from './container/version';
 
-import Header from '../../a_component/header';
 // ==================
 // 本页面所需action
 // ==================
@@ -45,8 +44,7 @@ class SystemContainer extends React.Component {
   }
 
   render() {
-    return ([
-      <Header key='h' history={this.props.history}/>,
+    return (
       <BrowserRouter key='browser'>
         <div key='page' className="allpage page-system">
             <div className='left'>
@@ -82,9 +80,8 @@ class SystemContainer extends React.Component {
                   <Route exact path='/system/organization' component={Organization} />
               </Switch>
           </div>
-      </div>
+        </div>
       </BrowserRouter>
-      ]
     );
   }
 }

@@ -23,8 +23,6 @@ import HomeProd from './container/HomeProd';
 import NewPush from './container/NewPush';
 import Quest from './container/Quest';
 
-
-import Header from '../../a_component/header';
 // ==================
 // 本页面所需action
 // ==================
@@ -49,8 +47,7 @@ class Operate extends React.Component {
   }
 
   render() {
-    return ([
-      <Header key='h' history={this.props.history}/>,
+    return (
       <BrowserRouter key='browser'>
         <div key='page' className="allpage">
             <div className='left'>
@@ -94,9 +91,8 @@ class Operate extends React.Component {
                   <Route exact path='/operate/feedback' component={FeedBack} />
               </Switch>
           </div>
-      </div>
+        </div>
       </BrowserRouter>
-      ]
     );
   }
 }

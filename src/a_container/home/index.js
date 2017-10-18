@@ -41,15 +41,14 @@ class HomePageContainer extends React.Component {
   }
 
   render() {
-    return ([
-      <Header key='h' history={this.props.history}/>,
-      <div key='page' className="page-home">
+    return (
+      <div className="page-home">
           <div className="box">
               <img src={ImgLogo} />
               <div className="title" onClick={() => this.onTest()}>React16</div>
               <div className="info">react、red46ux、webpack3、eslint、babel6、antd</div>
           </div>
-      </div>]
+      </div>
     );
   }
 }

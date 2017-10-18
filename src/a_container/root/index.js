@@ -50,6 +50,7 @@ import Activity from '../activity';
 import Test from '../test';
 import NotFound from '../notfound';
 
+import Header from '../../a_component/header';
 import Footer from '../../a_component/footer';
 
 
@@ -70,30 +71,35 @@ class RootContainer extends React.Component {
   }
 
   componentDidMount() {
-    console.log('root:' );
+    console.log('root:', this.props );
   }
   render() {
     return ([
       <BrowserRouter key='browserrouter'>
-        <div className="boss">
-            <Switch>
-              <Redirect exact from='/' to='/home' />
-              <Route path="/login" component={Login} />
-              <Route path="/home" render={(props) => this.onEnter(Home, props)} />
-              <Route path="/system" render={(props) => this.onEnter(System, props)} />
-              <Route path="/device" render={(props) => this.onEnter(Device, props)} />
-              <Route path="/user" render={(props) => this.onEnter(User, props)} />
-              <Route path="/health" render={(props) => this.onEnter(Health, props)} />
-              <Route path="/data" render={(props) => this.onEnter(DataStat, props)} />
-              <Route path="/operate" render={(props) => this.onEnter(Operate, props)} />
-              <Route path="/physical" render={(props) => this.onEnter(Physical, props)} />
-              <Route path="/log" render={(props) => this.onEnter(Log, props)} />
-              <Route path="/cost" render={(props) => this.onEnter(Cost, props)} />
-              <Route path="/open" render={(props) => this.onEnter(Open, props)} />
-              <Route path="/activity" render={(props) => this.onEnter(Activity, props)} />
-              <Route component={NotFound} />
-            </Switch>
-        </div>
+        <Route render={(props) => {
+          return (
+            <div className="boss">
+                <Header {...props}/>
+                <Switch>
+                  <Redirect exact from='/' to='/home' />
+                  <Route path="/login" component={Login} />
+                  <Route path="/home" render={(props) => this.onEnter(Home, props)} />
+                  <Route path="/system" render={(props) => this.onEnter(System, props)} />
+                  <Route path="/device" render={(props) => this.onEnter(Device, props)} />
+                  <Route path="/user" render={(props) => this.onEnter(User, props)} />
+                  <Route path="/health" render={(props) => this.onEnter(Health, props)} />
+                  <Route path="/data" render={(props) => this.onEnter(DataStat, props)} />
+                  <Route path="/operate" render={(props) => this.onEnter(Operate, props)} />
+                  <Route path="/physical" render={(props) => this.onEnter(Physical, props)} />
+                  <Route path="/log" render={(props) => this.onEnter(Log, props)} />
+                  <Route path="/cost" render={(props) => this.onEnter(Cost, props)} />
+                  <Route path="/open" render={(props) => this.onEnter(Open, props)} />
+                  <Route path="/activity" render={(props) => this.onEnter(Activity, props)} />
+                  <Route component={NotFound} />
+                </Switch>
+            </div>
+          );
+        }}/>
       </BrowserRouter>,
       <Footer key="footer"/>
     ]);

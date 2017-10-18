@@ -23,7 +23,6 @@ import UserPK from './container/userPK';
 import UserQuery from './container/userQuery';
 import UserType from './container/userType';
 
-import Header from '../../a_component/header';
 // ==================
 // 本页面所需action
 // ==================
@@ -48,8 +47,7 @@ class UserContainer extends React.Component {
   }
 
   render() {
-    return ([
-      <Header key='h' history={this.props.history}/>,
+    return (
       <BrowserRouter key='browser'>
         <div key='page' className="allpage page-user">
             <div className='left'>
@@ -93,9 +91,8 @@ class UserContainer extends React.Component {
                   <Route exact path='/user/clientc' component={ClientC} />
               </Switch>
           </div>
-      </div>
+        </div>
       </BrowserRouter>
-      ]
     );
   }
 }

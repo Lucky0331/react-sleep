@@ -16,7 +16,6 @@ import './index.scss';
 // 所需的所有组件
 // ==================
 
-import Header from '../../a_component/header';
 import CanvasBack from '../../a_component/canvasBack';
 import LogoImg from '../../assets/logo.png';
 
@@ -121,8 +120,7 @@ class LoginContainer extends React.Component {
     const me = this;
     const { getFieldDecorator } = this.props.form;
     return (
-      <div className="page-login" >
-        <Header history={this.props.history}/>
+      <div className="page-login">
         <div className="login-box">
           <Form>
             <div className="title"><img src={LogoImg} alt="logo"/></div>

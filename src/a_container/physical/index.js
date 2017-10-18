@@ -20,7 +20,6 @@ import CoreAdmin from './container/CoreAdmin';
 import Package from './container/Package';
 import Archives from './container/Archives';
 
-import Header from '../../a_component/header';
 // ==================
 // 本页面所需action
 // ==================
@@ -45,8 +44,7 @@ class Physical extends React.Component {
   }
 
   render() {
-    return ([
-      <Header key='h' history={this.props.history}/>,
+    return (
       <BrowserRouter key='browser'>
         <div key='page' className="allpage">
             <div className='left'>
@@ -78,9 +76,8 @@ class Physical extends React.Component {
                   <Route exact path='/physical/archives' component={Archives} />
               </Switch>
           </div>
-      </div>
+        </div>
       </BrowserRouter>
-      ]
     );
   }
 }

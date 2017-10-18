@@ -16,6 +16,7 @@ class Header extends React.Component {
 
     // 组件初始化完毕时触发
     componentDidMount() {
+        console.log('header:', this.props);
         this.getUserInfo();
     }
 

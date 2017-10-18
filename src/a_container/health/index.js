@@ -21,7 +21,6 @@ import Weekly from './container/weekly';
 import Sleep from './container/sleep';
 import Sub from './container/sub';
 
-import Header from '../../a_component/header';
 // ==================
 // 本页面所需action
 // ==================
@@ -46,8 +45,7 @@ class Health extends React.Component {
   }
 
   render() {
-    return ([
-      <Header key='h' history={this.props.history}/>,
+    return (
       <BrowserRouter key='browser'>
         <div key='page' className="allpage">
             <div className='left'>
@@ -85,7 +83,6 @@ class Health extends React.Component {
           </div>
       </div>
       </BrowserRouter>
-      ]
     );
   }
 }
