@@ -3,12 +3,16 @@
 // Import modules
 
 const initState = {
-  num: 0,           // 初始值0
-  fetchvalue: [],
   systemURL: null, // system 当前子路由选中哪一个
   deviceURL: null, // device 当前子路由选中哪一个
   healthURL: null, // health
   dataURL: null,    // data
+  operateURL: null, // 运营中心
+  physicalURL: null, // 体检中心
+  logURL: null,   // 日志中心
+  costURL: null, // 费用中心
+  openURL: null, // 开放平台
+  activityURL: null, // 积分活动
 };
 
 // ============================================
@@ -44,11 +48,32 @@ const saveURL = (state, action) => {
       break;
     case 'user':
       obj.userURL = payload;
+      break;
     case 'health':
       obj.healthURL = payload;
+      break;
     case 'data':
       obj.dataURL = payload;
       break;
+    case 'operate':
+      obj.operateURL = payload;
+      break;
+    case 'physical':
+      obj.physicalURL = payload;
+      break;
+    case 'log':
+      obj.logURL = payload;
+      break;
+    case 'cost':
+      obj.costURL = payload;
+      break;
+    case 'open':
+      obj.openURL = payload;
+      break;
+    case 'activity':
+      obj.activityURL = payload;
+      break;
+    default:;
   }
   return Object.assign({}, state, obj);
 }

@@ -1,4 +1,4 @@
-/* Active 数据统计/活跃用户统计 */
+/* Article 运营中心/文章管理 */
 
 // ==================
 // 所需的各种插件
@@ -20,7 +20,7 @@ import P from 'prop-types';
 // ==================
 // Definition
 // ==================
-class Active extends React.Component {
+class Article extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -42,7 +42,7 @@ class Active extends React.Component {
 // PropTypes
 // ==================
 
-Active.propTypes = {
+Article.propTypes = {
   location: P.any,
   history: P.any,
 };
@@ -57,4 +57,4 @@ export default connect(
   (dispatch) => ({
     actions: bindActionCreators({}, dispatch),
   })
-)(Active);
+)(Article);

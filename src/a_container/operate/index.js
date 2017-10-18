@@ -1,4 +1,4 @@
-/* DataStat 数据统计 主页 */
+/* Operate 运营中心 主页 */
 
 // ==================
 // 所需的各种插件
@@ -15,13 +15,14 @@ import './index.scss';
 // 所需的所有组件
 // ==================
 
-import Active from './container/Active';
-import AdRate from './container/AdRate';
-import Facility from './container/Facility';
-import Funcrate from './container/Funcrate';
-import NewCustomer from './container/NewCustomer';
-import NewRegister from './container/NewRegister';
-import Order from './container/Order';
+import Ad from './container/Ad';
+import Article from './container/Article';
+import ArticleType from './container/ArticleType';
+import FeedBack from './container/FeedBack';
+import HomeProd from './container/HomeProd';
+import NewPush from './container/NewPush';
+import Quest from './container/Quest';
+
 
 import Header from '../../a_component/header';
 // ==================
@@ -33,7 +34,7 @@ import { saveURL } from '../../a_action/app-action';
 // ==================
 // Definition
 // ==================
-class DataStat extends React.Component {
+class Operate extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -41,7 +42,10 @@ class DataStat extends React.Component {
   }
 
   componentDidMount() {
-    console.log('用户中心进入:', this.props);
+    // 为了同步路由和Menu的高亮选择，进入时如果有子路由，就保存一下
+    if (this.props.location.pathname.split('/')[2]) {
+      this.props.actions.saveURL(this.props.location.pathname);
+    }
   }
 
   render() {
@@ -52,42 +56,42 @@ class DataStat extends React.Component {
             <div className='left'>
               <Menu
                 theme="dark"
-                selectedKeys={this.props.dataURL ? [this.props.dataURL] : ['/data/newcustomer']}
+                selectedKeys={this.props.operateURL ? [this.props.operateURL] : ['/operate/homeprod']}
                 onSelect={(e)=>this.props.actions.saveURL(e.key)}
               >
-                <Menu.Item key="/data/newcustomer">
-                  <Link to='/data/newcustomer'>新客户统计</Link>
+                <Menu.Item key="/operate/homeprod">
+                  <Link to='/operate/homeprod'>首页产品管理</Link>
                 </Menu.Item>
-                <Menu.Item key="/data/newregister">
-                  <Link to='/data/newregister'>新注册用户统计</Link>
+                <Menu.Item key="/operate/ad">
+                  <Link to='/operate/ad'>广告管理</Link>
                 </Menu.Item>
-                <Menu.Item key="/data/active">
-                  <Link to='/data/active'>活跃用户统计</Link>
+                <Menu.Item key="/operate/article">
+                  <Link to='/operate/article'>文章管理</Link>
                 </Menu.Item>
-                <Menu.Item key="/data/funcrate">
-                  <Link to='/data/funcrate'>功能点击率</Link>
+                <Menu.Item key="/operate/articletype">
+                  <Link to='/operate/articletype'>文章类型管理</Link>
                 </Menu.Item>
-                <Menu.Item key="/data/order">
-                  <Link to='/data/order'>体检中心预约统计</Link>
+                <Menu.Item key="/operate/quest">
+                  <Link to='/operate/quest'>调查问卷</Link>
                 </Menu.Item>
-                <Menu.Item key="/data/adrate">
-                  <Link to='/data/adrate'>广告点击率统计</Link>
+                <Menu.Item key="/operate/newpush">
+                  <Link to='/operate/newpush'>消息推送管理</Link>
                 </Menu.Item>
-                <Menu.Item key="/data/facility">
-                  <Link to='/data/facility'>设备统计</Link>
+                <Menu.Item key="/operate/feedback">
+                  <Link to='/operate/feedback'>用户反馈管理</Link>
                 </Menu.Item>
               </Menu>
             </div>
             <div className='right'>
               <Switch>
-                  <Redirect exact from='/data' to={this.props.dataURL || '/data/newcustomer'} />
-                  <Route exact path='/data/newcustomer' component={NewCustomer} />
-                  <Route exact path='/data/newregister' component={NewRegister} />
-                  <Route exact path='/data/active' component={Active} />
-                  <Route exact path='/data/funcrate' component={Funcrate} />
-                  <Route exact path='/data/order' component={Order} />
-                  <Route exact path='/data/adrate' component={AdRate} />
-                  <Route exact path='/data/facility' component={Facility} />
+                  <Redirect exact from='/operate' to={this.props.operateURL || '/operate/homeprod'} />
+                  <Route exact path='/operate/homeprod' component={HomeProd} />
+                  <Route exact path='/operate/ad' component={Ad} />
+                  <Route exact path='/operate/article' component={Article} />
+                  <Route exact path='/operate/articletype' component={ArticleType} />
+                  <Route exact path='/operate/quest' component={Quest} />
+                  <Route exact path='/operate/newpush' component={NewPush} />
+                  <Route exact path='/operate/feedback' component={FeedBack} />
               </Switch>
           </div>
       </div>
@@ -101,10 +105,10 @@ class DataStat extends React.Component {
 // PropTypes
 // ==================
 
-DataStat.propTypes = {
+Operate.propTypes = {
   location: P.any,
   history: P.any,
-  dataURL: P.any,
+  operateURL: P.any,
   actions: P.any,
 };
 
@@ -114,9 +118,9 @@ DataStat.propTypes = {
 
 export default connect(
   (state) => ({
-    dataURL: state.app.dataURL,
+    operateURL: state.app.operateURL,
   }), 
   (dispatch) => ({
     actions: bindActionCreators({ saveURL }, dispatch),
   })
-)(DataStat);
+)(Operate);

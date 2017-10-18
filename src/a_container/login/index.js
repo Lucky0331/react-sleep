@@ -131,14 +131,25 @@ class LoginContainer extends React.Component {
                   {getFieldDecorator('username', {
                       rules: [{max: 12, message: '最大长度为12位字符'}, {required: true, whitespace: true, message: '请输入用户名'}],
                   })(
-                      <Input prefix={<Icon type="user" style={{ fontSize: 13 }} />} placeholder="用户名" id='form_username'/>
+                      <Input
+                        prefix={<Icon type="user" style={{ fontSize: 13 }} />}
+                        placeholder="用户名"
+                        id='form_username'
+                        onPressEnter={() => this.onSubmit()}
+                      />
                   )}
               </FormItem>
               <FormItem>
                   {getFieldDecorator('password', {
                       rules: [{ required: true, message: '请输入密码' },{max: 18, message: '最大长度18个字符'}],
                   })(
-                      <Input prefix={<Icon type="lock" style={{ fontSize: 13 }} />} type="password" placeholder="密码" id='form_password' />
+                      <Input
+                        prefix={<Icon type="lock" style={{ fontSize: 13 }} />}
+                        type="password"
+                        placeholder="密码"
+                        id='form_password'
+                        onPressEnter={() => this.onSubmit()}
+                      />
                   )}
               </FormItem>
               <FormItem>
@@ -161,7 +172,12 @@ class LoginContainer extends React.Component {
                     }}
                   ],
                 })(
-                  <Input style={{ width:'200px' }} placeholder="请输入验证码" id='form_vcode' />
+                  <Input
+                    style={{ width:'200px' }}
+                    placeholder="请输入验证码"
+                    id='form_vcode'
+                    onPressEnter={() => this.onSubmit()}
+                  />
                 )}
                 <Vcode
                   height={32}

@@ -1,4 +1,4 @@
-/* NewRegister 数据统计/新注册用户统计 */
+/* Archives 体检中心/体检档案查询 */
 
 // ==================
 // 所需的各种插件
@@ -20,7 +20,7 @@ import P from 'prop-types';
 // ==================
 // Definition
 // ==================
-class NewRegister extends React.Component {
+class Archives extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -33,7 +33,7 @@ class NewRegister extends React.Component {
 
   render() {
     return (
-      <div>2</div>
+      <div>4</div>
     );
   }
 }
@@ -42,7 +42,7 @@ class NewRegister extends React.Component {
 // PropTypes
 // ==================
 
-NewRegister.propTypes = {
+Archives.propTypes = {
   location: P.any,
   history: P.any,
 };
@@ -57,4 +57,4 @@ export default connect(
   (dispatch) => ({
     actions: bindActionCreators({}, dispatch),
   })
-)(NewRegister);
+)(Archives);

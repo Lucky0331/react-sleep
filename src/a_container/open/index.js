@@ -1,4 +1,4 @@
-/* Health 健康评估 主页 */
+/* Open 开放平台 主页 */
 
 // ==================
 // 所需的各种插件
@@ -15,11 +15,7 @@ import './index.scss';
 // 所需的所有组件
 // ==================
 
-import Daily from './container/daily';
-import Monthly from './container/monthly';
-import Weekly from './container/weekly';
-import Sleep from './container/sleep';
-import Sub from './container/sub';
+import Developer from './container/developer';
 
 import Header from '../../a_component/header';
 // ==================
@@ -31,7 +27,7 @@ import { saveURL } from '../../a_action/app-action';
 // ==================
 // Definition
 // ==================
-class Health extends React.Component {
+class Open extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -53,34 +49,18 @@ class Health extends React.Component {
             <div className='left'>
               <Menu
                 theme="dark"
-                selectedKeys={this.props.healthURL ? [this.props.healthURL] : ['/health/sleep']}
+                selectedKeys={this.props.openURL ? [this.props.openURL] : ['/open/developer']}
                 onSelect={(e)=>this.props.actions.saveURL(e.key)}
               >
-                <Menu.Item key="/health/sleep">
-                  <Link to='/health/sleep'>睡眠质量评估记录</Link>
-                </Menu.Item>
-                <Menu.Item key="/health/sub">
-                  <Link to='/health/sub'>亚健康评估记录</Link>
-                </Menu.Item>
-                <Menu.Item key="/health/daily">
-                  <Link to='/health/daily'>日报管理</Link>
-                </Menu.Item>
-                <Menu.Item key="/health/weekly">
-                  <Link to='/health/weekly'>周报管理</Link>
-                </Menu.Item>
-                <Menu.Item key="/health/monthly">
-                  <Link to='/health/monthly'>月报管理</Link>
+                <Menu.Item key='/open/developer'>
+                  <Link to='/open/developer'>开发者信息管理</Link>
                 </Menu.Item>
               </Menu>
             </div>
             <div className='right'>
               <Switch>
-                  <Redirect exact from='/health' to={this.props.healthURL || '/health/sleep'} />
-                  <Route exact path='/health/sleep' component={Sleep} />
-                  <Route exact path='/health/sub' component={Sub} />
-                  <Route exact path='/health/daily' component={Daily} />
-                  <Route exact path='/health/weekly' component={Weekly} />
-                  <Route exact path='/health/monthly' component={Monthly} />
+                  <Redirect exact from='/open' to={this.props.openURL || '/open/developer'} />
+                  <Route exact path='/open/developer' component={Developer} />
               </Switch>
           </div>
       </div>
@@ -94,10 +74,10 @@ class Health extends React.Component {
 // PropTypes
 // ==================
 
-Health.propTypes = {
+Open.propTypes = {
   location: P.any,
   history: P.any,
-  healthURL: P.any,
+  openURL: P.any,
   actions: P.any,
 };
 
@@ -107,9 +87,9 @@ Health.propTypes = {
 
 export default connect(
   (state) => ({
-    healthURL: state.app.healthURL,
+    openURL: state.app.openURL,
   }), 
   (dispatch) => ({
     actions: bindActionCreators({ saveURL }, dispatch),
   })
-)(Health);
+)(Open);

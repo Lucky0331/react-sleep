@@ -1,4 +1,4 @@
-/* Health 健康评估 主页 */
+/* Physical 体检中心 主页 */
 
 // ==================
 // 所需的各种插件
@@ -15,11 +15,10 @@ import './index.scss';
 // 所需的所有组件
 // ==================
 
-import Daily from './container/daily';
-import Monthly from './container/monthly';
-import Weekly from './container/weekly';
-import Sleep from './container/sleep';
-import Sub from './container/sub';
+import Bespeak from './container/Bespeak';
+import CoreAdmin from './container/CoreAdmin';
+import Package from './container/Package';
+import Archives from './container/Archives';
 
 import Header from '../../a_component/header';
 // ==================
@@ -31,7 +30,7 @@ import { saveURL } from '../../a_action/app-action';
 // ==================
 // Definition
 // ==================
-class Health extends React.Component {
+class Physical extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -53,34 +52,30 @@ class Health extends React.Component {
             <div className='left'>
               <Menu
                 theme="dark"
-                selectedKeys={this.props.healthURL ? [this.props.healthURL] : ['/health/sleep']}
+                selectedKeys={this.props.physicalURL ? [this.props.physicalURL] : ['/physical/bespeak']}
                 onSelect={(e)=>this.props.actions.saveURL(e.key)}
               >
-                <Menu.Item key="/health/sleep">
-                  <Link to='/health/sleep'>睡眠质量评估记录</Link>
+                <Menu.Item key="/physical/bespeak">
+                  <Link to='/physical/bespeak'>预约查询</Link>
                 </Menu.Item>
-                <Menu.Item key="/health/sub">
-                  <Link to='/health/sub'>亚健康评估记录</Link>
+                <Menu.Item key="/physical/coreadmin">
+                  <Link to='/physical/coreadmin'>体检中心管理</Link>
                 </Menu.Item>
-                <Menu.Item key="/health/daily">
-                  <Link to='/health/daily'>日报管理</Link>
+                <Menu.Item key="/physical/package">
+                  <Link to='/physical/package'>体检套餐</Link>
                 </Menu.Item>
-                <Menu.Item key="/health/weekly">
-                  <Link to='/health/weekly'>周报管理</Link>
-                </Menu.Item>
-                <Menu.Item key="/health/monthly">
-                  <Link to='/health/monthly'>月报管理</Link>
+                <Menu.Item key="/physical/archives">
+                  <Link to='/physical/archives'>体检档案查询</Link>
                 </Menu.Item>
               </Menu>
             </div>
             <div className='right'>
               <Switch>
-                  <Redirect exact from='/health' to={this.props.healthURL || '/health/sleep'} />
-                  <Route exact path='/health/sleep' component={Sleep} />
-                  <Route exact path='/health/sub' component={Sub} />
-                  <Route exact path='/health/daily' component={Daily} />
-                  <Route exact path='/health/weekly' component={Weekly} />
-                  <Route exact path='/health/monthly' component={Monthly} />
+                  <Redirect exact from='/physical' to={this.props.physicalURL || '/physical/bespeak'} />
+                  <Route exact path='/physical/bespeak' component={Bespeak} />
+                  <Route exact path='/physical/coreadmin' component={CoreAdmin} />
+                  <Route exact path='/physical/package' component={Package} />
+                  <Route exact path='/physical/archives' component={Archives} />
               </Switch>
           </div>
       </div>
@@ -94,10 +89,10 @@ class Health extends React.Component {
 // PropTypes
 // ==================
 
-Health.propTypes = {
+Physical.propTypes = {
   location: P.any,
   history: P.any,
-  healthURL: P.any,
+  physicalURL: P.any,
   actions: P.any,
 };
 
@@ -107,9 +102,9 @@ Health.propTypes = {
 
 export default connect(
   (state) => ({
-    healthURL: state.app.healthURL,
+    physicalURL: state.app.physicalURL,
   }), 
   (dispatch) => ({
     actions: bindActionCreators({ saveURL }, dispatch),
   })
-)(Health);
+)(Physical);

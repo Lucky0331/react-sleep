@@ -1,4 +1,4 @@
-/* NewCustomer 数据统计/新客户统计 */
+/* AdminOpera 日志中心/管理员操作日志 */
 
 // ==================
 // 所需的各种插件
@@ -20,7 +20,7 @@ import P from 'prop-types';
 // ==================
 // Definition
 // ==================
-class NewCustomer extends React.Component {
+class AdminOpera extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -33,7 +33,7 @@ class NewCustomer extends React.Component {
 
   render() {
     return (
-      <div>1</div>
+      <div>3</div>
     );
   }
 }
@@ -42,7 +42,7 @@ class NewCustomer extends React.Component {
 // PropTypes
 // ==================
 
-NewCustomer.propTypes = {
+AdminOpera.propTypes = {
   location: P.any,
   history: P.any,
 };
@@ -57,4 +57,4 @@ export default connect(
   (dispatch) => ({
     actions: bindActionCreators({}, dispatch),
   })
-)(NewCustomer);
+)(AdminOpera);

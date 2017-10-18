@@ -1,4 +1,4 @@
-/* Health 健康评估 主页 */
+/* Activity 积分活动 主页 */
 
 // ==================
 // 所需的各种插件
@@ -15,11 +15,9 @@ import './index.scss';
 // 所需的所有组件
 // ==================
 
-import Daily from './container/daily';
-import Monthly from './container/monthly';
-import Weekly from './container/weekly';
-import Sleep from './container/sleep';
-import Sub from './container/sub';
+import Gift from './container/Gift';
+import Category from './container/Category';
+import Exchange from './container/Exchange';
 
 import Header from '../../a_component/header';
 // ==================
@@ -31,7 +29,7 @@ import { saveURL } from '../../a_action/app-action';
 // ==================
 // Definition
 // ==================
-class Health extends React.Component {
+class Activity extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -53,34 +51,26 @@ class Health extends React.Component {
             <div className='left'>
               <Menu
                 theme="dark"
-                selectedKeys={this.props.healthURL ? [this.props.healthURL] : ['/health/sleep']}
+                selectedKeys={this.props.activityURL ? [this.props.activityURL] : ['/activity/gift']}
                 onSelect={(e)=>this.props.actions.saveURL(e.key)}
               >
-                <Menu.Item key="/health/sleep">
-                  <Link to='/health/sleep'>睡眠质量评估记录</Link>
+                <Menu.Item key="/activity/gift">
+                  <Link to='/activity/gift'>积分礼品</Link>
                 </Menu.Item>
-                <Menu.Item key="/health/sub">
-                  <Link to='/health/sub'>亚健康评估记录</Link>
+                <Menu.Item key="/activity/category">
+                  <Link to='/activity/category'>礼品类别</Link>
                 </Menu.Item>
-                <Menu.Item key="/health/daily">
-                  <Link to='/health/daily'>日报管理</Link>
-                </Menu.Item>
-                <Menu.Item key="/health/weekly">
-                  <Link to='/health/weekly'>周报管理</Link>
-                </Menu.Item>
-                <Menu.Item key="/health/monthly">
-                  <Link to='/health/monthly'>月报管理</Link>
+                <Menu.Item key="/activity/exchange">
+                  <Link to='/activity/exchange'>兑换记录</Link>
                 </Menu.Item>
               </Menu>
             </div>
             <div className='right'>
               <Switch>
-                  <Redirect exact from='/health' to={this.props.healthURL || '/health/sleep'} />
-                  <Route exact path='/health/sleep' component={Sleep} />
-                  <Route exact path='/health/sub' component={Sub} />
-                  <Route exact path='/health/daily' component={Daily} />
-                  <Route exact path='/health/weekly' component={Weekly} />
-                  <Route exact path='/health/monthly' component={Monthly} />
+                  <Redirect exact from='/activity' to={this.props.activityURL || '/activity/gift'} />
+                  <Route exact path='/activity/gift' component={Gift} />
+                  <Route exact path='/activity/category' component={Category} />
+                  <Route exact path='/activity/exchange' component={Exchange} />
               </Switch>
           </div>
       </div>
@@ -94,10 +84,10 @@ class Health extends React.Component {
 // PropTypes
 // ==================
 
-Health.propTypes = {
+Activity.propTypes = {
   location: P.any,
   history: P.any,
-  healthURL: P.any,
+  activityURL: P.any,
   actions: P.any,
 };
 
@@ -107,9 +97,9 @@ Health.propTypes = {
 
 export default connect(
   (state) => ({
-    healthURL: state.app.healthURL,
+    activityURL: state.app.activityURL,
   }), 
   (dispatch) => ({
     actions: bindActionCreators({ saveURL }, dispatch),
   })
-)(Health);
+)(Activity);

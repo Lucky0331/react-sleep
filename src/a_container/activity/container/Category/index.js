@@ -1,4 +1,4 @@
-/* AdRate 数据统计/广告点击率统计 */
+/* Category 积分活动/礼品类别 */
 
 // ==================
 // 所需的各种插件
@@ -20,7 +20,7 @@ import P from 'prop-types';
 // ==================
 // Definition
 // ==================
-class AdRate extends React.Component {
+class Category extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -33,7 +33,7 @@ class AdRate extends React.Component {
 
   render() {
     return (
-      <div>6</div>
+      <div>2</div>
     );
   }
 }
@@ -42,7 +42,7 @@ class AdRate extends React.Component {
 // PropTypes
 // ==================
 
-AdRate.propTypes = {
+Category.propTypes = {
   location: P.any,
   history: P.any,
 };
@@ -53,9 +53,8 @@ AdRate.propTypes = {
 
 export default connect(
   (state) => ({
-
   }), 
   (dispatch) => ({
     actions: bindActionCreators({}, dispatch),
   })
-)(AdRate);
+)(Category);

@@ -1,4 +1,4 @@
-/* Facility 数据统计/设备统计 */
+/* HomeProd 运营中心/首页产品管理 */
 
 // ==================
 // 所需的各种插件
@@ -20,7 +20,7 @@ import P from 'prop-types';
 // ==================
 // Definition
 // ==================
-class Facility extends React.Component {
+class HomeProd extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -33,7 +33,7 @@ class Facility extends React.Component {
 
   render() {
     return (
-      <div>7</div>
+      <div>1</div>
     );
   }
 }
@@ -42,7 +42,7 @@ class Facility extends React.Component {
 // PropTypes
 // ==================
 
-Facility.propTypes = {
+HomeProd.propTypes = {
   location: P.any,
   history: P.any,
 };
@@ -57,4 +57,4 @@ export default connect(
   (dispatch) => ({
     actions: bindActionCreators({}, dispatch),
   })
-)(Facility);
+)(HomeProd);

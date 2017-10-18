@@ -1,4 +1,5 @@
-/* Order 数据统计/体检中心预约 */
+/* FeedBack 运营中心/用户反馈 */
+
 
 // ==================
 // 所需的各种插件
@@ -20,7 +21,7 @@ import P from 'prop-types';
 // ==================
 // Definition
 // ==================
-class Order extends React.Component {
+class FeedBack extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -33,7 +34,7 @@ class Order extends React.Component {
 
   render() {
     return (
-      <div>5</div>
+      <div>7</div>
     );
   }
 }
@@ -42,7 +43,7 @@ class Order extends React.Component {
 // PropTypes
 // ==================
 
-Order.propTypes = {
+FeedBack.propTypes = {
   location: P.any,
   history: P.any,
 };
@@ -57,4 +58,4 @@ export default connect(
   (dispatch) => ({
     actions: bindActionCreators({}, dispatch),
   })
-)(Order);
+)(FeedBack);

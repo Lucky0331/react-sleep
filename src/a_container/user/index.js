@@ -41,7 +41,10 @@ class UserContainer extends React.Component {
   }
 
   componentDidMount() {
-    console.log('用户中心进入:', this.props);
+    // 为了同步路由和Menu的高亮选择，进入时如果有子路由，就保存一下
+    if (this.props.location.pathname.split('/')[2]) {
+      this.props.actions.saveURL(this.props.location.pathname);
+    }
   }
 
   render() {

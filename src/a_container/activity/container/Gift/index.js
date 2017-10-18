@@ -1,4 +1,4 @@
-/* Funcrate 数据统计/功能点击率 */
+/* Gift 积分活动/积分礼品 */
 
 // ==================
 // 所需的各种插件
@@ -20,7 +20,7 @@ import P from 'prop-types';
 // ==================
 // Definition
 // ==================
-class Funcrate extends React.Component {
+class Gift extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -33,7 +33,7 @@ class Funcrate extends React.Component {
 
   render() {
     return (
-      <div>4</div>
+      <div>1</div>
     );
   }
 }
@@ -42,7 +42,7 @@ class Funcrate extends React.Component {
 // PropTypes
 // ==================
 
-Funcrate.propTypes = {
+Gift.propTypes = {
   location: P.any,
   history: P.any,
 };
@@ -57,4 +57,4 @@ export default connect(
   (dispatch) => ({
     actions: bindActionCreators({}, dispatch),
   })
-)(Funcrate);
+)(Gift);

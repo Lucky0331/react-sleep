@@ -40,6 +40,12 @@ import User from '../user';
 import Device from '../device';
 import Health from '../health';
 import DataStat from '../datastat';
+import Operate from '../operate';
+import Physical from '../physical';
+import Log from '../log';
+import Cost from '../cost';
+import Open from '../open';
+import Activity from '../activity';
 
 import Test from '../test';
 import NotFound from '../notfound';
@@ -79,12 +85,12 @@ class RootContainer extends React.Component {
               <Route path="/user" render={(props) => this.onEnter(User, props)} />
               <Route path="/health" render={(props) => this.onEnter(Health, props)} />
               <Route path="/data" render={(props) => this.onEnter(DataStat, props)} />
-              <Route path="/operate" render={(props) => this.onEnter(Home, props)} />
-              <Route path="/physical" render={(props) => this.onEnter(Home, props)} />
-              <Route path="/log" render={(props) => this.onEnter(Home, props)} />
-              <Route path="/cost" render={(props) => this.onEnter(Home, props)} />
-              <Route path="/open" render={(props) => this.onEnter(Home, props)} />
-              <Route path="/activity" render={(props) => this.onEnter(Home, props)} />
+              <Route path="/operate" render={(props) => this.onEnter(Operate, props)} />
+              <Route path="/physical" render={(props) => this.onEnter(Physical, props)} />
+              <Route path="/log" render={(props) => this.onEnter(Log, props)} />
+              <Route path="/cost" render={(props) => this.onEnter(Cost, props)} />
+              <Route path="/open" render={(props) => this.onEnter(Open, props)} />
+              <Route path="/activity" render={(props) => this.onEnter(Activity, props)} />
               <Route component={NotFound} />
             </Switch>
         </div>
