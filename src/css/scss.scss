@@ -60,88 +60,6 @@ $blue-a: #67DAF9; // 标准蓝色active
 	}
 }
 
-/* home页样式 */
-.page-home{
-	padding:100px 0 0 0;
-	.box{
-		margin:0 auto;
-		text-align:center;
-		.title{
-			font-size:24px;
-		}
-		.info{
-			margin-top:10px;
-			color:#888;
-		}
-		.link{
-			margin-top:40px;
-			font-size:12px;
-			color:#888;
-			a{
-				color:#888;
-				text-decoration: none;
-				&:hover{
-					text-decoration: underline;
-				}
-			}
-		}
-	}
-}
-
-/* 构建与特性页样式 */
-.page-features{
-	width:100%;
-	max-width:1200px;
-	margin:0 auto;
-	padding:40px;
-	letter-spacing: 1px;
-	.box{
-		margin-top:40px;
-		.list{
-			margin-bottom: 20px;
-			p{
-				font-size:14px;
-				padding: 5px 10px;
-				margin:10px 0;
-				background-color:#eeeeff;
-			}
-			div{
-				color:#888;
-				font-size:12px;
-			}
-		}
-	}
-}
-
-/* Test页样式 */
-.page-test{
-	width:100%;
-	max-width:1200px;
-	margin:0 auto;
-	padding:40px;
-	letter-spacing: 1px;
-	.box{
-		margin-top:40px;
-		.list{
-			margin-bottom: 20px;
-			p{
-				font-size:14px;
-				padding: 5px 10px;
-				margin:10px 0;
-				background-color:#eeeeff;
-			}
-			div{
-				color:#888;
-				font-size:12px;
-			}
-		}
-		.son-test{
-			a{
-				margin-right: 5px;
-			}
-		}
-	}
-}
 
 /* 404页样式 */
 .page-notfound{
@@ -154,9 +72,4 @@ $blue-a: #67DAF9; // 标准蓝色active
 		font-size: 16px;
 		color: #888;
 	}
-}
-
-/* son页测试 */
-.son{
-	padding: 20px;
 }

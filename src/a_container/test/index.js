@@ -15,8 +15,6 @@ import { bindActionCreators } from 'redux';
 // 所需的所有组件
 // ==================
 
-import ImgTest from '../../assets/test.jpg';
-import Mp3 from '../../assets/starSky.mp3';
 import Header from '../../a_component/header';
 import Page1 from './container/page1';
 import Page2 from './container/page2';
@@ -97,7 +95,6 @@ class TestPageContainer extends React.Component {
                 <div className="box">
                     <div className="list">
                         <h2>引入图片</h2>
-                        <p><img src={ImgTest} style={{ height: '150px' }}/></p>
                     </div>
                     <div className="list">
                         <h2>引入其他种类的资源</h2>

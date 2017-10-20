@@ -63,7 +63,7 @@ class RootContainer extends React.Component {
   onEnter(Component, props) {
     console.log('权限控制：', props);
     // 如果没有登陆，直接跳转至login页
-    if (sessionStorage.getItem('user')) {
+    if (sessionStorage.getItem('adminUser')) {
       return <Component {...props} />;
     } else {
       return <Redirect to='/login' />;

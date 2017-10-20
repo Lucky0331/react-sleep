@@ -13,19 +13,35 @@ export function onTestAdd(num) {
 // 用户登录
 export function onLogin(params) {
     console.log('用户登录参数：', params);
-    return (dispatch) => {
-        return new Promise((resolve, reject) => {
-            if (params) {
-                setTimeout(()=>{resolve({username: params.username, id: 1, mail: '10000@qq.com'});},2000);
+    // return (dispatch) => {
+    //     return new Promise((resolve, reject) => {
+    //         if (params) {
+    //             setTimeout(()=>{resolve({username: params.username, id: 1, mail: '10000@qq.com'});},2000);
 
-                sessionStorage.setItem('user', JSON.stringify({username: params.username, id: 1, mail: '10000@qq.com'}));
-                dispatch({
-                    type: 'APP::LOGIN',
-                    payload: {username: params.username, id: 1, mail: '10000@qq.com'},
-                });
-            } else {
-                reject('error');
-            }
+    //             sessionStorage.setItem('user', JSON.stringify({username: params.username, id: 1, mail: '10000@qq.com'}));
+    //             dispatch({
+    //                 type: 'APP::LOGIN',
+    //                 payload: {username: params.username, id: 1, mail: '10000@qq.com'},
+    //             });
+    //         } else {
+    //             reject('error');
+    //         }
+    //     });
+    // };
+    return (dispatch) => {
+      return Fetchapi.newPost(
+        '/admin/submitLogin', params
+      ).then(
+          msg => {
+            console.log('返回数据', msg);
+            dispatch({
+              type: 'APP::LOGIN',
+              payload: msg,
+            });
+            return msg;
+          }
+        ).catch(() => {
+          message.error('网络错误，请重试');
         });
     };
 }
@@ -61,7 +77,7 @@ export function fetchApi(params) {
 export function testPromise(params) {
   return (dispatch) => {
       return new Promise((resolve, reject) => {
-        if (params === 1) {
+        if (params) {
           resolve('success');
           dispatch({
               type: 'TEST::add',
@@ -70,6 +86,8 @@ export function testPromise(params) {
         } else {
           reject('error');
         }
+      }).then((msg)=>{
+          console.log('Promise中得到数据：', msg);
       });
     };
 }

@@ -23,7 +23,7 @@ import LogoImg from '../../assets/logo.png';
 // 本页面所需action
 // ==================
 
-import { onLogin } from '../../a_action/app-action';
+import { onLogin, testPromise } from '../../a_action/app-action';
 
 // ==================
 // Definition
@@ -74,18 +74,23 @@ class LoginContainer extends React.Component {
       this.setState({
           loginLoading: true,
       });
-      this.props.actions.onLogin({username: values.username, password: values.password}).then((res) => {
-        if (res) {
-          message.success('登录成功');
+      this.props.actions.onLogin({userName: values.username, password: values.password}).then((res) => {
+        console.log('登录返回数据：', res);
+        if (res.returnCode === '0') {
+          // 用户的基本信息和角色信息会在session中保存一份，store中也会保存一份
+          sessionStorage.setItem('adminUser', JSON.stringify(res.messsageBody.adminUser)); // 保存用户基础信息
+          sessionStorage.setItem('adminRole', JSON.stringify(res.messsageBody.adminRole)); // 保存用户角色信息
           // 如果选择了记住密码，用户名和密码加密保存到localStorage,否则清除
-            if (this.state.rememberPassword) {
-                localStorage.setItem('userLoginInfo', JSON.stringify({username: values.username, password: all.compile(values.password)}));
-            } else {
-              localStorage.removeItem('userLoginInfo');
-            }
+          if (this.state.rememberPassword) {
+              localStorage.setItem('userLoginInfo', JSON.stringify({username: values.username, password: all.compile(values.password)})); // 保存用户名和密码
+          } else {
+            localStorage.removeItem('userLoginInfo');
+          }
+          message.success('登录成功');
           this.props.history.push('/home');
         } else {
-          message.error('登录失败，请重试');
+          console.log('res.returnMessage :', res, res.returnMessaage);
+          message.error(res.returnMessaage || '登录失败111，请重试');
           this.setState({
             loginLoading: false
           });
@@ -222,6 +227,6 @@ export default connect(
   (state) => ({
   }), 
   (dispatch) => ({
-    actions: bindActionCreators({ onLogin }, dispatch),
+    actions: bindActionCreators({ onLogin, testPromise }, dispatch),
   })
 )(WrappedHorizontalLoginForm);
