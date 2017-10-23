@@ -53,13 +53,13 @@ class Cost extends React.Component {
                 onSelect={(e)=>this.props.actions.saveURL(e.key)}
               >
                 <Menu.Item key="/cost/recharge">
-                  <Link to='/cost/recharge'>用户登录日志</Link>
+                  <Link to='/cost/recharge'>充值记录</Link>
                 </Menu.Item>
                 <Menu.Item key="/cost/arrears">
-                  <Link to='/cost/arrears'>预警日志</Link>
+                  <Link to='/cost/arrears'>欠费记录</Link>
                 </Menu.Item>
                 <Menu.Item key="/cost/balance">
-                  <Link to='/cost/balance'>管理员操作日志</Link>
+                  <Link to='/cost/balance'>余额查询</Link>
                 </Menu.Item>
               </Menu>
             </div>

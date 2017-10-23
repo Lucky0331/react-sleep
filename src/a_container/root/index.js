@@ -47,7 +47,6 @@ import Cost from '../cost';
 import Open from '../open';
 import Activity from '../activity';
 
-import Test from '../test';
 import NotFound from '../notfound';
 
 import Header from '../../a_component/header';

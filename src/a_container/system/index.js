@@ -10,6 +10,7 @@ import { Link, BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
 import { Menu } from 'antd';
+import './index.scss';
 // ==================
 // 所需的所有组件
 // ==================
@@ -19,6 +20,8 @@ import MenuContainer from './container/menu';
 import Organization from './container/organization';
 import Role from './container/role';
 import Version from './container/version';
+
+import UrlBread from '../../a_component/urlBread';
 
 // ==================
 // 本页面所需action

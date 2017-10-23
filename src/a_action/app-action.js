@@ -54,24 +54,6 @@ export function saveURL(url) {
   };
 }
 
-// Fetchapi 异步请求测试
-export function fetchApi(params) {
-  return (dispatch) => {
-      return Fetchapi.newPost(
-        'url', params
-      ).then(
-          msg => {
-            console.log('返回数据', msg);
-            dispatch({
-              type: 'TEST::testFetch',
-              payload: msg,
-            });
-          }
-        ).catch(() => {
-          message.error('网络错误，请重试');
-        });
-    };
-}
 
 // promise测试
 export function testPromise(params) {

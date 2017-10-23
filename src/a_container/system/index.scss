@@ -1,0 +1,51 @@
+.page-system{
+  .system-search{
+    margin:0 10px;
+    border: solid 1px #ccc;
+    padding: 8px;
+    border-radius: 4px;
+    .ant-divider{
+      margin: 0 20px;
+    }
+  }
+  .search-func{
+    display: inline-block;
+  }
+  .search-ul{
+    display: inline-block;
+    &>li{
+      display: inline-block;
+      padding: 0 4px;
+    }
+  }
+  .system-table{
+    margin:10px 10px 0 10px;
+    border: solid 1px #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+    .control-query{
+      color: #33cc33;
+      cursor: pointer;
+      &:hover{
+        text-decoration: underline;
+      }
+    }
+    .control-update{
+      color: #33cc33;
+      cursor: pointer;
+      &:hover{
+        text-decoration: underline;
+      }
+    }
+    .control-delete{
+      color: #ff3333;
+      cursor: pointer;
+      &:hover{
+        text-decoration: underline;
+      }
+    }
+    .ant-pagination{
+      margin-right: 20px;
+    }
+  }
+}

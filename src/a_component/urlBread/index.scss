@@ -1,0 +1,14 @@
+.url-bread{
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  font-size: 12px;
+  .l, .r{
+    float: left;
+  }
+  .l{
+    i{
+      color: #64E508;
+    }
+  }
+}

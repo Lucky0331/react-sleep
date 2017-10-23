@@ -1,6 +1,6 @@
 // ============================================
 // ============================================
-// Import modules
+// 各模块通用API
 
 const initState = {
   systemURL: null, // system 当前子路由选中哪一个
@@ -82,11 +82,6 @@ const saveURL = (state, action) => {
 
 const reducerFn = (state = initState, action) => {
   switch (action.type) {
-  // 进入主页时，初始化左边box数据
-  case 'TEST::add':
-    return testAdd(state, action);
-  case 'TEST::testFetch':
-    return testFetch(state, action);
   case 'APP::saveURL': // 各模块下子路由改变时，保存路由状态
     return saveURL(state, action);
   default:

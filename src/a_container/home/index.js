@@ -20,7 +20,7 @@ import LogoImg2 from '../../assets/logo-2.png';
 // 本页面所需action
 // ==================
 
-
+import { findAllMenu } from '../../a_action/sys-action';
 // ==================
 // Definition
 // ==================
@@ -36,6 +36,7 @@ class HomePageContainer extends React.Component {
     this.setState({
       show: true,
     });
+    this.props.actions.findAllMenu();
   }
 
   render() {
@@ -66,6 +67,7 @@ class HomePageContainer extends React.Component {
 HomePageContainer.propTypes = {
   location: P.any,
   history: P.any,
+  actions: P.any,
 };
 
 // ==================
@@ -76,6 +78,6 @@ export default connect(
   (state) => ({
   }), 
   (dispatch) => ({
-    actions: bindActionCreators({}, dispatch),
+    actions: bindActionCreators({ findAllMenu }, dispatch),
   })
 )(HomePageContainer);
