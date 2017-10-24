@@ -9,7 +9,6 @@ export function findAllMenu() {
         '/menu/findAllMenu', null
       ).then(
           msg => {
-            console.log('返回数据', msg);
             dispatch({
               type: 'SYS::findAllMenu',
               payload: msg,
@@ -22,16 +21,129 @@ export function findAllMenu() {
     };
 }
 
-// 查询所有用户
+// 查询所有用户（内部用户）
 export function findAll() {
     return (dispatch) => {
         return Fetchapi.newPost(
             '/user/findAll', null
         ).then(
             msg => {
-                console.log('返回数据', msg);
                 dispatch({
                     type: 'SYS::findAll',
+                    payload: msg,
+                });
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 添加用户（内部用户）
+export function addAdminUserInfo(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/user/addAdminUserInfo', params
+        ).then(
+            msg => {
+                dispatch({
+                    type: 'SYS::addAdminUserInfo',
+                    payload: msg,
+                });
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 删除用户（内部用户）
+export function deleteAdminUserInfo(params) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/user/deleteAdminUserInfo', params
+        ).then(
+            msg => {
+                dispatch({
+                    type: 'SYS::deleteAdminUserInfo',
+                    payload: msg,
+                });
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 修改用户（内部用户）
+export function updateAdminUserInfo(params) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/user/updateAdminUserInfo', params
+        ).then(
+            msg => {
+                dispatch({
+                    type: 'SYS::updateAdminUserInfo',
+                    payload: msg,
+                });
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 获取所有角色
+export function findAllRole() {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/role/findAllRole', {}
+        ).then(
+            msg => {
+                dispatch({
+                    type: 'SYS::findAllRole',
+                    payload: msg,
+                });
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 给用户分配角色
+export function assigningRole() {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/role/AssigningRole', {}
+        ).then(
+            msg => {
+                dispatch({
+                    type: 'SYS::assigningRole',
+                    payload: msg,
+                });
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 根据用户ID查询当前用户所拥有的角色
+export function findAllRoleByUserId(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/role/findAllRoleByUserId', params
+        ).then(
+            msg => {
+                dispatch({
+                    type: 'SYS::findAllRoleByUserId',
                     payload: msg,
                 });
                 return msg;

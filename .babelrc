@@ -2,18 +2,23 @@
   "presets": [
     "babel-preset-react",
     [
-      'babel-preset-env',
+      "babel-preset-env",
       {
-        modules: false,
-        targets: {
-          ie9: true
+        "modules": false,
+        "targets": {
+         "ie9": true
         },
-        uglify: true
+        "uglify": true
       }
     ]
   ],
   "plugins": [
-	"transform-runtime",
+    ["transform-runtime", {
+      "helpers": false,
+      "polyfill": false,
+      "regenerator": true,
+      "moduleName": "babel-runtime"
+    }],
     "transform-decorators-legacy",
     [
       "import",

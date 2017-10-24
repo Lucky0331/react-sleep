@@ -24,14 +24,14 @@
     border-radius: 4px;
     overflow: hidden;
     .control-query{
-      color: #33cc33;
+      color: green;
       cursor: pointer;
       &:hover{
         text-decoration: underline;
       }
     }
     .control-update{
-      color: #33cc33;
+      color: green;
       cursor: pointer;
       &:hover{
         text-decoration: underline;
@@ -46,6 +46,9 @@
     }
     .ant-pagination{
       margin-right: 20px;
+    }
+    td{
+      max-width: 250px;
     }
   }
 }

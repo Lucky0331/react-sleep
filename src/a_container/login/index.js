@@ -160,7 +160,6 @@ class LoginContainer extends React.Component {
                   rules: [
                   { validator: (rule, value, callback) => {
                       const v = all.trim(value);
-                      console.log('重新校验了吗：',v.toLowerCase(), me.state.codeValue.toLowerCase());
                       if (v) {
                         if (v.length > 4) {
                           callback('验证码为4位字符');

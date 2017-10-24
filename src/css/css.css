@@ -3,6 +3,8 @@
     -webkit-overflow-scrolling: touch;			/* 允许独立滚动区域，解决IOS上的非body元素滚动条滚动时卡顿 */
     -webkit-tap-highlight-color: transparent;	/* 覆盖IOS上用户点击连接时的默认高亮颜色 */
     outline: none;
+    word-break:break-all;
+    word-wrap:break-word;
 }
 
 body{
