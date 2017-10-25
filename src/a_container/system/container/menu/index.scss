@@ -1,0 +1,53 @@
+.page-menu{
+  .menubox{
+    padding: 0 0 20px 0;
+    .l{
+      float: left;
+      width: 400px;
+      box-sizing: border-box;
+      border: solid 1px #ccc;
+      margin: 0 0 0 10px;
+      height: auto;
+      border-radius: 4px;
+      .title{
+        border-bottom: solid 1px #ccc;
+        background-color: #f7f7f7;
+        height: 40px;
+        line-height: 40px;
+        box-sizing: border-box;
+        font-size: 14px;
+        padding: 0 10px;
+      }
+    }
+    .r{
+      float: left;
+      width: calc(100% - 480px);
+      margin-left: 50px;
+      margin-right: 10px;
+      .title{
+        height: 40px;
+        line-height: 40px;
+        box-sizing: border-box;
+        font-size: 14px;
+        padding: 0 10px;
+        border-bottom: solid 1px #ccc;
+      }
+      .control{
+        padding: 10px 0;
+        button{
+          margin-right: 8px;
+        }
+      }
+      .forms{
+        .forms-box{
+          width: 80%;
+          max-width: 400px;
+          display: none;
+          &.show{
+            display: block;
+          }
+        }
+      }
+    }
+  }
+}

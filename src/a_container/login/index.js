@@ -37,6 +37,7 @@ class LoginContainer extends React.Component {
       loginLoading: false, // 是否处于正在登陆状态
       rememberPassword: false, // 是否记住密码
       codeValue: '00000', // 当前验证码的值
+      show: false,  // 加载完毕时触发动画
     };
   }
 
@@ -63,6 +64,9 @@ class LoginContainer extends React.Component {
         } else {
           document.getElementById('vcode').focus();
         }
+      this.setState({
+          show: true,
+      });
   }
   // 用户提交登陆
   onSubmit() {
@@ -126,7 +130,7 @@ class LoginContainer extends React.Component {
     const { getFieldDecorator } = this.props.form;
     return (
       <div className="page-login">
-        <div className="login-box">
+        <div className={this.state.show ? 'login-box all_trans500 show' : 'login-box all_trans'}>
           <Form>
             <div className="title"><img src={LogoImg} alt="logo"/></div>
             <div>

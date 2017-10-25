@@ -307,19 +307,22 @@ class Manager extends React.Component {
                 key: 'control',
                 width: 200,
                 render: (text, record) => {
-                    return (
-                        [
-                            <span key="0" className="control-query" onClick={() => this.onQueryClick(record)}>查看</span>,
-                            <span key="line1" className="ant-divider" />,
-                            <span key="1" className="control-update" onClick={() => this.onUpdateClick(record)}>修改</span>,
-                            <span key="line2" className="ant-divider" />,
-                            <span key="2" className="control-update" onClick={() => this.onRoleTreeShow(record)} >分配角色</span>,
-                            <span key="line3" className="ant-divider" />,
-                            <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.adminUserId)} okText="确定" cancelText="取消">
-                                <span className="control-delete">删除</span>
-                            </Popconfirm>
-                        ]
-                    );
+                    let controls = [
+                        <span key="0" className="control-query" onClick={() => this.onQueryClick(record)}>查看</span>,
+                        <span key="line1" className="ant-divider" />,
+                        <span key="1" className="control-update" onClick={() => this.onUpdateClick(record)}>修改</span>,
+                        <span key="line2" className="ant-divider" />,
+                        <span key="2" className="control-update" onClick={() => this.onRoleTreeShow(record)} >分配角色</span>,
+                        <span key="line3" className="ant-divider" />,
+                        <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.adminUserId)} okText="确定" cancelText="取消">
+                            <span className="control-delete">删除</span>
+                        </Popconfirm>
+                    ];
+
+                    if (text.adminUserId === 1) {
+                        controls.splice(-2, 2);
+                    }
+                    return controls;
                 },
             }
         ];
@@ -752,6 +755,12 @@ class Manager extends React.Component {
                       {...formItemLayout}
                   >
                       {!!this.state.nowData ? this.state.nowData.userName : ''}
+                  </FormItem>
+                  <FormItem
+                      label="ID"
+                      {...formItemLayout}
+                  >
+                      {!!this.state.nowData ? this.state.nowData.adminUserId : ''}
                   </FormItem>
                   <FormItem
                       label="性别"

@@ -153,3 +153,48 @@ export function findAllRoleByUserId(params = {}) {
         });
     };
 }
+
+// 添加菜单
+export function addMenuInfo(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/menu/addMenuInfo', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 修改菜单
+export function updateMenuInfo(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/menu/updateMenuInfo', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 删除菜单
+export function deleteMenuInfo(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/menu/deleteMenuInfo', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}

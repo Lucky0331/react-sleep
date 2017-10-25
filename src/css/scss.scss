@@ -10,7 +10,9 @@ $blue-a: #67DAF9; // 标准蓝色active
 
 /* 所有内部页面统一基础样式 */
 .allpage{
-	min-height: calc(100vh - 65px);
+	min-height: calc(100vh - 75px);
+	padding-bottom: 10px;
+	box-sizing: border-box;
 	.left{
 		position: absolute;
 		top: 0;
@@ -63,7 +65,7 @@ $blue-a: #67DAF9; // 标准蓝色active
 
 /* 404页样式 */
 .page-notfound{
-	height: calc(100vh - 62px);
+	height: calc(100vh - 75px);
 	.box{
 		position: absolute;
 		top: 40%;

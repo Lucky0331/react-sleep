@@ -34,7 +34,7 @@ module.exports = {
     },
     output: {
         publicPath: '/',                         // 这是在启动webpack-dev-server时，index.html中引用的路径应该相对于此路径
-        path: __dirname+ '/', //path.resolve(__dirname, '/'),      // 将打包好的文件放在此路径下，dev模式中，只会在内存中存在，不会真正的打包到此路径，只有在真正执行打包命令时，才会生成到此路径中
+        path: __dirname, //path.resolve(__dirname, '/'),      // 将打包好的文件放在此路径下，dev模式中，只会在内存中存在，不会真正的打包到此路径，只有在真正执行打包命令时，才会生成到此路径中
         filename: 'bundle.js'                       //编译后的文件名字
     },
     devtool: 'source-map',     // 正确的输出代码行数
@@ -101,7 +101,6 @@ module.exports = {
             verbose: true
         }),
         new webpack.HotModuleReplacementPlugin(),   // 热更新插件
-        new webpack.optimize.ModuleConcatenationPlugin(), // 作用域提升，优化打包
         new webpack.NoEmitOnErrorsPlugin()
     ],
     resolve: {
