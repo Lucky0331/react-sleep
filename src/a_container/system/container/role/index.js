@@ -16,12 +16,13 @@ import tools from '../../../../util/tools';
 // ==================
 
 import UrlBread from '../../../../a_component/urlBread';
+import MenuTree from '../../../../a_component/menuTree';
 
 // ==================
 // 本页面所需action
 // ==================
 
-import { findAllRole, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo } from '../../../../a_action/sys-action';
+import { findAllRole, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllMenu, findAllMenuByRoleId } from '../../../../a_action/sys-action';
 
 // ==================
 // Definition
@@ -37,10 +38,12 @@ class Role extends React.Component {
             searchUserName: '',
             addnewModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
             addnewLoading: false, // 是否正在添加新用户中
-            nowData: null, // 当前选中用户的信息，用于查看详情
+            nowData: null, // 当前选中用户的信息，用于查看详情、修改、分配菜单
             queryModalShow: false, // 查看详情模态框是否显示
             upModalShow: false, // 修改用户模态框是否显示
             upLoading: false, // 是否正在修改用户中
+            menuTreeShow: false, // 菜单树是否显示
+            menuDefaultKeys: [], // 用于菜单树，默认需要选中的项
         };
     }
 
@@ -61,6 +64,17 @@ class Role extends React.Component {
             }
         });
     }
+
+    // 获取当前用户已分配的菜单权限
+    getNowRoleTree(id) {
+        this.props.actions.findAllMenuByRoleId({roleId: `${id}`}).then((res) => {
+            if (res.returnCode === "0") {
+                console.log('当前角色所拥有的菜单：', res);
+                const defaultChecked = res.messageBody.map((item) => item.roleId);
+            }
+        });
+    }
+
     // 搜索 - 用户名输入框值改变时触发
     searchUserNameChange(e) {
         if (e.target.value.length < 20) {
@@ -254,6 +268,22 @@ class Role extends React.Component {
         });
     }
 
+    // 分配菜单按钮点击，菜单出现
+    onMenuClick(record) {
+        this.getNowRoleTree(record.roleId);
+        this.setState({
+            nowData: record,
+            menuTreeShow: true,
+        });
+    }
+
+    // 关闭菜单树
+    onMenuTreeClose() {
+        this.setState({
+            menuTreeShow: false,
+        });
+    }
+
     // 构建字段
     makeColumns(){
         const columns = [
@@ -276,7 +306,7 @@ class Role extends React.Component {
                 title: '菜单权限',
                 dataIndex: 'menus',
                 key: 'menus',
-                render: (text, record) => text.join(),
+                render: (text, record) => text.join(','),
             },
             {
                 title: '操作',
@@ -289,7 +319,9 @@ class Role extends React.Component {
                           <span key="line1" className="ant-divider" />,
                           <span key="1" className="control-update" onClick={() => this.onUpdateClick(record)}>修改</span>,
                           <span key="line2" className="ant-divider" />,
-                          <Popconfirm key="2" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.adminUserId)} okText="确定" cancelText="取消">
+                          <span key="2" className="control-update" onClick={() => this.onMenuClick(record)}>分配菜单</span>,
+                          <span key="line3" className="ant-divider" />,
+                          <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.adminUserId)} okText="确定" cancelText="取消">
                             <span className="control-delete">删除</span>
                           </Popconfirm>
                         ]
@@ -309,7 +341,6 @@ class Role extends React.Component {
                 roleName: item.roleName,
                 roleDuty: item.roleDuty,
                 menus: item.menus,
-                roleDuty: item.roleDuty,
                 control: item.roleId,
             }
         });
@@ -721,7 +752,7 @@ class Role extends React.Component {
                       label="菜单权限"
                       {...formItemLayout}
                   >
-                      {!!this.state.nowData ? 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' : ''}
+                      {!!this.state.nowData ? this.state.nowData.menus.join(',') : ''}
                   </FormItem>
                   <FormItem
                       label="创建时间"
@@ -749,6 +780,13 @@ class Role extends React.Component {
                 </FormItem>
                 </Form>
               </Modal>
+                {/* 菜单树 */}
+                <MenuTree
+                    menuData={this.props.allMenu}
+                    modalShow={this.state.menuTreeShow}
+                    actions={this.props.actions}
+                    onClose={() => this.onMenuTreeClose()}
+                />
             </div>
         );
     }
@@ -762,6 +800,7 @@ Role.propTypes = {
     location: P.any,
     history: P.any,
     actions: P.any,
+    allMenu: P.any,
 };
 
 // ==================
@@ -770,9 +809,9 @@ Role.propTypes = {
 const WrappedHorizontalRole = Form.create()(Role);
 export default connect(
     (state) => ({
-
+        allMenu: state.sys.allMenu,
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findAllRole, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo }, dispatch),
+        actions: bindActionCreators({ findAllRole, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllMenu, findAllMenuByRoleId }, dispatch),
     })
 )(WrappedHorizontalRole);

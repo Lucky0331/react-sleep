@@ -105,9 +105,12 @@ class Menu extends React.Component {
     // 处理原始数据，将原始数据处理为层级关系
     makeSourceData(data) {
       const d = _.cloneDeep(data);
-
-      const sourceData = d.map((item) => {
-        return this.dataToJson(d, item);
+      const sourceData = [];
+       d.forEach((item) => {
+           if (!item.parentId && item.parentId !== 0) {
+               const temp = this.dataToJson(d, item);
+               sourceData.push(temp);
+           }
       });
       console.log('jsonMenu是什么：', sourceData);
       this.setState({
@@ -273,7 +276,7 @@ class Menu extends React.Component {
                   defaultExpandedKeys={['yimao']}
                   onSelect={(selectedKeys, e) => this.onTreeSelect(selectedKeys, e)}
               >
-                <TreeNode title="翼猫科技智能睡眠系统" key="yimao">
+                <TreeNode title="翼猫科技智能睡眠系统" key="yimao" data={{}}>
                   { this.makeTreeDom(this.state.sourceData) }
                 </TreeNode>
               </Tree>
@@ -350,7 +353,7 @@ class Menu extends React.Component {
                   >
                       {getFieldDecorator('upParentId', {
                           initialValue: undefined,
-                          rules: [{max: 12, message: '最大长度为12个字符'}],
+                          rules: [],
                       })(
                           <Input placeholder="请输入父级ID" />
                       )}

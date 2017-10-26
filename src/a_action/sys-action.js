@@ -139,7 +139,10 @@ export function assigningRole() {
 export function findAllRoleByUserId(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/role/findAllRoleByUserId', params
+            '/role/findAllRoleByUserId', Object.assign({}, params, {
+                pageNum: 0,
+                pageSize: 100,
+            })
         ).then(
             msg => {
                 dispatch({
@@ -189,6 +192,21 @@ export function deleteMenuInfo(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
             '/menu/deleteMenuInfo', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 根据角色ID查询当前角色所分配的菜单
+export function findAllMenuByRoleId(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/menu/findAllMenuByRoleId', params
         ).then(
             msg => {
                 return msg;

@@ -1,0 +1,9 @@
+.role-tree{
+  .ant-tree-checkbox{
+    width: 200px;
+    z-index: 2;
+  }
+  .ant-tree-node-content-wrapper{
+    transform: translateX(-185px);
+  }
+}
