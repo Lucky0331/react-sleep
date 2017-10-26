@@ -2,14 +2,13 @@ import reqwest from 'reqwest';
 import config from '../config/config.js';
 
 export default class ApiService {
-  static newPost(url, bodyObj = {}) {
-    console.log('URL:', config.baseURL);
+  static newPost(url, bodyObj = {}, type = 'post') {
     return reqwest({
       url:`${config.baseURL}${url}`,
-      method: 'post',
+      method: type,
       contentType: 'application/json',
       crossOrigin: true,
-      data: JSON.stringify(bodyObj),
+      data: bodyObj,
       dataType: 'json',
     });
   }

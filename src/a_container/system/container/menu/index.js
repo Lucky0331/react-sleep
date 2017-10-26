@@ -17,6 +17,7 @@ import tools from '../../../../util/tools';
 // ==================
 
 import UrlBread from '../../../../a_component/urlBread';
+import MenuTree from '../../../../a_component/menuTree';
 
 // ==================
 // 本页面所需action
@@ -40,11 +41,13 @@ class Menu extends React.Component {
       sourceData: [], // 经过处理的原始数据
       addLoading: false, // 是否正在增加菜单中
       controlType: -1, // 显示添加子菜单还是显示修改当前菜单信息 0 修改信息， 1添加子菜单
+      fatherTreeShow: false, // 选择父级tree是否出现
+      treeFatherValue: null, // 树选择的父级信息
     };
   }
 
   componentDidMount() {
-    if (!this.props.allMenu) {
+    if (!this.props.allMenu || this.props.allMenu.length <= 0) {
         this.getAllMenus();
     } else {
         this.makeSourceData(this.props.allMenu);
@@ -79,7 +82,6 @@ class Menu extends React.Component {
 
    // tree选择某一项
     onTreeSelect(keys, e) {
-      console.log('当前选择：', keys, e);
       const me = this;
       const { form } = me.props;
       if (e.selected) { // 选中时需要重新设置修改Form中的信息
@@ -129,7 +131,6 @@ class Menu extends React.Component {
            child.children.push(sonChild);
         }
       });
-      console.log('child:', child.children);
       if (child.children.length <=0) {
         child.children = null;
       }
@@ -172,7 +173,6 @@ class Menu extends React.Component {
             menuDesc: values.addMenuDesc,
             parentId: (me.state.nowData.node.props.id || me.state.nowData.node.props.id === 0 ) ? `${me.state.nowData.node.props.id}` : null,
         };
-          console.log('添加菜单：', values, params, tools.clearNull(params));
         me.props.actions.addMenuInfo(tools.clearNull(params)).then((res) => {
           if(res.returnCode === "0") {
             message.success('添加成功');
@@ -248,6 +248,27 @@ class Menu extends React.Component {
       this.setState({
           controlType: type,
       });
+    }
+
+    // 选择父级tree出现
+    onFatherShow() {
+       this.setState({
+           fatherTreeShow: true,
+       });
+    }
+
+    // tree选择确定
+    onTreeOk(obj) {
+     this.setState({
+         treeFatherValue: obj,
+         fatherTreeShow: false,
+     });
+    }
+    // tree选择取消
+    onTreeClose() {
+       this.setState({
+           fatherTreeShow: false,
+       });
     }
 
   render() {
@@ -348,15 +369,10 @@ class Menu extends React.Component {
                       )}
                   </FormItem>
                   <FormItem
-                      label="父级ID"
+                      label="父级"
                       {...formItemLayout}
                   >
-                      {getFieldDecorator('upParentId', {
-                          initialValue: undefined,
-                          rules: [],
-                      })(
-                          <Input placeholder="请输入父级ID" />
-                      )}
+                      <Input placeholder="请选择父级" onClick={() => this.onFatherShow()} value={this.state.treeFatherValue ? this.state.treeFatherValue.title : ''}/>
                   </FormItem>
                   <FormItem
                       label="状态"
@@ -470,6 +486,15 @@ class Menu extends React.Component {
             </div>
           </div>
         </div>
+          <MenuTree
+              title="父级选择"
+              menuData={this.props.allMenu} // 所需菜单原始数据
+              defaultKeys={[]}  // 需要配默认选中的想
+              noShowId={this.state.nowData ? this.state.nowData.node.props.id : null}
+              modalShow={this.state.fatherTreeShow} // Modal是否显示
+              onOk={(obj) => this.onTreeOk(obj)} // 确定时，获得选中的项信息
+              onClose={(obj) => this.onTreeClose(obj)} // 关闭
+          />
       </div>
     );
   }

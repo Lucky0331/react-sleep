@@ -219,34 +219,19 @@ class Role extends React.Component {
         const me = this;
         const { form } = me.props;
         form.validateFields([
-            'addnewUsername',
-            'addnewPassword',
-            'addnewSex',
-            'addnewAge',
-            'addnewPhone',
-            'addnewEmail',
-            'addnewOrgCode',
-            'addnewDescription',
+            'addnewRoleName',
+            'addnewRoleDuty',
         ], (err, values) => {
             if (err) { return false; }
-            console.log('检查通过：', values);
             me.setState({
                 addnewLoading: true,
             });
             const params = {
-                userName: values.addnewUsername,
-                password: values.addnewPassword,
-                sex: values.addnewSex,
-                age: values.addnewAge || '',
-                phone: values.addnewPhone || '',
-                email: values.addnewEmail || '',
-                orgCode: values.addnewOrgCode || '',
-                description: values.addnewDescription || '',
-                adminIp: '',
-                conditions: '0',
+                roleName: values.addnewRoleName,
+                roleDuty: values.addnewRoleDuty,
             };
 
-            me.props.actions.addAdminUserInfo(tools.clearNull(params)).then((res) => {
+            me.props.actions.addRoleInfo(tools.clearNull(params)).then((res) => {
                 console.log('添加用户返回数据：', res);
                 me.setState({
                     addnewLoading: false,
@@ -270,7 +255,7 @@ class Role extends React.Component {
 
     // 分配菜单按钮点击，菜单出现
     onMenuClick(record) {
-        this.getNowRoleTree(record.roleId);
+        // this.getNowRoleTree(record.roleId);  // 获取当前role所拥有的菜单，tree中好默认选中
         this.setState({
             nowData: record,
             menuTreeShow: true,
@@ -380,9 +365,9 @@ class Role extends React.Component {
                     dataSource={this.makeData(this.state.data)}
                 />
               </div>
-                {/* 添加用户模态框 */}
+                {/* 添加角色模态框 */}
               <Modal
-                  title='新增用户'
+                  title='新增角色'
                   visible={this.state.addnewModalShow}
                   onOk={() => this.onAddNewOk()}
                   onCancel={() => this.onAddNewClose()}
@@ -390,13 +375,13 @@ class Role extends React.Component {
               >
                 <Form>
                   <FormItem
-                      label="用户名"
+                      label="角色名"
                       {...formItemLayout}
                   >
-                      {getFieldDecorator('addnewUsername', {
+                      {getFieldDecorator('addnewRoleName', {
                           initialValue: undefined,
                           rules: [
-                              {required: true, message: '请输入用户名'},
+                              {required: true, message: '请输入角色名'},
                               { validator: (rule, value, callback) => {
                                   const v = value;
                                   if (v) {
@@ -410,138 +395,23 @@ class Role extends React.Component {
                               }}
                           ],
                       })(
-                          <Input placeholder="用户名" />
+                          <Input placeholder="请输入角色名" />
                       )}
                   </FormItem>
-                  <FormItem
-                      label="密码"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewPassword', {
-                          initialValue: undefined,
-                          rules: [
-                              {required: true, message: '请输入密码'},
-                              { validator: (rule, value, callback) => {
-                                  const v = value;
-                                  if (v) {
-                                      if (v.length > 12) {
-                                          callback('最多输入12位字符');
-                                      } else if (v.length < 6) {
-                                          callback('密码至少6位字符');
-                                      }else if (!tools.checkStr2(v)){
-                                          callback('只能输入字母、数字及下划线');
-                                      }
-                                  }
-                                  callback();
-                              }}
-                          ],
-                      })(
-                          <Input placeholder="密码" type="password"/>
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="性别"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewSex', {
-                          rules: [],
-                          initialValue: 1,
-                      })(
-                          <RadioGroup>
-                            <Radio value={1}>男</Radio>
-                            <Radio value={0}>女</Radio>
-                          </RadioGroup>
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="年龄"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewAge', {
-                          rules: [],
-                          initialValue: undefined,
-                      })(
-                          <InputNumber min={1} max={99} />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="电话"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewPhone', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (!tools.checkPhone(v)) {
-                                      callback('请输入有效的手机号码');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <Input placeholder="请输入手机号码" />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="邮箱"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewEmail', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (!tools.checkEmail(v)) {
-                                      callback('请输入有效的邮箱地址');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <Input placeholder="请输入邮箱地址" />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="组织编号"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewOrgCode', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (v.length > 12) {
-                                      callback('最多输入12个字符');
-                                  } else if (!tools.checkStr3(v)) {
-                                      callback('只能输入数字');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <Input placeholder="请输入组织编号" />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="描述"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewDescription', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (v.length > 100) {
-                                      callback('最多输入100个字符');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <TextArea rows={4} autosize={{minRows: 2, maxRows: 6}} />
-                      )}
-                  </FormItem>
+                    <FormItem
+                        label="职责"
+                        {...formItemLayout}
+                    >
+                        {getFieldDecorator('addnewRoleDuty', {
+                            initialValue: undefined,
+                            rules: [
+                                {required: true, whitespace: true, message: '请输入职责'},
+                                {max: 100, message: '最多输入100个字符'}
+                            ],
+                        })(
+                            <Input placeholder="请输入职责" />
+                        )}
+                    </FormItem>
                 </Form>
               </Modal>
                 {/* 修改用户模态框 */}

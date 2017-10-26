@@ -8,7 +8,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
-import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, InputNumber  } from 'antd';
+import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, InputNumber, Select  } from 'antd';
 import './index.scss';
 import tools from '../../../../util/tools';
 // ==================
@@ -22,7 +22,7 @@ import RoleTree from '../../../../a_component/roleTree';
 // 本页面所需action
 // ==================
 
-import { findAll, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId } from '../../../../a_action/sys-action';
+import { findAll, findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId } from '../../../../a_action/sys-action';
 
 // ==================
 // Definition
@@ -30,12 +30,14 @@ import { findAll, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, fi
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
 const { TextArea } = Input;
+const Option = Select.Option;
 class Manager extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       data: [], // 当前页面全部数据
       searchUserName: '',
+      searchConditions: null,
       addnewModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
       addnewLoading: false, // 是否正在添加新用户中
       nowData: null, // 当前选中用户的信息，用于查看详情
@@ -43,16 +45,26 @@ class Manager extends React.Component {
       upModalShow: false, // 修改用户模态框是否显示
       upLoading: false, // 是否正在修改用户中
       roleTreeShow: false, // 角色树是否显示
+      pageNum: 0, // 当前第几页
+      pageSize: 10, // 每页多少条
+      total: 0, // 数据库总共多少条数据
     };
   }
 
   componentDidMount() {
-    this.onGetData();
+    this.onGetData(this.state.pageNum, this.state.pageSize);
   }
 
   // 查询当前页面所需列表数据
-    onGetData() {
-        this.props.actions.findAll().then((res) => {
+    onGetData(pageNum, pageSize ) {
+        const params = {
+            searchUserName: this.state.searchUserName,
+            searchConditions: this.state.searchConditions,
+            pageNum,
+            pageSize,
+        };
+
+        this.props.actions.findAll(tools.clearNull(params)).then((res) => {
             if(res.returnCode === "0") {
                 this.setState({
                     data: res.messsageBody,
@@ -69,6 +81,14 @@ class Manager extends React.Component {
               searchUserName: e.target.value,
           });
       }
+    }
+
+    // 搜索 - 状态选择框值变化时调用
+    searchConditions(e) {
+      console.log('选择了什么：', e);
+      this.setState({
+          searchConditions: e || null,
+      });
     }
 
    // 修改某一条数据 模态框出现
@@ -95,6 +115,7 @@ class Manager extends React.Component {
 
     // 确定修改某一条数据
     onUpOk() {
+      console.log('NOWDATA:', this.state.nowData);
       const me = this;
       const { form } = me.props;
         form.validateFields([
@@ -114,6 +135,7 @@ class Manager extends React.Component {
                 upLoading: true,
             });
             const params = {
+                id: me.state.nowData.adminUserId,
                 userName: values.upUsername,
                 password: values.upPassword,
                 sex: values.upSex,
@@ -390,7 +412,18 @@ class Manager extends React.Component {
           </ul>
           <span className="ant-divider" />
           <ul className="search-ul">
-            <li><Input placeholder="请输入用户名" onChange={(e) => this.searchUserNameChange(e)} value={this.state.searchUserName}/></li>
+            <li><Input placeholder="用户名" onChange={(e) => this.searchUserNameChange(e)} value={this.state.searchUserName}/></li>
+              <li>
+                  <Select
+                      style={{ width: '150px' }}
+                      placeholder="用户状态"
+                      allowClear
+                      onChange={(e) => this.searchConditions(e)}
+                  >
+                      <Option value="0">启用</Option>
+                      <Option value="-1">禁用</Option>
+                  </Select>
+              </li>
             <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
           </ul>
         </div>
@@ -863,6 +896,6 @@ export default connect(
     allRoles: state.sys.allRoles,
   }), 
   (dispatch) => ({
-    actions: bindActionCreators({ findAll, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId }, dispatch),
+    actions: bindActionCreators({ findAll, findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId }, dispatch),
   })
 )(WrappedHorizontalManager);

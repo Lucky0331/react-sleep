@@ -3,7 +3,7 @@
 // 系统管理模块reducer
 
 const initState = {
-  allMenu: null, // 所有的菜单
+  allMenu: [], // 所有的菜单
   allRoles: [],   // 所有的角色
 };
 

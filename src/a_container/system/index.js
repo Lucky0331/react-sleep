@@ -32,6 +32,7 @@ import { saveURL } from '../../a_action/app-action';
 // ==================
 // Definition
 // ==================
+const MenuItem = Menu.Item;
 class SystemContainer extends React.Component {
   constructor(props) {
     super(props);
@@ -56,21 +57,21 @@ class SystemContainer extends React.Component {
                 selectedKeys={this.props.systemURL ? [this.props.systemURL] : ['/system/manager']}
                 onSelect={(e)=>this.props.actions.saveURL(e.key)}
               >
-                <Menu.Item key="/system/manager">
+                <MenuItem key="/system/manager">
                   <Link to='/system/manager'>管理员信息管理</Link>
-                </Menu.Item>
-                <Menu.Item key="/system/role">
+                </MenuItem>
+                <MenuItem key="/system/role">
                   <Link to='/system/role'>角色管理</Link>
-                </Menu.Item>
-                <Menu.Item key="/system/menu">
+                </MenuItem>
+                <MenuItem key="/system/menu">
                   <Link to='/system/menu'>菜单管理</Link>
-                </Menu.Item>
-                <Menu.Item key="/system/version">
+                </MenuItem>
+                <MenuItem key="/system/version">
                   <Link to='/system/version'>app版本管理</Link>
-                </Menu.Item>
-                <Menu.Item key="/system/organization">
+                </MenuItem>
+                <MenuItem key="/system/organization">
                   <Link to='/system/organization'>组织机构管理</Link>
-                </Menu.Item>
+                </MenuItem>
               </Menu>
             </div>
             <div className='right'>

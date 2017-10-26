@@ -22,10 +22,10 @@ export function findAllMenu() {
 }
 
 // 查询所有用户（内部用户）
-export function findAll() {
+export function findAll(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/user/findAll', null
+            '/user/findAll', params
         ).then(
             msg => {
                 dispatch({
@@ -106,6 +106,63 @@ export function findAllRole() {
             msg => {
                 dispatch({
                     type: 'SYS::findAllRole',
+                    payload: msg,
+                });
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 添加角色
+export function addRoleInfo(params) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/role/addRoleInfo', params
+        ).then(
+            msg => {
+                dispatch({
+                    type: 'SYS::addRoleInfo',
+                    payload: msg,
+                });
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 修改角色
+export function updateRoleInfo(params) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/role/updateRoleInfo', params
+        ).then(
+            msg => {
+                dispatch({
+                    type: 'SYS::updateRoleInfo',
+                    payload: msg,
+                });
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 删除角色
+export function deleteRoleInfo(params) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/role/deleteRoleInfo', params
+        ).then(
+            msg => {
+                dispatch({
+                    type: 'SYS::deleteRoleInfo',
                     payload: msg,
                 });
                 return msg;
@@ -216,3 +273,20 @@ export function findAllMenuByRoleId(params = {}) {
         });
     };
 }
+
+// 根据用户名或状态查询指定用户
+export function findAdminUserByKeys(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/user/findAdminUserByKeys', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+
