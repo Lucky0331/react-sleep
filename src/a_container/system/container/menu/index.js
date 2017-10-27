@@ -84,8 +84,8 @@ class Menu extends React.Component {
     onTreeSelect(keys, e) {
       const me = this;
       const { form } = me.props;
+      const now = e.node.props.data;
       if (e.selected) { // 选中时需要重新设置修改Form中的信息
-          const now = e.node.props.data;
           form.setFieldsValue({
               upMenuName: now.menuName,
               upMenuUrl: now.menuUrl,
@@ -101,6 +101,14 @@ class Menu extends React.Component {
       }
       this.setState({
           nowData: e.selected ? e : null,
+          treeFatherValue: (() => {
+              const temp = this.props.allMenu.find((item) => `${item.id}` === `${now.parentId}`);
+              if (temp) {
+                  return { key: `${temp.id}`, id: temp.id, title: temp.menuName };
+              } else {
+                  return undefined;
+              }
+          })()
       });
     }
 
@@ -126,7 +134,7 @@ class Menu extends React.Component {
      child.children = [];
      let sonChild = null;
       data.forEach((item) => {
-        if (item.parentId === one.menuId) {
+        if (item.parentId === one.id) {
            sonChild = this.dataToJson(data, item);
            child.children.push(sonChild);
         }
@@ -140,15 +148,15 @@ class Menu extends React.Component {
     // 构建树结构
     makeTreeDom(data, key = '') {
       return data.map((item, index) => {
-        const k = key ? `${key}-${item.menuId}` : `${item.menuId}`;
+        const k = key ? `${key}-${item.id}` : `${item.id}`;
         if (item.children) {
             return (
-                <TreeNode title={item.menuName} key={k} id={item.menuId} p={item.parentId} data={item}>
+                <TreeNode title={item.menuName} key={k} id={item.id} p={item.parentId} data={item}>
                     { this.makeTreeDom(item.children, k) }
                 </TreeNode>
             );
         } else {
-          return <TreeNode title={item.menuName} key={k} id={item.menuId} p={item.parentId} data={item}/>;
+          return <TreeNode title={item.menuName} key={k} id={item.id} p={item.parentId} data={item}/>;
         }
       });
     }
@@ -234,6 +242,7 @@ class Menu extends React.Component {
         const me = this;
         const { form } = me.props;
         const now = this.state.nowData.node.props.data;
+        console.log('nowData是什么：', this.state.nowData);
      if (type === 0) { // 修改信息，将当前信息赋予表单
 
        form.setFieldsValue({
@@ -489,7 +498,7 @@ class Menu extends React.Component {
           <MenuTree
               title="父级选择"
               menuData={this.props.allMenu} // 所需菜单原始数据
-              defaultKeys={[]}  // 需要配默认选中的想
+              defaultKey={this.state.nowData && this.state.nowData.node.props.p ? [`${this.state.nowData.node.props.p}`] : []}  // 需要配默认选中的项
               noShowId={this.state.nowData ? this.state.nowData.node.props.id : null}
               modalShow={this.state.fatherTreeShow} // Modal是否显示
               onOk={(obj) => this.onTreeOk(obj)} // 确定时，获得选中的项信息

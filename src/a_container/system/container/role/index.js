@@ -16,13 +16,13 @@ import tools from '../../../../util/tools';
 // ==================
 
 import UrlBread from '../../../../a_component/urlBread';
-import MenuTree from '../../../../a_component/menuTree';
+import MenuTree from '../../../../a_component/menuTree/treeMore';
 
 // ==================
 // 本页面所需action
 // ==================
 
-import { findAllRole, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllMenu, findAllMenuByRoleId } from '../../../../a_action/sys-action';
+import { findAllRole, findRolesByKeys, updateRoleInfo, deleteRoleInfo, deleteAdminUserInfo, AssigningMenuToRoleId, updateAdminUserInfo, findAllMenu, findAllMenuByRoleId, addRoleInfo } from '../../../../a_action/sys-action';
 
 // ==================
 // Definition
@@ -35,7 +35,7 @@ class Role extends React.Component {
         super(props);
         this.state = {
             data: [], // 当前页面全部数据
-            searchUserName: '',
+            searchRoleName: '', // 搜索 - 角色名
             addnewModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
             addnewLoading: false, // 是否正在添加新用户中
             nowData: null, // 当前选中用户的信息，用于查看详情、修改、分配菜单
@@ -43,21 +43,36 @@ class Role extends React.Component {
             upModalShow: false, // 修改用户模态框是否显示
             upLoading: false, // 是否正在修改用户中
             menuTreeShow: false, // 菜单树是否显示
-            menuDefaultKeys: [], // 用于菜单树，默认需要选中的项
+            menuDefault: [], // 用于菜单树，默认需要选中的项
+            pageNum: 1, // 当前第几页
+            pageSize: 10, // 每页多少条
+            total: 0, // 数据库总共多少条数据
+            treeLoading: false, // 控制树的loading状态，因为要先加载当前role的菜单，才能显示树
+            treeOnOkLoading: false, // 是否正在分配菜单
         };
     }
 
     componentDidMount() {
-        this.onGetData();
+        this.onGetData(this.state.pageNum, this.state.pageSize);
+        if (this.props.allMenu.length <= 0) {
+            this.getAllMenu();
+        }
     }
 
     // 查询当前页面所需列表数据
-    onGetData() {
-        this.props.actions.findAllRole().then((res) => {
+    onGetData(pageNum, pageSize) {
+        const params = {
+            pageNum,
+            pageSize,
+            roleName: this.state.searchRoleName,
+        };
+        this.props.actions.findRolesByKeys(tools.clearNull(params)).then((res) => {
             console.log('返回的什么：', res);
             if(res.returnCode === "0") {
                 this.setState({
-                    data: res.messsageBody,
+                    data: res.messsageBody.result,
+                    pageNum,
+                    pageSize,
                 });
             } else {
                 message.error(res.returnMessaage || '获取数据失败，请重试');
@@ -65,21 +80,16 @@ class Role extends React.Component {
         });
     }
 
-    // 获取当前用户已分配的菜单权限
-    getNowRoleTree(id) {
-        this.props.actions.findAllMenuByRoleId({roleId: `${id}`}).then((res) => {
-            if (res.returnCode === "0") {
-                console.log('当前角色所拥有的菜单：', res);
-                const defaultChecked = res.messageBody.map((item) => item.roleId);
-            }
-        });
+    // 获取所有的菜单数据，当前页面分配菜单要用
+    getAllMenu() {
+        this.props.actions.findAllMenu();
     }
 
     // 搜索 - 用户名输入框值改变时触发
-    searchUserNameChange(e) {
+    searchRoleNameChange(e) {
         if (e.target.value.length < 20) {
             this.setState({
-                searchUserName: e.target.value,
+                searchRoleName: e.target.value,
             });
         }
     }
@@ -90,15 +100,8 @@ class Role extends React.Component {
         const { form } = me.props;
         console.log('Record:', record);
         form.setFieldsValue({
-            upUsername: record.userName,
-            upPassword: record.password,
-            upSex: record.sex || 1,
-            upAge: record.age || undefined,
-            upPhone: record.phone || undefined,
-            upEmail: record.email || undefined,
-            upOrgCode: record.orgCode || undefined,
-            upDescription: record.description || undefined,
-            upConditions: record.conditions || "0",
+            upRoleName: record.roleName,
+            upRoleDuty: record.roleDuty,
         });
         me.setState({
             nowData: record,
@@ -111,15 +114,8 @@ class Role extends React.Component {
         const me = this;
         const { form } = me.props;
         form.validateFields([
-            'upUsername',
-            'upPassword',
-            'upSex',
-            'upAge',
-            'upPhone',
-            'upEmail',
-            'upOrgCode',
-            'upDescription',
-            'upConditions',
+            'upRoleName',
+            'upRoleDuty',
         ], (err, values) => {
             if(err) { return; }
 
@@ -127,22 +123,15 @@ class Role extends React.Component {
                 upLoading: true,
             });
             const params = {
-                userName: values.upUsername,
-                password: values.upPassword,
-                sex: values.upSex,
-                age: values.upAge || '',
-                phone: values.upPhone || '',
-                email: values.upEmail || '',
-                orgCode: values.upOrgCode || '',
-                description: values.upDescription || '',
-                adminIp: '',
-                conditions: values.upConditions || '0',
+                id: me.state.nowData.roleId,
+                roleName: values.upRoleName,
+                roleDuty: values.upRoleDuty,
             };
 
-            this.props.actions.updateAdminUserInfo(tools.clearNull(params)).then((res) => {
+            this.props.actions.updateRoleInfo(params).then((res) => {
                 if (res.returnCode === "0") {
                     message.success("修改成功");
-                    this.onGetData();
+                    this.onGetData(this.state.pageNum, this.state.pageSize);
                 } else {
                     message.error(res.returnMessaage || '修改失败，请重试');
                 }
@@ -165,10 +154,10 @@ class Role extends React.Component {
 
     // 删除某一条数据
     onDeleteClick(id) {
-        this.props.actions.deleteAdminUserInfo({adminUserId: id}).then((res) => {
+        this.props.actions.deleteRoleInfo({id: id}).then((res) => {
             if(res.returnCode === "0") {
                 message.success('删除成功');
-                this.onGetData();
+                this.onGetData(this.state.pageNum, this.state.pageSize);
             } else {
                 message.error(res.returnMessaage || '删除失败，请重试');
             }
@@ -177,7 +166,7 @@ class Role extends React.Component {
 
     // 搜索
     onSearch() {
-
+        this.onGetData(this.state.pageNum, this.state.pageSize);
     }
 
     // 查询某一条数据的详情
@@ -200,14 +189,8 @@ class Role extends React.Component {
         const me = this;
         const { form } = me.props;
         form.resetFields([
-            'addnewUsername',
-            'addnewPassword',
-            'addnewSex',
-            'addnewAge',
-            'addnewPhone',
-            'addnewEmail',
-            'addnewOrgCode',
-            'addnewDescription',
+            'addnewRoleName',
+            'addnewRoleDuty',
         ]);
         this.setState({
             addnewModalShow: true,
@@ -231,12 +214,12 @@ class Role extends React.Component {
                 roleDuty: values.addnewRoleDuty,
             };
 
-            me.props.actions.addRoleInfo(tools.clearNull(params)).then((res) => {
+            me.props.actions.addRoleInfo(params).then((res) => {
                 console.log('添加用户返回数据：', res);
                 me.setState({
                     addnewLoading: false,
                 });
-                this.onGetData();
+                this.onGetData(this.state.pageNum, this.state.pageSize);
                 this.onAddNewClose();
             }).catch(() => {
                 me.setState({
@@ -255,10 +238,28 @@ class Role extends React.Component {
 
     // 分配菜单按钮点击，菜单出现
     onMenuClick(record) {
-        // this.getNowRoleTree(record.roleId);  // 获取当前role所拥有的菜单，tree中好默认选中
         this.setState({
             nowData: record,
             menuTreeShow: true,
+            treeLoading: true,
+        });
+
+        // 获取当前角色所拥有的菜单，然后默认选中
+        this.props.actions.findAllMenuByRoleId({roleId: record.id}).then((res) => {
+            if (res.returnCode === "0") {
+                console.log('当前角色所拥有的菜单：', res);
+                const menuDefault = res.messsageBody.result.map((item) => ({key: `${item.id}`, id: item.id, title: item.menuName, p: item.parentId}));
+                this.setState({
+                    menuDefault,
+                });
+            }
+            this.setState({
+                treeLoading: false,
+            });
+        }).catch(() => {
+            this.setState({
+                treeLoading: false,
+            });
         });
     }
 
@@ -267,6 +268,39 @@ class Role extends React.Component {
         this.setState({
             menuTreeShow: false,
         });
+    }
+
+    // 菜单树确定 给角色分配菜单
+    onMenuTreeOk(arr) {
+        console.log('所选择的：', arr);
+        const params = {
+            roleId: this.state.nowData.roleId,
+            menus: arr.map((item) => item.id).join(','),
+        };
+        this.setState({
+            treeOnOkLoading: true,
+        });
+        this.props.actions.AssigningMenuToRoleId(params).then((res) => {
+            if (res.returnCode === "0") {
+                message.success('菜单分配成功');
+                this.onMenuTreeClose();
+            } else {
+                message.error(res.returnMessaage || '菜单分配失败');
+            }
+            this.setState({
+                treeOnOkLoading: false,
+            });
+        }).catch(() => {
+            this.setState({
+                treeOnOkLoading: false,
+            });
+        });
+    }
+
+    // 表单页码改变
+    onTablePageChange(page, pageSize) {
+        console.log('页码改变：', page, pageSize);
+        this.onGetData(page, pageSize);
     }
 
     // 构建字段
@@ -306,7 +340,7 @@ class Role extends React.Component {
                           <span key="line2" className="ant-divider" />,
                           <span key="2" className="control-update" onClick={() => this.onMenuClick(record)}>分配菜单</span>,
                           <span key="line3" className="ant-divider" />,
-                          <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.adminUserId)} okText="确定" cancelText="取消">
+                          <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.roleId)} okText="确定" cancelText="取消">
                             <span className="control-delete">删除</span>
                           </Popconfirm>
                         ]
@@ -319,14 +353,15 @@ class Role extends React.Component {
 
     // 构建table所需数据
     makeData(data) {
+        console.log('data是个啥：', data);
         return data.map((item, index) => {
             return {
                 key: index,
-                roleId: item.roleId,
+                roleId: item.id,
                 roleName: item.roleName,
                 roleDuty: item.roleDuty,
                 menus: item.menus,
-                control: item.roleId,
+                control: item.id,
             }
         });
     }
@@ -355,7 +390,7 @@ class Role extends React.Component {
                 </ul>
                 <span className="ant-divider" />
                 <ul className="search-ul">
-                  <li><Input placeholder="请输入用户名" onChange={(e) => this.searchUserNameChange(e)} value={this.state.searchUserName}/></li>
+                  <li><Input placeholder="请输入角色名" onChange={(e) => this.searchRoleNameChange(e)} value={this.state.searchRoleName}/></li>
                   <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
                 </ul>
               </div>
@@ -363,6 +398,14 @@ class Role extends React.Component {
                 <Table
                     columns={this.makeColumns()}
                     dataSource={this.makeData(this.state.data)}
+                    pagination={{
+                        total: this.state.total,
+                        current: this.state.pageNum,
+                        pageSize: this.state.pageSize,
+                        showQuickJumper: true,
+                        showTotal: (total, range) => `总数：${total}条`,
+                        onChange: (page, pageSize) => this.onTablePageChange(page, pageSize)
+                    }}
                 />
               </div>
                 {/* 添加角色模态框 */}
@@ -381,14 +424,12 @@ class Role extends React.Component {
                       {getFieldDecorator('addnewRoleName', {
                           initialValue: undefined,
                           rules: [
-                              {required: true, message: '请输入角色名'},
+                              {required: true, whitespace: true, message: '请输入角色名'},
                               { validator: (rule, value, callback) => {
-                                  const v = value;
+                                  const v = tools.trim(value);
                                   if (v) {
                                       if (v.length > 12) {
                                           callback('最多输入12位字符');
-                                      } else if (!tools.checkStr2(v)){
-                                          callback('只能输入字母、数字及下划线');
                                       }
                                   }
                                   callback();
@@ -423,173 +464,48 @@ class Role extends React.Component {
                   confirmLoading={this.state.upLoading}
               >
                 <Form>
-                  <FormItem
-                      label="用户名"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upUsername', {
-                          initialValue: undefined,
-                          rules: [
-                              {required: true, message: '请输入用户名'},
-                              { validator: (rule, value, callback) => {
-                                  const v = value;
-                                  if (v) {
-                                      if (v.length > 12) {
-                                          callback('最多输入12位字符');
-                                      } else if (!tools.checkStr2(v)){
-                                          callback('只能输入字母、数字及下划线');
-                                      }
-                                  }
-                                  callback();
-                              }}
-                          ],
-                      })(
-                          <Input placeholder="用户名" />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="密码"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upPassword', {
-                          initialValue: undefined,
-                          rules: [
-                              {required: true, message: '请输入密码'},
-                              { validator: (rule, value, callback) => {
-                                  const v = value;
-                                  if (v) {
-                                      if (v.length > 12) {
-                                          callback('最多输入12位字符');
-                                      } else if (v.length < 6) {
-                                          callback('密码至少6位字符');
-                                      }else if (!tools.checkStr2(v)){
-                                          callback('只能输入字母、数字及下划线');
-                                      }
-                                  }
-                                  callback();
-                              }}
-                          ],
-                      })(
-                          <Input placeholder="密码" type="password"/>
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="性别"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upSex', {
-                          rules: [],
-                          initialValue: 1,
-                      })(
-                          <RadioGroup>
-                            <Radio value={1}>男</Radio>
-                            <Radio value={0}>女</Radio>
-                          </RadioGroup>
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="年龄"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upAge', {
-                          rules: [],
-                          initialValue: undefined,
-                      })(
-                          <InputNumber min={1} max={99} />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="电话"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upPhone', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (!tools.checkPhone(v)) {
-                                      callback('请输入有效的手机号码');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <Input placeholder="请输入手机号码" />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="邮箱"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upEmail', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (!tools.checkEmail(v)) {
-                                      callback('请输入有效的邮箱地址');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <Input placeholder="请输入邮箱地址" />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="组织编号"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upOrgCode', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (v.length > 12) {
-                                      callback('最多输入12个字符');
-                                  } else if (!tools.checkStr3(v)) {
-                                      callback('只能输入数字');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <Input placeholder="请输入组织编号" />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="描述"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upDescription', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (v.length > 100) {
-                                      callback('最多输入100个字符');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <TextArea rows={4} autosize={{minRows: 2, maxRows: 6}} />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="状态"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upConditions', {
-                          rules: [],
-                          initialValue: "0",
-                      })(
-                          <RadioGroup>
-                            <Radio value="0">启用</Radio>
-                            <Radio value="-1">禁用</Radio>
-                          </RadioGroup>
-                      )}
-                  </FormItem>
+                    <FormItem
+                        label="角色ID"
+                        {...formItemLayout}
+                    >
+                        <span>{this.state.nowData ? this.state.nowData.roleId : ''}</span>
+                    </FormItem>
+                    <FormItem
+                        label="角色名"
+                        {...formItemLayout}
+                    >
+                        {getFieldDecorator('upRoleName', {
+                            initialValue: undefined,
+                            rules: [
+                                {required: true, whitespace: true, message: '请输入角色名'},
+                                { validator: (rule, value, callback) => {
+                                    const v = tools.trim(value);
+                                    if (v) {
+                                        if (v.length > 12) {
+                                            callback('最多输入12位字符');
+                                        }
+                                    }
+                                    callback();
+                                }}
+                            ],
+                        })(
+                            <Input placeholder="请输入角色名" />
+                        )}
+                    </FormItem>
+                    <FormItem
+                        label="职责"
+                        {...formItemLayout}
+                    >
+                        {getFieldDecorator('upRoleDuty', {
+                            initialValue: undefined,
+                            rules: [
+                                {required: true, whitespace: true, message: '请输入职责'},
+                                {max: 100, message: '最多输入100个字符'}
+                            ],
+                        })(
+                            <Input placeholder="请输入职责" />
+                        )}
+                    </FormItem>
                 </Form>
               </Modal>
                 {/* 查看用户详情模态框 */}
@@ -600,17 +516,17 @@ class Role extends React.Component {
                   onCancel={() => this.onQueryModalClose()}
               >
                 <Form>
+                <FormItem
+                    label="角色ID"
+                    {...formItemLayout}
+                >
+                    {!!this.state.nowData ? this.state.nowData.roleId : ''}
+                </FormItem>
                   <FormItem
                       label="角色名"
                       {...formItemLayout}
                   >
                       {!!this.state.nowData ? this.state.nowData.roleName : ''}
-                  </FormItem>
-                  <FormItem
-                      label="角色ID"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.roleId : ''}
                   </FormItem>
                   <FormItem
                       label="角色权限"
@@ -650,11 +566,15 @@ class Role extends React.Component {
                 </FormItem>
                 </Form>
               </Modal>
-                {/* 菜单树 */}
+                {/* 菜单树 多选 */}
                 <MenuTree
+                    title={this.state.nowData ? `分配菜单：${this.state.nowData.roleName}` : '分配菜单'}
                     menuData={this.props.allMenu}
+                    defaultChecked={this.state.menuDefault}
+                    initloading={this.state.treeLoading} // 菜单树是否处于正在加载中状态
+                    loading={this.state.treeOnOkLoading}
                     modalShow={this.state.menuTreeShow}
-                    actions={this.props.actions}
+                    onOk={(arr) => this.onMenuTreeOk(arr)}
                     onClose={() => this.onMenuTreeClose()}
                 />
             </div>
@@ -682,6 +602,6 @@ export default connect(
         allMenu: state.sys.allMenu,
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findAllRole, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllMenu, findAllMenuByRoleId }, dispatch),
+        actions: bindActionCreators({ findAllRole, findRolesByKeys, updateRoleInfo, deleteRoleInfo, deleteAdminUserInfo, AssigningMenuToRoleId, updateAdminUserInfo, findAllMenu, findAllMenuByRoleId, addRoleInfo }, dispatch),
     })
 )(WrappedHorizontalRole);

@@ -77,7 +77,7 @@ class Header extends React.Component {
                 <ul className="header-userinfo">
                     {
                         this.state.adminUser ? [
-                            <li key="0">欢迎，{this.state.adminUser.userName}</li>,
+                            <li key="0"><Icon type="smile" style={{marginRight: '.5em'}}/>欢迎，{this.state.adminUser.userName}</li>,
                             <li key="1"><Button className='logout' icon="poweroff" onClick={() => this.onLogout()}>退出</Button></li>
                         ] : <li><Link to="/login">您尚未登陆</Link></li>
                     }

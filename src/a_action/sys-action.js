@@ -6,7 +6,7 @@ import { message } from 'antd';
 export function findAllMenu() {
     return (dispatch) => {
       return Fetchapi.newPost(
-        '/menu/findAllMenu', null
+        '/menu/findAllMenu', {pageNum: 0, pageSize: 9999}
       ).then(
           msg => {
             dispatch({
@@ -25,7 +25,7 @@ export function findAllMenu() {
 export function findAll(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/user/findAll', params
+            '/user/findAll', params, 'post'
         ).then(
             msg => {
                 dispatch({
@@ -44,7 +44,7 @@ export function findAll(params = {}) {
 export function addAdminUserInfo(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/user/addAdminUserInfo', params
+            '/user/addAdminUserInfo', params, 'post', true
         ).then(
             msg => {
                 dispatch({
@@ -82,7 +82,7 @@ export function deleteAdminUserInfo(params) {
 export function updateAdminUserInfo(params) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/user/updateAdminUserInfo', params
+            '/user/updateAdminUserInfo', params, 'post', true
         ).then(
             msg => {
                 dispatch({
@@ -101,13 +101,15 @@ export function updateAdminUserInfo(params) {
 export function findAllRole() {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/role/findAllRole', {}
+            '/role/findAllRole', {pageNum: 0, pageSize: 9999}
         ).then(
             msg => {
-                dispatch({
-                    type: 'SYS::findAllRole',
-                    payload: msg,
-                });
+                if (msg.returnCode === "0") {
+                    dispatch({
+                        type: 'SYS::findAllRole',
+                        payload: msg.messsageBody.result,
+                    });
+                }
                 return msg;
             }
         ).catch(() => {
@@ -120,7 +122,7 @@ export function findAllRole() {
 export function addRoleInfo(params) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/role/addRoleInfo', params
+            '/role/addRoleInfo', params, 'post', true
         ).then(
             msg => {
                 dispatch({
@@ -139,7 +141,7 @@ export function addRoleInfo(params) {
 export function updateRoleInfo(params) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/role/updateRoleInfo', params
+            '/role/updateRoleInfo', params, 'post', true
         ).then(
             msg => {
                 dispatch({
@@ -158,11 +160,26 @@ export function updateRoleInfo(params) {
 export function deleteRoleInfo(params) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/role/deleteRoleInfo', params
+            '/role/deleteRoleInfo', params, 'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 给用户分配角色
+export function assigningRole(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/role/AssigningRole', params
         ).then(
             msg => {
                 dispatch({
-                    type: 'SYS::deleteRoleInfo',
+                    type: 'SYS::assigningRole',
                     payload: msg,
                 });
                 return msg;
@@ -173,15 +190,15 @@ export function deleteRoleInfo(params) {
     };
 }
 
-// 给用户分配角色
-export function assigningRole() {
+// 给角色分配菜单
+export function AssigningMenuToRoleId(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/role/AssigningRole', {}
+            '/menu/AssigningMenuToRole', params
         ).then(
             msg => {
                 dispatch({
-                    type: 'SYS::assigningRole',
+                    type: 'SYS::AssigningMenuToRoleId',
                     payload: msg,
                 });
                 return msg;
@@ -198,12 +215,31 @@ export function findAllRoleByUserId(params = {}) {
         return Fetchapi.newPost(
             '/role/findAllRoleByUserId', Object.assign({}, params, {
                 pageNum: 0,
-                pageSize: 100,
+                pageSize: 9999,
             })
         ).then(
             msg => {
                 dispatch({
                     type: 'SYS::findAllRoleByUserId',
+                    payload: msg,
+                });
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 条件查询角色，可用于角色列表
+export function findRolesByKeys(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/role/findRolesByKeys', params
+        ).then(
+            msg => {
+                dispatch({
+                    type: 'SYS::findRolesByKeys',
                     payload: msg,
                 });
                 return msg;
@@ -263,7 +299,10 @@ export function deleteMenuInfo(params = {}) {
 export function findAllMenuByRoleId(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/menu/findAllMenuByRoleId', params
+            '/menu/findAllMenuByRoleId', Object.assign({}, params, {
+                pageNum: 0,
+                pageSize: 9999,
+            })
         ).then(
             msg => {
                 return msg;

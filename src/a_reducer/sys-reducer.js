@@ -17,7 +17,7 @@ const findAllMenu = (state, action) => {
   const { payload } = action;
   console.log('所有菜单111reducer：', payload);
   return Object.assign({}, state, {
-    allMenu: payload.messsageBody,
+    allMenu: payload.messsageBody.result,
   });
 };
 
@@ -25,7 +25,7 @@ const findAllRole = (state, action) => {
   console.log('到这里了嘛：', state, action);
   const { payload } = action;
   return Object.assign({}, state, {
-    allRoles: payload.messsageBody,
+    allRoles: payload,
   });
 };
 // ============================================

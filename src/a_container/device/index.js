@@ -22,8 +22,6 @@ import Type from './container/type';
 import StateCom from './container/state';
 import History from './container/history';
 
-
-import Header from '../../a_component/header';
 // ==================
 // 本页面所需action
 // ==================
@@ -33,6 +31,7 @@ import { saveURL } from '../../a_action/app-action';
 // ==================
 // Definition
 // ==================
+const MenuItem = Menu.Item;
 class SystemContainer extends React.Component {
   constructor(props) {
     super(props);
@@ -57,27 +56,27 @@ class SystemContainer extends React.Component {
                 selectedKeys={this.props.deviceURL ? [this.props.deviceURL] : ['/device/type']}
                 onSelect={(e)=>this.props.actions.saveURL(e.key)}
               >
-                <Menu.Item key="/device/type">
+                <MenuItem key="/device/type">
                   <Link to='/device/type'>设备类型管理</Link>
-                </Menu.Item>
-                <Menu.Item key="/device/info">
+                </MenuItem>
+                <MenuItem key="/device/info">
                   <Link to='/device/info'>设备信息管理</Link>
-                </Menu.Item>
-                <Menu.Item key="/device/data">
+                </MenuItem>
+                <MenuItem key="/device/data">
                   <Link to='/device/data'>设备数据管理</Link>
-                </Menu.Item>
-                <Menu.Item key="/device/state">
+                </MenuItem>
+                <MenuItem key="/device/state">
                   <Link to='/device/state'>设备状态管理</Link>
-                </Menu.Item>
-                <Menu.Item key="/device/firmanage">
+                </MenuItem>
+                <MenuItem key="/device/firmanage">
                   <Link to='/device/firmanage'>固件管理</Link>
-                </Menu.Item>
-                <Menu.Item key="/device/firupdate">
+                </MenuItem>
+                <MenuItem key="/device/firupdate">
                   <Link to='/device/firupdate'>固件升级</Link>
-                </Menu.Item>
-                <Menu.Item key="/device/history">
+                </MenuItem>
+                <MenuItem key="/device/history">
                   <Link to='/device/history'>升级历史</Link>
-                </Menu.Item>
+                </MenuItem>
               </Menu>
             </div>
             <div className='right'>

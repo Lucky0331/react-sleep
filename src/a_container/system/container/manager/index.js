@@ -22,7 +22,7 @@ import RoleTree from '../../../../a_component/roleTree';
 // 本页面所需action
 // ==================
 
-import { findAll, findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId } from '../../../../a_action/sys-action';
+import { findAll, findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole } from '../../../../a_action/sys-action';
 
 // ==================
 // Definition
@@ -45,7 +45,7 @@ class Manager extends React.Component {
       upModalShow: false, // 修改用户模态框是否显示
       upLoading: false, // 是否正在修改用户中
       roleTreeShow: false, // 角色树是否显示
-      pageNum: 0, // 当前第几页
+      pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
     };
@@ -56,7 +56,7 @@ class Manager extends React.Component {
   }
 
   // 查询当前页面所需列表数据
-    onGetData(pageNum, pageSize ) {
+    onGetData(pageNum, pageSize) {
         const params = {
             searchUserName: this.state.searchUserName,
             searchConditions: this.state.searchConditions,
@@ -64,10 +64,13 @@ class Manager extends React.Component {
             pageSize,
         };
 
-        this.props.actions.findAll(tools.clearNull(params)).then((res) => {
+        this.props.actions.findAdminUserByKeys(tools.clearNull(params)).then((res) => {
             if(res.returnCode === "0") {
                 this.setState({
-                    data: res.messsageBody,
+                    data: res.messsageBody.result,
+                    pageNum,
+                    pageSize,
+                    total: res.messsageBody.total,
                 });
             } else {
                 message.error(res.returnMessaage || '获取数据失败，请重试');
@@ -135,7 +138,7 @@ class Manager extends React.Component {
                 upLoading: true,
             });
             const params = {
-                id: me.state.nowData.adminUserId,
+                id: me.state.nowData.id,
                 userName: values.upUsername,
                 password: values.upPassword,
                 sex: values.upSex,
@@ -151,7 +154,7 @@ class Manager extends React.Component {
             this.props.actions.updateAdminUserInfo(tools.clearNull(params)).then((res) => {
                 if (res.returnCode === "0") {
                     message.success("修改成功");
-                    this.onGetData();
+                    this.onGetData(this.state.pageNum, this.state.pageSize);
                 } else {
                     message.error(res.returnMessaage || '修改失败，请重试');
                 }
@@ -177,7 +180,7 @@ class Manager extends React.Component {
         this.props.actions.deleteAdminUserInfo({adminUserId: id}).then((res) => {
             if(res.returnCode === "0") {
                 message.success('删除成功');
-                this.onGetData();
+                this.onGetData(this.state.pageNum, this.state.pageSize);
             } else {
                 message.error(res.returnMessaage || '删除失败，请重试');
             }
@@ -186,7 +189,7 @@ class Manager extends React.Component {
 
     // 搜索
     onSearch() {
-
+        this.onGetData(1, this.state.pageSize);
     }
 
     // 查询某一条数据的详情
@@ -257,11 +260,15 @@ class Manager extends React.Component {
 
             me.props.actions.addAdminUserInfo(tools.clearNull(params)).then((res) => {
                 console.log('添加用户返回数据：', res);
+                if (res.returnCode === '0') {
+                    this.onGetData(this.state.pageNum, this.state.pageSize);
+                    this.onAddNewClose();
+                } else {
+                    message.error(res.returnMessaage || '添加失败，请重试');
+                }
                 me.setState({
                     addnewLoading: false,
                 });
-                this.onGetData();
-                this.onAddNewClose();
             }).catch(() => {
                 me.setState({
                     addnewLoading: false,
@@ -282,13 +289,19 @@ class Manager extends React.Component {
 
     }
 
+    // 表单页码改变
+    onTablePageChange(page, pageSize) {
+      console.log('页码改变：', page, pageSize);
+      this.onGetData(page, pageSize);
+    }
+
     // 构建字段
     makeColumns(){
         const columns = [
             {
                 title: 'ID',
-                dataIndex: 'adminUserId',
-                key: 'adminUserId',
+                dataIndex: 'id',
+                key: 'id',
             },
             {
                 title: '用户名',
@@ -300,7 +313,7 @@ class Manager extends React.Component {
                 dataIndex: 'sex',
                 key: 'sex',
                 render: (text, record) => {
-                    return text === 1 ? '男' : '女';
+                    return text !== null ? (text === 1 ? '男' : '女') : '';
                 },
             },
             {
@@ -336,12 +349,12 @@ class Manager extends React.Component {
                         <span key="line2" className="ant-divider" />,
                         <span key="2" className="control-update" onClick={() => this.onRoleTreeShow(record)} >分配角色</span>,
                         <span key="line3" className="ant-divider" />,
-                        <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.adminUserId)} okText="确定" cancelText="取消">
+                        <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
                             <span className="control-delete">删除</span>
                         </Popconfirm>
                     ];
 
-                    if (text.adminUserId === 1) {
+                    if (text.id === 1) {
                         controls.splice(-2, 2);
                     }
                     return controls;
@@ -353,11 +366,13 @@ class Manager extends React.Component {
 
     // 构建table所需数据
     makeData(data) {
+        console.log('DATA:', data);
+        if (!data){return []}
         return data.map((item, index) => {
             return {
                 key: index,
                 adminIp: item.adminIp,
-                adminUserId: item.adminUserId,
+                id: item.id,
                 age: item.age,
                 conditions: item.conditions,
                 creator: item.creator,
@@ -370,7 +385,7 @@ class Manager extends React.Component {
                 updateTime: item.updateTime,
                 updater: item.updater,
                 userName: item.userName,
-                control: item.adminUserId,
+                control: item.id,
             }
         });
     }
@@ -387,6 +402,22 @@ class Manager extends React.Component {
         this.setState({
             roleTreeShow: false,
         });
+    }
+    // RoleTree确定
+    onRoleTreeOk(arr) {
+        console.log('选中了什么：', arr, this.state.nowData);
+        const params = {
+            userId: this.state.nowData.id,
+            roles: arr.map((item) => item.id).join(','),
+        }
+        this.props.actions.assigningRole(params).then((res) => {
+            if (res.returnCode === '0') {
+                message.success('角色分配成功');
+            } else {
+                message.error(res.returnMessaage || '角色分配失败，请重试');
+            }
+        });
+        this.onRoleTreeClose();
     }
   render() {
       const me = this;
@@ -412,7 +443,14 @@ class Manager extends React.Component {
           </ul>
           <span className="ant-divider" />
           <ul className="search-ul">
-            <li><Input placeholder="用户名" onChange={(e) => this.searchUserNameChange(e)} value={this.state.searchUserName}/></li>
+            <li>
+                <Input
+                    placeholder="用户名"
+                    onChange={(e) => this.searchUserNameChange(e)}
+                    value={this.state.searchUserName}
+                    onPressEnter={() => this.onSearch()}
+                />
+            </li>
               <li>
                   <Select
                       style={{ width: '150px' }}
@@ -431,6 +469,14 @@ class Manager extends React.Component {
           <Table
               columns={this.makeColumns()}
               dataSource={this.makeData(this.state.data)}
+              pagination={{
+                  total: this.state.total,
+                  current: this.state.pageNum,
+                  pageSize: this.state.pageSize,
+                  showQuickJumper: true,
+                  showTotal: (total, range) => `总数：${total}条`,
+                  onChange: (page, pageSize) => this.onTablePageChange(page, pageSize)
+              }}
           />
         </div>
           {/* 添加用户模态框 */}
@@ -793,7 +839,7 @@ class Manager extends React.Component {
                       label="ID"
                       {...formItemLayout}
                   >
-                      {!!this.state.nowData ? this.state.nowData.adminUserId : ''}
+                      {!!this.state.nowData ? this.state.nowData.id : ''}
                   </FormItem>
                   <FormItem
                       label="性别"
@@ -869,6 +915,7 @@ class Manager extends React.Component {
               roleData={this.props.allRoles}        // 所有的角色数据
               modalShow={this.state.roleTreeShow}  // 是否显示
               actions={this.props.actions}
+              onOk={(arr) => this.onRoleTreeOk(arr)}
               onClose={() => this.onRoleTreeClose()}
           />
       </div>
@@ -896,6 +943,6 @@ export default connect(
     allRoles: state.sys.allRoles,
   }), 
   (dispatch) => ({
-    actions: bindActionCreators({ findAll, findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId }, dispatch),
+    actions: bindActionCreators({ findAll, findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole }, dispatch),
   })
 )(WrappedHorizontalManager);

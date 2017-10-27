@@ -30,7 +30,7 @@ export function onLogin(params) {
     // };
     return (dispatch) => {
       return Fetchapi.newPost(
-        '/admin/submitLogin', params
+        '/admin/submitLogin', params, 'post', true
       ).then(
           msg => {
             console.log('返回数据', msg);
