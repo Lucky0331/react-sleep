@@ -155,6 +155,7 @@ class Manager extends React.Component {
                 if (res.returnCode === "0") {
                     message.success("修改成功");
                     this.onGetData(this.state.pageNum, this.state.pageSize);
+                    this.onUpClose();
                 } else {
                     message.error(res.returnMessaage || '修改失败，请重试');
                 }

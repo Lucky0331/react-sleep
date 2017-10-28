@@ -72,19 +72,27 @@ class LoginContainer extends React.Component {
       this.props.actions.findAllRoleByUserId({userId: 1});
   }
 
-  // async doSubmit(userName, password) {
-  //     const userInfo = await this.props.actions.onLogin({userName, password});
-  //     let roleInfo, menusInfo;
-  //     if (userInfo.returnCode === "0") {
-  //         roleInfo = await this.props.actions.findAllRoleByUserId({userId: userInfo.messageBody.adminUser.id});
-  //         if (roleInfo.returnCode === "0") {
-  //             const p = roleInfo.messageBody
-  //             Promise.all()
-  //         }
-  //     } else {
-  //         return userInfo;
-  //     }
-  // }
+  async doSubmit(userName, password) {
+      const userInfo = await this.props.actions.onLogin({userName, password});
+      let roleInfo, menusInfo;
+      if (userInfo.returnCode === "0") {
+          roleInfo = await this.props.actions.findAllRoleByUserId({userId: userInfo.messageBody.adminUser.id});
+          if (roleInfo.returnCode === "0") {
+              const p = roleInfo.messageBody.result.map((item) => {
+                  return new Promise((res, rej) => {
+                      this.props.actions.findAllMenuByRoleId({roleId: item.id});
+                  });
+              });
+              menusInfo = await Promise.all(p).then((res) => {
+                  console.log('RES返回：', res);
+              }).catch((err) => {
+                  console.log('ALL失败：', err);
+              });
+          }
+      } else {
+          return userInfo;
+      }
+  }
 
   // 用户提交登陆
   onSubmit() {

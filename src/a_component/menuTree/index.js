@@ -2,7 +2,6 @@
 import React from 'react';
 import P from 'prop-types';
 import { Modal, Tree, message } from 'antd';
-import { Link } from 'react-router-dom';
 import './index.scss';
 
 const TreeNode = Tree.TreeNode;
@@ -154,7 +153,6 @@ class MenuTree extends React.Component {
                         { this.state.treeDom }
                     </TreeNode>
                 </Tree>
-                <Link to="../home" replace>跳到主页啊</Link>
             </Modal>
         );
     }

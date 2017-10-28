@@ -417,7 +417,7 @@ class Menu extends React.Component {
                   <FormItem
                   >
                     <div style={{ textAlign: 'right' }}>
-                      <Button style={{width: '150px'}} onClick={() => this.onUpSubmit()}>修改</Button>
+                      <Button type="primary" style={{width: '150px'}} onClick={() => this.onUpSubmit()}>修改</Button>
                     </div>
                   </FormItem>
                 </Form>
@@ -493,7 +493,7 @@ class Menu extends React.Component {
                   <FormItem
                   >
                     <div style={{ textAlign: 'right' }}>
-                      <Button style={{width: '150px'}} onClick={() => this.onAddSubmit()}>提交</Button>
+                      <Button type="primary" style={{width: '150px'}} onClick={() => this.onAddSubmit()}>提交</Button>
                     </div>
                   </FormItem>
                 </Form>
