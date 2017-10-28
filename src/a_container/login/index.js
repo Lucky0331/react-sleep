@@ -24,7 +24,7 @@ import LogoImg from '../../assets/logo.png';
 // ==================
 
 import { onLogin, testPromise } from '../../a_action/app-action';
-
+import { findAllRoleByUserId  } from '../../a_action/sys-action';
 // ==================
 // Definition
 // ==================
@@ -67,7 +67,25 @@ class LoginContainer extends React.Component {
       this.setState({
           show: true,
       });
+
+        // 测试
+      this.props.actions.findAllRoleByUserId({userId: 1});
   }
+
+  // async doSubmit(userName, password) {
+  //     const userInfo = await this.props.actions.onLogin({userName, password});
+  //     let roleInfo, menusInfo;
+  //     if (userInfo.returnCode === "0") {
+  //         roleInfo = await this.props.actions.findAllRoleByUserId({userId: userInfo.messageBody.adminUser.id});
+  //         if (roleInfo.returnCode === "0") {
+  //             const p = roleInfo.messageBody
+  //             Promise.all()
+  //         }
+  //     } else {
+  //         return userInfo;
+  //     }
+  // }
+
   // 用户提交登陆
   onSubmit() {
     const form = this.props.form;
@@ -90,6 +108,7 @@ class LoginContainer extends React.Component {
           } else {
             localStorage.removeItem('userLoginInfo');
           }
+          // 登陆成功后，还需要获取用户的所有角色，每个角色所拥有的菜单，全部保存于sessionStorage
           message.success('登录成功');
           this.props.history.push('/home');
         } else {
@@ -230,6 +249,6 @@ export default connect(
   (state) => ({
   }), 
   (dispatch) => ({
-    actions: bindActionCreators({ onLogin, testPromise }, dispatch),
+    actions: bindActionCreators({ onLogin, testPromise, findAllRoleByUserId  }, dispatch),
   })
 )(WrappedHorizontalLoginForm);

@@ -75,7 +75,7 @@ class Menu extends React.Component {
               nowData: null,
           });
         } else {
-          message.error('删除失败');
+          message.error(res.returnMessaage || '删除失败');
         }
       });
    }
@@ -92,7 +92,7 @@ class Menu extends React.Component {
               upConditions: now.conditions,
               upSorts: now.sorts,
               upMenuDesc: now.menuDesc,
-              upParentId: (now.parentId || now.parentId === 0) ? now.parentId : undefined,
+              // upParentId: (now.parentId || now.parentId === 0) ? now.parentId : undefined,
           });
       } else {
           this.setState({
@@ -106,7 +106,7 @@ class Menu extends React.Component {
               if (temp) {
                   return { key: `${temp.id}`, id: temp.id, title: temp.menuName };
               } else {
-                  return undefined;
+                  return {key: '0', id: 0, title: '翼猫智能睡眠系统'};
               }
           })()
       });
@@ -115,9 +115,14 @@ class Menu extends React.Component {
     // 处理原始数据，将原始数据处理为层级关系
     makeSourceData(data) {
       const d = _.cloneDeep(data);
+      // 按照sort排序
+    d.sort((a, b) => {
+        return a.sorts - b.sorts;
+    });
+    console.log('排序之后是怎样：', d);
       const sourceData = [];
        d.forEach((item) => {
-           if (!item.parentId && item.parentId !== 0) {
+           if (item.parentId === 0) { // parentId === 0 的为顶级菜单
                const temp = this.dataToJson(d, item);
                sourceData.push(temp);
            }
@@ -206,22 +211,23 @@ class Menu extends React.Component {
     onUpSubmit() {
         const me = this;
         const { form } = me.props;
+        console.log('nowData是个啥：', me.state.nowData);
         form.validateFields([
             'upMenuName',
             'upMenuUrl',
             'upConditions',
             'upSorts',
             'upMenuDesc',
-            'upParentId',
         ], (err, values) => {
           if (err) { return; }
           const params = {
+              id: me.state.nowData.node.props.id,
               menuName: values.upMenuName,
               menuUrl: values.upMenuUrl,
               conditions: values.upConditions,
               sorts: values.upSorts,
               menuDesc: values.upMenuDesc,
-              parentId: (values.upParentId || values.upParentId === 0) ? values.upParentId : null,
+              parentId: this.state.treeFatherValue ? `${this.state.treeFatherValue.id}` : '0', // 如果没有的话就是顶级菜单，顶级菜单默认为0
           };
           this.props.actions.updateMenuInfo(params).then((res) => {
               if(res.returnCode === "0") {
@@ -303,10 +309,10 @@ class Menu extends React.Component {
             <div className="title">所有菜单</div>
             <div>
               <Tree
-                  defaultExpandedKeys={['yimao']}
+                  defaultExpandedKeys={['0']}
                   onSelect={(selectedKeys, e) => this.onTreeSelect(selectedKeys, e)}
               >
-                <TreeNode title="翼猫科技智能睡眠系统" key="yimao" data={{}}>
+                <TreeNode title="翼猫科技智能睡眠系统" key="0" data={{}}>
                   { this.makeTreeDom(this.state.sourceData) }
                 </TreeNode>
               </Tree>
@@ -319,7 +325,7 @@ class Menu extends React.Component {
                     let resule;
                     if (! this.state.nowData) {
                         resule =  <span>请从左侧选择一个菜单进行操作</span>;
-                    } else if (this.state.nowData.node.props.eventKey === 'yimao') {
+                    } else if (this.state.nowData.node.props.eventKey === '0') {
                       resule = <Button key="0" type="primary">添加子菜单</Button>;
                     } else {
                       resule = [
@@ -498,7 +504,7 @@ class Menu extends React.Component {
           <MenuTree
               title="父级选择"
               menuData={this.props.allMenu} // 所需菜单原始数据
-              defaultKey={this.state.nowData && this.state.nowData.node.props.p ? [`${this.state.nowData.node.props.p}`] : []}  // 需要配默认选中的项
+              defaultKey={this.state.nowData && this.state.nowData.node.props.p ? [`${this.state.nowData.node.props.p}`] : ['0']}  // 需要配默认选中的项
               noShowId={this.state.nowData ? this.state.nowData.node.props.id : null}
               modalShow={this.state.fatherTreeShow} // Modal是否显示
               onOk={(obj) => this.onTreeOk(obj)} // 确定时，获得选中的项信息

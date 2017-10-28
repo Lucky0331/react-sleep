@@ -22,7 +22,7 @@ import RoleTree from '../../../../a_component/roleTree';
 // 本页面所需action
 // ==================
 
-import { findAll, findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole } from '../../../../a_action/sys-action';
+import { findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole } from '../../../../a_action/sys-action';
 
 // ==================
 // Definition
@@ -943,6 +943,6 @@ export default connect(
     allRoles: state.sys.allRoles,
   }), 
   (dispatch) => ({
-    actions: bindActionCreators({ findAll, findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole }, dispatch),
+    actions: bindActionCreators({ findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole }, dispatch),
   })
 )(WrappedHorizontalManager);

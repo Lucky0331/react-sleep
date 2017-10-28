@@ -75,6 +75,12 @@ class MenuTree extends React.Component {
     makeSourceData(data, noShowId = null) {
         console.log('原始数据是什么：', data, this.props.noShowId);
         let d = _.cloneDeep(data);
+        // 后台将顶级菜单的parentId全部改为0，这会导致冲突，所以前端把所有parentId为0的，改为null
+        d.forEach((item) => {
+            if (item.parentId === 0) {
+                item.parentId = null;
+            }
+        });
         if (noShowId || noShowId === 0) {
             d = d.filter((item) => {
                 return item.id !== noShowId;

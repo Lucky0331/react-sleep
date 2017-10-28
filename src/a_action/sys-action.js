@@ -267,9 +267,10 @@ export function addMenuInfo(params = {}) {
 
 // 修改菜单
 export function updateMenuInfo(params = {}) {
+    console.log('得到的参数是什么：', params);
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/menu/updateMenuInfo', params
+            '/menu/updateMenuInfo', params, 'post', true
         ).then(
             msg => {
                 return msg;

@@ -2,6 +2,7 @@
 import React from 'react';
 import P from 'prop-types';
 import { Modal, Tree, message } from 'antd';
+import { Link } from 'react-router-dom';
 import './index.scss';
 
 const TreeNode = Tree.TreeNode;
@@ -27,6 +28,7 @@ class MenuTree extends React.Component {
             this.makeSourceData(nextProps.menuData, nextProps.noShowId);
         }
         if (nextProps.modalShow !== this.props.modalShow && nextProps.modalShow) {
+            console.log('默认选中啊：', this.props.defaultKey);
             this.setState({
                 selectedKeys: this.props.defaultKey,
                 selected: (() => {
@@ -43,6 +45,7 @@ class MenuTree extends React.Component {
 
     // 提交
     onOk() {
+        console.log('选择的是：', this.state.selected);
         this.props.onOk && this.props.onOk(this.state.selected);
     }
 
@@ -53,12 +56,19 @@ class MenuTree extends React.Component {
 
     // 复选框选中时触发
     onTreeSelect(keys, e) {
+        // 无论如何默认选中根
+        console.log('怎么回事：', keys, e);
         let selected = null;
+        let keyed = [];
         if (e.selected) {
             selected = { key: e.node.props.eventKey, id: e.node.props.id, title: e.node.props.title };
+            keyed = keys;
+        } else {
+            selected = { key: '0', id: 0, title: '翼猫智能睡眠系统' };
+            keyed = ['0'];
         }
         this.setState({
-            selectedKeys: keys,
+            selectedKeys: keyed,
             selected,
         });
     }
@@ -67,6 +77,10 @@ class MenuTree extends React.Component {
     makeSourceData(data, noShowId = null) {
         console.log('原始数据是什么：', data, this.props.noShowId);
         let d = _.cloneDeep(data);
+        // 按照sort排序
+        d.sort((a, b) => {
+            return a.sorts - b.sorts;
+        });
         if (noShowId || noShowId === 0) {
             d = d.filter((item) => {
                return item.id !== noShowId;
@@ -74,7 +88,7 @@ class MenuTree extends React.Component {
         }
         const sourceData = [];
         d.forEach((item) => {
-            if (!item.parentId && item.parentId !== 0) {
+            if (item.parentId === 0) {
                 const temp = this.dataToJson(d, item);
                 sourceData.push(temp);
             }
@@ -132,11 +146,15 @@ class MenuTree extends React.Component {
                 confirmLoading={this.state.loading}
             >
                 <Tree
+                    defaultExpandedKeys={['0']}
                     selectedKeys={this.state.selectedKeys}
                     onSelect={(selectedKeys, e) => this.onTreeSelect(selectedKeys, e)}
                 >
-                    { this.state.treeDom }
+                    <TreeNode title="翼猫科技智能睡眠系统" key="0" data={{}}>
+                        { this.state.treeDom }
+                    </TreeNode>
                 </Tree>
+                <Link to="../home" replace>跳到主页啊</Link>
             </Modal>
         );
     }
