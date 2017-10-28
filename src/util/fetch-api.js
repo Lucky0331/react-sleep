@@ -1,6 +1,6 @@
 import reqwest from 'reqwest';
 import config from '../config/config.js';
-import $ from 'jquery';
+
 export default class ApiService {
   // url、参数、请求方式(默认post)、参数类型(默认json)
   static newPost(url, bodyObj = {}, type = 'post', isJson) {
