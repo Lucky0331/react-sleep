@@ -39,8 +39,8 @@ class HomePageContainer extends React.Component {
         });
     }, 16);
 
-    this.props.actions.findAllMenu();
-    this.props.actions.findButtonsByMenuId({menuId: 1});
+    // this.props.actions.findAllMenu();
+    // this.props.actions.findButtonsByMenuId({menuId: 1});
   }
 
   render() {

@@ -9,6 +9,7 @@ const url = [
         children: [
             {name: '管理员信息管理', path: 'manager'},
             {name: '角色管理', path: 'role'},
+            {name: '权限管理', path: 'jurisdiction'},
             {name: '菜单管理', path: 'menu'},
             {name: 'app版本管理', path: 'version'},
             {name: '组织机构管理', path: 'organization'},

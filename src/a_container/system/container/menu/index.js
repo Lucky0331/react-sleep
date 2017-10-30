@@ -184,7 +184,7 @@ class Menu extends React.Component {
             conditions: values.addConditions,
             sorts: values.addSorts,
             menuDesc: values.addMenuDesc,
-            parentId: (me.state.nowData.node.props.id || me.state.nowData.node.props.id === 0 ) ? `${me.state.nowData.node.props.id}` : null,
+            parentId: (me.state.nowData.node.props.id || me.state.nowData.node.props.id === 0 ) ? me.state.nowData.node.props.id : null,
         };
         me.props.actions.addMenuInfo(tools.clearNull(params)).then((res) => {
           if(res.returnCode === "0") {
@@ -236,6 +236,7 @@ class Menu extends React.Component {
                 this.getAllMenus(); // 重新获取菜单
                   this.setState({
                       nowData: null,
+                      controlType: -1,
                   });
               } else {
                   message.error('修改失败');

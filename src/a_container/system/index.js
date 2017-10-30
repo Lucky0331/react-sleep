@@ -19,9 +19,8 @@ import Manager from './container/manager';
 import MenuContainer from './container/menu';
 import Organization from './container/organization';
 import Role from './container/role';
+import Jurisdiction from './container/jurisdiction';
 import Version from './container/version';
-
-import UrlBread from '../../a_component/urlBread';
 
 // ==================
 // 本页面所需action
@@ -82,6 +81,7 @@ class SystemContainer extends React.Component {
                   <Redirect exact from='/system' to={this.props.systemURL || '/system/manager'} />
                   <Route exact path='/system/manager' component={Manager} />
                   <Route exact path='/system/role' component={Role} />
+                  <Route exact path='/system/jurisdiction' component={Jurisdiction} />
                   <Route exact path='/system/menu' component={MenuContainer} />
                   <Route exact path='/system/version' component={Version} />
                   <Route exact path='/system/organization' component={Organization} />
