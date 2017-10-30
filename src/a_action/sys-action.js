@@ -254,7 +254,7 @@ export function findRolesByKeys(params = {}) {
 export function addMenuInfo(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/menu/addMenuInfo', params
+            '/menu/addMenuInfo', params, 'post', true
         ).then(
             msg => {
                 return msg;
@@ -267,7 +267,6 @@ export function addMenuInfo(params = {}) {
 
 // 修改菜单
 export function updateMenuInfo(params = {}) {
-    console.log('得到的参数是什么：', params);
     return (dispatch) => {
         return Fetchapi.newPost(
             '/menu/updateMenuInfo', params, 'post', true

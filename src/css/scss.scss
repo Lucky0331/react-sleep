@@ -10,6 +10,7 @@ $blue-a: #67DAF9; // 标准蓝色active
 
 /* 所有内部页面统一基础样式 */
 .allpage{
+	position: relative;
 	min-height: calc(100vh - 75px);
 	padding-bottom: 10px;
 	box-sizing: border-box;

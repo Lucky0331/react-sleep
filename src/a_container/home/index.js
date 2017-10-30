@@ -13,7 +13,6 @@ import './index.scss';
 // 所需的所有组件
 // ==================
 
-import CanvasBack from '../../a_component/canvasBack';
 import LogoImg1 from '../../assets/logo-1.png';
 import LogoImg2 from '../../assets/logo-2.png';
 // ==================
@@ -21,6 +20,7 @@ import LogoImg2 from '../../assets/logo-2.png';
 // ==================
 
 import { findAllMenu } from '../../a_action/sys-action';
+import { findButtonsByMenuId } from '../../a_action/app-action';
 // ==================
 // Definition
 // ==================
@@ -33,10 +33,14 @@ class HomePageContainer extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({
-      show: true,
-    });
+    window.setTimeout(() => {
+        this.setState({
+            show: true,
+        });
+    }, 16);
+
     this.props.actions.findAllMenu();
+    this.props.actions.findButtonsByMenuId({menuId: 1});
   }
 
   render() {
@@ -51,9 +55,6 @@ class HomePageContainer extends React.Component {
             <div className="title">翼猫科技智能睡眠管理系统</div>
           </div>
           <div className={this.state.show ? 'info show' : 'info'}>版本号: 1.0.0</div>
-        </div>
-        <div className='back'>
-          <CanvasBack />
         </div>
       </div>
     );
@@ -78,6 +79,6 @@ export default connect(
   (state) => ({
   }), 
   (dispatch) => ({
-    actions: bindActionCreators({ findAllMenu }, dispatch),
+    actions: bindActionCreators({ findAllMenu, findButtonsByMenuId }, dispatch),
   })
 )(HomePageContainer);

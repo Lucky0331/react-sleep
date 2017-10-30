@@ -199,6 +199,7 @@ class Menu extends React.Component {
             this.getAllMenus(); // 重新获取菜单
               this.setState({
                   nowData: null,
+                  controlType: -1,
               });
           } else {
             message.error('添加失败');
@@ -250,7 +251,6 @@ class Menu extends React.Component {
         const now = this.state.nowData.node.props.data;
         console.log('nowData是什么：', this.state.nowData);
      if (type === 0) { // 修改信息，将当前信息赋予表单
-
        form.setFieldsValue({
            upMenuName: now.menuName,
            upMenuUrl: now.menuUrl,
@@ -306,7 +306,7 @@ class Menu extends React.Component {
         <UrlBread location={this.props.location}/>
         <div className="menubox all_clear">
           <div className="l">
-            <div className="title">所有菜单</div>
+            <div className="title">系统模块</div>
             <div>
               <Tree
                   defaultExpandedKeys={['0']}
@@ -344,12 +344,6 @@ class Menu extends React.Component {
               <div className={this.state.controlType === 0 ? 'forms-box forms-up show' : 'forms-box forms-up'}>
                 <div>修改菜单：</div>
                 <Form>
-                  <FormItem
-                      label="ID"
-                      {...formItemLayout}
-                  >
-                    <span>{this.state.nowData ? this.state.nowData.node.props.id : ''}</span>
-                  </FormItem>
                   <FormItem
                       label="菜单名称"
                       {...formItemLayout}

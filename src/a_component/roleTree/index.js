@@ -47,7 +47,7 @@ class RoleTree extends React.Component {
             if (res.returnCode === "0") {
                 const defaultCheckedKeys = [];
                 const defaultChecked = [];
-                res.messsageBody.result.forEach((item) => {
+                res.messsageBody.result.filter((item) => item.roleAfiliation === 'Y').forEach((item) => {
                     defaultCheckedKeys.push(`${item.id}`);
                     defaultChecked.push({ key: `${item.id}`, id: item.id, title: item.roleName });
                 });

@@ -12,7 +12,6 @@ export function onTestAdd(num) {
 
 // 用户登录
 export function onLogin(params) {
-    console.log('用户登录参数：', params);
     // return (dispatch) => {
     //     return new Promise((resolve, reject) => {
     //         if (params) {
@@ -33,7 +32,6 @@ export function onLogin(params) {
         '/admin/submitLogin', params, 'post', true
       ).then(
           msg => {
-            console.log('返回数据', msg);
             dispatch({
               type: 'APP::LOGIN',
               payload: msg,
@@ -54,6 +52,20 @@ export function saveURL(url) {
   };
 }
 
+// 根据菜单ID查询该菜单下有哪些按钮
+export function findButtonsByMenuId(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/buttons/findButtonsByMenuId', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
 
 // promise测试
 export function testPromise(params) {

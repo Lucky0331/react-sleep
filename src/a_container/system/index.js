@@ -66,6 +66,9 @@ class SystemContainer extends React.Component {
                 <MenuItem key="/system/menu">
                   <Link to='/system/menu'>菜单管理</Link>
                 </MenuItem>
+                 <MenuItem key="/system/jurisdiction">
+                   <Link to='/system/jurisdiction'>权限管理</Link>
+                 </MenuItem>
                 <MenuItem key="/system/version">
                   <Link to='/system/version'>app版本管理</Link>
                 </MenuItem>

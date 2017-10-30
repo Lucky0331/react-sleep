@@ -1,4 +1,4 @@
-/* Role 系统管理/角色管理 */
+/* Jurisdiction 系统管理/权限管理 */
 
 // ==================
 // 所需的各种插件
@@ -30,7 +30,7 @@ import { findAllRole, findRolesByKeys, updateRoleInfo, deleteRoleInfo, deleteAdm
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
 const { TextArea } = Input;
-class Role extends React.Component {
+class Jurisdiction extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -591,7 +591,7 @@ class Role extends React.Component {
 // PropTypes
 // ==================
 
-Role.propTypes = {
+Jurisdiction.propTypes = {
     location: P.any,
     history: P.any,
     actions: P.any,
@@ -601,7 +601,7 @@ Role.propTypes = {
 // ==================
 // Export
 // ==================
-const WrappedHorizontalRole = Form.create()(Role);
+const WrappedHorizontalJurisdiction = Form.create()(Jurisdiction);
 export default connect(
     (state) => ({
         allMenu: state.sys.allMenu,
@@ -609,4 +609,4 @@ export default connect(
     (dispatch) => ({
         actions: bindActionCreators({ findAllRole, findRolesByKeys, updateRoleInfo, deleteRoleInfo, deleteAdminUserInfo, AssigningMenuToRoleId, updateAdminUserInfo, findAllMenu, findAllMenuByRoleId, addRoleInfo }, dispatch),
     })
-)(WrappedHorizontalRole);
+)(WrappedHorizontalJurisdiction);

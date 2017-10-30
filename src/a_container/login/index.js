@@ -16,7 +16,6 @@ import './index.scss';
 // 所需的所有组件
 // ==================
 
-import CanvasBack from '../../a_component/canvasBack';
 import LogoImg from '../../assets/logo.png';
 
 // ==================
@@ -24,7 +23,7 @@ import LogoImg from '../../assets/logo.png';
 // ==================
 
 import { onLogin, testPromise } from '../../a_action/app-action';
-import { findAllRoleByUserId  } from '../../a_action/sys-action';
+import { findAllRoleByUserId, findAllMenuByRoleId } from '../../a_action/sys-action';
 // ==================
 // Definition
 // ==================
@@ -72,32 +71,55 @@ class LoginContainer extends React.Component {
       this.props.actions.findAllRoleByUserId({userId: 1});
   }
 
-  async doSubmit(userName, password) {
-      const userInfo = await this.props.actions.onLogin({userName, password});
-      console.log('userInfo返回了什么：', userInfo);
-      let roleInfo, menusInfo;
-      if (userInfo.returnCode === "0") {
-          roleInfo = await this.props.actions.findAllRoleByUserId({userId: userInfo.messsageBody.adminUser.id});
-          if (roleInfo.returnCode === "0") {
-              console.log('roleInfo:', roleInfo);
-              // const p = roleInfo.messageBody.result.map((item) => {
-              //     return new Promise((res, rej) => {
-              //         this.props.actions.findAllMenuByRoleId({roleId: item.id});
-              //     });
-              // });
-              // menusInfo = await Promise.all(p).then((res) => {
-              //     console.log('RES返回：', res);
-              // }).catch((err) => {
-              //     console.log('ALL失败：', err);
-              // });
+  async doSubmit(userName, password, callback, me, values) {
+      let userInfo = null;
+      let roleInfo = [];
+      let menusInfo = [];
+      try {
+          const userRes = await this.props.actions.onLogin({userName, password});
+          console.log('1.通过帐号密码得到userID：', userRes);
+          if (userRes.returnCode === "0") {
+              userInfo = userRes.messsageBody.adminUser;
+              const roleRes = await this.props.actions.findAllRoleByUserId({userId: userRes.messsageBody.adminUser.id});
+              if (roleRes.returnCode === "0") {
+                  console.log('2.通过userID查角色', roleRes);
+                  const p = roleRes.messsageBody.result.filter((item) => {
+                      return item.roleAfiliation === 'Y';
+                  }).map((item) => {
+                      roleInfo.push(item);
+                      return this.props.actions.findAllMenuByRoleId({roleId: item.id});
+                  });
+                  menusInfo = await Promise.all(p).then((res) => {
+                      console.log('3.通过角色查路由：', res);
+                      const r = [];
+                      let temp = [];
+                      res.forEach((item) => {
+                          if (item.returnCode === "0") {
+                              temp = [...temp, ...item.messsageBody.result];
+                          }
+                      });
+                      // 去除重复 和 为N的
+                      temp.filter((item) => {
+                          return item.menuAfiliation === 'Y';
+                      }).forEach((item) => {
+                          if (r.filter((v) => item.id === v.id).length === 0) {
+                              r.push(item);
+                          }
+                      });
+                      return r;
+                  });
+              }
           }
-      } else {
-          return userInfo;
+      } catch(err) {
+          console.log('登陆报错：', err);
       }
+      console.log('最终返回：', {userInfo, roleInfo, menusInfo});
+      callback({userInfo, roleInfo, menusInfo}, me, values);
   }
 
   // 用户提交登陆
   onSubmit() {
+    const me = this;
     const form = this.props.form;
     form.validateFields((error, values) => {
       if(error){
@@ -106,36 +128,30 @@ class LoginContainer extends React.Component {
       this.setState({
           loginLoading: true,
       });
-      // this.doSubmit(values.username, values.password);
-      // return;
-      this.props.actions.onLogin({userName: values.username, password: values.password}).then((res) => {
-        console.log('登录返回数据：', res);
-        if (res.returnCode === '0') {
-          // 用户的基本信息和角色信息会在session中保存一份，store中也会保存一份
-          sessionStorage.setItem('adminUser', JSON.stringify(res.messsageBody.adminUser)); // 保存用户基础信息
-          sessionStorage.setItem('adminRole', JSON.stringify(res.messsageBody.adminRole)); // 保存用户角色信息
+      this.doSubmit(values.username, values.password, this.onSubmitResult, me, values);
+    });
+  }
+
+  onSubmitResult(loginInfo, me, values) {
+      if (!loginInfo || !loginInfo.userInfo) {
+          me.setState({
+              loginLoading: false
+          });
+          message.error('登录失败，请重试');
+      } else {
+          sessionStorage.setItem('adminUser', JSON.stringify(loginInfo.userInfo)); // 保存用户基础信息
+          sessionStorage.setItem('adminRole', JSON.stringify(loginInfo.roleInfo)); // 保存用户角色信息
+          sessionStorage.setItem('adminMenu', JSON.stringify(loginInfo.menusInfo)); // 保存用户菜单信息
           // 如果选择了记住密码，用户名和密码加密保存到localStorage,否则清除
-          if (this.state.rememberPassword) {
+          if (me.state.rememberPassword) {
               localStorage.setItem('userLoginInfo', JSON.stringify({username: values.username, password: all.compile(values.password)})); // 保存用户名和密码
           } else {
-            localStorage.removeItem('userLoginInfo');
+              localStorage.removeItem('userLoginInfo');
           }
           // 登陆成功后，还需要获取用户的所有角色，每个角色所拥有的菜单，全部保存于sessionStorage
           message.success('登录成功');
-          this.props.history.push('/home');
-        } else {
-          console.log('res.returnMessage :', res, res.returnMessaage);
-          message.error(res.returnMessaage || '登录失败111，请重试');
-          this.setState({
-            loginLoading: false
-          });
-        }
-      }).catch(() => {
-          this.setState({
-              loginLoading: false
-          });
-      });
-    });
+          me.props.history.push('/home');
+      }
   }
 
   // 记住密码按钮点击
@@ -161,7 +177,7 @@ class LoginContainer extends React.Component {
     const { getFieldDecorator } = this.props.form;
     return (
       <div className="page-login">
-        <div className={this.state.show ? 'login-box all_trans500 show' : 'login-box all_trans'}>
+        <div className={this.state.show ? 'login-box all_trans500 show' : 'login-box all_trans500'}>
           <Form>
             <div className="title"><img src={LogoImg} alt="logo"/></div>
             <div>
@@ -233,9 +249,6 @@ class LoginContainer extends React.Component {
             </div>
           </Form>
         </div>
-        <div className='login-back'>
-          <CanvasBack />
-        </div>
       </div>
     );
   }
@@ -261,6 +274,6 @@ export default connect(
   (state) => ({
   }), 
   (dispatch) => ({
-    actions: bindActionCreators({ onLogin, testPromise, findAllRoleByUserId  }, dispatch),
+    actions: bindActionCreators({ onLogin, testPromise, findAllRoleByUserId, findAllMenuByRoleId }, dispatch),
   })
 )(WrappedHorizontalLoginForm);

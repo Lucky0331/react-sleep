@@ -8,7 +8,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
-import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, InputNumber, Select  } from 'antd';
+import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, InputNumber, Select, Tooltip } from 'antd';
 import './index.scss';
 import tools from '../../../../util/tools';
 // ==================
@@ -300,9 +300,9 @@ class Manager extends React.Component {
     makeColumns(){
         const columns = [
             {
-                title: 'ID',
-                dataIndex: 'id',
-                key: 'id',
+                title: '序号',
+                dataIndex: 'serial',
+                key: 'serial',
             },
             {
                 title: '用户名',
@@ -344,14 +344,30 @@ class Manager extends React.Component {
                 width: 200,
                 render: (text, record) => {
                     let controls = [
-                        <span key="0" className="control-query" onClick={() => this.onQueryClick(record)}>查看</span>,
+                        <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
+                            <Tooltip placement="top" title="查看">
+                                <Icon type="eye" />
+                            </Tooltip>
+                        </span>,
                         <span key="line1" className="ant-divider" />,
-                        <span key="1" className="control-update" onClick={() => this.onUpdateClick(record)}>修改</span>,
+                        <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
+                            <Tooltip placement="top" title="修改">
+                                <Icon type="edit" />
+                            </Tooltip>
+                        </span>,
                         <span key="line2" className="ant-divider" />,
-                        <span key="2" className="control-update" onClick={() => this.onRoleTreeShow(record)} >分配角色</span>,
+                        <span key="2" className="control-btn blue" onClick={() => this.onRoleTreeShow(record)} >
+                            <Tooltip placement="top" title="分配角色">
+                                <Icon type="tool" />
+                            </Tooltip>
+                        </span>,
                         <span key="line3" className="ant-divider" />,
                         <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
-                            <span className="control-delete">删除</span>
+                            <span className="control-btn red">
+                                <Tooltip placement="top" title="删除">
+                                    <Icon type="delete" />
+                                </Tooltip>
+                            </span>
                         </Popconfirm>
                     ];
 
@@ -374,6 +390,7 @@ class Manager extends React.Component {
                 key: index,
                 adminIp: item.adminIp,
                 id: item.id,
+                serial: (index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
                 age: item.age,
                 conditions: item.conditions,
                 creator: item.creator,
@@ -475,7 +492,7 @@ class Manager extends React.Component {
                   current: this.state.pageNum,
                   pageSize: this.state.pageSize,
                   showQuickJumper: true,
-                  showTotal: (total, range) => `总数：${total}条`,
+                  showTotal: (total, range) => `共 ${total} 条数据`,
                   onChange: (page, pageSize) => this.onTablePageChange(page, pageSize)
               }}
           />
@@ -837,12 +854,6 @@ class Manager extends React.Component {
                       {!!this.state.nowData ? this.state.nowData.userName : ''}
                   </FormItem>
                   <FormItem
-                      label="ID"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.id : ''}
-                  </FormItem>
-                  <FormItem
                       label="性别"
                       {...formItemLayout}
                   >
@@ -883,30 +894,6 @@ class Manager extends React.Component {
                       {...formItemLayout}
                   >
                       {!!this.state.nowData ? (this.state.nowData.conditions === "0" ? <span style={{ color: 'green' }}>启用</span> : <span style={{ color: 'red' }}>禁用</span>) : ''}
-                  </FormItem>
-                  <FormItem
-                      label="创建时间"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.createTime : ''}
-                  </FormItem>
-                  <FormItem
-                      label="创建人"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.creator : ''}
-                  </FormItem>
-                  <FormItem
-                      label="最后修改"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.updateTime : ''}
-                  </FormItem>
-                  <FormItem
-                      label="修改人"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.updater : ''}
                   </FormItem>
               </Form>
           </Modal>

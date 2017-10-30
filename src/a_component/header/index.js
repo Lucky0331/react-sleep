@@ -12,6 +12,7 @@ class Header extends React.Component {
         this.state = {
             adminUser: null, // 用户信息
             adminRole: null, // 用户角色
+            adminMenu: [], // 用户菜单
         };
     }
 
@@ -29,25 +30,39 @@ class Header extends React.Component {
     getUserInfo() {
         let adminUser = sessionStorage.getItem('adminUser');
         let adminRole = sessionStorage.getItem('adminRole');
+        let adminMenu = sessionStorage.getItem('adminMenu');
         if (`${adminUser}` !== `${JSON.stringify(this.state.adminUser)}`) {
             if (adminUser) {
                 adminUser = JSON.parse(adminUser);
                 adminRole = JSON.parse(adminRole);
+                adminMenu = JSON.parse(adminMenu);
             }
             this.setState({
                 adminUser,
                 adminRole,
+                adminMenu,
             });
         }
+    }
+
+    // 根据session中的用户菜单信息，构建拥有权限的菜单
+    makeMenus(data) {
+        return data.filter((item) => item.parentId === 0).sort((a, b) => a.sorts - b.sorts).map((item, index) => {
+            return (
+                <li key={index}><NavLink to={`/${item.menuUrl ? item.menuUrl.replace(/^\//, '') : '404'}`}>{item.menuName}</NavLink></li>
+            );
+        });
     }
 
     // 退出登陆
     onLogout(){
         sessionStorage.removeItem('adminUser');
         sessionStorage.removeItem('adminRole');
+        sessionStorage.removeItem('adminMenu');
         this.setState({
             adminUser: null,
             adminRole: null,
+            adminMenu: [],
         });
         this.props.history.push('/login');
     }
@@ -59,18 +74,8 @@ class Header extends React.Component {
                     <li style={{ width: '99px', boxSizing: 'border-box', paddingLeft: '8px' }}><Link to="/home" className="logo"><img src={LogoImg} alt='logo'/>翼猫科技</Link></li>
                     {
                         this.state.adminUser ? [
-                            <li key="0"><NavLink to="/home"><Icon type="home" /> Home</NavLink></li>,
-                            <li key="1"><NavLink to="/system">系统管理</NavLink></li>,
-                            <li key="2"><NavLink to="/device">设备中心</NavLink></li>,
-                            <li key="3"><NavLink to="/user">用户中心</NavLink></li>,
-                            <li key="4"><NavLink to="/health">健康评估</NavLink></li>,
-                            <li key="5"><NavLink to="/data">数据统计</NavLink></li>,
-                            <li key="6"><NavLink to="/operate">运营中心</NavLink></li>,
-                            <li key="7"><NavLink to="/physical">体检中心</NavLink></li>,
-                            <li key="8"><NavLink to="/log">日志中心</NavLink></li>,
-                            <li key="9"><NavLink to="/cost">费用中心</NavLink></li>,
-                            <li key="10"><NavLink to="/open">开放平台</NavLink></li>,
-                            <li key="11"><NavLink to="/activity">积分活动</NavLink></li>,
+                            <li key="-1"><NavLink to="/home"><Icon type="home" /> Home</NavLink></li>,
+                            ...this.makeMenus(this.state.adminMenu)
                         ] : null
                     }
                 </ul>
@@ -95,3 +100,16 @@ Header.propTypes = {
 };
 
 export default Header;
+
+
+// {/*<li key="1"><NavLink to="/system">系统管理</NavLink></li>,*/}
+// {/*<li key="2"><NavLink to="/device">设备中心</NavLink></li>,*/}
+// {/*<li key="3"><NavLink to="/user">用户中心</NavLink></li>,*/}
+// {/*<li key="4"><NavLink to="/health">健康评估</NavLink></li>,*/}
+// {/*<li key="5"><NavLink to="/data">数据统计</NavLink></li>,*/}
+// {/*<li key="6"><NavLink to="/operate">运营中心</NavLink></li>,*/}
+// {/*<li key="7"><NavLink to="/physical">体检中心</NavLink></li>,*/}
+// {/*<li key="8"><NavLink to="/log">日志中心</NavLink></li>,*/}
+// {/*<li key="9"><NavLink to="/cost">费用中心</NavLink></li>,*/}
+// {/*<li key="10"><NavLink to="/open">开放平台</NavLink></li>,*/}
+// {/*<li key="11"><NavLink to="/activity">积分活动</NavLink></li>,*/}

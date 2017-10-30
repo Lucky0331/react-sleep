@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node server.js",
     "build": "webpack -p --config webpack.production.config.js --progress --profile --colors",
+    "clear": "mkdir ./build",
     "cover": "./node_modules/.bin/istanbul cover _mocha",
     "coveralls": "npm run cover -- --report lcovonly && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
   },
