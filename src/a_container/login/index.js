@@ -66,9 +66,6 @@ class LoginContainer extends React.Component {
       this.setState({
           show: true,
       });
-
-        // 测试
-      this.props.actions.findAllRoleByUserId({userId: 1});
   }
 
   async doSubmit(userName, password, callback, me, values) {

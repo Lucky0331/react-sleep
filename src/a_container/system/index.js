@@ -48,7 +48,6 @@ class SystemContainer extends React.Component {
 
   render() {
     return (
-      <BrowserRouter key='browser'>
         <div key='page' className="allpage page-system">
             <div className='left'>
               <Menu
@@ -88,7 +87,6 @@ class SystemContainer extends React.Component {
               </Switch>
           </div>
         </div>
-      </BrowserRouter>
     );
   }
 }

@@ -31,6 +31,7 @@
         padding: 20px;
         .title-box{
             opacity: 0;
+            min-width: 422px;
             transform: scale(1.3, 1.3);
             height: 40px;
             line-height: 40px;
@@ -47,8 +48,6 @@
                 perspective:600px;
                 -webkit-perspective:600px;
                 -moz-perspective:600px;
-                -ms-perspective:600px;
-                -o-perspective:600px;
                 .logo-animate{
                     animation-name: turn;
                     -webkit-animation-name: turn;

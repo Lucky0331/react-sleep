@@ -58,8 +58,8 @@ class Manager extends React.Component {
   // 查询当前页面所需列表数据
     onGetData(pageNum, pageSize) {
         const params = {
-            searchUserName: this.state.searchUserName,
-            searchConditions: this.state.searchConditions,
+            userName: this.state.searchUserName,
+            conditions: this.state.searchConditions,
             pageNum,
             pageSize,
         };
@@ -101,7 +101,7 @@ class Manager extends React.Component {
       console.log('Record:', record);
         form.setFieldsValue({
             upUsername: record.userName,
-            upPassword: record.password,
+            upPassword: '______',
             upSex: record.sex || 1,
             upAge: record.age || undefined,
             upPhone: record.phone || undefined,
@@ -137,10 +137,11 @@ class Manager extends React.Component {
             me.setState({
                 upLoading: true,
             });
+
             const params = {
                 id: me.state.nowData.id,
                 userName: values.upUsername,
-                password: values.upPassword,
+                password: values.upPassword === '______' ? null : values.upPassword,
                 sex: values.upSex,
                 age: values.upAge || '',
                 phone: values.upPhone || '',
@@ -389,6 +390,7 @@ class Manager extends React.Component {
             return {
                 key: index,
                 adminIp: item.adminIp,
+                password: item.password,
                 id: item.id,
                 serial: (index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
                 age: item.age,
@@ -699,7 +701,7 @@ class Manager extends React.Component {
                       {...formItemLayout}
                   >
                       {getFieldDecorator('upPassword', {
-                          initialValue: undefined,
+                          initialValue: '______',
                           rules: [
                               {required: true, message: '请输入密码'},
                               { validator: (rule, value, callback) => {
@@ -897,7 +899,7 @@ class Manager extends React.Component {
                   </FormItem>
               </Form>
           </Modal>
-          {/* 修改用户模态框 */}
+          {/* 修改用户角色模态框 */}
           <RoleTree
               userInfo={this.state.nowData}        // 当前操作用户信息
               roleData={this.props.allRoles}        // 所有的角色数据
