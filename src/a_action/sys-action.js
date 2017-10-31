@@ -391,4 +391,19 @@ export function updateButtons(params = {}) {
     };
 }
 
+// 删除菜单权限
+export function deleteButtons(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/buttons/deleteButtons', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
 

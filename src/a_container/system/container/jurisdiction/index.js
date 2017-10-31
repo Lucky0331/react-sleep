@@ -22,7 +22,7 @@ import UrlBread from '../../../../a_component/urlBread';
 // 本页面所需action
 // ==================
 
-import { findAllMenu, findButtonsByMenuId, addButtons, updateButtons } from '../../../../a_action/sys-action';
+import { findAllMenu, findButtonsByMenuId, addButtons, updateButtons, deleteButtons } from '../../../../a_action/sys-action';
 
 // ==================
 // Definition
@@ -87,20 +87,6 @@ class Role extends React.Component {
                 });
             } else {
                 message.error(res.returnMessaage || '获取数据失败');
-            }
-        });
-    }
-    // 确定删除当前菜单
-    onDeleteOk(){
-        this.props.actions.deleteMenuInfo({menuId : this.state.nowData.node.props.id}).then((res) => {
-            if (res.returnCode === "0") {
-                message.success('删除成功');
-                this.getAllMenus();
-                this.setState({
-                    nowData: null,
-                });
-            } else {
-                message.error(res.returnMessaage || '删除失败');
             }
         });
     }
@@ -330,6 +316,19 @@ class Role extends React.Component {
             });
         }
     }
+
+    // 删除一项
+    onDeleteClick(id) {
+        this.props.actions.deleteButtons({btnId: id}).then((res) => {
+            if (res.returnCode === "0") {
+                message.success('删除成功');
+                this.getData(this.state.nowData.id);
+            } else {
+                message.error(res.returnMessaage || '删除失败');
+            }
+        });
+    }
+
     // 构建字段
     makeColumns(){
         const columns = [
@@ -670,6 +669,6 @@ export default connect(
         allMenu: state.sys.allMenu, // 所有的菜单缓存
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findAllMenu, findButtonsByMenuId, addButtons, updateButtons }, dispatch),
+        actions: bindActionCreators({ findAllMenu, findButtonsByMenuId, addButtons, updateButtons, deleteButtons }, dispatch),
     })
 )(WrappedHorizontalRole);
