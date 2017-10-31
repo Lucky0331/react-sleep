@@ -346,4 +346,49 @@ export function findMenusByKeys(params = {}) {
     };
 }
 
+// 根据菜单名或状态查询指定菜单
+export function findButtonsByMenuId(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/buttons/findButtonsByMenuId', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 添加菜单权限
+export function addButtons(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/buttons/addButtons', params, 'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 修改菜单权限
+export function updateButtons(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/buttons/updateButtons', params, 'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
 

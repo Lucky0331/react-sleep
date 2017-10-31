@@ -17,13 +17,12 @@ import tools from '../../../../util/tools';
 // ==================
 
 import UrlBread from '../../../../a_component/urlBread';
-import MenuTree from '../../../../a_component/menuTree';
 
 // ==================
 // 本页面所需action
 // ==================
 
-import { findAllMenu, addMenuInfo, deleteMenuInfo, updateMenuInfo, findMenusByKeys } from '../../../../a_action/sys-action';
+import { findAllMenu, findButtonsByMenuId, addButtons, updateButtons } from '../../../../a_action/sys-action';
 
 // ==================
 // Definition
@@ -38,8 +37,9 @@ class Role extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            data: [], // 当前页数据 - 没有取store中的全部菜单，因为这里有条件查询
-            nowData: null, // 当前选中的菜单项
+            data: [], // 当前页数据
+            nowData: null, // 当前选中的Tree菜单项
+            nowJurData: null, // 当前选中的权限项 - 修改和删除的时候要用
             sourceData: [], // 经过处理的原始数据
             addLoading: false, // 是否正在增加菜单中
             fatherTreeShow: false, // 选择父级tree是否出现
@@ -62,7 +62,6 @@ class Role extends React.Component {
         } else {
             this.makeSourceData(this.props.allMenu);
         }
-        this.getData();
     }
 
     componentWillReceiveProps(nextProps) {
@@ -77,15 +76,14 @@ class Role extends React.Component {
     }
 
     // getData 条件查询 本页面TABLE用此数据
-    getData() {
+    getData(id = 0) {
         const params = {
-            menuName: this.state.searchMenuName,
-            conditions: this.state.searchConditions,
-        }
-        this.props.actions.findMenusByKeys(tools.clearNull(params)).then((res) => {
+            menuId: id,
+        };
+        this.props.actions.findButtonsByMenuId(params).then((res) => {
             if (res.returnCode === '0') {
                 this.setState({
-                    data: res.messsageBody.result,
+                    data: res.messsageBody,
                 });
             } else {
                 message.error(res.returnMessaage || '获取数据失败');
@@ -166,27 +164,24 @@ class Role extends React.Component {
         const me = this;
         const { form } = me.props;
         form.validateFields([
-            'addMenuName',
-            'addMenuUrl',
-            'addConditions',
-            'addSorts',
-            'addMenuDesc',
+            'addBtnName',
+            'addBtnCode',
+            'addBtnDesc',
+            'addBtnDuty',
         ], (err, values) => {
             if (err) { return; }
             const params = {
-                menuName: values.addMenuName,
-                menuUrl: values.addMenuUrl,
-                conditions: values.addConditions,
-                sorts: values.addSorts,
-                menuDesc: values.addMenuDesc,
-                parentId: me.state.treeFatherValue ? `${me.state.treeFatherValue.id}` : '0', // 如果没有的话就是顶级菜单，顶级菜单默认为0
+                btnName: values.addBtnName,
+                btnCode: values.addBtnCode,
+                btnDesc: values.addBtnDesc,
+                btnDuty: values.addBtnDuty,
+                menuId: this.state.nowData.id,
             };
             this.setState({addLoading: true});
-            me.props.actions.addMenuInfo(tools.clearNull(params)).then((res) => {
+            me.props.actions.addButtons(tools.clearNull(params)).then((res) => {
                 if(res.returnCode === "0") {
                     message.success('添加成功');
-                    this.getAllMenus(); // 重新获取菜单
-                    this.getData();
+                    this.getData(this.state.nowData.id);
                     this.onAddClose();
                 } else {
                     message.error('添加失败');
@@ -201,8 +196,6 @@ class Role extends React.Component {
     // 新增 - 取消
     onAddClose() {
         this.setState({
-            nowData: null,
-            treeFatherValue: null,
             addModalShow: false,
         });
     }
@@ -212,14 +205,12 @@ class Role extends React.Component {
         const me = this;
         const { form } = me.props;
         form.resetFields([
-            'addMenuName',
-            'addMenuUrl',
-            'addConditions',
-            'addSorts',
-            'addMenuDesc',
+            'addBtnName',
+            'addBtnCode',
+            'addBtnDesc',
+            'addBtnDuty',
         ]);
         this.setState({
-            treeFatherValue: null,
             addModalShow: true,
         });
     }
@@ -229,27 +220,25 @@ class Role extends React.Component {
         const { form } = me.props;
         console.log('nowData是个啥：', me.state.nowData);
         form.validateFields([
-            'upMenuName',
-            'upMenuUrl',
-            'upConditions',
-            'upSorts',
-            'upMenuDesc',
+            'upBtnName',
+            'upBtnCode',
+            'upBtnDesc',
+            'upBtnDuty',
         ], (err, values) => {
             if (err) { return; }
             const params = {
-                id: me.state.nowData.id,
-                menuName: values.upMenuName,
-                menuUrl: values.upMenuUrl,
-                conditions: values.upConditions,
-                sorts: values.upSorts,
-                menuDesc: values.upMenuDesc,
-                parentId: this.state.treeFatherValue ? `${this.state.treeFatherValue.id}` : '0', // 如果没有的话就是顶级菜单，顶级菜单默认为0
+                btnName: values.upBtnName,
+                btnCode: values.upBtnCode,
+                btnDesc: values.upBtnDesc,
+                btnDuty: values.upBtnDuty,
+                menuId: this.state.nowData.id,
+                id: this.state.nowJurData.id,
             };
             this.setState({upLoading: true});
-            this.props.actions.updateMenuInfo(params).then((res) => {
+            this.props.actions.updateButtons(params).then((res) => {
                 if(res.returnCode === "0") {
                     message.success('修改成功');
-                    this.getAllMenus(); // 重新获取菜单
+                    this.getData(this.state.nowData.id);
                     this.onUpClose();
                 } else {
                     message.error('修改失败');
@@ -267,23 +256,19 @@ class Role extends React.Component {
         const { form } = me.props;
         console.log('当前修改的：', record);
         form.setFieldsValue({
-            upMenuName: record.menuName,
-            upMenuUrl: record.menuUrl,
-            upMenuDesc: record.menuDesc,
-            upSorts: record.sorts,
-            upConditions: record.conditions,
+            upBtnName: record.btnName,
+            upBtnCode: record.btnCode,
+            upBtnDesc: record.btnDesc,
+            upBtnDuty: record.btnDuty,
         });
         this.setState({
-            nowData: record,
-            treeFatherValue: { id: record.parentId, title: this.getFather(record.parentId) },
+            nowJurData: record,
             upModalShow: true,
         });
     }
     // 修改 - 模态框 关闭
     onUpClose() {
         this.setState({
-            nowData: null,
-            treeFatherValue: null,
             upModalShow: false,
         });
     }
@@ -315,16 +300,6 @@ class Role extends React.Component {
         });
     }
 
-    // 工具函数 - 根据父ID得到父名称
-    getFather(parentId) {
-        const p = this.props.allMenu.find((item) => {
-            return `${item.id}` === `${parentId}`;
-        });
-        if (p) {
-            return p.menuName;
-        }
-        return '';
-    }
     // 查看 - 模态框出现
     onQueryClick(record) {
         this.setState({
@@ -340,20 +315,20 @@ class Role extends React.Component {
         });
     }
 
-    // 搜索 - 菜单名改变时触发
-    searchMenuNameChange(e) {
-        if (e.target.value.length < 20) {
+    // 选择一个菜单项
+    onTreeSelect(keys, e) {
+        console.log('当前选择：', keys, e);
+        if (e.selected) {
             this.setState({
-                searchMenuName: e.target.value,
+                nowData: e.node.props.data,
+            });
+            this.getData(e.node.props.data.id);
+        } else {
+            this.setState({
+                nowData: null,
+                data: [],
             });
         }
-    }
-
-    // 搜索 - 状态改变时触发
-    searchConditionsChange(e) {
-        this.setState({
-            searchConditions: e,
-        });
     }
     // 构建字段
     makeColumns(){
@@ -364,34 +339,24 @@ class Role extends React.Component {
                 key: 'serial',
             },
             {
-                title: '菜单名',
-                dataIndex: 'menuName',
-                key: 'menuName',
+                title: '权限名',
+                dataIndex: 'btnName',
+                key: 'btnName',
             },
             {
-                title: '菜单URL',
-                dataIndex: 'menuUrl',
-                key: 'menuUrl',
-                render: (text, record) => {
-                    return text ? `/${text.replace(/^\//, '')}` : '';
-                },
+                title: '按钮Code',
+                dataIndex: 'btnCode',
+                key: 'btnCode',
+            },
+            {
+                title: '职责',
+                dataIndex: 'btnDuty',
+                key: 'btnDuty',
             },
             {
                 title: '描述',
-                dataIndex: 'menuDesc',
-                key: 'menuDesc',
-            },
-            {
-                title: '父级',
-                dataIndex: 'parentId',
-                key: 'parentId',
-                render: (text, record) => this.getFather(text),
-            },
-            {
-                title: '状态',
-                dataIndex: 'conditions',
-                key: 'conditions',
-                render: (text, record) => text === "0" ? <span style={{color: 'green'}}>启用</span> : <span style={{color: 'red'}}>禁用</span>
+                dataIndex: 'btnDesc',
+                key: 'btnDesc',
             },
             {
                 title: '操作',
@@ -434,12 +399,11 @@ class Role extends React.Component {
             return {
                 key: index,
                 id: item.id,
-                parentId: item.parentId,
-                menuName: item.menuName,
-                menuUrl: item.menuUrl,
-                menuDesc: item.menuDesc,
-                sorts: item.sorts,
-                conditions: item.conditions,
+                btnName: item.btnName,
+                btnCode: item.btnCode,
+                btnDesc: item.btnDesc,
+                btnDuty: item.btnDuty,
+                menuId: item.menuId,
                 serial: (index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
             }
         });
@@ -461,16 +425,17 @@ class Role extends React.Component {
         };
 
         return (
-            <div className="page-menu">
+            <div className="page-jurisdiction">
                 <UrlBread location={this.props.location}/>
                 <div className="menubox all_clear">
                     <div className="l">
                         <div className="title">
                             <span>系统目录结构</span>
                         </div>
-                        <div>
+                        <div className="all-the-menus">
                             <Tree
                                 defaultExpandedKeys={['0']}
+                                onSelect={(keys, e) => this.onTreeSelect(keys, e)}
                             >
                                 <TreeNode title="翼猫科技智能睡眠系统" key="0" data={{}}>
                                     { this.makeTreeDom(this.state.sourceData) }
@@ -481,31 +446,7 @@ class Role extends React.Component {
                     <div className="r system-table">
                         <div className="menu-search">
                             <ul className="search-func">
-                                <li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加菜单</Button></li>
-                            </ul>
-                            <span className="ant-divider" />
-                            <ul className="search-ul">
-                                <li>
-                                    <Input
-                                        placeholder="菜单名"
-                                        onChange={(e) => this.searchMenuNameChange(e)}
-                                        value={this.state.searchMenuName}
-                                        onPressEnter={() => this.onSearch()}
-                                    />
-                                </li>
-                                <li>
-                                    <Select
-                                        style={{ width: '150px' }}
-                                        placeholder="菜单状态"
-                                        allowClear
-                                        onChange={(e) => this.searchConditionsChange(e)}
-                                        value={this.state.searchConditions}
-                                    >
-                                        <Option value="0">启用</Option>
-                                        <Option value="-1">禁用</Option>
-                                    </Select>
-                                </li>
-                                <li><Button icon="search" type="primary" onClick={() => this.getData()}>搜索</Button></li>
+                                <li className={this.state.nowData && 'show'}><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加权限</Button></li>
                             </ul>
                         </div>
                         <Table
@@ -520,9 +461,9 @@ class Role extends React.Component {
                         />
                     </div>
                 </div>
-                {/* 添加菜单模态框 */}
+                {/* 添加权限模态框 */}
                 <Modal
-                    title='添加菜单'
+                    title='添加权限'
                     visible={this.state.addModalShow}
                     onOk={() => this.onAddOk()}
                     onCancel={() => this.onAddClose()}
@@ -530,13 +471,13 @@ class Role extends React.Component {
                 >
                     <Form>
                         <FormItem
-                            label="菜单名"
+                            label="权限名称"
                             {...formItemLayout}
                         >
-                            {getFieldDecorator('addMenuName', {
+                            {getFieldDecorator('addBtnName', {
                                 initialValue: undefined,
                                 rules: [
-                                    {required: true, message: '请输入菜单名'},
+                                    {required: true, message: '请输入权限名'},
                                     { validator: (rule, value, callback) => {
                                         const v = value;
                                         if (v) {
@@ -548,44 +489,47 @@ class Role extends React.Component {
                                     }}
                                 ],
                             })(
-                                <Input placeholder="请输入菜单名" />
+                                <Input placeholder="请输入权限名" />
                             )}
                         </FormItem>
                         <FormItem
-                            label="菜单URL"
+                            label="按钮Code"
                             {...formItemLayout}
                         >
-                            {getFieldDecorator('addMenuUrl', {
+                            {getFieldDecorator('addBtnCode', {
                                 initialValue: undefined,
                                 rules: [
-                                    {required: true, message: '请输入菜单URL'},
+                                    {required: true, message: '请输入Code'},
                                     { validator: (rule, value, callback) => {
                                         const v = value;
                                         if (v) {
-                                            if (v.length > 12) {
-                                                callback('最多输入12位字符');
-                                            }else if (!tools.checkStr2(v)){
-                                                callback('只能输入字母、数字及下划线');
+                                            if (v.length > 24) {
+                                                callback('最多输入24位字符');
                                             }
                                         }
                                         callback();
                                     }}
                                 ],
                             })(
-                                <Input placeholder="请输入URL"/>
+                                <Input placeholder="请输入Code"/>
                             )}
                         </FormItem>
                         <FormItem
-                            label="父级"
+                            label="职责"
                             {...formItemLayout}
                         >
-                            <Input placeholder="请选择父级"  readOnly value={this.state.treeFatherValue && this.state.treeFatherValue.title} onClick={() => this.onFatherShow()}/>
+                            {getFieldDecorator('addBtnDuty', {
+                                rules: [{max: 50, message: '最多输入50位字符'}],
+                                initialValue: undefined,
+                            })(
+                                <Input placeholder="请输入职责"/>
+                            )}
                         </FormItem>
                         <FormItem
                             label="描述"
                             {...formItemLayout}
                         >
-                            {getFieldDecorator('addMenuDesc', {
+                            {getFieldDecorator('addBtnDesc', {
                                 rules: [{ validator: (rule, value, callback) => {
                                     const v = value;
                                     if (v) {
@@ -598,31 +542,6 @@ class Role extends React.Component {
                                 initialValue: undefined,
                             })(
                                 <TextArea rows={4} placeholoder="请输入描述" autosize={{minRows: 2, maxRows: 6}} />
-                            )}
-                        </FormItem>
-                        <FormItem
-                            label="排序"
-                            {...formItemLayout}
-                        >
-                            {getFieldDecorator('addSorts', {
-                                initialValue: 0,
-                                rules: [{required: true, message: '请输入排序号'}],
-                            })(
-                                <InputNumber min={0} max={99999} />
-                            )}
-                        </FormItem>
-                        <FormItem
-                            label="状态"
-                            {...formItemLayout}
-                        >
-                            {getFieldDecorator('addConditions', {
-                                rules: [],
-                                initialValue: "0",
-                            })(
-                                <RadioGroup>
-                                    <Radio value="0">启用</Radio>
-                                    <Radio value="-1">禁用</Radio>
-                                </RadioGroup>
                             )}
                         </FormItem>
                     </Form>
@@ -630,7 +549,7 @@ class Role extends React.Component {
 
                 {/* 修改用户模态框 */}
                 <Modal
-                    title='修改菜单'
+                    title='修改权限'
                     visible={this.state.upModalShow}
                     onOk={() => this.onUpOk()}
                     onCancel={() => this.onUpClose()}
@@ -638,99 +557,55 @@ class Role extends React.Component {
                 >
                     <Form>
                         <FormItem
-                            label="菜单名"
+                            label="权限名"
                             {...formItemLayout}
                         >
-                            {getFieldDecorator('upMenuName', {
+                            {getFieldDecorator('upBtnName', {
                                 initialValue: undefined,
                                 rules: [
-                                    {required: true, message: '请输入菜单名'},
-                                    { validator: (rule, value, callback) => {
-                                        const v = value;
-                                        if (v) {
-                                            if (v.length > 12) {
-                                                callback('最多输入12位字符');
-                                            }
-                                        }
-                                        callback();
-                                    }}
+                                    {required: true, message: '请输入权限名'},
+                                    {max: 12, message: '最多输入12位字符'}
                                 ],
                             })(
-                                <Input placeholder="请输入菜单名" />
+                                <Input placeholder="请输入权限名" />
                             )}
                         </FormItem>
                         <FormItem
-                            label="菜单URL"
+                            label="Code"
                             {...formItemLayout}
                         >
-                            {getFieldDecorator('upMenuUrl', {
+                            {getFieldDecorator('upBtnCode', {
                                 initialValue: undefined,
                                 rules: [
-                                    {required: true, message: '请输入菜单URL'},
-                                    { validator: (rule, value, callback) => {
-                                        const v = value;
-                                        if (v) {
-                                            if (v.length > 12) {
-                                                callback('最多输入12位字符');
-                                            }else if (!tools.checkStr2(v)){
-                                                callback('只能输入字母、数字及下划线');
-                                            }
-                                        }
-                                        callback();
-                                    }}
+                                    {required: true, message: '请输入Code'},
+                                    {max: 12, message: '最多输入12位字符'}
                                 ],
                             })(
-                                <Input placeholder="请输入URL"/>
+                                <Input placeholder="请输入Code"/>
                             )}
                         </FormItem>
                         <FormItem
-                            label="父级"
+                            label="职责"
                             {...formItemLayout}
                         >
-                            <Input placeholder="请选择父级"  readOnly value={this.state.treeFatherValue && this.state.treeFatherValue.title} onClick={() => this.onFatherShow()}/>
+                            {getFieldDecorator('upBtnDuty', {
+                                rules: [{max: 50, message: '最多输入50位字符'}],
+                                initialValue: undefined,
+                            })(
+                                <Input placeholder="请输入职责"/>
+                            )}
                         </FormItem>
                         <FormItem
                             label="描述"
                             {...formItemLayout}
                         >
-                            {getFieldDecorator('upMenuDesc', {
-                                rules: [{ validator: (rule, value, callback) => {
-                                    const v = value;
-                                    if (v) {
-                                        if (v.length > 100) {
-                                            callback('最多输入100位字符');
-                                        }
-                                    }
-                                    callback();
-                                }}],
+                            {getFieldDecorator('upBtnDesc', {
+                                rules: [
+                                    {max: 100, message: '最多输入100位字符'}
+                                ],
                                 initialValue: undefined,
                             })(
                                 <TextArea rows={4} placeholoder="请输入描述" autosize={{minRows: 2, maxRows: 6}} />
-                            )}
-                        </FormItem>
-                        <FormItem
-                            label="排序"
-                            {...formItemLayout}
-                        >
-                            {getFieldDecorator('upSorts', {
-                                initialValue: 0,
-                                rules: [{required: true, message: '请输入排序号'}],
-                            })(
-                                <InputNumber min={0} max={99999} />
-                            )}
-                        </FormItem>
-                        <FormItem
-                            label="状态"
-                            {...formItemLayout}
-                        >
-                            {getFieldDecorator('upConditions', {
-                                rules: [],
-                                initialValue: "0",
-                            })(
-                                <RadioGroup>
-                                    <Radio value="0">启用</Radio>
-                                    <Radio value="-1">禁用</Radio>
-                                </RadioGroup>
                             )}
                         </FormItem>
                     </Form>
@@ -745,46 +620,31 @@ class Role extends React.Component {
                 >
                     <Form>
                         <FormItem
-                            label="菜单名"
+                            label="权限名"
                             {...formItemLayout}
                         >
-                            {!!this.state.nowData ? this.state.nowData.menuName : ''}
+                            {!!this.state.nowData ? this.state.nowData.btnName : ''}
                         </FormItem>
                         <FormItem
-                            label="URL"
+                            label="按钮Code"
                             {...formItemLayout}
                         >
-                            {!!this.state.nowData ? this.state.nowData.menuUrl : ''}
+                            {!!this.state.nowData ? this.state.nowData.btnCode : ''}
                         </FormItem>
                         <FormItem
-                            label="父级"
+                            label="职责"
                             {...formItemLayout}
                         >
-                            {!!this.state.nowData ? this.getFather(this.state.nowData.parentId) : ''}
+                            {!!this.state.nowData ? this.state.nowData.btnDuty : ''}
                         </FormItem>
                         <FormItem
                             label="描述"
                             {...formItemLayout}
                         >
-                            {!!this.state.nowData ? this.state.nowData.menuDesc : ''}
-                        </FormItem>
-                        <FormItem
-                            label="状态"
-                            {...formItemLayout}
-                        >
-                            {!!this.state.nowData ? (this.state.nowData.conditions === "0" ? <span style={{ color: 'green' }}>启用</span> : <span style={{ color: 'red' }}>禁用</span>) : ''}
+                            {!!this.state.nowData ? this.state.nowData.btnDesc : ''}
                         </FormItem>
                     </Form>
                 </Modal>
-                <MenuTree
-                    title="父级选择"
-                    menuData={this.props.allMenu} // 所需菜单原始数据
-                    defaultKey={this.state.treeFatherValue ? [`${this.state.treeFatherValue.id}`] : []}
-                    noShowId={this.state.nowData && this.state.nowData.id}
-                    modalShow={this.state.fatherTreeShow} // Modal是否显示
-                    onOk={(obj) => this.onTreeOk(obj)} // 确定时，获得选中的项信息
-                    onClose={(obj) => this.onTreeClose(obj)} // 关闭
-                />
             </div>
         );
     }
@@ -810,6 +670,6 @@ export default connect(
         allMenu: state.sys.allMenu, // 所有的菜单缓存
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findAllMenu, addMenuInfo, deleteMenuInfo, updateMenuInfo, findMenusByKeys }, dispatch),
+        actions: bindActionCreators({ findAllMenu, findButtonsByMenuId, addButtons, updateButtons }, dispatch),
     })
 )(WrappedHorizontalRole);
