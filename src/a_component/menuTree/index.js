@@ -162,7 +162,7 @@ MenuTree.propTypes = {
     title: P.string,        // 指定模态框标题
     menuData: P.any,        // 所有的菜单原始后台数据
     defaultKey: P.array,       // 需要默认选中的项
-    noShowId: P.number,      // 不显示的项（比如，选择父级时，不能选择自己）
+    noShowId: P.any,      // 不显示的项（比如，选择父级时，不能选择自己）
     modalShow: P.any,       // 是否显示
     onClose: P.any,         // 关闭模态框
     onOk: P.any,            // 确定选择，将所选项信息返回上级

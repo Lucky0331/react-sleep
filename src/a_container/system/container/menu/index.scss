@@ -3,33 +3,39 @@
     padding: 0 0 20px 0;
     .l{
       float: left;
-      width: 400px;
+      width: 300px;
       box-sizing: border-box;
       border: solid 1px #e9e9e9;
       margin: 0 0 0 10px;
       height: auto;
       border-radius: 4px;
       .title{
-        border-bottom: solid 1px #e9e9e9;
-        background-color: #f7f7f7;
-        height: 40px;
-        line-height: 40px;
+        height: 44px;
+        line-height: 44px;
         box-sizing: border-box;
         font-size: 14px;
         padding: 0 10px;
+        border-bottom: solid 1px #e9e9e9;
       }
     }
     .r{
       float: left;
-      width: calc(100% - 480px);
-      margin-left: 50px;
-      margin-right: 10px;
+      margin-top: 0 !important;
+      width: calc(100% - 330px);
+      .menu-search{
+        margin:0 10px;
+        border: solid 1px #e9e9e9;
+        padding: 8px;
+        border-radius: 4px;
+        .ant-divider{
+          margin: 0 20px;
+        }
+      }
       .title{
         height: 40px;
         line-height: 40px;
         box-sizing: border-box;
         font-size: 14px;
-        padding: 0 10px;
         border-bottom: solid 1px #e9e9e9;
       }
       .control{

@@ -328,4 +328,22 @@ export function findAdminUserByKeys(params = {}) {
     };
 }
 
+// 根据菜单名或状态查询指定菜单
+export function findMenusByKeys(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/menu/findMenusByKeys', Object.assign({}, params, {
+                pageNum: 1,
+                pageSize: 9999,
+            })
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
 
