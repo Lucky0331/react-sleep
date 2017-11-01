@@ -84,23 +84,29 @@ class SystemContainer extends React.Component {
         };
 
       const routerDom = {
-          manager: <Route path='/system/manager' component={Manager} />,
-          role: <Route path='/system/role' component={Role} />,
-          jurisdiction: <Route path='/system/jurisdiction' component={Jurisdiction} />,
-          menu: <Route path='/system/menu' component={MenuContainer} />,
-          version: <Route path='/system/version' component={Version} />,
-          organization: <Route path='/system/organization' component={Organization} />,
+          manager: <Route key="0" path='/system/manager' component={Manager} />,
+          role: <Route key="1" path='/system/role' component={Role} />,
+          jurisdiction: <Route key="2" path='/system/jurisdiction' component={Jurisdiction} />,
+          menu: <Route key="3" path='/system/menu' component={MenuContainer} />,
+          version: <Route key="4" path='/system/version' component={Version} />,
+          organization: <Route key="5" path='/system/organization' component={Organization} />,
       }
         const results = [];
         const routers = [];
+        let first = '';
+        console.log('原数组：', urls);
         urls.sort((a, b) => a.sorts - b.sorts).forEach((item, index) => {
             const url = item.menuUrl.replace(/\//, '');
             if (menuDom[url] && `${item.parentId}` === `${fid.id}`) {
+                if(results.length === 0) {
+                    first = `/${father}/${url}`;
+                }
                 results.push(menuDom[url]);
                 routers.push(routerDom[url]);
             }
         });
-        return {first: `/${father}/${urls[0] ? urls[0].menuUrl.replace(/\//, '') : ''}`, results, routers};
+      console.log('排序后：', urls);
+        return {first, results, routers};
   }
 
   render() {
