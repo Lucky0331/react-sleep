@@ -82,7 +82,7 @@ const tools = {
             }
         });
         return temp;
-    }
+    },
 };
 
 export default tools;

@@ -1,38 +1,118 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { Menu } from 'antd';
 import P from 'prop-types';
 
-class Menu extends React.Component {
+const MenuItem = Menu.Item;
+const SubMenu = Menu.SubMenu;
+class Menus extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            value: 5,
+            sourceData:[], // 层级结构的原始数据
+            treeDom: [],    // 生成的菜单结构
         };
     }
 
     // 组件初始化完毕时触发
     componentDidMount() {
-        const a = [11,22,33];
-        const [aa, ...bb] = a;
-        console.log('C是什么：', bb);
+        const data = JSON.parse(sessionStorage.getItem('adminMenu'));
+        this.makeSourceData(data);
+    }
+
+    // 处理原始数据，将原始数据处理为层级关系
+    makeSourceData(data) {
+        console.log('原始数据是什么222222：', data);
+        let d = _.cloneDeep(data);
+        // 按照sort排序
+        d.sort((a, b) => {
+            return a.sorts - b.sorts;
+        });
+        const sourceData = [];
+        d.forEach((item) => {
+            if (item.parentId === 0) {
+                const temp = this.dataToJson(d, item);
+                sourceData.push(temp);
+            }
+        });
+        console.log('jsonMenu是什么11111：', sourceData);
+        const treeDom = this.makeTreeDom(sourceData, '');
+        this.setState({
+            sourceData,
+            treeDom,
+        });
+
+    }
+
+    // 递归将扁平数据转换为层级数据
+    dataToJson(data, one) {
+        const child = _.cloneDeep(one);
+        child.children = [];
+        let sonChild = null;
+        data.forEach((item) => {
+            if (item.parentId === one.id) {
+                sonChild = this.dataToJson(data, item);
+                child.children.push(sonChild);
+            }
+        });
+        if (child.children.length <=0) {
+            child.children = null;
+        }
+        return child;
+    }
+
+    // 构建树结构
+    makeTreeDom(data, key) {
+        return data.map((item, index) => {
+            const newKey = `${key}/${item.menuUrl.replace(/\//,'')}`;
+            if (item.children) {
+                return (
+                    <SubMenu key={newKey} title={item.menuName}>
+                        { this.makeTreeDom(item.children, newKey) }
+                    </SubMenu>
+                );
+            } else {
+                return <MenuItem key={newKey}><Link to={newKey}>{item.menuName}</Link></MenuItem>;
+            }
+        });
     }
 
     render() {
         return (
-            <div className="menu">
-                <NavLink to="/home">首页</NavLink>|
-                <NavLink to="/features">构建与特性</NavLink>|
-                <NavLink to={{ pathname: '/test', search: '?a=123&b=abc', state: { c: '456', d: 'ABC'} }}>测试页面</NavLink>|
-                <a href="https://github.com/javaLuo/react-luo" target="_blank" rel="noopener noreferrer">GitHub</a>
-            </div>
+            <Menu
+                theme="dark"
+                mode="inline"
+            >
+                {this.state.treeDom}
+                <MenuItem key="/system/role">
+                    <Link to='/system/role'>角色管理</Link>
+                 </MenuItem>
+            </Menu>
         );
     }
 }
 
-Menu.propTypes = {
-    value: P.number,
-    onClick: P.func,
-    fetchValue: P.array,
+Menus.propTypes = {
+
 };
 
-export default Menu;
+export default Menus;
+
+// <MenuItem key="/system/manager">
+//     <Link to='/system/manager'>管理员信息管理</Link>
+// </MenuItem>
+// <MenuItem key="/system/role">
+//     <Link to='/system/role'>角色管理</Link>
+// </MenuItem>
+// <MenuItem key="/system/menu">
+//     <Link to='/system/menu'>菜单管理</Link>
+//     </MenuItem>
+//     <MenuItem key="/system/jurisdiction">
+//         <Link to='/system/jurisdiction'>权限管理</Link>
+//     </MenuItem>
+//     <MenuItem key="/system/version">
+//     <Link to='/system/version'>app版本管理</Link>
+// </MenuItem>
+// <MenuItem key="/system/organization">
+//     <Link to='/system/organization'>组织机构管理</Link>
+//     </MenuItem>

@@ -93,14 +93,12 @@ class Menu extends React.Component {
       });
     }
   // 确定删除当前菜单
-   onDeleteOk(){
-      this.props.actions.deleteMenuInfo({menuId : this.state.nowData.node.props.id}).then((res) => {
+    onDeleteClick(id){
+      this.props.actions.deleteMenuInfo({menuId : id}).then((res) => {
         if (res.returnCode === "0") {
           message.success('删除成功');
           this.getAllMenus();
-          this.setState({
-              nowData: null,
-          });
+          this.getData();
         } else {
           message.error(res.returnMessaage || '删除失败');
         }

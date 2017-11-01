@@ -15,6 +15,7 @@ import './index.scss';
 
 import LogoImg1 from '../../assets/logo-1.png';
 import LogoImg2 from '../../assets/logo-2.png';
+
 // ==================
 // 本页面所需action
 // ==================
@@ -38,9 +39,6 @@ class HomePageContainer extends React.Component {
             show: true,
         });
     }, 16);
-
-    // this.props.actions.findAllMenu();
-    // this.props.actions.findButtonsByMenuId({menuId: 1});
   }
 
   render() {

@@ -158,6 +158,7 @@ class MenuTree extends React.Component {
         return (
             <Modal
                 className="menu-tree-more"
+                zIndex={1001}
                 title={this.props.title || '菜单选择'}
                 visible={this.props.modalShow}
                 onOk={() => this.onOk()}
