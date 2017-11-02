@@ -10,14 +10,15 @@ import { bindActionCreators } from 'redux';
 import P from 'prop-types';
 import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, Tooltip  } from 'antd';
 import './index.scss';
-import tools from '../../../../util/tools';
+import tools from '../../../../util/tools'; // 工具
+import Power from '../../../../util/power'; // 权限
+import { power } from '../../../../util/data';
 // ==================
 // 所需的所有组件
 // ==================
 
 import UrlBread from '../../../../a_component/urlBread';
-import MenuTree from '../../../../a_component/menuTree/treeMore';
-
+import TreeTable from '../../../../a_component/menuTree/treeTable';
 // ==================
 // 本页面所需action
 // ==================
@@ -49,6 +50,7 @@ class Role extends React.Component {
             total: 0, // 数据库总共多少条数据
             treeLoading: false, // 控制树的loading状态，因为要先加载当前role的菜单，才能显示树
             treeOnOkLoading: false, // 是否正在分配菜单
+            roleTreeData: [], // 通过findMenuByRoleId查询的所有数据，包含了全部tree带btnList
         };
     }
 
@@ -251,6 +253,7 @@ class Role extends React.Component {
                 console.log('当前角色所拥有的菜单：', res, record);
                 const menuDefault = res.messsageBody.result.filter((item) => item.menuAfiliation === 'Y').map((item) => ({key: `${item.id}`, id: item.id, title: item.menuName, p: item.parentId}));
                 this.setState({
+                    roleTreeData: res.messsageBody.result,
                     menuDefault,
                 });
             }
@@ -276,7 +279,8 @@ class Role extends React.Component {
         console.log('所选择的：', arr);
         const params = {
             roleId: this.state.nowData.roleId,
-            menus: arr.map((item) => item.id).join(','),
+            menus: arr.menus.join(','),
+            btnIds: arr.btns.join(','),
         };
         this.setState({
             treeOnOkLoading: true,
@@ -318,7 +322,7 @@ class Role extends React.Component {
                 key: 'roleName',
             },
             {
-                title: '角色权限',
+                title: '职责',
                 dataIndex: 'roleDuty',
                 key: 'roleDuty',
             },
@@ -333,35 +337,47 @@ class Role extends React.Component {
                 key: 'control',
                 width: 200,
                 render: (text, record) => {
-                    return (
-                        [
-                          <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
-                              <Tooltip placement="top" title="查看">
+                    const controls = [];
+
+                    Power.test(power.system.role.query.code) && controls.push(
+                        <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
+                            <Tooltip placement="top" title="查看">
                                 <Icon type="eye" />
                             </Tooltip>
-                          </span>,
-                          <span key="line1" className="ant-divider" />,
-                          <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
-                              <Tooltip placement="top" title="修改">
+                        </span>
+                    );
+                    Power.test(power.system.role.update.code) && controls.push(
+                        <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
+                            <Tooltip placement="top" title="修改">
                                 <Icon type="edit" />
-                              </Tooltip>
-                          </span>,
-                          <span key="line2" className="ant-divider" />,
-                          <span key="2" className="control-btn blue" onClick={() => this.onMenuClick(record)}>
-                              <Tooltip placement="top" title="分配菜单">
+                            </Tooltip>
+                        </span>
+                    );
+                    Power.test(power.system.role.update.code) && controls.push(
+                        <span key="2" className="control-btn blue" onClick={() => this.onMenuClick(record)} >
+                            <Tooltip placement="top" title="分配角色">
                                 <Icon type="tool" />
                             </Tooltip>
-                          </span>,
-                          <span key="line3" className="ant-divider" />,
-                          <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.roleId)} okText="确定" cancelText="取消">
+                        </span>
+                    );
+                    Power.test(power.system.role.del.code) && controls.push(
+                        <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
                             <span className="control-btn red">
                                 <Tooltip placement="top" title="删除">
                                     <Icon type="delete" />
                                 </Tooltip>
                             </span>
-                          </Popconfirm>
-                        ]
+                        </Popconfirm>
                     );
+
+                    const result = [];
+                    controls.forEach((item, index) => {
+                        if (index) {
+                            result.push(<span key={`line${index}`} className="ant-divider" />,);
+                        }
+                        result.push(item);
+                    });
+                    return result;
                 },
             }
         ];
@@ -403,14 +419,15 @@ class Role extends React.Component {
             <div>
               <UrlBread location={this.props.location}/>
               <div className="system-search">
-                <ul className="search-func">
-                  <li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加角色</Button></li>
-                </ul>
+                  { Power.test(power.system.role.add.code) && <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加角色</Button></li></ul>}
                 <span className="ant-divider" />
-                <ul className="search-ul">
-                  <li><Input placeholder="请输入角色名" onChange={(e) => this.searchRoleNameChange(e)} value={this.state.searchRoleName}/></li>
-                  <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
-                </ul>
+                  { Power.test(power.system.role.query.code) &&
+                  <ul className="search-ul">
+                      <li><Input placeholder="请输入角色名" onChange={(e) => this.searchRoleNameChange(e)} value={this.state.searchRoleName}/></li>
+                      <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
+                  </ul>
+                  }
+
               </div>
               <div className="system-table">
                 <Table
@@ -573,11 +590,21 @@ class Role extends React.Component {
                 </Form>
               </Modal>
                 {/* 菜单树 多选 */}
-                <MenuTree
+                {/*<MenuTree*/}
+                    {/*title={this.state.nowData ? `分配菜单：${this.state.nowData.roleName}` : '分配菜单'}*/}
+                    {/*menuData={this.state.roleTreeData}*/}
+                    {/*defaultChecked={this.state.menuDefault}*/}
+                    {/*initloading={this.state.treeLoading} // 菜单树是否处于正在加载中状态*/}
+                    {/*loading={this.state.treeOnOkLoading}*/}
+                    {/*modalShow={this.state.menuTreeShow}*/}
+                    {/*onOk={(arr) => this.onMenuTreeOk(arr)}*/}
+                    {/*onClose={() => this.onMenuTreeClose()}*/}
+                {/*/>*/}
+                <TreeTable
                     title={this.state.nowData ? `分配菜单：${this.state.nowData.roleName}` : '分配菜单'}
-                    menuData={this.props.allMenu}
+                    menuData={this.state.roleTreeData}
                     defaultChecked={this.state.menuDefault}
-                    initloading={this.state.treeLoading} // 菜单树是否处于正在加载中状态
+                    initloading={this.state.treeLoading}
                     loading={this.state.treeOnOkLoading}
                     modalShow={this.state.menuTreeShow}
                     onOk={(arr) => this.onMenuTreeOk(arr)}

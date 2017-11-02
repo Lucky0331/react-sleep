@@ -577,7 +577,7 @@ class Role extends React.Component {
                                 initialValue: undefined,
                                 rules: [
                                     {required: true, message: '请输入Code'},
-                                    {max: 12, message: '最多输入12位字符'}
+                                    {max: 50, message: '最多输入50位字符'}
                                 ],
                             })(
                                 <Input placeholder="请输入Code"/>

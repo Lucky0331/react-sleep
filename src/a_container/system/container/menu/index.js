@@ -149,12 +149,12 @@ class Menu extends React.Component {
         const k = key ? `${key}-${item.id}` : `${item.id}`;
         if (item.children) {
             return (
-                <TreeNode title={item.menuName} key={k} id={item.id} p={item.parentId} data={item}>
+                <TreeNode title={item.menuName} key={k} id={item.id} p={item.parentId} data={item} selectable={false}>
                     { this.makeTreeDom(item.children, k) }
                 </TreeNode>
             );
         } else {
-          return <TreeNode title={item.menuName} key={k} id={item.id} p={item.parentId} data={item}/>;
+          return <TreeNode title={item.menuName} key={k} id={item.id} p={item.parentId} data={item} selectable={false}/>;
         }
       });
     }
@@ -470,7 +470,7 @@ class Menu extends React.Component {
               <Tree
                   defaultExpandedKeys={['0']}
               >
-                <TreeNode title="翼猫科技智能睡眠系统" key="0" data={{}}>
+                <TreeNode title="翼猫科技智能睡眠系统" key="0" data={{}} selectable={false}>
                   { this.makeTreeDom(this.state.sourceData) }
                 </TreeNode>
               </Tree>

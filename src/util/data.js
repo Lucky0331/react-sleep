@@ -1,5 +1,25 @@
 /* 统一维护的JSON */
 
+// 所有页面权限对照表
+export const power = {
+    system: {
+        manager: {
+            query: {code: 'manager:query', title: '查询用户'},
+            add: { code: 'manager:add', title: '添加用户' },
+            update: {code: 'manager:update', title: '修改用户'},
+            del: {code: 'manager:del', title: '删除用户'},
+            power: {code: 'manager:power', title: '分配角色'}
+        },
+        role: {
+            query: {code: 'role:query', title: '查询角色'},
+            add: { code: 'role:add', title: '添加角色' },
+            update: {code: 'role:update', title: '修改角色'},
+            del: {code: 'role:del', title: '删除角色'},
+            power: {code: 'role:power', title: '分配菜单及权限'}
+        }
+    },
+};
+
 // 所有的路由
 const url = [
     { name: 'Home', path: 'home' },

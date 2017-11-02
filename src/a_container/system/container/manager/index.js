@@ -10,7 +10,9 @@ import { bindActionCreators } from 'redux';
 import P from 'prop-types';
 import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, InputNumber, Select, Tooltip } from 'antd';
 import './index.scss';
-import tools from '../../../../util/tools';
+import tools from '../../../../util/tools'; // 工具
+import Power from '../../../../util/power'; // 权限
+import { power } from '../../../../util/data';
 // ==================
 // 所需的所有组件
 // ==================
@@ -64,7 +66,7 @@ class Manager extends React.Component {
             pageSize,
         };
 
-        this.props.actions.findAdminUserByKeys(tools.clearNull(params)).then((res) => {
+        Power.test(power.system.manager.query.code) && this.props.actions.findAdminUserByKeys(tools.clearNull(params)).then((res) => {
             if(res.returnCode === "0") {
                 this.setState({
                     data: res.messsageBody.result,
@@ -344,25 +346,30 @@ class Manager extends React.Component {
                 key: 'control',
                 width: 200,
                 render: (text, record) => {
-                    let controls = [
+                    let controls = [];
+
+                    Power.test(power.system.manager.query.code) && controls.push(
                         <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
                             <Tooltip placement="top" title="查看">
                                 <Icon type="eye" />
                             </Tooltip>
-                        </span>,
-                        <span key="line1" className="ant-divider" />,
+                        </span>
+                    );
+                    Power.test(power.system.manager.update.code) && controls.push(
                         <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
                             <Tooltip placement="top" title="修改">
                                 <Icon type="edit" />
                             </Tooltip>
-                        </span>,
-                        <span key="line2" className="ant-divider" />,
+                        </span>
+                    );
+                    Power.test(power.system.manager.power.code) && controls.push(
                         <span key="2" className="control-btn blue" onClick={() => this.onRoleTreeShow(record)} >
                             <Tooltip placement="top" title="分配角色">
                                 <Icon type="tool" />
                             </Tooltip>
-                        </span>,
-                        <span key="line3" className="ant-divider" />,
+                        </span>
+                    );
+                    Power.test(power.system.manager.del.code) && text.id !== 1 && controls.push(
                         <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
                             <span className="control-btn red">
                                 <Tooltip placement="top" title="删除">
@@ -370,12 +377,15 @@ class Manager extends React.Component {
                                 </Tooltip>
                             </span>
                         </Popconfirm>
-                    ];
-
-                    if (text.id === 1) {
-                        controls.splice(-2, 2);
-                    }
-                    return controls;
+                    );
+                    const result = [];
+                    controls.forEach((item, index) => {
+                        if (index) {
+                            result.push(<span key={`line${index}`} className="ant-divider" />,);
+                        }
+                        result.push(item);
+                    });
+                    return result;
                 },
             }
         ];
@@ -458,32 +468,33 @@ class Manager extends React.Component {
       <div>
         <UrlBread location={this.props.location}/>
         <div className="system-search">
-          <ul className="search-func">
-            <li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加用户</Button></li>
-          </ul>
+            { Power.test(power.system.manager.add.code) && <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加用户</Button></li></ul>}
           <span className="ant-divider" />
-          <ul className="search-ul">
-            <li>
-                <Input
-                    placeholder="用户名"
-                    onChange={(e) => this.searchUserNameChange(e)}
-                    value={this.state.searchUserName}
-                    onPressEnter={() => this.onSearch()}
-                />
-            </li>
-              <li>
-                  <Select
-                      style={{ width: '150px' }}
-                      placeholder="用户状态"
-                      allowClear
-                      onChange={(e) => this.searchConditions(e)}
-                  >
-                      <Option value="0">启用</Option>
-                      <Option value="-1">禁用</Option>
-                  </Select>
-              </li>
-            <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
-          </ul>
+            { Power.test(power.system.manager.query.code) &&
+                <ul className="search-ul">
+                    <li>
+                        <Input
+                            placeholder="用户名"
+                            onChange={(e) => this.searchUserNameChange(e)}
+                            value={this.state.searchUserName}
+                            onPressEnter={() => this.onSearch()}
+                        />
+                    </li>
+                    <li>
+                        <Select
+                            style={{ width: '150px' }}
+                            placeholder="用户状态"
+                            allowClear
+                            onChange={(e) => this.searchConditions(e)}
+                        >
+                            <Option value="0">启用</Option>
+                            <Option value="-1">禁用</Option>
+                        </Select>
+                    </li>
+                    <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
+                </ul>
+            }
+
         </div>
         <div className="system-table">
           <Table

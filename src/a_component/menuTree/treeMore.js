@@ -1,7 +1,7 @@
 /* MenuTree 菜单树 - 多选 */
 import React from 'react';
 import P from 'prop-types';
-import { Modal, Tree, message } from 'antd';
+import { Modal, Tree, Checkbox } from 'antd';
 import './index.scss';
 
 const TreeNode = Tree.TreeNode;
@@ -71,15 +71,17 @@ class MenuTree extends React.Component {
         });
     }
 
+    // 权限被选中
+    onBtnChange(e, id) {
+        console.log('权限点击：', e, id);
+    }
     // 处理原始数据，将原始数据处理为层级关系
     makeSourceData(data, noShowId = null) {
         console.log('原始数据是什么：', data, this.props.noShowId);
         let d = _.cloneDeep(data);
-        // 后台将顶级菜单的parentId全部改为0，这会导致冲突，所以前端把所有parentId为0的，改为null
-        d.forEach((item) => {
-            if (item.parentId === 0) {
-                item.parentId = null;
-            }
+        // 按照sort排序
+        d.sort((a, b) => {
+            return a.sorts - b.sorts;
         });
         if (noShowId || noShowId === 0) {
             d = d.filter((item) => {
@@ -88,7 +90,7 @@ class MenuTree extends React.Component {
         }
         const sourceData = [];
         d.forEach((item) => {
-            if (!item.parentId && item.parentId !== 0) {
+            if (item.parentId === 0) {
                 const temp = this.dataToJson(d, item);
                 sourceData.push(temp);
             }
@@ -143,22 +145,33 @@ class MenuTree extends React.Component {
         return data.map((item, index) => {
             if (item.children) {
                 return (
-                    <TreeNode title={item.menuName} key={`${item.id}`} id={item.id} p={item.parentId} data={item}>
+                    <TreeNode title={this.makeTreeDomForBtn(item)} key={`${item.id}`} id={item.id} p={item.parentId} data={item}>
                         { this.makeTreeDom(item.children) }
                     </TreeNode>
                 );
             } else {
-                return <TreeNode title={item.menuName} key={`${item.id}`} id={item.id} p={item.parentId} data={item}/>;
+                return <TreeNode title={this.makeTreeDomForBtn(item)} key={`${item.id}`} id={item.id} p={item.parentId} data={item}/>;
             }
         });
     }
 
+    // 构建树结构连带的权限按钮们 - 工具函数
+    makeTreeDomForBtn(item) {
+        let btnDoms;
+        if (item.btnDtoList && item.btnDtoList.length > 0) {
+            btnDoms = item.btnDtoList.map((v, i) => {
+                return <Checkbox key={v.id} onChange={(e) => this.onBtnChange(e, v.id)}>{v.btnName}</Checkbox>
+            });
+        }
+        return <span className="btn-doms">{item.menuName}{btnDoms}</span>;
+    }
     render() {
         const me = this;
         return (
             <Modal
                 className="menu-tree-more"
                 zIndex={1001}
+                width={680}
                 title={this.props.title || '菜单选择'}
                 visible={this.props.modalShow}
                 onOk={() => this.onOk()}
@@ -171,6 +184,8 @@ class MenuTree extends React.Component {
                         checkable
                         checkedKeys={this.state.checkedKeys}
                         onCheck={(keys, e) => this.onTreeSelect(keys, e)}
+                        selectedKeys={[]}
+                        onSelect={(e) => {e.stopPropagation();}}
                     >
                         { this.state.treeDom }
                     </Tree>
