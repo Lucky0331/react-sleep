@@ -24,6 +24,14 @@ const power = {
 
     // 根据权限CODE判断当前用户是否拥有该权限
     test(code) {
+        let user = sessionStorage.getItem('adminUser');
+        if (user) {
+            user = JSON.parse(user);
+        }
+        if (user.id === 1) { // 系统默认id为1的用户拥有所有权限
+            return true;
+        }
+
         const p = power.makeData();
         console.log('测试的什么：', code, p);
         return !!p.btns.find((item) => item.btnCode === code);

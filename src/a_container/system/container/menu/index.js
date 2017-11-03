@@ -12,6 +12,8 @@ import P from 'prop-types';
 import _ from 'lodash';
 import './index.scss';
 import tools from '../../../../util/tools';
+import Power from '../../../../util/power'; // 权限
+import { power } from '../../../../util/data';
 // ==================
 // 所需的所有组件
 // ==================
@@ -82,7 +84,7 @@ class Menu extends React.Component {
           menuName: this.state.searchMenuName,
           conditions: this.state.searchConditions,
       }
-      this.props.actions.findMenusByKeys(tools.clearNull(params)).then((res) => {
+        Power.test(power.system.menu.query.code) && this.props.actions.findMenusByKeys(tools.clearNull(params)).then((res) => {
           if (res.returnCode === '0') {
               this.setState({
                   data: res.messsageBody.result,
@@ -112,7 +114,6 @@ class Menu extends React.Component {
     d.sort((a, b) => {
         return a.sorts - b.sorts;
     });
-    console.log('排序之后是怎样：', d);
       const sourceData = [];
        d.forEach((item) => {
            if (item.parentId === 0) { // parentId === 0 的为顶级菜单
@@ -120,7 +121,6 @@ class Menu extends React.Component {
                sourceData.push(temp);
            }
       });
-      console.log('jsonMenu是什么：', sourceData);
       this.setState({
           sourceData,
       });
@@ -396,19 +396,23 @@ class Menu extends React.Component {
                 key: 'control',
                 width: 200,
                 render: (text, record) => {
-                    let controls = [
+                    let controls = [];
+
+                    Power.test(power.system.menu.query.code) && controls.push(
                         <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
                             <Tooltip placement="top" title="查看">
                                 <Icon type="eye" />
                             </Tooltip>
-                        </span>,
-                        <span key="line1" className="ant-divider" />,
+                        </span>
+                    );
+                    Power.test(power.system.menu.update.code) && controls.push(
                         <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
                             <Tooltip placement="top" title="修改">
                                 <Icon type="edit" />
                             </Tooltip>
-                        </span>,
-                        <span key="line2" className="ant-divider" />,
+                        </span>
+                    );
+                    Power.test(power.system.menu.del.code) && controls.push(
                         <Popconfirm key="2" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
                             <span className="control-btn red">
                                 <Tooltip placement="top" title="删除">
@@ -416,8 +420,15 @@ class Menu extends React.Component {
                                 </Tooltip>
                             </span>
                         </Popconfirm>
-                    ];
-                    return controls;
+                    );
+                    const result = [];
+                    controls.forEach((item, index) => {
+                        if (index) {
+                            result.push(<span key={`line${index}`} className="ant-divider" />,);
+                        }
+                        result.push(item);
+                    });
+                    return result;
                 },
             }
         ];
@@ -478,33 +489,37 @@ class Menu extends React.Component {
           </div>
           <div className="r system-table">
               <div className="menu-search">
-                  <ul className="search-func">
-                      <li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加菜单</Button></li>
-                  </ul>
+                  { Power.test(power.system.menu.add.code) &&
+                      <ul className="search-func">
+                          <li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加菜单</Button></li>
+                      </ul>
+                  }
                   <span className="ant-divider" />
-                  <ul className="search-ul">
-                      <li>
-                          <Input
-                              placeholder="菜单名"
-                              onChange={(e) => this.searchMenuNameChange(e)}
-                              value={this.state.searchMenuName}
-                              onPressEnter={() => this.onSearch()}
-                          />
-                      </li>
-                      <li>
-                          <Select
-                              style={{ width: '150px' }}
-                              placeholder="菜单状态"
-                              allowClear
-                              onChange={(e) => this.searchConditionsChange(e)}
-                              value={this.state.searchConditions}
-                          >
-                              <Option value="0">启用</Option>
-                              <Option value="-1">禁用</Option>
-                          </Select>
-                      </li>
-                      <li><Button icon="search" type="primary" onClick={() => this.getData()}>搜索</Button></li>
-                  </ul>
+                  { Power.test(power.system.menu.query.code) &&
+                      <ul className="search-ul">
+                          <li>
+                              <Input
+                                  placeholder="菜单名"
+                                  onChange={(e) => this.searchMenuNameChange(e)}
+                                  value={this.state.searchMenuName}
+                                  onPressEnter={() => this.onSearch()}
+                              />
+                          </li>
+                          <li>
+                              <Select
+                                  style={{ width: '150px' }}
+                                  placeholder="菜单状态"
+                                  allowClear
+                                  onChange={(e) => this.searchConditionsChange(e)}
+                                  value={this.state.searchConditions}
+                              >
+                                  <Option value="0">启用</Option>
+                                  <Option value="-1">禁用</Option>
+                              </Select>
+                          </li>
+                          <li><Button icon="search" type="primary" onClick={() => this.getData()}>搜索</Button></li>
+                      </ul>
+                  }
               </div>
               <Table
                   columns={this.makeColumns()}

@@ -1,4 +1,4 @@
-/* Role 系统管理/权限管理 */
+/* Jurisdiction 系统管理/权限管理 */
 
 // ==================
 // 所需的各种插件
@@ -12,6 +12,8 @@ import P from 'prop-types';
 import _ from 'lodash';
 import './index.scss';
 import tools from '../../../../util/tools';
+import Power from '../../../../util/power'; // 权限
+import { power } from '../../../../util/data';
 // ==================
 // 所需的所有组件
 // ==================
@@ -80,7 +82,7 @@ class Role extends React.Component {
         const params = {
             menuId: id,
         };
-        this.props.actions.findButtonsByMenuId(params).then((res) => {
+        Power.test(power.system.jurisdiction.query.code) && this.props.actions.findButtonsByMenuId(params).then((res) => {
             if (res.returnCode === '0') {
                 this.setState({
                     data: res.messsageBody,
@@ -362,19 +364,23 @@ class Role extends React.Component {
                 key: 'control',
                 width: 200,
                 render: (text, record) => {
-                    let controls = [
+                    let controls = [];
+
+                    Power.test(power.system.jurisdiction.query.code) && controls.push(
                         <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
                             <Tooltip placement="top" title="查看">
                                 <Icon type="eye" />
                             </Tooltip>
-                        </span>,
-                        <span key="line1" className="ant-divider" />,
+                        </span>
+                    );
+                    Power.test(power.system.jurisdiction.update.code) && controls.push(
                         <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
                             <Tooltip placement="top" title="修改">
                                 <Icon type="edit" />
                             </Tooltip>
-                        </span>,
-                        <span key="line2" className="ant-divider" />,
+                        </span>
+                    );
+                    Power.test(power.system.jurisdiction.del.code) && controls.push(
                         <Popconfirm key="2" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
                             <span className="control-btn red">
                                 <Tooltip placement="top" title="删除">
@@ -382,8 +388,15 @@ class Role extends React.Component {
                                 </Tooltip>
                             </span>
                         </Popconfirm>
-                    ];
-                    return controls;
+                    );
+                    const result = [];
+                    controls.forEach((item, index) => {
+                        if (index) {
+                            result.push(<span key={`line${index}`} className="ant-divider" />,);
+                        }
+                        result.push(item);
+                    });
+                    return result;
                 },
             }
         ];
@@ -444,9 +457,11 @@ class Role extends React.Component {
                     </div>
                     <div className="r system-table">
                         <div className="menu-search">
-                            <ul className="search-func">
-                                <li className={this.state.nowData && 'show'}><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加权限</Button></li>
-                            </ul>
+                            { Power.test(power.system.jurisdiction.add.code) &&
+                                <ul className="search-func">
+                                    <li className={this.state.nowData && 'show'}><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加权限</Button></li>
+                                </ul>
+                            }
                         </div>
                         <Table
                             columns={this.makeColumns()}
