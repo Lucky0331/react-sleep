@@ -29,8 +29,8 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, 'build/dist'),    // 将文件打包到此目录下
         publicPath: '/dist/',            // 在生成的html中，文件的引入路径会相对于此地址，生成的css中，以及各类图片的URL都会相对于此地址
-        filename: '[name].js',
-        chunkFilename: '[name].chunk.js',
+        filename: '[name].[hash:6].js',
+        chunkFilename: '[name].[hash:6].chunk.js',
     },
     module: {
         rules: [
@@ -100,7 +100,7 @@ module.exports = {
         **/ 
         new webpack.optimize.CommonsChunkPlugin({
             name: 'vendors',            // 公共chunk名
-            filename: 'vendors.js',     // 生成的文件名
+            filename: 'vendors.[hash:6].js',     // 生成的文件名
             minChunks: function(module, count) {
                return module.resource && module.resource.indexOf(path.resolve(__dirname, 'src')) < 0;
             }
@@ -108,7 +108,7 @@ module.exports = {
 
         // 配置了这个插件，再配合上面loader中的配置，将所有样式文件打包为一个单独的css文件
         new ExtractTextPlugin({
-            filename:'[name].css',  // 生成的文件名
+            filename:'[name].[hash:6].css',  // 生成的文件名
             allChunks: true,        // 从所有chunk中提取
         }),
 

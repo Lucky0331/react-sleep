@@ -355,9 +355,9 @@ class Role extends React.Component {
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.role.update.code) && controls.push(
+                    Power.test(power.system.role.power.code) && controls.push(
                         <span key="2" className="control-btn blue" onClick={() => this.onMenuClick(record)} >
-                            <Tooltip placement="top" title="分配角色">
+                            <Tooltip placement="top" title="分配权限">
                                 <Icon type="tool" />
                             </Tooltip>
                         </span>

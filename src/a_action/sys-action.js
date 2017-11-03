@@ -406,4 +406,19 @@ export function deleteButtons(params = {}) {
     };
 }
 
+// 通过菜单id查该菜单的子菜单
+export function findMenuByMainMenu(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/menu/findMenuByMainMenu', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
 

@@ -1,7 +1,7 @@
 /* TreeTable 用于角色授权的树形表格 */
 import React from 'react';
 import P from 'prop-types';
-import { Modal, Table, Checkbox } from 'antd';
+import { Modal, Table, Checkbox, Spin } from 'antd';
 import './index.scss';
 import _ from 'lodash';
 class TreeTable extends React.Component {
@@ -160,12 +160,13 @@ class TreeTable extends React.Component {
                 confirmLoading={this.props.loading}
             >
                 {
-                    this.props.initloading ? <span>正在加载中……</span> :
+                    this.props.initloading ? <div style={{textAlign: 'center'}}><Spin tip="加载中…"/></div> :
                     <Table
                         columns={this.makeColumns()}
                         rowSelection={this.makeRowSelection()}
                         dataSource={this.state.sourceData}
                         pagination={false}
+                        defaultExpandAllRows
                     />
                 }
             </Modal>

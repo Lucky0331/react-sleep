@@ -162,7 +162,7 @@ class LoginContainer extends React.Component {
   onVcodeChange(code) {
     const form = this.props.form;
     form.setFieldsValue({
-      vcode: '',
+      vcode: code,  // 开发模式自动赋值验证码，正式环境，这里应该赋值''
     });
     this.setState({
       codeValue: code,

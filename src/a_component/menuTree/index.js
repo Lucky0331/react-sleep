@@ -150,7 +150,7 @@ class MenuTree extends React.Component {
                     selectedKeys={this.state.selectedKeys}
                     onSelect={(selectedKeys, e) => this.onTreeSelect(selectedKeys, e)}
                 >
-                    <TreeNode title="翼猫科技智能睡眠系统" key="0" data={{}}>
+                    <TreeNode title="翼猫科技智能睡眠系统" key="0" id={0} data={{}}>
                         { this.state.treeDom }
                     </TreeNode>
                 </Tree>

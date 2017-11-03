@@ -25,7 +25,7 @@ import MenuTree from '../../../../a_component/menuTree';
 // 本页面所需action
 // ==================
 
-import { findAllMenu, addMenuInfo, deleteMenuInfo, updateMenuInfo, findMenusByKeys } from '../../../../a_action/sys-action';
+import { findAllMenu, addMenuInfo, deleteMenuInfo, updateMenuInfo, findMenusByKeys, findMenuByMainMenu } from '../../../../a_action/sys-action';
 
 // ==================
 // Definition
@@ -79,12 +79,11 @@ class Menu extends React.Component {
   }
 
     // getData 条件查询 本页面TABLE用此数据
-    getData() {
+    getData(id = 1) {
       const params = {
-          menuName: this.state.searchMenuName,
-          conditions: this.state.searchConditions,
-      }
-        Power.test(power.system.menu.query.code) && this.props.actions.findMenusByKeys(tools.clearNull(params)).then((res) => {
+          menuId: id,
+      };
+        Power.test(power.system.menu.query.code) && this.props.actions.findMenuByMainMenu(params).then((res) => {
           if (res.returnCode === '0') {
               this.setState({
                   data: res.messsageBody.result,
@@ -149,12 +148,12 @@ class Menu extends React.Component {
         const k = key ? `${key}-${item.id}` : `${item.id}`;
         if (item.children) {
             return (
-                <TreeNode title={item.menuName} key={k} id={item.id} p={item.parentId} data={item} selectable={false}>
+                <TreeNode title={item.menuName} key={k} id={item.id} p={item.parentId} data={item}>
                     { this.makeTreeDom(item.children, k) }
                 </TreeNode>
             );
         } else {
-          return <TreeNode title={item.menuName} key={k} id={item.id} p={item.parentId} data={item} selectable={false}/>;
+          return <TreeNode title={item.menuName} key={k} id={item.id} p={item.parentId} data={item}/>;
         }
       });
     }
@@ -301,6 +300,7 @@ class Menu extends React.Component {
     }
     // 父级tree选择确定
     onTreeOk(obj) {
+        console.log('父级选择的是什么：', obj);
      this.setState({
          treeFatherValue: obj,
          fatherTreeShow: false,
@@ -353,6 +353,17 @@ class Menu extends React.Component {
            searchConditions: e,
        });
     }
+
+    // 系统目录结构点选
+    onTreeMenuSelect(keys, e) {
+        console.log('目录点选：', keys, e);
+        if (e.selected) { // 选中
+            this.getData(e.node.props.id);
+        } else {
+            this.getData();
+        }
+    }
+
     // 构建字段
     makeColumns(){
         const columns = [
@@ -480,8 +491,9 @@ class Menu extends React.Component {
             <div>
               <Tree
                   defaultExpandedKeys={['0']}
+                  onSelect={(keys, e) => this.onTreeMenuSelect(keys, e)}
               >
-                <TreeNode title="翼猫科技智能睡眠系统" key="0" data={{}} selectable={false}>
+                <TreeNode title="翼猫科技智能睡眠系统" key="0" id={0} selectable={false}>
                   { this.makeTreeDom(this.state.sourceData) }
                 </TreeNode>
               </Tree>
@@ -492,32 +504,6 @@ class Menu extends React.Component {
                   { Power.test(power.system.menu.add.code) &&
                       <ul className="search-func">
                           <li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加菜单</Button></li>
-                      </ul>
-                  }
-                  <span className="ant-divider" />
-                  { Power.test(power.system.menu.query.code) &&
-                      <ul className="search-ul">
-                          <li>
-                              <Input
-                                  placeholder="菜单名"
-                                  onChange={(e) => this.searchMenuNameChange(e)}
-                                  value={this.state.searchMenuName}
-                                  onPressEnter={() => this.onSearch()}
-                              />
-                          </li>
-                          <li>
-                              <Select
-                                  style={{ width: '150px' }}
-                                  placeholder="菜单状态"
-                                  allowClear
-                                  onChange={(e) => this.searchConditionsChange(e)}
-                                  value={this.state.searchConditions}
-                              >
-                                  <Option value="0">启用</Option>
-                                  <Option value="-1">禁用</Option>
-                              </Select>
-                          </li>
-                          <li><Button icon="search" type="primary" onClick={() => this.getData()}>搜索</Button></li>
                       </ul>
                   }
               </div>
@@ -823,6 +809,33 @@ export default connect(
     allMenu: state.sys.allMenu, // 所有的菜单缓存
   }), 
   (dispatch) => ({
-    actions: bindActionCreators({ findAllMenu, addMenuInfo, deleteMenuInfo, updateMenuInfo, findMenusByKeys }, dispatch),
+    actions: bindActionCreators({ findAllMenu, addMenuInfo, deleteMenuInfo, updateMenuInfo, findMenusByKeys, findMenuByMainMenu }, dispatch),
   })
 )(WrappedHorizontalMenu);
+
+{/*<span className="ant-divider" />*/}
+{/*{ Power.test(power.system.menu.query.code) &&*/}
+{/*<ul className="search-ul">*/}
+    {/*<li>*/}
+        {/*<Input*/}
+            {/*placeholder="菜单名"*/}
+            {/*onChange={(e) => this.searchMenuNameChange(e)}*/}
+            {/*value={this.state.searchMenuName}*/}
+            {/*onPressEnter={() => this.onSearch()}*/}
+        {/*/>*/}
+    {/*</li>*/}
+    {/*<li>*/}
+        {/*<Select*/}
+            {/*style={{ width: '150px' }}*/}
+            {/*placeholder="菜单状态"*/}
+            {/*allowClear*/}
+            {/*onChange={(e) => this.searchConditionsChange(e)}*/}
+            {/*value={this.state.searchConditions}*/}
+        {/*>*/}
+            {/*<Option value="0">启用</Option>*/}
+            {/*<Option value="-1">禁用</Option>*/}
+        {/*</Select>*/}
+    {/*</li>*/}
+    {/*<li><Button icon="search" type="primary" onClick={() => this.getData()}>搜索</Button></li>*/}
+{/*</ul>*/}
+{/*}*/}
