@@ -79,14 +79,14 @@ class Menu extends React.Component {
   }
 
     // getData 条件查询 本页面TABLE用此数据
-    getData(id = 1) {
+    getData(id = 0) {
       const params = {
           menuId: id,
       };
         Power.test(power.system.menu.query.code) && this.props.actions.findMenuByMainMenu(params).then((res) => {
           if (res.returnCode === '0') {
               this.setState({
-                  data: res.messsageBody.result,
+                  data: res.messsageBody,
               });
           } else {
               message.error(res.returnMessaage || '获取数据失败');
@@ -153,7 +153,7 @@ class Menu extends React.Component {
                 </TreeNode>
             );
         } else {
-          return <TreeNode title={item.menuName} key={k} id={item.id} p={item.parentId} data={item}/>;
+          return <TreeNode title={item.menuName} key={k} id={item.id} p={item.parentId} data={item} selectable={false}/>;
         }
       });
     }
@@ -493,7 +493,7 @@ class Menu extends React.Component {
                   defaultExpandedKeys={['0']}
                   onSelect={(keys, e) => this.onTreeMenuSelect(keys, e)}
               >
-                <TreeNode title="翼猫科技智能睡眠系统" key="0" id={0} selectable={false}>
+                <TreeNode title="翼猫科技智能睡眠系统" key="0" id={0}>
                   { this.makeTreeDom(this.state.sourceData) }
                 </TreeNode>
               </Tree>
