@@ -1,9 +1,10 @@
 /* 根页 */
 import React from 'react';
-import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
+import { Router, Route, Switch, Redirect } from 'react-router-dom';
 import P from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import createHistory from 'history/createHashHistory';
 
 // import Bundle from '../../a_component/bundle';
 // import Loading from '../../a_component/loading';
@@ -52,7 +53,7 @@ import NotFound from '../notfound';
 import Header from '../../a_component/header';
 import Footer from '../../a_component/footer';
 
-
+const history = createHistory();
 class RootContainer extends React.Component {
   constructor(props) {
     super(props);
@@ -74,7 +75,7 @@ class RootContainer extends React.Component {
   }
   render() {
     return ([
-      <BrowserRouter key='browserrouter'>
+      <Router history={history} key='browserrouter'>
         <Route render={(props) => {
           return (
             <div className="boss">
@@ -99,7 +100,7 @@ class RootContainer extends React.Component {
             </div>
           );
         }}/>
-      </BrowserRouter>,
+      </Router>,
       <Footer key="footer"/>
     ]);
   }

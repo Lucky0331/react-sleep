@@ -10,6 +10,7 @@ export default class ApiService {
             method: type,
             contentType: 'application/json;charset=utf-8',
             crossOrigin: true,
+            withCredentials: true,
             data: JSON.stringify(bodyObj),
             dataType: 'json',
         });
@@ -19,6 +20,7 @@ export default class ApiService {
             method: type,
             contentType: false,
             crossOrigin: true,
+            withCredentials: true,
             data: bodyObj,
         });
     }
