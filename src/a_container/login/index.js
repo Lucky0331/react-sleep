@@ -77,35 +77,7 @@ class LoginContainer extends React.Component {
           console.log('1.通过帐号密码得到userID：', userRes);
           if (userRes.returnCode === "0") {
               userInfo = userRes.messsageBody.adminUser;
-              const roleRes = await this.props.actions.findAllRoleByUserId({userId: userRes.messsageBody.adminUser.id});
-              if (roleRes.returnCode === "0") {
-                  console.log('2.通过userID查角色', roleRes);
-                  const p = roleRes.messsageBody.result.filter((item) => {
-                      return item.roleAfiliation === 'Y';
-                  }).map((item) => {
-                      roleInfo.push(item);
-                      return this.props.actions.findAllMenuByRoleId({roleId: item.id});
-                  });
-                  menusInfo = await Promise.all(p).then((res) => {
-                      console.log('3.通过角色查路由：', res);
-                      const r = [];
-                      let temp = [];
-                      res.forEach((item) => {
-                          if (item.returnCode === "0") {
-                              temp = [...temp, ...item.messsageBody.result];
-                          }
-                      });
-                      // 去除重复 和 为N的
-                      temp.filter((item) => {
-                          return item.menuAfiliation === 'Y';
-                      }).forEach((item) => {
-                          if (r.filter((v) => item.id === v.id).length === 0) {
-                              r.push(item);
-                          }
-                      });
-                      return r;
-                  });
-              }
+              menusInfo = userRes.messsageBody.adminRole;
           }
       } catch(err) {
           console.log('登陆报错：', err);

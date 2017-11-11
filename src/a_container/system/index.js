@@ -11,6 +11,7 @@ import { bindActionCreators } from 'redux';
 import P from 'prop-types';
 import { Menu } from 'antd';
 import './index.scss';
+
 // ==================
 // 所需的所有组件
 // ==================
@@ -50,6 +51,7 @@ class SystemContainer extends React.Component {
   // 获取当前页需要显示的子路由
   makeSonUrl() {
       let urls = sessionStorage.getItem('adminMenu');
+
       if (urls) {
           urls = JSON.parse(urls);
       } else {
@@ -57,61 +59,49 @@ class SystemContainer extends React.Component {
       }
 
       const father = this.props.location.pathname.split('/')[1]; // 确定父级Url
+
+      // 该页面所拥有的所有子路由
+      const routerDom = {
+          manager: Manager,
+          role: Role,
+          jurisdiction: Jurisdiction,
+          menu: MenuContainer,
+          version: Version,
+          organization: Organization,
+      };
+
       const fid = urls.find((item) => item.menuUrl === father || item.menuUrl === `/${father}`); // 找到父级信息
       if (!fid) { // 如果没找到父级，那子级不需要加载了
-          return [];
+          return [null, [], []];
       }
 
-      const menuDom = {
-        manager: <MenuItem key="/system/manager">
-                <Link to='/system/manager'>管理员信息管理</Link>
-            </MenuItem>,
-          role: <MenuItem key="/system/role">
-              <Link to='/system/role'>角色管理</Link>
-          </MenuItem>,
-          menu: <MenuItem key="/system/menu">
-              <Link to='/system/menu'>菜单管理</Link>
-          </MenuItem>,
-          jurisdiction: <MenuItem key="/system/jurisdiction">
-              <Link to='/system/jurisdiction'>权限管理</Link>
-          </MenuItem>,
-          version: <MenuItem key="/system/version">
-              <Link to='/system/version'>app版本管理</Link>
-          </MenuItem>,
-          organization: <MenuItem key="/system/organization">
-              <Link to='/system/organization'>组织机构管理</Link>
-          </MenuItem>
-        };
-
-      const routerDom = {
-          manager: <Route key="0" path='/system/manager' component={Manager} />,
-          role: <Route key="1" path='/system/role' component={Role} />,
-          jurisdiction: <Route key="2" path='/system/jurisdiction' component={Jurisdiction} />,
-          menu: <Route key="3" path='/system/menu' component={MenuContainer} />,
-          version: <Route key="4" path='/system/version' component={Version} />,
-          organization: <Route key="5" path='/system/organization' component={Organization} />,
-      }
         const results = [];
         const routers = [];
         let first = '';
-        console.log('原数组：', urls);
+
         urls.sort((a, b) => a.sorts - b.sorts).forEach((item, index) => {
             const url = item.menuUrl.replace(/\//, '');
-            if (menuDom[url] && `${item.parentId}` === `${fid.id}`) {
+            if (routerDom[url] && `${item.parentId}` === `${fid.id}`) {
                 if(results.length === 0) {
                     first = `/${father}/${url}`;
                 }
-                results.push(menuDom[url]);
-                routers.push(routerDom[url]);
+                results.push(
+                    <MenuItem key={`/${father}/${url}`}>
+                        <Link to={`/${father}/${url}`}>{item.menuName}</Link>
+                    </MenuItem>
+                );
+                routers.push(
+                    <Route key={index} path={`/${father}/${url}`} component={routerDom[url]} />,
+                );
             }
         });
-      console.log('排序后：', urls);
+
         return {first, results, routers};
   }
 
   render() {
-      // 动态处理路由
-      const u = this.makeSonUrl();
+    // 动态处理路由
+    const u = this.makeSonUrl();
     return (
         <div key='page' className="allpage page-system">
             <div className='left'>
@@ -128,6 +118,7 @@ class SystemContainer extends React.Component {
               <Switch>
                   <Redirect exact from='/system' to={this.props.systemURL || u.first} />
                   {u.routers}
+                  <Route key="a" path={`/system/manager`} component={Manager} />
               </Switch>
           </div>
         </div>

@@ -34,7 +34,6 @@ export const power = {
 
 // 所有的路由
 const url = [
-    { name: 'Home', path: 'home' },
     {
         name: '系统管理',
         path: 'system',

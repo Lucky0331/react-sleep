@@ -36,6 +36,6 @@ const power = {
         console.log('测试的什么：', code, p);
         return !!p.btns.find((item) => item.btnCode === code);
     }
-}
+};
 
 export default power;
