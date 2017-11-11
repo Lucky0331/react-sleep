@@ -17,7 +17,7 @@ const findAllMenu = (state, action) => {
   const { payload } = action;
   console.log('所有菜单111reducer：', payload);
   return Object.assign({}, state, {
-    allMenu: payload.messsageBody.result,
+    allMenu: payload.messsageBody ? payload.messsageBody.result : [],
   });
 };
 

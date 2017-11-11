@@ -45,7 +45,6 @@ class SystemContainer extends React.Component {
     if (this.props.location.pathname.split('/')[2]) {
       this.props.actions.saveURL(this.props.location.pathname);
     }
-    console.log('location=======', this.props.location);
   }
 
   // 获取当前页需要显示的子路由
@@ -118,7 +117,6 @@ class SystemContainer extends React.Component {
               <Switch>
                   <Redirect exact from='/system' to={this.props.systemURL || u.first} />
                   {u.routers}
-                  <Route key="a" path={`/system/manager`} component={Manager} />
               </Switch>
           </div>
         </div>

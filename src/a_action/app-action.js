@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import Fetchapi from '../util/fetch-api';
 import { message } from 'antd';
 

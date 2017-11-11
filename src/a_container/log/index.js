@@ -28,6 +28,7 @@ import { saveURL } from '../../a_action/app-action';
 // ==================
 // Definition
 // ==================
+const MenuItem = Menu.Item;
 class Log extends React.Component {
   constructor(props) {
     super(props);
@@ -42,37 +43,75 @@ class Log extends React.Component {
     }
   }
 
+    // 获取当前页需要显示的子路由
+    makeSonUrl() {
+        let urls = sessionStorage.getItem('adminMenu');
+
+        if (urls) {
+            urls = JSON.parse(urls);
+        } else {
+            urls = [];
+        }
+
+        const father = this.props.location.pathname.split('/')[1]; // 确定父级Url
+
+        // 该页面所拥有的所有子路由
+        const routerDom = {
+            adminopera: AdminOpera,
+            warning: EarlyWarning,
+            signin: SignIn,
+        };
+
+        const fid = urls.find((item) => item.menuUrl === father || item.menuUrl === `/${father}`); // 找到父级信息
+        if (!fid) { // 如果没找到父级，那子级不需要加载了
+            return [null, [], []];
+        }
+
+        const results = [];
+        const routers = [];
+        let first = '';
+
+        urls.sort((a, b) => a.sorts - b.sorts).forEach((item, index) => {
+            const url = item.menuUrl.replace(/\//, '');
+            if (routerDom[url] && `${item.parentId}` === `${fid.id}`) {
+                if(results.length === 0) {
+                    first = `/${father}/${url}`;
+                }
+                results.push(
+                    <MenuItem key={`/${father}/${url}`}>
+                        <Link to={`/${father}/${url}`}>{item.menuName}</Link>
+                    </MenuItem>
+                );
+                routers.push(
+                    <Route key={index} path={`/${father}/${url}`} component={routerDom[url]} />,
+                );
+            }
+        });
+
+        return {first, results, routers};
+    }
+
   render() {
+    // 动态处理路由
+    const u = this.makeSonUrl();
     return (
-      <BrowserRouter key='browser'>
-        <div key='page' className="allpage">
+        <div key='page' className="allpage page-log">
             <div className='left'>
-              <Menu
-                theme="dark"
-                selectedKeys={this.props.logURL ? [this.props.logURL] : ['/log/signin']}
-                onSelect={(e)=>this.props.actions.saveURL(e.key)}
-              >
-                <Menu.Item key="/log/signin">
-                  <Link to='/log/signin'>用户登录日志</Link>
-                </Menu.Item>
-                <Menu.Item key="/log/warning">
-                  <Link to='/log/warning'>预警日志</Link>
-                </Menu.Item>
-                <Menu.Item key="/log/adminopera">
-                  <Link to='/log/adminopera'>管理员操作日志</Link>
-                </Menu.Item>
-              </Menu>
+                <Menu
+                    theme="dark"
+                    selectedKeys={this.props.logURL ? [this.props.logURL] : [u.first]}
+                    onSelect={(e)=>this.props.actions.saveURL(e.key)}
+                >
+                    {u.results}
+                </Menu>
             </div>
             <div className='right'>
-              <Switch>
-                  <Redirect exact from='/log' to={this.props.logURL || '/log/signin'} />
-                  <Route exact path='/log/signin' component={SignIn} />
-                  <Route exact path='/log/warning' component={EarlyWarning} />
-                  <Route exact path='/log/adminopera' component={AdminOpera} />
-              </Switch>
-          </div>
+                <Switch>
+                    <Redirect exact from='/log' to={this.props.logURL || u.first} />
+                    {u.routers}
+                </Switch>
+            </div>
         </div>
-      </BrowserRouter>
     );
   }
 }
@@ -95,6 +134,7 @@ Log.propTypes = {
 export default connect(
   (state) => ({
     logURL: state.app.logURL,
+    allMenu: state.app.allMenu,
   }), 
   (dispatch) => ({
     actions: bindActionCreators({ saveURL }, dispatch),
