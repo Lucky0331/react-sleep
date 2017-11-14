@@ -5,34 +5,9 @@ import P from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import createHistory from 'history/createHashHistory';
-
-// import Bundle from '../../a_component/bundle';
-// import Loading from '../../a_component/loading';
-// import lazeHome from 'bundle-loader?lazy!../home';
-// import lazeFeatures from 'bundle-loader?lazy!../features';
-// import lazeTest from 'bundle-loader?lazy!../test';
-// import lazeNotFound from 'bundle-loader?lazy!../notfound';
-// const Home = (props) => (
-//   <Bundle load={lazeHome}>
-//     {(Home) => Home ? <Home {...props} /> : <Loading />}
-//   </Bundle>
-// );
-// const Features = (props) => (
-//   <Bundle load={lazeFeatures}>
-//     {(Features) => Features ? <Features {...props} /> : <Loading />}
-//   </Bundle>
-// );
-// const Test = (props) => (
-//   <Bundle load={lazeTest}>
-//     {(Test) => Test ? <Test {...props} /> : <Loading />}
-//   </Bundle>
-// );
-// const NotFound = (props) => (
-//   <Bundle load={lazeNotFound}>
-//     {(NotFound) => NotFound ? <NotFound {...props} /> : <Loading /> }
-//   </Bundle>
-// );
-
+import './index.scss';
+import { Menu } from 'antd';
+import { saveMenuSourceData } from '../../a_action/app-action';
 import Login from '../login';
 
 import Home from '../home';
@@ -52,8 +27,11 @@ import NotFound from '../notfound';
 
 import Header from '../../a_component/header';
 import Footer from '../../a_component/footer';
+import TheMenu from '../../a_component/menu/menu.js';
 
 const history = createHistory();
+const MenuItem = Menu.Item;
+const SubMenu = Menu.SubMenu;
 class RootContainer extends React.Component {
   constructor(props) {
     super(props);
@@ -80,28 +58,33 @@ class RootContainer extends React.Component {
           return (
             <div className="boss">
                 <Header {...props}/>
-                <Switch>
-                  <Redirect exact from='/' to='/home' />
-                  <Route path="/login" component={Login} />
-                  <Route path="/home" render={(props) => this.onEnter(Home, props)} />
-                  <Route path="/system" render={(props) => this.onEnter(System, props)} />
-                  <Route path="/device" render={(props) => this.onEnter(Device, props)} />
-                  <Route path="/user" render={(props) => this.onEnter(User, props)} />
-                  <Route path="/health" render={(props) => this.onEnter(Health, props)} />
-                  <Route path="/data" render={(props) => this.onEnter(DataStat, props)} />
-                  <Route path="/operate" render={(props) => this.onEnter(Operate, props)} />
-                  <Route path="/physical" render={(props) => this.onEnter(Physical, props)} />
-                  <Route path="/log" render={(props) => this.onEnter(Log, props)} />
-                  <Route path="/cost" render={(props) => this.onEnter(Cost, props)} />
-                  <Route path="/open" render={(props) => this.onEnter(Open, props)} />
-                  <Route path="/activity" render={(props) => this.onEnter(Activity, props)} />
-                  <Route component={NotFound} />
-                </Switch>
+                <div className="the-body">
+                  <TheMenu location={props.location} saveMenuSourceData={this.props.actions.saveMenuSourceData}/>
+                  <div className="flex-auto">
+                    <Switch>
+                      <Redirect exact from='/' to='/home' />
+                      <Route path="/login" component={Login} />
+                      <Route path="/home" render={(props) => this.onEnter(Home, props)} />
+                      <Route path="/system" render={(props) => this.onEnter(System, props)} />
+                      <Route path="/device" render={(props) => this.onEnter(Device, props)} />
+                      <Route path="/user" render={(props) => this.onEnter(User, props)} />
+                      <Route path="/health" render={(props) => this.onEnter(Health, props)} />
+                      <Route path="/data" render={(props) => this.onEnter(DataStat, props)} />
+                      <Route path="/operate" render={(props) => this.onEnter(Operate, props)} />
+                      <Route path="/physical" render={(props) => this.onEnter(Physical, props)} />
+                      <Route path="/log" render={(props) => this.onEnter(Log, props)} />
+                      <Route path="/cost" render={(props) => this.onEnter(Cost, props)} />
+                      <Route path="/open" render={(props) => this.onEnter(Open, props)} />
+                      <Route path="/activity" render={(props) => this.onEnter(Activity, props)} />
+                      <Route component={NotFound} />
+                    </Switch>
+                    <Footer key="footer"/>
+                  </div>
+                </div>
             </div>
           );
         }}/>
-      </Router>,
-      <Footer key="footer"/>
+      </Router>
     ]);
   }
 }
@@ -112,9 +95,9 @@ class RootContainer extends React.Component {
 
 RootContainer.propTypes = {
   dispatch: P.func,
-  children: P.any,
   location: P.any,
   history: P.any,
+  actions: P.any,
 };
 
 // ==================
@@ -125,6 +108,6 @@ export default connect(
   (state) => ({
   }), 
   (dispatch) => ({
-      actions: bindActionCreators({}, dispatch),
+      actions: bindActionCreators({ saveMenuSourceData }, dispatch),
   })
 )(RootContainer);

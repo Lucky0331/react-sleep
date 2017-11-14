@@ -22,7 +22,7 @@ import LogoImg from '../../assets/logo.png';
 // 本页面所需action
 // ==================
 
-import { onLogin, testPromise } from '../../a_action/app-action';
+import { onLogin } from '../../a_action/app-action';
 import { findAllRoleByUserId, findAllMenuByRoleId } from '../../a_action/sys-action';
 // ==================
 // Definition
@@ -243,6 +243,6 @@ export default connect(
   (state) => ({
   }), 
   (dispatch) => ({
-    actions: bindActionCreators({ onLogin, testPromise, findAllRoleByUserId, findAllMenuByRoleId }, dispatch),
+    actions: bindActionCreators({ onLogin, findAllRoleByUserId, findAllMenuByRoleId }, dispatch),
   })
 )(WrappedHorizontalLoginForm);

@@ -45,15 +45,6 @@ class Header extends React.Component {
         }
     }
 
-    // 根据session中的用户菜单信息，构建拥有权限的菜单
-    makeMenus(data) {
-        return data.filter((item) => item.parentId === 0).sort((a, b) => a.sorts - b.sorts).map((item, index) => {
-            return (
-                <li key={index}><NavLink to={`/${item.menuUrl ? item.menuUrl.replace(/^\//, '') : '404'}`}>{item.menuName}</NavLink></li>
-            );
-        });
-    }
-
     // 退出登陆
     onLogout(){
         sessionStorage.removeItem('adminUser');
@@ -72,12 +63,6 @@ class Header extends React.Component {
             [<div key='0' className="com-header">
                 <ul className="header-menu">
                     <li style={{ width: '99px', boxSizing: 'border-box', paddingLeft: '8px' }}><Link to="/home" className="logo"><img src={LogoImg} alt='logo'/>翼猫科技</Link></li>
-                    {
-                        this.state.adminUser ? [
-                            <li key="-1"><NavLink to="/home"><Icon type="home" /> Home</NavLink></li>,
-                            ...this.makeMenus(this.state.adminMenu)
-                        ] : null
-                    }
                 </ul>
                 <ul className="header-userinfo">
                     {

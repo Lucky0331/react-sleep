@@ -17,11 +17,11 @@ import './index.scss';
 // ==================
 
 import Manager from './container/manager';
-import MenuContainer from './container/menu';
 import Organization from './container/organization';
 import Role from './container/role';
 import Jurisdiction from './container/jurisdiction';
 import Version from './container/version';
+import Menus from './container/menu';
 
 // ==================
 // 本页面所需action
@@ -37,88 +37,42 @@ class SystemContainer extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+        baseURL: 'system',
+        firstURL: 'manager',
     };
   }
 
   componentDidMount() {
-    // 为了同步路由和Menu的高亮选择，进入时如果有子路由，就保存一下
-    if (this.props.location.pathname.split('/')[2]) {
-      this.props.actions.saveURL(this.props.location.pathname);
-    }
   }
 
-  // 获取当前页需要显示的子路由
-  makeSonUrl() {
-      let urls = sessionStorage.getItem('adminMenu');
+  componentWillReceiveProps(nextP) {
+  }
 
-      if (urls) {
-          urls = JSON.parse(urls);
-      } else {
-          urls = [];
+  // 获取排序第1个的Menu，用于设置redirect
+  getFirstMenu(data) {
+      console.log('原始数据是什么：', data);
+      const temp = data.find((item) => item.menuUrl === this.state.baseURL);
+      let result = null;
+      if (temp && temp.children) {
+          result = temp.children.reduce((a, b) => {
+              return a.sorts < b.sorts ? a : b;
+          })
       }
-
-      const father = this.props.location.pathname.split('/')[1]; // 确定父级Url
-
-      // 该页面所拥有的所有子路由
-      const routerDom = {
-          manager: Manager,
-          role: Role,
-          jurisdiction: Jurisdiction,
-          menu: MenuContainer,
-          version: Version,
-          organization: Organization,
-      };
-
-      const fid = urls.find((item) => item.menuUrl === father || item.menuUrl === `/${father}`); // 找到父级信息
-      if (!fid) { // 如果没找到父级，那子级不需要加载了
-          return [null, [], []];
-      }
-
-        const results = [];
-        const routers = [];
-        let first = '';
-
-        urls.sort((a, b) => a.sorts - b.sorts).forEach((item, index) => {
-            const url = item.menuUrl.replace(/\//, '');
-            if (routerDom[url] && `${item.parentId}` === `${fid.id}`) {
-                if(results.length === 0) {
-                    first = `/${father}/${url}`;
-                }
-                results.push(
-                    <MenuItem key={`/${father}/${url}`}>
-                        <Link to={`/${father}/${url}`}>{item.menuName}</Link>
-                    </MenuItem>
-                );
-                routers.push(
-                    <Route key={index} path={`/${father}/${url}`} component={routerDom[url]} />,
-                );
-            }
-        });
-
-        return {first, results, routers};
+      return result ? result.menuUrl : '/manager'
   }
 
   render() {
-    // 动态处理路由
-    const u = this.makeSonUrl();
     return (
         <div key='page' className="allpage page-system">
-            <div className='left'>
-              <Menu
-                theme="dark"
-                selectedKeys={this.props.systemURL ? [this.props.systemURL] : [u.first]}
-                onSelect={(e)=>this.props.actions.saveURL(e.key)}
-              >
-                  {u.results}
-              </Menu>
-              {/*<Menus />*/}
-            </div>
-            <div className='right'>
-              <Switch>
-                  <Redirect exact from='/system' to={this.props.systemURL || u.first} />
-                  {u.routers}
-              </Switch>
-          </div>
+          <Switch>
+              <Redirect exact from={`/${this.state.baseURL}`} to={`/${this.state.baseURL}/${this.getFirstMenu(this.props.menuSourceData)}`} />
+              <Route path={`/${this.state.baseURL}/manager`} component={Manager} />
+              <Route path={`/${this.state.baseURL}/role`} component={Role} />
+              <Route path={`/${this.state.baseURL}/jurisdiction`} component={Jurisdiction} />
+              <Route path={`/${this.state.baseURL}/menu`} component={Menus} />
+              <Route path={`/${this.state.baseURL}/version`} component={Version} />
+              <Route path={`/${this.state.baseURL}/organization`} component={Organization} />
+          </Switch>
         </div>
     );
   }
@@ -131,8 +85,8 @@ class SystemContainer extends React.Component {
 SystemContainer.propTypes = {
   location: P.any,
   history: P.any,
-  systemURL: P.any,
   actions: P.any,
+  menuSourceData: P.array,
 };
 
 // ==================
@@ -141,8 +95,7 @@ SystemContainer.propTypes = {
 
 export default connect(
   (state) => ({
-    systemURL: state.app.systemURL,
-      allMenu: state.app.allMenu,
+      menuSourceData: state.app.menuSourceData,
   }), 
   (dispatch) => ({
     actions: bindActionCreators({ saveURL }, dispatch),

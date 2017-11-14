@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Menu } from 'antd';
-
 import P from 'prop-types';
 
 const MenuItem = Menu.Item;
@@ -11,14 +10,53 @@ class Menus extends React.Component {
         super(props);
         this.state = {
             sourceData:[], // 层级结构的原始数据
-            treeDom: [],    // 生成的菜单结构
+            treeDom: [],   // 生成的菜单结构
+            show: false, // 是否显示
+            chosedKey: [], // 当前选中
+            openKeys: [], //
         };
+    }
+
+    // 处理当前是否显示，和当前选中哪一个菜单
+    static _initShow(location) {
+        const path = location.pathname.split('/')[1];
+        console.log('触发：', !(['login'].indexOf(path) > -1), path);
+        return !(['login'].indexOf(path) > -1);
     }
 
     // 组件初始化完毕时触发
     componentDidMount() {
         const data = JSON.parse(sessionStorage.getItem('adminMenu'));
-        this.makeSourceData(data);
+       this.makeSourceData(data);
+       this.initChosed(this.props.location);
+        this.setState({
+            show: Menus._initShow(this.props.location),
+        });
+    }
+
+    componentWillReceiveProps(nextP) {
+        if (nextP.location !== this.props.location) {
+            this.initChosed(nextP.location);
+            this.setState({
+                show: Menus._initShow(nextP.location),
+            });
+        }
+    }
+
+    // 处理当前选中
+    initChosed(location) {
+        const paths = location.pathname.split('/').filter((item) => !!item);
+        this.setState({
+            chosedKey: [paths[paths.length - 1]],
+            openKeys: paths
+        });
+    }
+
+    // 展开/关闭 时触发
+    onOpenChange(keys) {
+        this.setState({
+            openKeys: keys,
+        });
     }
 
     // 处理原始数据，将原始数据处理为层级关系
@@ -37,12 +75,12 @@ class Menus extends React.Component {
             }
         });
         console.log('jsonMenu是什么11111：', sourceData);
+        this.props.saveMenuSourceData(sourceData);
         const treeDom = this.makeTreeDom(sourceData, '');
         this.setState({
             sourceData,
             treeDom,
         });
-
     }
 
     // 递归将扁平数据转换为层级数据
@@ -68,33 +106,36 @@ class Menus extends React.Component {
             const newKey = `${key}/${item.menuUrl.replace(/\//,'')}`;
             if (item.children) {
                 return (
-                    <SubMenu key={newKey} title={item.menuName}>
+                    <SubMenu key={item.menuUrl} title={item.menuName}>
                         { this.makeTreeDom(item.children, newKey) }
                     </SubMenu>
                 );
             } else {
-                return <MenuItem key={newKey}><Link to={newKey}>{item.menuName}</Link></MenuItem>;
+                return <MenuItem key={item.menuUrl}><Link to={newKey}>{item.menuName}</Link></MenuItem>;
             }
         });
     }
 
     render() {
         return (
+            this.state.show ?
             <Menu
                 theme="dark"
                 mode="inline"
+                className="the-menu"
+                selectedKeys={this.state.chosedKey}
+                openKeys={this.state.openKeys}
+                onOpenChange={(e) => this.onOpenChange(e)}
             >
                 {this.state.treeDom}
-                <MenuItem key="/system/role">
-                    <Link to='/system/role'>角色管理</Link>
-                 </MenuItem>
-            </Menu>
+            </Menu> : null
         );
     }
 }
 
 Menus.propTypes = {
-
+    location: P.any,
+    saveMenuSourceData: P.func,
 };
 
 export default Menus;

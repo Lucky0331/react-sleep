@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import Fetchapi from '../util/fetch-api';
 import { message } from 'antd';
 
@@ -411,6 +410,66 @@ export function findMenuByMainMenu(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
             '/menu/findMenuByMainMenu', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 根据条件查询组织机构
+export function findAllOrganizer(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/organizer/findAllOrganizer', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 根据条件查询组织机构
+export function addOrganizer(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/organizer/addOrganizer', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 修改组织机构
+export function updateOrganizer(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/organizer/updateOrganizer', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 删除组织机构
+export function deleteOrganizer(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/organizer/deleteOrganizer', params
         ).then(
             msg => {
                 return msg;

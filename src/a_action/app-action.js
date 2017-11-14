@@ -36,6 +36,14 @@ export function saveURL(url) {
   };
 }
 
+// 保存菜单层级数据，别的地方可随时使用
+export function saveMenuSourceData(data) {
+    return {
+        type: 'APP::saveMenuSourceData',
+        payload: data,
+    };
+}
+
 // 根据菜单ID查询该菜单下有哪些按钮
 export function findButtonsByMenuId(params = {}) {
     return (dispatch) => {
@@ -48,24 +56,5 @@ export function findButtonsByMenuId(params = {}) {
         ).catch(() => {
             message.error('网络错误，请重试');
         });
-    };
-}
-
-// promise测试
-export function testPromise(params) {
-  return (dispatch) => {
-      return new Promise((resolve, reject) => {
-        if (params) {
-          resolve('success');
-          dispatch({
-              type: 'TEST::add',
-              payload: 10000,
-            });
-        } else {
-          reject('error');
-        }
-      }).then((msg)=>{
-          console.log('Promise中得到数据：', msg);
-      });
     };
 }

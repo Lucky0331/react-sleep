@@ -87,7 +87,6 @@ class Log extends React.Component {
                 );
             }
         });
-
         return {first, results, routers};
     }
 
