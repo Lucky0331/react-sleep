@@ -355,6 +355,12 @@ class Manager extends React.Component {
                 key: 'email',
             },
             {
+                title: '部门',
+                dataIndex: 'orgCode',
+                key: 'orgCode',
+                render: (text, record) => this.getNameForId(text)
+            },
+            {
                 title: '状态',
                 dataIndex: 'conditions',
                 key: 'conditions',

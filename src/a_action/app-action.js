@@ -15,12 +15,14 @@ export function onLogin(params) {
       return Fetchapi.newPost(
         '/admin/submitLogin', params, 'post', true
       ).then(
+
           msg => {
+              console.log('axios返回的是：', msg);
             dispatch({
               type: 'APP::LOGIN',
-              payload: msg,
+              payload: msg.data,
             });
-            return msg;
+            return msg.data;
           }
         ).catch(() => {
           message.error('网络错误，请重试');
