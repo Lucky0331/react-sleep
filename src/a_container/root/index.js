@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import createHistory from 'history/createHashHistory';
 import './index.scss';
-import { Menu } from 'antd';
+import { Button, Icon } from 'antd';
 import { saveMenuSourceData } from '../../a_action/app-action';
 import Login from '../login';
 
@@ -30,11 +30,12 @@ import Footer from '../../a_component/footer';
 import TheMenu from '../../a_component/menu/menu.js';
 
 const history = createHistory();
-const MenuItem = Menu.Item;
-const SubMenu = Menu.SubMenu;
 class RootContainer extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {
+        collapsed: false, // 控制Menu的收起和打开
+    }
   }
 
   /* 权限控制 */
@@ -51,6 +52,7 @@ class RootContainer extends React.Component {
   componentDidMount() {
     console.log('root:', this.props );
   }
+
   render() {
     return ([
       <Router history={history} key='browserrouter'>
@@ -59,7 +61,14 @@ class RootContainer extends React.Component {
             <div className="boss">
                 <Header {...props}/>
                 <div className="the-body">
-                  <TheMenu location={props.location} saveMenuSourceData={this.props.actions.saveMenuSourceData}/>
+                  <div className="the-menu-box flex-none">
+                    <TheMenu
+                        location={props.location}
+                        saveMenuSourceData={this.props.actions.saveMenuSourceData}
+                        collapsed={this.state.collapsed}
+                    />
+                  </div>
+
                   <div className="flex-auto">
                     <Switch>
                       <Redirect exact from='/' to='/home' />

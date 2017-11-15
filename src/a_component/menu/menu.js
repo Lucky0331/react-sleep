@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Menu } from 'antd';
+import { Menu, Icon } from 'antd';
 import P from 'prop-types';
 
 const MenuItem = Menu.Item;
@@ -15,6 +15,7 @@ class Menus extends React.Component {
             show: false, // 是否显示
             chosedKey: [], // 当前选中
             openKeys: [], //
+            collapsed: false,
         };
     }
 
@@ -35,6 +36,14 @@ class Menus extends React.Component {
             show: Menus._initShow(this.props.location),
             sessionData: data,
         });
+    }
+
+    componentWillUpdate(nextP, nextS) {
+        if (nextS.collapsed !== this.state.collapsed && nextS.collapsed) {
+            this.setState({
+                openKeys: [],
+            });
+        }
     }
 
     componentWillReceiveProps(nextP) {
@@ -113,7 +122,7 @@ class Menus extends React.Component {
             const newKey = `${key}/${item.menuUrl.replace(/\//,'')}`;
             if (item.children) {
                 return (
-                    <SubMenu key={item.menuUrl} title={item.menuName}>
+                    <SubMenu key={item.menuUrl} title={<span>{item.menuName}</span>}>
                         { this.makeTreeDom(item.children, newKey) }
                     </SubMenu>
                 );
@@ -123,19 +132,30 @@ class Menus extends React.Component {
         });
     }
 
+    // 收起/展开 按钮被点击
+    onCollapsed() {
+        this.setState({
+            collapsed: !this.state.collapsed,
+        });
+    }
+
     render() {
         return (
             this.state.show ?
-            <Menu
+            [<Menu
+                key="1"
                 theme="dark"
                 mode="inline"
-                className="the-menu"
+                className={this.state.collapsed ? 'the-menu' : 'the-menu open'}
                 selectedKeys={this.state.chosedKey}
-                openKeys={this.state.openKeys}
+
                 onOpenChange={(e) => this.onOpenChange(e)}
+                inlineCollapsed={this.state.collapsed}
             >
                 {this.state.treeDom}
-            </Menu> : null
+            </Menu>, <div key="2" className={this.state.collapsed ? "collapsed-box" : "collapsed-box open"} >
+                <Icon className="collapsed-icon" onClick={() => this.onCollapsed()} type={this.state.collapsed ? 'menu-unfold' : 'menu-fold'} />
+            </div>] : null
         );
     }
 }

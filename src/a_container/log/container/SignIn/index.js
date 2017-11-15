@@ -64,7 +64,7 @@ class Manager extends React.Component {
             endTime: this.state.searchEndTime,
         };
 
-        Power.test(power.system.manager.query.code) && this.props.actions.findLoginLogBykeys (tools.clearNull(params)).then((res) => {
+        Power.test(power.log.signin.query.code) && this.props.actions.findLoginLogBykeys (tools.clearNull(params)).then((res) => {
             if(res.returnCode === "0") {
                 this.setState({
                     data: res.messsageBody.result,
@@ -168,7 +168,7 @@ class Manager extends React.Component {
                 render: (text, record) => {
                     let controls = [];
 
-                    Power.test(power.system.manager.query.code) && controls.push(
+                    Power.test(power.log.signin.query.code) && controls.push(
                         <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
                             <Tooltip placement="top" title="查看">
                                 <Icon type="eye" />

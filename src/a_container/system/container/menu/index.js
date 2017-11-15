@@ -247,6 +247,7 @@ class Menu extends React.Component {
               if(res.returnCode === "0") {
                 message.success('修改成功');
                 this.getAllMenus(); // 重新获取菜单
+                this.getData(me.state.nowData.parentId);
                 this.onUpClose();
               } else {
                   message.error('修改失败');

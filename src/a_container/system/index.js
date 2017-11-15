@@ -22,7 +22,7 @@ import Role from './container/role';
 import Jurisdiction from './container/jurisdiction';
 import Version from './container/version';
 import Menus from './container/menu';
-
+import NotFound from '../../a_container/notfound';
 // ==================
 // 本页面所需action
 // ==================
@@ -66,12 +66,13 @@ class SystemContainer extends React.Component {
         <div key='page' className="allpage page-system">
           <Switch>
               <Redirect exact from={`/${this.state.baseURL}`} to={`/${this.state.baseURL}/${this.getFirstMenu(this.props.menuSourceData)}`} />
-              <Route path={`/${this.state.baseURL}/manager`} component={Manager} />
-              <Route path={`/${this.state.baseURL}/role`} component={Role} />
-              <Route path={`/${this.state.baseURL}/jurisdiction`} component={Jurisdiction} />
-              <Route path={`/${this.state.baseURL}/menu`} component={Menus} />
-              <Route path={`/${this.state.baseURL}/version`} component={Version} />
-              <Route path={`/${this.state.baseURL}/organization`} component={Organization} />
+              <Route exact path={`/${this.state.baseURL}/manager`} component={Manager} />
+              <Route exact path={`/${this.state.baseURL}/role`} component={Role} />
+              <Route exact path={`/${this.state.baseURL}/jurisdiction`} component={Jurisdiction} />
+              <Route exact path={`/${this.state.baseURL}/menu`} component={Menus} />
+              <Route exact path={`/${this.state.baseURL}/version`} component={Version} />
+              <Route exact path={`/${this.state.baseURL}/organization`} component={Organization} />
+              <Route component={NotFound} />
           </Switch>
         </div>
     );

@@ -30,6 +30,11 @@ export const power = {
             del: {code: 'jurisdiction:del', title: '删除权限'},
         }
     },
+    log: {  // 日志中心
+        signin: { // 用户登录日志
+            query: {code: 'signin:query', title: '查询权限'},
+        }
+    }
 };
 
 // 所有的路由

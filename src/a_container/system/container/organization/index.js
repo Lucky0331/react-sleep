@@ -1,4 +1,4 @@
-/* Organization 系统管理/组织机构 */
+/* Organization 系统管理/组织机构管理 */
 
 // ==================
 // 所需的各种插件
@@ -7,10 +7,11 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { Tree, Button, Popconfirm, Form, Input, Radio, Select, message, Table, Tooltip, Icon, Modal, InputNumber } from 'antd';
 import P from 'prop-types';
-import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, InputNumber, Select, Tooltip } from 'antd';
+import _ from 'lodash';
 import './index.scss';
-import tools from '../../../../util/tools'; // 工具
+import tools from '../../../../util/tools';
 import Power from '../../../../util/power'; // 权限
 import { power } from '../../../../util/data';
 // ==================
@@ -18,285 +19,336 @@ import { power } from '../../../../util/data';
 // ==================
 
 import UrlBread from '../../../../a_component/urlBread';
-import RoleTree from '../../../../a_component/roleTree';
+import OrTree from '../../../../a_component/menuTree/organizationTree';
 
 // ==================
 // 本页面所需action
 // ==================
 
-import { findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole } from '../../../../a_action/sys-action';
+import { addOrganizer, findAllOrganizer, findOrganizerByParentId, updateOrganizer, deleteOrganizer } from '../../../../a_action/sys-action';
 
 // ==================
 // Definition
 // ==================
+
+const TreeNode = Tree.TreeNode;
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
 const { TextArea } = Input;
 const Option = Select.Option;
-class Manager extends React.Component {
+class Menu extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            data: [], // 当前页面全部数据
-            searchUserName: '',
-            searchConditions: null,
-            addnewModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
-            addnewLoading: false, // 是否正在添加新用户中
-            nowData: null, // 当前选中用户的信息，用于查看详情
-            queryModalShow: false, // 查看详情模态框是否显示
-            upModalShow: false, // 修改用户模态框是否显示
-            upLoading: false, // 是否正在修改用户中
-            roleTreeShow: false, // 角色树是否显示
-            pageNum: 1, // 当前第几页
-            pageSize: 10, // 每页多少条
-            total: 0, // 数据库总共多少条数据
+            data: [], // 当前页数据 - 没有取store中的全部菜单，因为这里有条件查询
+            nowData: null, // 当前选中的菜单项
+            sourceData: [], // 经过处理的原始数据
+            addLoading: false, // 是否正在增加菜单中
+            fatherTreeShow: false, // 选择父级tree是否出现
+            modalQueryShow: false, // 查看 - 模态框 是否出现
+            upModalShow: false,     // 修改 - 模态框 是否出现
+            upLoading: false,       // 修改 - 是否loading中
+            treeFatherValue: null, // 修改 - 父级树选择的父级信息
+            addModalShow: false,    // 添加 - 模态框 是否出现
+            searchMenuName: '',     // 查询 - 菜单名
+            searchConditions: undefined, // 查询 - 状态
+            total: 0,             // 总数 直接全部查询，前端分页
+            pageNum: 1,          // 第几页 - 这里是前端分页，只是为了构建序号，由TABLE返回
+            pageSize: 10,       // 每页多少条 - 这里是前端分页，只是为了构建序号，由TABLE返回
         };
     }
 
     componentDidMount() {
-        this.onGetData(this.state.pageNum, this.state.pageSize);
+        if (!this.props.allOrganizer || this.props.allOrganizer.length <= 0) {
+            this.getAllOrganizer();
+        } else {
+            this.makeSourceData(this.props.allOrganizer);
+        }
+        this.getData();
     }
 
-    // 查询当前页面所需列表数据
-    onGetData(pageNum, pageSize) {
-        const params = {
-            userName: this.state.searchUserName,
-            conditions: this.state.searchConditions,
-            pageNum,
-            pageSize,
-        };
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.allOrganizer !== this.props.allOrganizer) {
+            // allOrganizer变化后，重新处理原始数据
+            this.makeSourceData(nextProps.allOrganizer);
+        }
+    }
+    // 获取所有组织机构数据
+    getAllOrganizer() {
+        this.props.actions.findAllOrganizer();
+    }
 
-        Power.test(power.system.manager.query.code) && this.props.actions.findAdminUserByKeys(tools.clearNull(params)).then((res) => {
-            if(res.returnCode === "0") {
+    // getData 条件查询 本页面TABLE用此数据
+    getData(id = 0) {
+        const params = {
+            parentId: id,
+            pageNum: 1,
+            pageSize: 9999,
+        };
+        Power.test(power.system.menu.query.code) && this.props.actions.findOrganizerByParentId(params).then((res) => {
+            if (res.returnCode === '0') {
                 this.setState({
-                    data: res.messsageBody.result,
-                    pageNum,
-                    pageSize,
-                    total: res.messsageBody.total,
+                    data: res.messsageBody,
                 });
             } else {
-                message.error(res.returnMessaage || '获取数据失败，请重试');
+                message.error(res.returnMessaage || '获取数据失败');
             }
         });
     }
-    // 搜索 - 用户名输入框值改变时触发
-    searchUserNameChange(e) {
-        if (e.target.value.length < 20) {
-            this.setState({
-                searchUserName: e.target.value,
-            });
-        }
+    // 确定删除当前菜单
+    onDeleteClick(record){
+        this.props.actions.deleteOrganizer({id: record.id}).then((res) => {
+            if (res.returnCode === "0") {
+                message.success('删除成功');
+                this.getAllOrganizer();
+                this.getData(record.parentId);
+            } else {
+                message.error(res.returnMessaage || '删除失败');
+            }
+        });
     }
 
-    // 搜索 - 状态选择框值变化时调用
-    searchConditions(e) {
-        console.log('选择了什么：', e);
+    // 处理原始数据，将原始数据处理为层级关系
+    makeSourceData(data) {
+        const d = _.cloneDeep(data);
+        const sourceData = [];
+        d.forEach((item) => {
+            if (item.parentId === 0) { // parentId === 0 的为顶级菜单
+                const temp = this.dataToJson(d, item);
+                sourceData.push(temp);
+            }
+        });
         this.setState({
-            searchConditions: e || null,
+            sourceData,
         });
     }
 
-    // 修改某一条数据 模态框出现
-    onUpdateClick(record) {
-        const me = this;
-        const { form } = me.props;
-        console.log('Record:', record);
-        form.setFieldsValue({
-            upUsername: record.userName,
-            upPassword: '______',
-            upSex: record.sex || 1,
-            upAge: record.age || undefined,
-            upPhone: record.phone || undefined,
-            upEmail: record.email || undefined,
-            upOrgCode: record.orgCode || undefined,
-            upDescription: record.description || undefined,
-            upConditions: record.conditions || "0",
+    // 递归将扁平数据转换为层级数据
+    dataToJson(data, one) {
+        const child = _.cloneDeep(one);
+        child.children = [];
+        let sonChild = null;
+        data.forEach((item) => {
+            if (item.parentId === one.id) {
+                sonChild = this.dataToJson(data, item);
+                child.children.push(sonChild);
+            }
         });
-        me.setState({
-            nowData: record,
-            upModalShow: true,
+        if (child.children.length <=0) {
+            child.children = null;
+        }
+        return child;
+    }
+
+    // 构建树结构
+    makeTreeDom(data, key = '') {
+        return data.map((item, index) => {
+            const k = key ? `${key}-${item.id}` : `${item.id}`;
+            if (item.children) {
+                return (
+                    <TreeNode title={item.orgName} key={k} id={item.id} p={item.parentId} data={item}>
+                        { this.makeTreeDom(item.children, k) }
+                    </TreeNode>
+                );
+            } else {
+                return <TreeNode title={item.orgName} key={k} id={item.id} p={item.parentId} data={item} selectable={false}/>;
+            }
         });
     }
 
-    // 确定修改某一条数据
-    onUpOk() {
-        console.log('NOWDATA:', this.state.nowData);
+    // 添加子菜单提交
+    onAddOk() {
         const me = this;
         const { form } = me.props;
         form.validateFields([
-            'upUsername',
-            'upPassword',
-            'upSex',
-            'upAge',
-            'upPhone',
-            'upEmail',
-            'upOrgCode',
-            'upDescription',
-            'upConditions',
+            'addOrgName',
+            'addConditions',
+            'addDescription',
         ], (err, values) => {
-            if(err) { return; }
-
-            me.setState({
-                upLoading: true,
-            });
-
+            if (err) { return; }
             const params = {
-                id: me.state.nowData.id,
-                userName: values.upUsername,
-                password: values.upPassword === '______' ? null : values.upPassword,
-                sex: values.upSex,
-                age: values.upAge || '',
-                phone: values.upPhone || '',
-                email: values.upEmail || '',
-                orgCode: values.upOrgCode || '',
-                description: values.upDescription || '',
-                adminIp: '',
-                conditions: values.upConditions || '0',
+                orgName: values.addOrgName,
+                description: values.addDescription,
+                conditions: values.addConditions,
+                parentId: me.state.treeFatherValue ? `${me.state.treeFatherValue.id}` : '0', // 如果没有的话就是顶级菜单，顶级菜单默认为0
             };
-
-            this.props.actions.updateAdminUserInfo(tools.clearNull(params)).then((res) => {
-                if (res.returnCode === "0") {
-                    message.success("修改成功");
-                    this.onGetData(this.state.pageNum, this.state.pageSize);
-                    this.onUpClose();
+            this.setState({addLoading: true});
+            me.props.actions.addOrganizer(tools.clearNull(params)).then((res) => {
+                if(res.returnCode === "0") {
+                    message.success('添加成功');
+                    this.getAllOrganizer(); // 重新获取组织结构
+                    this.getData();
+                    this.onAddClose();
                 } else {
-                    message.error(res.returnMessaage || '修改失败，请重试');
+                    message.error('添加失败');
                 }
-                me.setState({
-                    upLoading: false,
-                });
+                this.setState({addLoading: false});
             }).catch(() => {
-                me.setState({
-                    upLoading: false,
-                });
+                this.setState({addLoading: false});
             });
         });
     }
-    // 关闭修改某一条数据
-    onUpClose() {
+
+    // 新增 - 取消
+    onAddClose() {
         this.setState({
-            upModalShow: false,
+            nowData: null,
+            treeFatherValue: null,
+            addModalShow: false,
         });
     }
 
-    // 删除某一条数据
-    onDeleteClick(id) {
-        this.props.actions.deleteAdminUserInfo({adminUserId: id}).then((res) => {
-            if(res.returnCode === "0") {
-                message.success('删除成功');
-                this.onGetData(this.state.pageNum, this.state.pageSize);
-            } else {
-                message.error(res.returnMessaage || '删除失败，请重试');
-            }
-        });
-    }
-
-    // 搜索
-    onSearch() {
-        this.onGetData(1, this.state.pageSize);
-    }
-
-    // 查询某一条数据的详情
-    onQueryClick(record) {
-        this.setState({
-            nowData: record,
-            queryModalShow: true,
-        });
-    }
-
-    // 查看详情模态框关闭
-    onQueryModalClose() {
-        this.setState({
-            queryModalShow: false,
-        });
-    }
-
-    // 添加新用户模态框出现
+    // 新增 - 模态框出现
     onAddNewShow() {
         const me = this;
         const { form } = me.props;
         form.resetFields([
-            'addnewUsername',
-            'addnewPassword',
-            'addnewSex',
-            'addnewAge',
-            'addnewPhone',
-            'addnewEmail',
-            'addnewOrgCode',
-            'addnewDescription',
+            'addOrgName',
+            'addDescription',
+            'addConditions',
         ]);
         this.setState({
-            addnewModalShow: true,
+            treeFatherValue: null,
+            addModalShow: true,
         });
     }
-
-    // 添加新用户确定
-    onAddNewOk() {
+    // 修改当前菜单
+    onUpOk() {
         const me = this;
         const { form } = me.props;
+        console.log('nowData是个啥：', me.state.nowData);
         form.validateFields([
-            'addnewUsername',
-            'addnewPassword',
-            'addnewSex',
-            'addnewAge',
-            'addnewPhone',
-            'addnewEmail',
-            'addnewOrgCode',
-            'addnewDescription',
+            'upOrgName',
+            'upDescription',
+            'upConditions',
         ], (err, values) => {
-            if (err) { return false; }
-            console.log('检查通过：', values);
-            me.setState({
-                addnewLoading: true,
-            });
+            if (err) { return; }
             const params = {
-                userName: values.addnewUsername,
-                password: values.addnewPassword,
-                sex: values.addnewSex,
-                age: values.addnewAge || '',
-                phone: values.addnewPhone || '',
-                email: values.addnewEmail || '',
-                orgCode: values.addnewOrgCode || '',
-                description: values.addnewDescription || '',
-                adminIp: '',
-                conditions: '0',
+                id: me.state.nowData.id,
+                orgName: values.upOrgName,
+                conditions: values.upConditions,
+                description: values.upDescription,
+                parentId: this.state.treeFatherValue ? `${this.state.treeFatherValue.id}` : '0', // 如果没有的话就是顶级菜单，顶级菜单默认为0
             };
-
-            me.props.actions.addAdminUserInfo(tools.clearNull(params)).then((res) => {
-                console.log('添加用户返回数据：', res);
-                if (res.returnCode === '0') {
-                    this.onGetData(this.state.pageNum, this.state.pageSize);
-                    this.onAddNewClose();
+            this.setState({upLoading: true});
+            this.props.actions.updateOrganizer(params).then((res) => {
+                if(res.returnCode === "0") {
+                    message.success('修改成功');
+                    this.getAllOrganizer(); // 重新获取所有组织结构
+                    this.getData(me.state.nowData.parentId);
+                    this.onUpClose();
                 } else {
-                    message.error(res.returnMessaage || '添加失败，请重试');
+                    message.error('修改失败');
                 }
-                me.setState({
-                    addnewLoading: false,
-                });
+                this.setState({upLoading: false});
             }).catch(() => {
-                me.setState({
-                    addnewLoading: false,
-                });
+                this.setState({upLoading: false});
             });
         });
     }
 
-    // 添加新用户取消
-    onAddNewClose() {
+    // 修改 - 模态框 出现
+    onUpdateClick(record) {
+        const me = this;
+        const { form } = me.props;
+        console.log('当前修改的：', record);
+        form.setFieldsValue({
+            upOrgName: record.orgName,
+            upDescription: record.description,
+            upConditions: record.conditions,
+        });
         this.setState({
-            addnewModalShow: false,
+            nowData: record,
+            treeFatherValue: { id: record.parentId, title: this.getFather(record.parentId) },
+            upModalShow: true,
+        });
+    }
+    // 修改 - 模态框 关闭
+    onUpClose() {
+        this.setState({
+            nowData: null,
+            treeFatherValue: null,
+            upModalShow: false,
         });
     }
 
-    // 给某个用户分配角色
-    onRoleClick(id) {
-
+    // 选择父级tree出现
+    onFatherShow() {
+        this.setState({
+            fatherTreeShow: true,
+        });
     }
 
-    // 表单页码改变
-    onTablePageChange(page, pageSize) {
-        console.log('页码改变：', page, pageSize);
-        this.onGetData(page, pageSize);
+    // TABLE页码改变
+    onTableChange(p) {
+        this.setState({
+            pageNum: p.current,
+        });
+    }
+    // 父级tree选择确定
+    onTreeOk(obj) {
+        console.log('父级选择的是什么：', obj);
+        this.setState({
+            treeFatherValue: obj,
+            fatherTreeShow: false,
+        });
+    }
+    // 父级tree选择取消
+    onTreeClose() {
+        this.setState({
+            fatherTreeShow: false,
+        });
+    }
+
+    // 工具函数 - 根据父ID得到父名称
+    getFather(parentId) {
+        const p = this.props.allOrganizer.find((item) => {
+            return `${item.id}` === `${parentId}`;
+        });
+        if (p) {
+            return p.orgName;
+        }
+        return '';
+    }
+    // 查看 - 模态框出现
+    onQueryClick(record) {
+        this.setState({
+            nowData: record,
+            modalQueryShow: true,
+        });
+    }
+
+    // 查看 - 模态框关闭
+    onQueryModalClose() {
+        this.setState({
+            modalQueryShow: false,
+        });
+    }
+
+    // 搜索 - 菜单名改变时触发
+    searchMenuNameChange(e) {
+        if (e.target.value.length < 20) {
+            this.setState({
+                searchMenuName: e.target.value,
+            });
+        }
+    }
+
+    // 搜索 - 状态改变时触发
+    searchConditionsChange(e) {
+        this.setState({
+            searchConditions: e,
+        });
+    }
+
+    // 系统目录结构点选
+    onTreeMenuSelect(keys, e) {
+        console.log('目录点选：', keys, e);
+        if (e.selected) { // 选中
+            this.getData(e.node.props.id);
+        } else {
+            this.getData();
+        }
     }
 
     // 构建字段
@@ -308,32 +360,20 @@ class Manager extends React.Component {
                 key: 'serial',
             },
             {
-                title: '用户名',
-                dataIndex: 'userName',
-                key: 'userName',
+                title: '部门名称',
+                dataIndex: 'orgName',
+                key: 'orgName',
             },
             {
-                title: '性别',
-                dataIndex: 'sex',
-                key: 'sex',
-                render: (text, record) => {
-                    return text !== null ? (text === 1 ? '男' : '女') : '';
-                },
+                title: '描述',
+                dataIndex: 'description',
+                key: 'description',
             },
             {
-                title: '年龄',
-                dataIndex: 'age',
-                key: 'age',
-            },
-            {
-                title: '电话',
-                dataIndex: 'phone',
-                key: 'phone',
-            },
-            {
-                title: '邮箱',
-                dataIndex: 'email',
-                key: 'email',
+                title: '父级',
+                dataIndex: 'parentId',
+                key: 'parentId',
+                render: (text, record) => this.getFather(text),
             },
             {
                 title: '状态',
@@ -348,29 +388,22 @@ class Manager extends React.Component {
                 render: (text, record) => {
                     let controls = [];
 
-                    Power.test(power.system.manager.query.code) && controls.push(
+                    Power.test(power.system.menu.query.code) && controls.push(
                         <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
                             <Tooltip placement="top" title="查看">
                                 <Icon type="eye" />
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.manager.update.code) && controls.push(
+                    Power.test(power.system.menu.update.code) && controls.push(
                         <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
                             <Tooltip placement="top" title="修改">
                                 <Icon type="edit" />
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.manager.power.code) && controls.push(
-                        <span key="2" className="control-btn blue" onClick={() => this.onRoleTreeShow(record)} >
-                            <Tooltip placement="top" title="分配角色">
-                                <Icon type="tool" />
-                            </Tooltip>
-                        </span>
-                    );
-                    Power.test(power.system.manager.del.code) && text.id !== 1 && controls.push(
-                        <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
+                    Power.test(power.system.menu.del.code) && controls.push(
+                        <Popconfirm key="2" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record)} okText="确定" cancelText="取消">
                             <span className="control-btn red">
                                 <Tooltip placement="top" title="删除">
                                     <Icon type="delete" />
@@ -399,56 +432,20 @@ class Manager extends React.Component {
         return data.map((item, index) => {
             return {
                 key: index,
-                adminIp: item.adminIp,
-                password: item.password,
-                id: item.id,
-                serial: (index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
-                age: item.age,
                 conditions: item.conditions,
-                creator: item.creator,
                 createTime: item.createTime,
+                creator: item.creator,
                 description: item.description,
-                email: item.email,
-                orgCode: item.orgCode,
-                phone: item.phone,
-                sex: item.sex,
+                id: item.id,
+                orgName: item.orgName,
+                parentId: item.parentId,
                 updateTime: item.updateTime,
                 updater: item.updater,
-                userName: item.userName,
-                control: item.id,
+                serial: (index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
             }
         });
     }
 
-    // 打开RoleTree
-    onRoleTreeShow(data) {
-        this.setState({
-            nowData: data,
-            roleTreeShow: true,
-        });
-    }
-    // 关闭RoleTree
-    onRoleTreeClose() {
-        this.setState({
-            roleTreeShow: false,
-        });
-    }
-    // RoleTree确定
-    onRoleTreeOk(arr) {
-        console.log('选中了什么：', arr, this.state.nowData);
-        const params = {
-            userId: this.state.nowData.id,
-            roles: arr.map((item) => item.id).join(','),
-        }
-        this.props.actions.assigningRole(params).then((res) => {
-            if (res.returnCode === '0') {
-                message.success('角色分配成功');
-            } else {
-                message.error(res.returnMessaage || '角色分配失败，请重试');
-            }
-        });
-        this.onRoleTreeClose();
-    }
     render() {
         const me = this;
         const { form } = me.props;
@@ -465,460 +462,217 @@ class Manager extends React.Component {
         };
 
         return (
-            <div>
-              <UrlBread location={this.props.location}/>
-              <div className="system-search">
-                  { Power.test(power.system.manager.add.code) && <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加用户</Button></li></ul>}
-                <span className="ant-divider" />
-                  { Power.test(power.system.manager.query.code) &&
-                  <ul className="search-ul">
-                    <li>
-                      <Input
-                          placeholder="用户名"
-                          onChange={(e) => this.searchUserNameChange(e)}
-                          value={this.state.searchUserName}
-                          onPressEnter={() => this.onSearch()}
-                      />
-                    </li>
-                    <li>
-                      <Select
-                          style={{ width: '150px' }}
-                          placeholder="用户状态"
-                          allowClear
-                          onChange={(e) => this.searchConditions(e)}
-                      >
-                        <Option value="0">启用</Option>
-                        <Option value="-1">禁用</Option>
-                      </Select>
-                    </li>
-                    <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
-                  </ul>
-                  }
+            <div className="page-menu">
+                <UrlBread location={this.props.location}/>
+                <div className="menubox all_clear">
+                    <div className="l">
+                        <div className="title">
+                            <span>组织部门结构</span>
+                        </div>
+                        <div>
+                            <Tree
+                                defaultExpandedKeys={['0']}
+                                onSelect={(keys, e) => this.onTreeMenuSelect(keys, e)}
+                            >
+                                <TreeNode title="翼猫科技" key="0" id={0}>
+                                    { this.makeTreeDom(this.state.sourceData) }
+                                </TreeNode>
+                            </Tree>
+                        </div>
+                    </div>
+                    <div className="r system-table">
+                        <div className="menu-search">
+                            { Power.test(power.system.menu.add.code) &&
+                            <ul className="search-func">
+                                <li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加部门</Button></li>
+                            </ul>
+                            }
+                        </div>
+                        <Table
+                            columns={this.makeColumns()}
+                            dataSource={this.makeData(this.state.data)}
+                            onChange={(p) => this.onTableChange(p)}
+                            pagination={{
+                                pageSize: this.state.pageSize,
+                                showQuickJumper: true,
+                                showTotal: (total, range) => `共 ${total} 条数据`,
+                            }}
+                        />
+                    </div>
+                </div>
+                {/* 添加菜单模态框 */}
+                <Modal
+                    title='添加菜单'
+                    visible={this.state.addModalShow}
+                    onOk={() => this.onAddOk()}
+                    onCancel={() => this.onAddClose()}
+                    confirmLoading={this.state.addLoading}
+                >
+                    <Form>
+                        <FormItem
+                            label="部门名称"
+                            {...formItemLayout}
+                        >
+                            {getFieldDecorator('addOrgName', {
+                                initialValue: undefined,
+                                rules: [
+                                    {required: true, whitespace: true, message: '请输入部门名称'},
+                                    {max: 12, message: '最多输入12位字符'},
+                                ],
+                            })(
+                                <Input placeholder="请输入部门名称" />
+                            )}
+                        </FormItem>
+                        <FormItem
+                            label="父级"
+                            {...formItemLayout}
+                        >
+                            <Input placeholder="请选择父级"  readOnly value={this.state.treeFatherValue && this.state.treeFatherValue.title} onClick={() => this.onFatherShow()}/>
+                        </FormItem>
+                        <FormItem
+                            label="描述"
+                            {...formItemLayout}
+                        >
+                            {getFieldDecorator('addDescription', {
+                                rules: [{ validator: (rule, value, callback) => {
+                                    const v = value;
+                                    if (v) {
+                                        if (v.length > 100) {
+                                            callback('最多输入100位字符');
+                                        }
+                                    }
+                                    callback();
+                                }}],
+                                initialValue: undefined,
+                            })(
+                                <TextArea rows={4} placeholoder="请输入描述" autosize={{minRows: 2, maxRows: 6}} />
+                            )}
+                        </FormItem>
+                        <FormItem
+                            label="状态"
+                            {...formItemLayout}
+                        >
+                            {getFieldDecorator('addConditions', {
+                                rules: [],
+                                initialValue: "0",
+                            })(
+                                <RadioGroup>
+                                    <Radio value="0">启用</Radio>
+                                    <Radio value="-1">禁用</Radio>
+                                </RadioGroup>
+                            )}
+                        </FormItem>
+                    </Form>
+                </Modal>
 
-              </div>
-              <div className="system-table">
-                <Table
-                    columns={this.makeColumns()}
-                    dataSource={this.makeData(this.state.data)}
-                    pagination={{
-                        total: this.state.total,
-                        current: this.state.pageNum,
-                        pageSize: this.state.pageSize,
-                        showQuickJumper: true,
-                        showTotal: (total, range) => `共 ${total} 条数据`,
-                        onChange: (page, pageSize) => this.onTablePageChange(page, pageSize)
-                    }}
-                />
-              </div>
-                {/* 添加用户模态框 */}
-              <Modal
-                  title='新增用户'
-                  visible={this.state.addnewModalShow}
-                  onOk={() => this.onAddNewOk()}
-                  onCancel={() => this.onAddNewClose()}
-                  confirmLoading={this.state.addnewLoading}
-              >
-                <Form>
-                  <FormItem
-                      label="用户名"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewUsername', {
-                          initialValue: undefined,
-                          rules: [
-                              {required: true, message: '请输入用户名'},
-                              { validator: (rule, value, callback) => {
-                                  const v = value;
-                                  if (v) {
-                                      if (v.length > 12) {
-                                          callback('最多输入12位字符');
-                                      } else if (!tools.checkStr2(v)){
-                                          callback('只能输入字母、数字及下划线');
-                                      }
-                                  }
-                                  callback();
-                              }}
-                          ],
-                      })(
-                          <Input placeholder="用户名" />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="密码"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewPassword', {
-                          initialValue: undefined,
-                          rules: [
-                              {required: true, message: '请输入密码'},
-                              { validator: (rule, value, callback) => {
-                                  const v = value;
-                                  if (v) {
-                                      if (v.length > 12) {
-                                          callback('最多输入12位字符');
-                                      } else if (v.length < 6) {
-                                          callback('密码至少6位字符');
-                                      }else if (!tools.checkStr2(v)){
-                                          callback('只能输入字母、数字及下划线');
-                                      }
-                                  }
-                                  callback();
-                              }}
-                          ],
-                      })(
-                          <Input placeholder="密码" type="password"/>
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="性别"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewSex', {
-                          rules: [],
-                          initialValue: 1,
-                      })(
-                          <RadioGroup>
-                            <Radio value={1}>男</Radio>
-                            <Radio value={0}>女</Radio>
-                          </RadioGroup>
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="年龄"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewAge', {
-                          rules: [],
-                          initialValue: undefined,
-                      })(
-                          <InputNumber min={1} max={99} />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="电话"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewPhone', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (!tools.checkPhone(v)) {
-                                      callback('请输入有效的手机号码');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <Input placeholder="请输入手机号码" />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="邮箱"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewEmail', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (!tools.checkEmail(v)) {
-                                      callback('请输入有效的邮箱地址');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <Input placeholder="请输入邮箱地址" />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="组织编号"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewOrgCode', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (v.length > 12) {
-                                      callback('最多输入12个字符');
-                                  } else if (!tools.checkStr3(v)) {
-                                      callback('只能输入数字');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <Input placeholder="请输入组织编号" />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="描述"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewDescription', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (v.length > 100) {
-                                      callback('最多输入100个字符');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <TextArea rows={4} autosize={{minRows: 2, maxRows: 6}} />
-                      )}
-                  </FormItem>
-                </Form>
-              </Modal>
                 {/* 修改用户模态框 */}
-              <Modal
-                  title='修改用户'
-                  visible={this.state.upModalShow}
-                  onOk={() => this.onUpOk()}
-                  onCancel={() => this.onUpClose()}
-                  confirmLoading={this.state.upLoading}
-              >
-                <Form>
-                  <FormItem
-                      label="用户名"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upUsername', {
-                          initialValue: undefined,
-                          rules: [
-                              {required: true, message: '请输入用户名'},
-                              { validator: (rule, value, callback) => {
-                                  const v = value;
-                                  if (v) {
-                                      if (v.length > 12) {
-                                          callback('最多输入12位字符');
-                                      } else if (!tools.checkStr2(v)){
-                                          callback('只能输入字母、数字及下划线');
-                                      }
-                                  }
-                                  callback();
-                              }}
-                          ],
-                      })(
-                          <Input placeholder="用户名" />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="密码"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upPassword', {
-                          initialValue: '______',
-                          rules: [
-                              {required: true, message: '请输入密码'},
-                              { validator: (rule, value, callback) => {
-                                  const v = value;
-                                  if (v) {
-                                      if (v.length > 12) {
-                                          callback('最多输入12位字符');
-                                      } else if (v.length < 6) {
-                                          callback('密码至少6位字符');
-                                      }else if (!tools.checkStr2(v)){
-                                          callback('只能输入字母、数字及下划线');
-                                      }
-                                  }
-                                  callback();
-                              }}
-                          ],
-                      })(
-                          <Input placeholder="密码" type="password"/>
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="性别"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upSex', {
-                          rules: [],
-                          initialValue: 1,
-                      })(
-                          <RadioGroup>
-                            <Radio value={1}>男</Radio>
-                            <Radio value={0}>女</Radio>
-                          </RadioGroup>
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="年龄"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upAge', {
-                          rules: [],
-                          initialValue: undefined,
-                      })(
-                          <InputNumber min={1} max={99} />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="电话"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upPhone', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (!tools.checkPhone(v)) {
-                                      callback('请输入有效的手机号码');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <Input placeholder="请输入手机号码" />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="邮箱"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upEmail', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (!tools.checkEmail(v)) {
-                                      callback('请输入有效的邮箱地址');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <Input placeholder="请输入邮箱地址" />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="组织编号"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upOrgCode', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (v.length > 12) {
-                                      callback('最多输入12个字符');
-                                  } else if (!tools.checkStr3(v)) {
-                                      callback('只能输入数字');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <Input placeholder="请输入组织编号" />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="描述"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upDescription', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (v.length > 100) {
-                                      callback('最多输入100个字符');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <TextArea rows={4} autosize={{minRows: 2, maxRows: 6}} />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="状态"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('upConditions', {
-                          rules: [],
-                          initialValue: "0",
-                      })(
-                          <RadioGroup>
-                            <Radio value="0">启用</Radio>
-                            <Radio value="-1">禁用</Radio>
-                          </RadioGroup>
-                      )}
-                  </FormItem>
-                </Form>
-              </Modal>
+                <Modal
+                    title='修改菜单'
+                    visible={this.state.upModalShow}
+                    onOk={() => this.onUpOk()}
+                    onCancel={() => this.onUpClose()}
+                    confirmLoading={this.state.upLoading}
+                >
+                    <Form>
+                        <FormItem
+                            label="部门名称"
+                            {...formItemLayout}
+                        >
+                            {getFieldDecorator('upOrgName', {
+                                initialValue: undefined,
+                                rules: [
+                                    {required: true, whitespace: true, message: '请输入部门名称'},
+                                    {max: 12, message: '最多输入12位字符'}
+                                ],
+                            })(
+                                <Input placeholder="请输入部门名称" />
+                            )}
+                        </FormItem>
+                        <FormItem
+                            label="父级"
+                            {...formItemLayout}
+                        >
+                            <Input placeholder="请选择父级"  readOnly value={this.state.treeFatherValue && this.state.treeFatherValue.title} onClick={() => this.onFatherShow()}/>
+                        </FormItem>
+                        <FormItem
+                            label="描述"
+                            {...formItemLayout}
+                        >
+                            {getFieldDecorator('upDescription', {
+                                rules: [{ validator: (rule, value, callback) => {
+                                    const v = value;
+                                    if (v) {
+                                        if (v.length > 100) {
+                                            callback('最多输入100位字符');
+                                        }
+                                    }
+                                    callback();
+                                }}],
+                                initialValue: undefined,
+                            })(
+                                <TextArea rows={4} placeholoder="请输入描述" autosize={{minRows: 2, maxRows: 6}} />
+                            )}
+                        </FormItem>
+                        <FormItem
+                            label="状态"
+                            {...formItemLayout}
+                        >
+                            {getFieldDecorator('upConditions', {
+                                rules: [],
+                                initialValue: "0",
+                            })(
+                                <RadioGroup>
+                                    <Radio value="0">启用</Radio>
+                                    <Radio value="-1">禁用</Radio>
+                                </RadioGroup>
+                            )}
+                        </FormItem>
+                    </Form>
+                </Modal>
+
                 {/* 查看用户详情模态框 */}
-              <Modal
-                  title={this.state.nowData ? `${this.state.nowData.userName}的用户详情` : '用户详情'}
-                  visible={this.state.queryModalShow}
-                  onOk={() => this.onQueryModalClose()}
-                  onCancel={() => this.onQueryModalClose()}
-              >
-                <Form>
-                  <FormItem
-                      label="用户名"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.userName : ''}
-                  </FormItem>
-                  <FormItem
-                      label="性别"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? (this.state.nowData.sex === 1 ? '男' : '女') : ''}
-                  </FormItem>
-                  <FormItem
-                      label="年龄"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.age : ''}
-                  </FormItem>
-                  <FormItem
-                      label="电话"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.phone : ''}
-                  </FormItem>
-                  <FormItem
-                      label="邮箱"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.email : ''}
-                  </FormItem>
-                  <FormItem
-                      label="组织编号"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.orgCode : ''}
-                  </FormItem>
-                  <FormItem
-                      label="描述"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.description : ''}
-                  </FormItem>
-                  <FormItem
-                      label="状态"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? (this.state.nowData.conditions === "0" ? <span style={{ color: 'green' }}>启用</span> : <span style={{ color: 'red' }}>禁用</span>) : ''}
-                  </FormItem>
-                </Form>
-              </Modal>
-                {/* 修改用户角色模态框 */}
-              <RoleTree
-                  userInfo={this.state.nowData}        // 当前操作用户信息
-                  roleData={this.props.allRoles}        // 所有的角色数据
-                  modalShow={this.state.roleTreeShow}  // 是否显示
-                  actions={this.props.actions}
-                  onOk={(arr) => this.onRoleTreeOk(arr)}
-                  onClose={() => this.onRoleTreeClose()}
-              />
+                <Modal
+                    title= '查看详情'
+                    visible={this.state.modalQueryShow}
+                    onOk={() => this.onQueryModalClose()}
+                    onCancel={() => this.onQueryModalClose()}
+                >
+                    <Form>
+                        <FormItem
+                            label="部门名称"
+                            {...formItemLayout}
+                        >
+                            {!!this.state.nowData ? this.state.nowData.orgName : ''}
+                        </FormItem>
+                        <FormItem
+                            label="父级"
+                            {...formItemLayout}
+                        >
+                            {!!this.state.nowData ? this.getFather(this.state.nowData.parentId) : ''}
+                        </FormItem>
+                        <FormItem
+                            label="描述"
+                            {...formItemLayout}
+                        >
+                            {!!this.state.nowData ? this.state.nowData.description : ''}
+                        </FormItem>
+                        <FormItem
+                            label="状态"
+                            {...formItemLayout}
+                        >
+                            {!!this.state.nowData ? (this.state.nowData.conditions === "0" ? <span style={{ color: 'green' }}>启用</span> : <span style={{ color: 'red' }}>禁用</span>) : ''}
+                        </FormItem>
+                    </Form>
+                </Modal>
+                <OrTree
+                    title="父级选择"
+                    data={this.props.allOrganizer} // 所需菜单原始数据
+                    defaultKey={this.state.treeFatherValue ? [`${this.state.treeFatherValue.id}`] : []}
+                    noShowId={this.state.nowData && this.state.nowData.id}
+                    modalShow={this.state.fatherTreeShow} // Modal是否显示
+                    onOk={(obj) => this.onTreeOk(obj)} // 确定时，获得选中的项信息
+                    onClose={(obj) => this.onTreeClose(obj)} // 关闭
+                />
             </div>
         );
     }
@@ -928,22 +682,22 @@ class Manager extends React.Component {
 // PropTypes
 // ==================
 
-Manager.propTypes = {
+Menu.propTypes = {
     location: P.any,
     history: P.any,
     actions: P.any,
-    allRoles: P.any,
+    allOrganizer: P.any,
 };
 
 // ==================
 // Export
 // ==================
-const WrappedHorizontalManager = Form.create()(Manager);
+const WrappedHorizontalMenu = Form.create()(Menu);
 export default connect(
     (state) => ({
-        allRoles: state.sys.allRoles,
+        allOrganizer: state.sys.allOrganizer, // 所有的组织机构缓存缓存
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole }, dispatch),
+        actions: bindActionCreators({ addOrganizer, findAllOrganizer, findOrganizerByParentId, updateOrganizer, deleteOrganizer }, dispatch),
     })
-)(WrappedHorizontalManager);
+)(WrappedHorizontalMenu);

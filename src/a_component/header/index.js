@@ -62,7 +62,7 @@ class Header extends React.Component {
         return (
             [<div key='0' className="com-header">
                 <ul className="header-menu">
-                    <li style={{  boxSizing: 'border-box', paddingLeft: '8px', fontSize: '16px', letterSpacing: '1px' }}><Link to="/home" className="logo"><img src={LogoImg} alt='logo'/>翼猫科技后台管理系统</Link></li>
+                    <li style={{  boxSizing: 'border-box', paddingLeft: '8px', fontSize: '16px', letterSpacing: '1px' }}><Link to="/home" className="logo"><img src={LogoImg} alt='logo'/>翼猫科技智能睡眠管理系统</Link></li>
                 </ul>
                 <ul className="header-userinfo">
                     {

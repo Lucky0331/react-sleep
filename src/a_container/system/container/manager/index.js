@@ -18,13 +18,13 @@ import { power } from '../../../../util/data';
 // ==================
 
 import UrlBread from '../../../../a_component/urlBread';
-import RoleTree from '../../../../a_component/roleTree';
-
+import RoleTree from '../../../../a_component/roleTree';    // 角色树 用于选角色
+import OrTree from '../../../../a_component/menuTree/organizationTree'; // 组织部门树 用于选部门编号
 // ==================
 // 本页面所需action
 // ==================
 
-import { findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole } from '../../../../a_action/sys-action';
+import { findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole, findAllOrganizer } from '../../../../a_action/sys-action';
 
 // ==================
 // Definition
@@ -43,10 +43,12 @@ class Manager extends React.Component {
       addnewModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
       addnewLoading: false, // 是否正在添加新用户中
       nowData: null, // 当前选中用户的信息，用于查看详情
+      orgCodeValue: null, // 新增、修改 - 选择的组织部门对象
       queryModalShow: false, // 查看详情模态框是否显示
       upModalShow: false, // 修改用户模态框是否显示
       upLoading: false, // 是否正在修改用户中
       roleTreeShow: false, // 角色树是否显示
+        orTreeShow: false, // 部门树是否显示
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
@@ -55,7 +57,15 @@ class Manager extends React.Component {
 
   componentDidMount() {
     this.onGetData(this.state.pageNum, this.state.pageSize);
+      if (!this.props.allOrganizer || this.props.allOrganizer.length <= 0) {
+          this.getAllOrganizer();
+      }
   }
+
+  // 查询所有组织机构
+    getAllOrganizer() {
+        this.props.actions.findAllOrganizer();
+    }
 
   // 查询当前页面所需列表数据
     onGetData(pageNum, pageSize) {
@@ -108,13 +118,13 @@ class Manager extends React.Component {
             upAge: record.age || undefined,
             upPhone: record.phone || undefined,
             upEmail: record.email || undefined,
-            upOrgCode: record.orgCode || undefined,
             upDescription: record.description || undefined,
             upConditions: record.conditions || "0",
         });
         me.setState({
             nowData: record,
             upModalShow: true,
+            orgCodeValue: record.orgCode ? { id: Number(record.orgCode), key: record.orgCode, title: this.getNameForId(record.orgCode) } : null,
         });
     }
 
@@ -130,7 +140,6 @@ class Manager extends React.Component {
             'upAge',
             'upPhone',
             'upEmail',
-            'upOrgCode',
             'upDescription',
             'upConditions',
         ], (err, values) => {
@@ -148,7 +157,7 @@ class Manager extends React.Component {
                 age: values.upAge || '',
                 phone: values.upPhone || '',
                 email: values.upEmail || '',
-                orgCode: values.upOrgCode || '',
+                orgCode: this.state.orgCodeValue && this.state.orgCodeValue.id,
                 description: values.upDescription || '',
                 adminIp: '',
                 conditions: values.upConditions || '0',
@@ -222,11 +231,11 @@ class Manager extends React.Component {
           'addnewAge',
           'addnewPhone',
           'addnewEmail',
-          'addnewOrgCode',
           'addnewDescription',
       ]);
         this.setState({
             addnewModalShow: true,
+            orgCodeValue: null,
         });
     }
 
@@ -241,7 +250,6 @@ class Manager extends React.Component {
             'addnewAge',
             'addnewPhone',
             'addnewEmail',
-            'addnewOrgCode',
             'addnewDescription',
         ], (err, values) => {
             if (err) { return false; }
@@ -256,7 +264,7 @@ class Manager extends React.Component {
                age: values.addnewAge || '',
                phone: values.addnewPhone || '',
                 email: values.addnewEmail || '',
-               orgCode: values.addnewOrgCode || '',
+               orgCode: this.state.orgCodeValue ? this.state.orgCodeValue.id : '',
                description: values.addnewDescription || '',
                adminIp: '',
                conditions: '0',
@@ -297,6 +305,17 @@ class Manager extends React.Component {
     onTablePageChange(page, pageSize) {
       console.log('页码改变：', page, pageSize);
       this.onGetData(page, pageSize);
+    }
+
+    // 工具函数 - 根据组织结构ID查组织结构名称
+    getNameForId(id) {
+        const p = this.props.allOrganizer.find((item) => {
+            return `${item.id}` === `${id}`;
+        });
+        if (p) {
+            return p.orgName;
+        }
+        return '';
     }
 
     // 构建字段
@@ -433,6 +452,7 @@ class Manager extends React.Component {
             roleTreeShow: false,
         });
     }
+
     // RoleTree确定
     onRoleTreeOk(arr) {
         console.log('选中了什么：', arr, this.state.nowData);
@@ -449,6 +469,30 @@ class Manager extends React.Component {
         });
         this.onRoleTreeClose();
     }
+
+    // 打开OrTree
+    onOrTreeShow() {
+        this.setState({
+            orTreeShow: true,
+        });
+    }
+
+    // 关闭OrTree
+    onOrTreeClose() {
+        this.setState({
+            orTreeShow: false,
+        });
+    }
+
+    // OrTree确定
+    onOrTreeOk(obj) {
+        console.log('OBJ选的什么：', obj);
+        this.setState({
+            orgCodeValue: obj,
+            orTreeShow: false,
+        });
+    }
+
   render() {
       const me = this;
       const { form } = me.props;
@@ -633,25 +677,10 @@ class Manager extends React.Component {
                       )}
                   </FormItem>
                   <FormItem
-                      label="组织编号"
+                      label="部门"
                       {...formItemLayout}
                   >
-                      {getFieldDecorator('addnewOrgCode', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (v.length > 12) {
-                                      callback('最多输入12个字符');
-                                  } else if (!tools.checkStr3(v)) {
-                                      callback('只能输入数字');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <Input placeholder="请输入组织编号" />
-                      )}
+                      <Input placeholder="请选择部门" readOnly value={this.state.orgCodeValue && this.state.orgCodeValue.title} onClick={() => this.onOrTreeShow()}/>
                   </FormItem>
                   <FormItem
                       label="描述"
@@ -797,25 +826,10 @@ class Manager extends React.Component {
                       )}
                   </FormItem>
                   <FormItem
-                      label="组织编号"
+                      label="部门"
                       {...formItemLayout}
                   >
-                      {getFieldDecorator('upOrgCode', {
-                          initialValue: undefined,
-                          rules: [{ validator: (rule, value, callback) => {
-                              const v = value;
-                              if (v) {
-                                  if (v.length > 12) {
-                                      callback('最多输入12个字符');
-                                  } else if (!tools.checkStr3(v)) {
-                                      callback('只能输入数字');
-                                  }
-                              }
-                              callback();
-                          }}],
-                      })(
-                          <Input placeholder="请输入组织编号" />
-                      )}
+                      <Input placeholder="请选择部门" value={this.state.orgCodeValue && this.state.orgCodeValue.title} onClick={() => this.onOrTreeShow()} />
                   </FormItem>
                   <FormItem
                       label="描述"
@@ -891,10 +905,10 @@ class Manager extends React.Component {
                       {!!this.state.nowData ? this.state.nowData.email : ''}
                   </FormItem>
                   <FormItem
-                      label="组织编号"
+                      label="部门"
                       {...formItemLayout}
                   >
-                      {!!this.state.nowData ? this.state.nowData.orgCode : ''}
+                      {!!this.state.nowData ? this.getNameForId(this.state.nowData.orgCode) : ''}
                   </FormItem>
                   <FormItem
                       label="描述"
@@ -919,6 +933,14 @@ class Manager extends React.Component {
               onOk={(arr) => this.onRoleTreeOk(arr)}
               onClose={() => this.onRoleTreeClose()}
           />
+          {/* 新增、修改 选组织部门 */}
+          <OrTree
+              data={this.props.allOrganizer} // 所需菜单原始数据
+              defaultKey={this.state.orgCodeValue ? [`${this.state.orgCodeValue.id}`] : []}
+              modalShow={this.state.orTreeShow} // Modal是否显示
+              onOk={(obj) => this.onOrTreeOk(obj)} // 确定时，获得选中的项信息
+              onClose={(obj) => this.onOrTreeClose(obj)} // 关闭
+          />
       </div>
     );
   }
@@ -933,6 +955,7 @@ Manager.propTypes = {
   history: P.any,
   actions: P.any,
   allRoles: P.any,
+  allOrganizer: P.any,
 };
 
 // ==================
@@ -942,8 +965,9 @@ const WrappedHorizontalManager = Form.create()(Manager);
 export default connect(
   (state) => ({
     allRoles: state.sys.allRoles,
+    allOrganizer: state.sys.allOrganizer,
   }), 
   (dispatch) => ({
-    actions: bindActionCreators({ findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole }, dispatch),
+    actions: bindActionCreators({ findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole, findAllOrganizer }, dispatch),
   })
 )(WrappedHorizontalManager);

@@ -420,11 +420,32 @@ export function findMenuByMainMenu(params = {}) {
     };
 }
 
-// 根据条件查询组织机构
-export function findAllOrganizer(params = {}) {
+// 根据条件查询组织机构（其实这里就是查询所有的组织机构）
+export function findAllOrganizer() {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/organizer/findAllOrganizer', params
+            '/organizer/findAllOrganizer', {pageNum: 1, pageSize: 9999}
+        ).then(
+            msg => {
+                if(msg.returnCode === '0') {
+                    dispatch({
+                        type: 'SYS::findAllOrganizer',
+                        payload: msg.messsageBody.result,
+                    });
+                }
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 根据id查询子级组织
+export function findOrganizerByParentId(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/organizer/findOrganizerByParentId', params,
         ).then(
             msg => {
                 return msg;
@@ -435,11 +456,11 @@ export function findAllOrganizer(params = {}) {
     };
 }
 
-// 根据条件查询组织机构
+// 添加组织机构
 export function addOrganizer(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/organizer/addOrganizer', params
+            '/organizer/addOrganizer', params, 'post', true
         ).then(
             msg => {
                 return msg;
@@ -454,7 +475,7 @@ export function addOrganizer(params = {}) {
 export function updateOrganizer(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/organizer/updateOrganizer', params
+            '/organizer/updateOrganizer', params, 'post', true
         ).then(
             msg => {
                 return msg;
@@ -469,7 +490,7 @@ export function updateOrganizer(params = {}) {
 export function deleteOrganizer(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/organizer/deleteOrganizer', params
+            '/organizer/deleteOrganizer', params, 'post', true
         ).then(
             msg => {
                 return msg;
