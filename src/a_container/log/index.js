@@ -1,4 +1,4 @@
-/* Log 日志中心 主页 */
+/* system 系统管理 主页 */
 
 // ==================
 // 所需的各种插件
@@ -11,119 +11,76 @@ import { bindActionCreators } from 'redux';
 import P from 'prop-types';
 import { Menu } from 'antd';
 import './index.scss';
+
 // ==================
 // 所需的所有组件
 // ==================
 
+import SignIn from './container/SignIn';
 import AdminOpera from './container/AdminOpera';
 import EarlyWarning from './container/EarlyWarning';
-import SignIn from './container/SignIn';
 
 // ==================
 // 本页面所需action
 // ==================
 
-import { saveURL } from '../../a_action/app-action';
+import { } from '../../a_action/app-action';
 
 // ==================
 // Definition
 // ==================
 const MenuItem = Menu.Item;
-class Log extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-    };
-  }
-
-  componentDidMount() {
-    // 为了同步路由和Menu的高亮选择，进入时如果有子路由，就保存一下
-    if (this.props.location.pathname.split('/')[2]) {
-      this.props.actions.saveURL(this.props.location.pathname);
-    }
-  }
-
-    // 获取当前页需要显示的子路由
-    makeSonUrl() {
-        let urls = sessionStorage.getItem('adminMenu');
-
-        if (urls) {
-            urls = JSON.parse(urls);
-        } else {
-            urls = [];
-        }
-
-        const father = this.props.location.pathname.split('/')[1]; // 确定父级Url
-
-        // 该页面所拥有的所有子路由
-        const routerDom = {
-            adminopera: AdminOpera,
-            warning: EarlyWarning,
-            signin: SignIn,
+class SystemContainer extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            baseURL: 'log',
+            firstURL: 'signin',
         };
-
-        const fid = urls.find((item) => item.menuUrl === father || item.menuUrl === `/${father}`); // 找到父级信息
-        if (!fid) { // 如果没找到父级，那子级不需要加载了
-            return [null, [], []];
-        }
-
-        const results = [];
-        const routers = [];
-        let first = '';
-
-        urls.sort((a, b) => a.sorts - b.sorts).forEach((item, index) => {
-            const url = item.menuUrl.replace(/\//, '');
-            if (routerDom[url] && `${item.parentId}` === `${fid.id}`) {
-                if(results.length === 0) {
-                    first = `/${father}/${url}`;
-                }
-                results.push(
-                    <MenuItem key={`/${father}/${url}`}>
-                        <Link to={`/${father}/${url}`}>{item.menuName}</Link>
-                    </MenuItem>
-                );
-                routers.push(
-                    <Route key={index} path={`/${father}/${url}`} component={routerDom[url]} />,
-                );
-            }
-        });
-        return {first, results, routers};
     }
 
-  render() {
-    // 动态处理路由
-    const u = this.makeSonUrl();
-    return (
-        <div key='page' className="allpage page-log">
-            <div className='left'>
-                <Menu
-                    theme="dark"
-                    selectedKeys={this.props.logURL ? [this.props.logURL] : [u.first]}
-                    onSelect={(e)=>this.props.actions.saveURL(e.key)}
-                >
-                    {u.results}
-                </Menu>
-            </div>
-            <div className='right'>
+    componentDidMount() {
+    }
+
+    componentWillReceiveProps(nextP) {
+    }
+
+    // 获取排序第1个的Menu，用于设置redirect
+    getFirstMenu(data) {
+        console.log('原始数据是什么：', data);
+        const temp = data.find((item) => item.menuUrl === this.state.baseURL);
+        let result = null;
+        if (temp && temp.children) {
+            result = temp.children.reduce((a, b) => {
+                return a.sorts < b.sorts ? a : b;
+            })
+        }
+        return result ? result.menuUrl : `${this.state.firstURL}`
+    }
+
+    render() {
+        return (
+            <div key='page' className="allpage page-system">
                 <Switch>
-                    <Redirect exact from='/log' to={this.props.logURL || u.first} />
-                    {u.routers}
+                    <Redirect exact from={`/${this.state.baseURL}`} to={`/${this.state.baseURL}/${this.getFirstMenu(this.props.menuSourceData)}`} />
+                    <Route path={`/${this.state.baseURL}/signin`} component={SignIn} />
+                    <Route path={`/${this.state.baseURL}/adminopera`} component={AdminOpera} />
+                    <Route path={`/${this.state.baseURL}/earlywarning`} component={EarlyWarning} />
                 </Switch>
             </div>
-        </div>
-    );
-  }
+        );
+    }
 }
 
 // ==================
 // PropTypes
 // ==================
 
-Log.propTypes = {
-  location: P.any,
-  history: P.any,
-  logURL: P.any,
-  actions: P.any,
+SystemContainer.propTypes = {
+    location: P.any,
+    history: P.any,
+    actions: P.any,
+    menuSourceData: P.array,
 };
 
 // ==================
@@ -131,11 +88,10 @@ Log.propTypes = {
 // ==================
 
 export default connect(
-  (state) => ({
-    logURL: state.app.logURL,
-    allMenu: state.app.allMenu,
-  }), 
-  (dispatch) => ({
-    actions: bindActionCreators({ saveURL }, dispatch),
-  })
-)(Log);
+    (state) => ({
+        menuSourceData: state.app.menuSourceData,
+    }),
+    (dispatch) => ({
+        actions: bindActionCreators({ }, dispatch),
+    })
+)(SystemContainer);

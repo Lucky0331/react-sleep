@@ -8,7 +8,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
-import { Form, Button, Icon, Input, Table, message, Modal, Radio, Select, Tooltip } from 'antd';
+import { Form, Button, Icon, Input, Table, message, Modal, Radio, Select, Tooltip, DatePicker } from 'antd';
 import './index.scss';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
@@ -23,29 +23,26 @@ import UrlBread from '../../../../a_component/urlBread';
 // 本页面所需action
 // ==================
 
-import { findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole } from '../../../../a_action/sys-action';
-import { findLoginLogBykeys } from '../../../../a_action/log-action';
+import { findLoginLogBykeys  } from '../../../../a_action/log-action';
+
 // ==================
 // Definition
 // ==================
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
-const { TextArea } = Input;
 const Option = Select.Option;
+const { RangePicker } = DatePicker;
 class Manager extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             data: [], // 当前页面全部数据
-            searchUserName: '',
-            searchConditions: null,
-            addnewModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
-            addnewLoading: false, // 是否正在添加新用户中
+            searchloginCreator: '', // 搜索 - 登录账号
+            searchConditions: null, // 搜索 - 登录状态
+            searchStartTime: null,  // 搜索 - 开始时间
+            searchEndTime: null,    // 搜索 - 结束时间
             nowData: null, // 当前选中用户的信息，用于查看详情
             queryModalShow: false, // 查看详情模态框是否显示
-            upModalShow: false, // 修改用户模态框是否显示
-            upLoading: false, // 是否正在修改用户中
-            roleTreeShow: false, // 角色树是否显示
             pageNum: 1, // 当前第几页
             pageSize: 10, // 每页多少条
             total: 0, // 数据库总共多少条数据
@@ -61,9 +58,13 @@ class Manager extends React.Component {
         const params = {
             pageNum,
             pageSize,
+            loginCreator: this.state.searchloginCreator,
+            conditions: this.state.searchConditions,
+            beginTime: this.state.searchStartTime,
+            endTime: this.state.searchEndTime,
         };
 
-        Power.test(power.system.manager.query.code) && this.props.actions.findLoginLogBykeys(tools.clearNull(params)).then((res) => {
+        Power.test(power.system.manager.query.code) && this.props.actions.findLoginLogBykeys (tools.clearNull(params)).then((res) => {
             if(res.returnCode === "0") {
                 this.setState({
                     data: res.messsageBody.result,
@@ -77,10 +78,10 @@ class Manager extends React.Component {
         });
     }
     // 搜索 - 用户名输入框值改变时触发
-    searchUserNameChange(e) {
+    searchloginCreatorChange(e) {
         if (e.target.value.length < 20) {
             this.setState({
-                searchUserName: e.target.value,
+                searchloginCreator: e.target.value,
             });
         }
     }
@@ -90,6 +91,13 @@ class Manager extends React.Component {
         console.log('选择了什么：', e);
         this.setState({
             searchConditions: e || null,
+        });
+    }
+
+    onRangePickerOk(e) {
+        this.setState({
+            searchStartTime: e[0] && tools.dateToStr(e[0]._d),
+            searchEndTime: e[1] && tools.dateToStr(e[1]._d),
         });
     }
 
@@ -128,38 +136,30 @@ class Manager extends React.Component {
                 key: 'serial',
             },
             {
-                title: '用户名',
-                dataIndex: 'userName',
-                key: 'userName',
+                title: '登录账号',
+                dataIndex: 'creator',
+                key: 'creator',
             },
             {
-                title: '性别',
-                dataIndex: 'sex',
-                key: 'sex',
-                render: (text, record) => {
-                    return text !== null ? (text === 1 ? '男' : '女') : '';
+                title: '登录IP',
+                dataIndex: 'loginIp',
+                key: 'loginIp',
+            },
+            {
+                title: '登录时间',
+                dataIndex: 'createTime',
+                key: 'createTime',
+                render: (text) => {
+                    return text ? tools.dateToStr(new Date(text)) : '';
                 },
             },
             {
-                title: '年龄',
-                dataIndex: 'age',
-                key: 'age',
-            },
-            {
-                title: '电话',
-                dataIndex: 'phone',
-                key: 'phone',
-            },
-            {
-                title: '邮箱',
-                dataIndex: 'email',
-                key: 'email',
-            },
-            {
-                title: '状态',
+                title: '登录状态',
                 dataIndex: 'conditions',
                 key: 'conditions',
-                render: (text, record) => text === "0" ? <span style={{color: 'green'}}>启用</span> : <span style={{color: 'red'}}>禁用</span>
+                render: (text) => {
+                    return text === '0' ? '成功' : '失败';
+                },
             },
             {
                 title: '操作',
@@ -196,22 +196,14 @@ class Manager extends React.Component {
         return data.map((item, index) => {
             return {
                 key: index,
-                adminIp: item.adminIp,
-                password: item.password,
                 id: item.id,
                 serial: (index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
-                age: item.age,
                 conditions: item.conditions,
-                creator: item.creator,
                 createTime: item.createTime,
-                description: item.description,
-                email: item.email,
-                orgCode: item.orgCode,
-                phone: item.phone,
-                sex: item.sex,
+                creator: item.creator,
+                loginIp: item.loginIp,
                 updateTime: item.updateTime,
                 updater: item.updater,
-                userName: item.userName,
                 control: item.id,
             }
         });
@@ -237,9 +229,9 @@ class Manager extends React.Component {
                   <ul className="search-ul">
                     <li>
                       <Input
-                          placeholder="登录人"
-                          onChange={(e) => this.searchUserNameChange(e)}
-                          value={this.state.searchUserName}
+                          placeholder="登录账号"
+                          onChange={(e) => this.searchloginCreatorChange(e)}
+                          value={this.state.searchloginCreator}
                           onPressEnter={() => this.onSearch()}
                       />
                     </li>
@@ -250,17 +242,19 @@ class Manager extends React.Component {
                           allowClear
                           onChange={(e) => this.searchConditions(e)}
                       >
-                        <Option value="0">启用</Option>
-                        <Option value="-1">禁用</Option>
+                        <Option value="0">成功</Option>
+                        <Option value="-1">失败</Option>
                       </Select>
                     </li>
                     <li>
-                      <Input
-                          placeholder="登录人"
-                          onChange={(e) => this.searchUserNameChange(e)}
-                          value={this.state.searchUserName}
-                          onPressEnter={() => this.onSearch()}
-                      />
+                        <RangePicker
+                            showTime={{ format: 'HH:mm:ss' }}
+                            format="YYYY-MM-DD HH:mm:ss"
+                            placeholder={['开始时间', '结束时间']}
+                            onChange={(e) => this.onRangePickerOk(e)}
+                            onOk={(e) => this.onRangePickerOk(e)}
+
+                        />
                     </li>
                     <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
                   </ul>
@@ -283,59 +277,35 @@ class Manager extends React.Component {
               </div>
                 {/* 查看用户详情模态框 */}
               <Modal
-                  title={this.state.nowData ? `${this.state.nowData.userName}的用户详情` : '用户详情'}
+                  title='查看详情'
                   visible={this.state.queryModalShow}
                   onOk={() => this.onQueryModalClose()}
                   onCancel={() => this.onQueryModalClose()}
               >
                 <Form>
                   <FormItem
-                      label="用户名"
+                      label="登录账号"
                       {...formItemLayout}
                   >
-                      {!!this.state.nowData ? this.state.nowData.userName : ''}
+                      {!!this.state.nowData ? this.state.nowData.creator : ''}
                   </FormItem>
                   <FormItem
-                      label="性别"
+                      label="登录IP"
                       {...formItemLayout}
                   >
-                      {!!this.state.nowData ? (this.state.nowData.sex === 1 ? '男' : '女') : ''}
+                      {!!this.state.nowData ? this.state.nowData.loginIp : ''}
                   </FormItem>
                   <FormItem
-                      label="年龄"
+                      label="登录时间"
                       {...formItemLayout}
                   >
-                      {!!this.state.nowData ? this.state.nowData.age : ''}
+                      {!!this.state.nowData ? tools.dateToStr(new Date(this.state.nowData.createTime)) : ''}
                   </FormItem>
                   <FormItem
-                      label="电话"
+                      label="登录状态"
                       {...formItemLayout}
                   >
-                      {!!this.state.nowData ? this.state.nowData.phone : ''}
-                  </FormItem>
-                  <FormItem
-                      label="邮箱"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.email : ''}
-                  </FormItem>
-                  <FormItem
-                      label="组织编号"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.orgCode : ''}
-                  </FormItem>
-                  <FormItem
-                      label="描述"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.description : ''}
-                  </FormItem>
-                  <FormItem
-                      label="状态"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? (this.state.nowData.conditions === "0" ? <span style={{ color: 'green' }}>启用</span> : <span style={{ color: 'red' }}>禁用</span>) : ''}
+                      {!!this.state.nowData ? (this.state.nowData.conditions === "0" ? <span style={{ color: 'green' }}>成功</span> : <span style={{ color: 'red' }}>失败</span>) : ''}
                   </FormItem>
                 </Form>
               </Modal>
@@ -364,6 +334,6 @@ export default connect(
         allRoles: state.sys.allRoles,
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findLoginLogBykeys, findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole }, dispatch),
+        actions: bindActionCreators({ findLoginLogBykeys }, dispatch),
     })
 )(WrappedHorizontalManager);

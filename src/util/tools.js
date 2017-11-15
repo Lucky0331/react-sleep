@@ -5,14 +5,31 @@ const tools = {
     // 通过location返回该url对应的各级name/path
     getUrlName(pathName) {
         const p = pathName.split('/').filter((item) => !!item);
-        let length = p.length;
         let temp = { children: URLDATA };
+        console.log('开始getName:', p, temp);
         for(let i=0; i<p.length; i++) {
-            temp = temp.children.find((item)=> item.path === p[i]);
+            if (temp && temp.children) {
+                temp = temp.children.find((item)=> item.path === p[i]);
+            } else {
+                temp = {name: ''};
+                break;
+            }
         }
         return temp.name;
     },
 
+    /**
+     * 标准日期转字符串年月日，时分秒
+     * */
+    dateToStr(date) {
+      if (!date) { return '' }
+      const m = `${date.getMonth() + 1}`.padStart(2,'0');
+      const d = date.getDate().toString().padStart(2,'0');
+      const h = date.getHours().toString().padStart(2,'0');
+      const min = date.getMinutes().toString().padStart(2,'0');
+      const s = date.getSeconds().toString().padStart(2,'0');
+      return `${date.getFullYear()}-${m}-${d} ${h}:${min}:${s}`;
+    },
     /**
      * 验证字符串
      * 只能为汉字、字母、数字、下划线

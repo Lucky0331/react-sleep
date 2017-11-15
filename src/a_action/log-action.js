@@ -23,7 +23,7 @@ export function findAllLoginLog(params = {}) {
 export function findLoginLogBykeys(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/loginLog/findLoginLogBykeys', params,
+            '/loginLog/findLoginLogByWhere', params,
         ).then(
             msg => {
                 dispatch({

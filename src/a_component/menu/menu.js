@@ -10,6 +10,7 @@ class Menus extends React.Component {
         super(props);
         this.state = {
             sourceData:[], // 层级结构的原始数据
+            sessionData: null, // sessionStorage中保存的Menu数据
             treeDom: [],   // 生成的菜单结构
             show: false, // 是否显示
             chosedKey: [], // 当前选中
@@ -27,10 +28,12 @@ class Menus extends React.Component {
     // 组件初始化完毕时触发
     componentDidMount() {
         const data = JSON.parse(sessionStorage.getItem('adminMenu'));
-       this.makeSourceData(data);
+        console.log('得到的是什么：', data);
+       this.makeSourceData(data || []);
        this.initChosed(this.props.location);
         this.setState({
             show: Menus._initShow(this.props.location),
+            sessionData: data,
         });
     }
 
@@ -40,6 +43,10 @@ class Menus extends React.Component {
             this.setState({
                 show: Menus._initShow(nextP.location),
             });
+        }
+        const data = JSON.parse(sessionStorage.getItem('adminMenu'));
+        if(data !== this.state.sessionData ) {
+            this.makeSourceData(data || []);
         }
     }
 
