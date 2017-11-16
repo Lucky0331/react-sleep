@@ -85,7 +85,7 @@ class Menu extends React.Component {
             pageNum: 1,
             pageSize: 9999,
         };
-        Power.test(power.system.menu.query.code) && this.props.actions.findOrganizerByParentId(params).then((res) => {
+        Power.test(power.system.organization.query.code) && this.props.actions.findOrganizerByParentId(params).then((res) => {
             if (res.returnCode === '0') {
                 this.setState({
                     data: res.messsageBody,
@@ -388,21 +388,21 @@ class Menu extends React.Component {
                 render: (text, record) => {
                     let controls = [];
 
-                    Power.test(power.system.menu.query.code) && controls.push(
+                    Power.test(power.system.organization.query.code) && controls.push(
                         <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
                             <Tooltip placement="top" title="查看">
                                 <Icon type="eye" />
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.menu.update.code) && controls.push(
+                    Power.test(power.system.organization.update.code) && controls.push(
                         <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
                             <Tooltip placement="top" title="修改">
                                 <Icon type="edit" />
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.menu.del.code) && controls.push(
+                    Power.test(power.system.organization.del.code) && controls.push(
                         <Popconfirm key="2" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record)} okText="确定" cancelText="取消">
                             <span className="control-btn red">
                                 <Tooltip placement="top" title="删除">
@@ -482,7 +482,7 @@ class Menu extends React.Component {
                     </div>
                     <div className="r system-table">
                         <div className="menu-search">
-                            { Power.test(power.system.menu.add.code) &&
+                            { Power.test(power.system.organization.add.code) &&
                             <ul className="search-func">
                                 <li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加部门</Button></li>
                             </ul>

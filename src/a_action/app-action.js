@@ -20,9 +20,9 @@ export function onLogin(params) {
               console.log('axios返回的是：', msg);
             dispatch({
               type: 'APP::LOGIN',
-              payload: msg.data,
+              payload: msg,
             });
-            return msg.data;
+            return msg;
           }
         ).catch(() => {
           message.error('网络错误，请重试');

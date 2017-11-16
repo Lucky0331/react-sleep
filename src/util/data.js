@@ -28,7 +28,13 @@ export const power = {
             add: { code: 'jurisdiction:add', title: '添加权限' },
             update: {code: 'jurisdiction:update', title: '修改权限'},
             del: {code: 'jurisdiction:del', title: '删除权限'},
-        }
+        },
+        organization: { // 组织机构管理
+            query: {code: 'organization:query', title: '查询机构'},
+            add: { code: 'organization:add', title: '添加机构' },
+            update: {code: 'organization:update', title: '修改机构'},
+            del: {code: 'organization:del', title: '删除机构'},
+        },
     },
     log: {  // 日志中心
         signin: { // 用户登录日志
