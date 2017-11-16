@@ -15,7 +15,8 @@ app.use(webpackDevMiddleware(compiler, {
     publicPath: webpackConfig.output.publicPath,
     quiet: false, // 清静模式，是否不输入启动时的相关信息
     stats: {
-        colors: true // 不同信息不同颜色
+        colors: true, // 不同信息不同颜色
+        timings: true
     },
 }));
 app.use(webpackHotMiddleware(compiler));

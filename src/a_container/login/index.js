@@ -78,6 +78,8 @@ class LoginContainer extends React.Component {
           if (userRes.returnCode === "0") {
               userInfo = userRes.messsageBody.adminUser;
               menusInfo = userRes.messsageBody.adminRole;
+          } else {
+              message.error(userRes.returnMessaage || '登录失败，请重试');
           }
       } catch(err) {
           console.log('登陆报错：', err);
@@ -106,7 +108,6 @@ class LoginContainer extends React.Component {
           me.setState({
               loginLoading: false
           });
-          message.error('登录失败，请重试');
       } else {
           sessionStorage.setItem('adminUser', JSON.stringify(loginInfo.userInfo)); // 保存用户基础信息
           sessionStorage.setItem('adminRole', JSON.stringify(loginInfo.roleInfo)); // 保存用户角色信息

@@ -8,6 +8,7 @@ class TreeTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            sourceData0: [], // 原始数据 - 扁平数据
             sourceData: [], // 原始数据 - 层级数据
             btnDtoChecked: [], // 受控，所有被选中的btnDto数据
             treeChecked: [], // 受控，所有被选中的表格行
@@ -66,6 +67,7 @@ class TreeTable extends React.Component {
             }
         });
         this.setState({
+            sourceData0: data,
             sourceData,
             treeChecked,
             btnDtoChecked,
@@ -109,7 +111,7 @@ class TreeTable extends React.Component {
             render: (value, record) => {
                 if (value) {
                     return value.map((item, index) => {
-                        return <Checkbox key={index} checked={this.dtoIsChecked(item.id)} onChange={(e) => this.onBtnDtoChange(e, item.id)}>{item.btnName}</Checkbox>
+                        return <Checkbox key={index} checked={this.dtoIsChecked(item.id)} onChange={(e) => this.onBtnDtoChange(e, item.id, record)}>{item.btnName}</Checkbox>
                     });
                 }
             }
@@ -121,27 +123,70 @@ class TreeTable extends React.Component {
     makeRowSelection() {
         return {
             onChange: (selectedRowKeys, selectedRows) => {
-                console.log(selectedRowKeys, selectedRows);
+                console.log('有改变时触发', selectedRowKeys, selectedRows);
                 this.setState({
                     treeChecked: selectedRowKeys,
                 });
+            },
+            onSelect: (record, selected, selectedRows) => {
+                console.log('单个选中或取消触发:', record, selected, selectedRows);
+                const t = this.state.sourceData0.find((item) => item.id === record.id);
+                if (selected) { // 选中，连带其权限全部勾选
+                    if (t && Array.isArray(t.btnDtoList)) {
+                        const temp = Array.from(new Set([...t.btnDtoList.map((item) => item.id), ...this.state.btnDtoChecked]));
+                        this.setState({
+                            btnDtoChecked: temp,
+                        });
+                    }
+                } else { // 取消选中，连带其权限全部取消勾选
+                    if (t && Array.isArray(t.btnDtoList)) {
+                        const mapTemp = t.btnDtoList.map((item) => item.id);
+                        const temp = this.state.btnDtoChecked.filter((item) => mapTemp.indexOf(item) < 0);
+                        this.setState({
+                            btnDtoChecked: temp,
+                        });
+                    }
+                }
+            },
+            onSelectAll: (selected, selectedRows, changeRows) => {
+               if (selected) { // 选中
+                   this.setState({
+                       // treeChecked: this.state.sourceData0.map((item) => item.id),
+                       btnDtoChecked: this.state.sourceData0.reduce((v1, v2) => {
+                           console.log('处理中：', v1, v2);
+                           return [...v1, ...v2.btnDtoList.map((k) => k.id)];
+                       }, []),
+                   });
+               } else {
+                   this.setState({
+                       // treeChecked: [],
+                       btnDtoChecked: [],
+                   });
+               }
             },
             selectedRowKeys: this.state.treeChecked,
         }
     }
 
     // TABLE btn权限选中和取消选中，需要记录哪些被选中
-    onBtnDtoChange(e, id){
-        console.log(e, id);
+    onBtnDtoChange(e, id, record){
+        console.log(e, id, record);
         const old = _.cloneDeep(this.state.btnDtoChecked);
-
+        let treeChecked = _.cloneDeep(this.state.treeChecked);
         if (e.target.checked) { // 选中
             old.push(id);
-        } else {
+            treeChecked = Array.from(new Set([record.id, ...this.state.treeChecked]));
+        } else { // 取消选中
             old.splice(old.indexOf(id), 1);
+            // 判断当前这一行的权限中是否还有被选中的，如果全都没有选中，那当前菜单也要取消选中
+            const tempMap = record.btnDtoList.map((item) => item.id);
+            if (!(this.state.btnDtoChecked.some((item) => item !== id && tempMap.indexOf(item) >= 0))){
+                treeChecked.splice(treeChecked.indexOf(record.id), 1);
+            }
         }
         this.setState({
             btnDtoChecked: old,
+            treeChecked,
         });
         console.log('现在选中的有：', old);
     }

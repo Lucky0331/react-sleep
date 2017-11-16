@@ -6,11 +6,11 @@ export default class ApiService {
   // url、参数、请求方式(默认post)、参数类型(默认json)
   static newPost(url, bodyObj = {}, type = 'post', isJson) {
     if (isJson) {
-        // return axios({
-        //     method: 'post',
-        //     url: `${config.baseURL}${url}`,
+        // axios({
+        //     method: 'get',
+        //     url: `https://api.github.com/emojis`,
         //     data: JSON.stringify(bodyObj),
-        //     withCredentials: true,
+        //     // withCredentials: true,
         //     headers: {
         //         'Content-Type': 'application/json;charset=UTF-8'
         //     }
