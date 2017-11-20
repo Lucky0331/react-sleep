@@ -58,6 +58,20 @@ const url = [
         ]
     },
     {
+        name: '商城管理',
+        path: 'shop',
+        children: [
+            { name: '产品管理', path: 'product', children: [
+                { name: '产品列表', path: 'list' },
+                { name: '产品分类', path: 'category' },
+            ]},
+            { name: '订单管理', path: 'order', children: [
+                { name: '订单列表', path: 'list' },
+                { name: '订单数据管理', path: 'orderdata' },
+            ]}
+        ]
+    },
+    {
         name: '设备中心',
         path: 'device',
         children: [
@@ -160,7 +174,7 @@ const url = [
         path: 'activity',
         children: [
             {name: '积分礼品', path: 'gift'},
-            {name: '礼品类别', path: 'category'},
+            {name: '礼品类别', path: 'product'},
             {name: '兑换记录', path: 'exchange'},
         ]
     },

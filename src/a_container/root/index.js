@@ -22,6 +22,7 @@ import Log from '../log';
 import Cost from '../cost';
 import Open from '../open';
 import Activity from '../activity';
+import Shop from '../shop';
 
 import NotFound from '../notfound';
 
@@ -75,6 +76,7 @@ class RootContainer extends React.Component {
                       <Route path="/login" component={Login} />
                       <Route path="/home" render={(props) => this.onEnter(Home, props)} />
                       <Route path="/system" render={(props) => this.onEnter(System, props)} />
+                      <Route path="/shop" render={(props) => this.onEnter(Shop, props)} />
                       <Route path="/device" render={(props) => this.onEnter(Device, props)} />
                       <Route path="/user" render={(props) => this.onEnter(User, props)} />
                       <Route path="/health" render={(props) => this.onEnter(Health, props)} />

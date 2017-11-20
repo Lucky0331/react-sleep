@@ -1,3 +1,4 @@
+/* 系统管理action */
 import Fetchapi from '../util/fetch-api';
 import { message } from 'antd';
 

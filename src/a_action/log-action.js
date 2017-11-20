@@ -1,3 +1,4 @@
+/* 日志中心action */
 import Fetchapi from '../util/fetch-api';
 import { message } from 'antd';
 
