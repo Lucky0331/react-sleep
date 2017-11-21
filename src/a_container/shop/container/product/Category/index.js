@@ -8,7 +8,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
-import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, Tooltip  } from 'antd';
+import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, Tooltip, InputNumber  } from 'antd';
 import './index.scss';
 import tools from '../../../../../util/tools'; // 工具
 import Power from '../../../../../util/power'; // 权限
@@ -18,14 +18,13 @@ import { power } from '../../../../../util/data';
 // ==================
 
 import UrlBread from '../../../../../a_component/urlBread';
-import TreeTable from '../../../../../a_component/menuTree/treeTable';
-
 
 // ==================
 // 本页面所需action
 // ==================
 
 import { findAllRole, findRolesByKeys, updateRoleInfo, deleteRoleInfo, deleteAdminUserInfo, AssigningMenuToRoleId, updateAdminUserInfo, findAllMenu, findAllMenuByRoleId, addRoleInfo } from '../../../../../a_action/sys-action';
+import { findProductTypeByWhere, addProductType, updateProductType, deleteProductType } from '../../../../../a_action/shop-action';
 
 // ==================
 // Definition
@@ -38,29 +37,21 @@ class Category extends React.Component {
         super(props);
         this.state = {
             data: [], // 当前页面全部数据
-            searchRoleName: '', // 搜索 - 角色名
-            addnewModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
-            addnewLoading: false, // 是否正在添加新用户中
-            nowData: null, // 当前选中用户的信息，用于查看详情、修改、分配菜单
+            searchproductName: '', // 搜索 - 类型名
+            addnewModalShow: false, // 添加模态框是否显示
+            addnewLoading: false, // 是否正在添加中
+            nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
             queryModalShow: false, // 查看详情模态框是否显示
-            upModalShow: false, // 修改用户模态框是否显示
+            upModalShow: false, // 修改模态框是否显示
             upLoading: false, // 是否正在修改用户中
-            menuTreeShow: false, // 菜单树是否显示
-            menuDefault: [], // 用于菜单树，默认需要选中的项
             pageNum: 1, // 当前第几页
             pageSize: 10, // 每页多少条
             total: 0, // 数据库总共多少条数据
-            treeLoading: false, // 控制树的loading状态，因为要先加载当前role的菜单，才能显示树
-            treeOnOkLoading: false, // 是否正在分配菜单
-            roleTreeData: [], // 通过findMenuByRoleId查询的所有数据，包含了全部tree带btnList
         };
     }
 
     componentDidMount() {
         this.onGetData(this.state.pageNum, this.state.pageSize);
-        if (this.props.allMenu.length <= 0) {
-            this.getAllMenu();
-        }
     }
 
     // 查询当前页面所需列表数据
@@ -68,9 +59,9 @@ class Category extends React.Component {
         const params = {
             pageNum,
             pageSize,
-            roleName: this.state.searchRoleName,
+            productName: this.state.searchproductName,
         };
-        this.props.actions.findRolesByKeys(tools.clearNull(params)).then((res) => {
+        this.props.actions.findProductTypeByWhere(tools.clearNull(params)).then((res) => {
             console.log('返回的什么：', res);
             if(res.returnCode === "0") {
                 this.setState({
@@ -84,16 +75,11 @@ class Category extends React.Component {
         });
     }
 
-    // 获取所有的菜单数据，当前页面分配菜单要用
-    getAllMenu() {
-        this.props.actions.findAllMenu();
-    }
-
     // 搜索 - 用户名输入框值改变时触发
-    searchRoleNameChange(e) {
+    searchProductNameChange(e) {
         if (e.target.value.length < 20) {
             this.setState({
-                searchRoleName: e.target.value,
+                searchproductName: e.target.value,
             });
         }
     }
@@ -118,8 +104,10 @@ class Category extends React.Component {
         const me = this;
         const { form } = me.props;
         form.validateFields([
-            'upRoleName',
-            'upRoleDuty',
+            'upName',
+            'upDetail',
+            'upSorts',
+            'upConditions',
         ], (err, values) => {
             if(err) { return; }
 
@@ -127,12 +115,14 @@ class Category extends React.Component {
                 upLoading: true,
             });
             const params = {
-                id: me.state.nowData.roleId,
-                roleName: values.upRoleName,
-                roleDuty: values.upRoleDuty,
+                id: me.state.nowData.id,
+                name: values.upName,
+                detail: values.upDetail,
+                sorts: values.upSorts,
+                conditions: values.upConditions,
             };
 
-            this.props.actions.updateRoleInfo(params).then((res) => {
+            this.props.actions.updateProductType(params).then((res) => {
                 if (res.returnCode === "0") {
                     message.success("修改成功");
                     this.onGetData(this.state.pageNum, this.state.pageSize);
@@ -159,7 +149,7 @@ class Category extends React.Component {
 
     // 删除某一条数据
     onDeleteClick(id) {
-        this.props.actions.deleteRoleInfo({id: id}).then((res) => {
+        this.props.actions.deleteProductType({id: id}).then((res) => {
             if(res.returnCode === "0") {
                 message.success('删除成功');
                 this.onGetData(this.state.pageNum, this.state.pageSize);
@@ -202,24 +192,28 @@ class Category extends React.Component {
         });
     }
 
-    // 添加新用户确定
+    // 添加新的确定
     onAddNewOk() {
         const me = this;
         const { form } = me.props;
         form.validateFields([
-            'addnewRoleName',
-            'addnewRoleDuty',
+            'addnewName',
+            'addnewDetail',
+            'addnewSorts',
+            'addnewConditions',
         ], (err, values) => {
             if (err) { return false; }
             me.setState({
                 addnewLoading: true,
             });
             const params = {
-                roleName: values.addnewRoleName,
-                roleDuty: values.addnewRoleDuty,
+                name: values.addnewName,
+                detail: values.addnewDetail,
+                sorts: values.addnewSorts,
+                conditions: values.addnewConditions,
             };
 
-            me.props.actions.addRoleInfo(params).then((res) => {
+            me.props.actions.addProductType(params).then((res) => {
                 console.log('添加用户返回数据：', res);
                 me.setState({
                     addnewLoading: false,
@@ -241,69 +235,6 @@ class Category extends React.Component {
         });
     }
 
-    // 分配菜单按钮点击，菜单出现
-    onMenuClick(record) {
-        this.setState({
-            nowData: record,
-            menuTreeShow: true,
-            treeLoading: true,
-        });
-
-        // 获取当前角色所拥有的菜单，然后默认选中
-        this.props.actions.findAllMenuByRoleId({roleId: record.roleId}).then((res) => {
-            if (res.returnCode === "0") {
-                console.log('当前角色所拥有的菜单：', res, record);
-                const menuDefault = res.messsageBody.result.filter((item) => item.menuAfiliation === 'Y').map((item) => ({key: `${item.id}`, id: item.id, title: item.menuName, p: item.parentId}));
-                this.setState({
-                    roleTreeData: res.messsageBody.result,
-                    menuDefault,
-                });
-            }
-            this.setState({
-                treeLoading: false,
-            });
-        }).catch(() => {
-            this.setState({
-                treeLoading: false,
-            });
-        });
-    }
-
-    // 关闭菜单树
-    onMenuTreeClose() {
-        this.setState({
-            menuTreeShow: false,
-        });
-    }
-
-    // 菜单树确定 给角色分配菜单
-    onMenuTreeOk(arr) {
-        console.log('所选择的：', arr);
-        const params = {
-            roleId: this.state.nowData.roleId,
-            menus: arr.menus.join(','),
-            btnIds: arr.btns.join(','),
-        };
-        this.setState({
-            treeOnOkLoading: true,
-        });
-        this.props.actions.AssigningMenuToRoleId(params).then((res) => {
-            if (res.returnCode === "0") {
-                message.success('菜单分配成功');
-                this.onMenuTreeClose();
-            } else {
-                message.error(res.returnMessaage || '菜单分配失败');
-            }
-            this.setState({
-                treeOnOkLoading: false,
-            });
-        }).catch(() => {
-            this.setState({
-                treeOnOkLoading: false,
-            });
-        });
-    }
-
     // 表单页码改变
     onTablePageChange(page, pageSize) {
         console.log('页码改变：', page, pageSize);
@@ -319,20 +250,25 @@ class Category extends React.Component {
                 key: 'serial',
             },
             {
-                title: '角色名',
+                title: '类型名',
                 dataIndex: 'roleName',
                 key: 'roleName',
             },
             {
-                title: '职责',
+                title: '详细说明',
                 dataIndex: 'roleDuty',
                 key: 'roleDuty',
             },
             {
-                title: '菜单权限',
+                title: '排序编号',
                 dataIndex: 'menus',
                 key: 'menus',
-                render: (text, record) => text.join(','),
+            },
+            {
+                title: '状态',
+                dataIndex: 'conditions',
+                key: 'conditions',
+                render: (text, record) => text === "0" ? <span style={{color: 'green'}}>启用</span> : <span style={{color: 'red'}}>禁用</span>
             },
             {
                 title: '操作',
@@ -421,11 +357,11 @@ class Category extends React.Component {
             <div>
               <UrlBread location={this.props.location}/>
               <div className="system-search">
-                  { Power.test(power.system.role.add.code) && <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加角色</Button></li></ul>}
+                  { Power.test(power.system.role.add.code) && <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加产品类型</Button></li></ul>}
                 <span className="ant-divider" />
                   { Power.test(power.system.role.query.code) &&
                   <ul className="search-ul">
-                      <li><Input placeholder="请输入角色名" onChange={(e) => this.searchRoleNameChange(e)} value={this.state.searchRoleName}/></li>
+                      <li><Input placeholder="请输入类型名称" onChange={(e) => this.searchProductNameChange(e)} value={this.state.searchproductName}/></li>
                       <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
                   </ul>
                   }
@@ -447,7 +383,7 @@ class Category extends React.Component {
               </div>
                 {/* 添加角色模态框 */}
               <Modal
-                  title='新增角色'
+                  title='新增产品类型'
                   visible={this.state.addnewModalShow}
                   onOk={() => this.onAddNewOk()}
                   onCancel={() => this.onAddNewClose()}
@@ -455,13 +391,13 @@ class Category extends React.Component {
               >
                 <Form>
                   <FormItem
-                      label="角色名"
+                      label="类型名称"
                       {...formItemLayout}
                   >
-                      {getFieldDecorator('addnewRoleName', {
+                      {getFieldDecorator('addnewName', {
                           initialValue: undefined,
                           rules: [
-                              {required: true, whitespace: true, message: '请输入角色名'},
+                              {required: true, whitespace: true, message: '请输入产品类型名称'},
                               { validator: (rule, value, callback) => {
                                   const v = tools.trim(value);
                                   if (v) {
@@ -473,28 +409,52 @@ class Category extends React.Component {
                               }}
                           ],
                       })(
-                          <Input placeholder="请输入角色名" />
+                          <Input placeholder="请输入产品类型名称" />
                       )}
                   </FormItem>
                     <FormItem
-                        label="职责"
+                        label="详细说明"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('addnewRoleDuty', {
+                        {getFieldDecorator('addnewDetail', {
                             initialValue: undefined,
                             rules: [
-                                {required: true, whitespace: true, message: '请输入职责'},
                                 {max: 100, message: '最多输入100个字符'}
                             ],
                         })(
-                            <Input placeholder="请输入职责" />
+                            <Input placeholder="请输入详细说明" />
                         )}
                     </FormItem>
                 </Form>
+                  <FormItem
+                      label="排序"
+                      {...formItemLayout}
+                  >
+                      {getFieldDecorator('addnewSorts', {
+                          initialValue: 0,
+                          rules: [{required: true, message: '请输入排序号'}],
+                      })(
+                          <InputNumber min={0} max={99999} />
+                      )}
+                  </FormItem>
+                  <FormItem
+                      label="状态"
+                      {...formItemLayout}
+                  >
+                      {getFieldDecorator('addnewConditions', {
+                          rules: [],
+                          initialValue: "0",
+                      })(
+                          <RadioGroup>
+                              <Radio value="0">启用</Radio>
+                              <Radio value="-1">禁用</Radio>
+                          </RadioGroup>
+                      )}
+                  </FormItem>
               </Modal>
                 {/* 修改用户模态框 */}
               <Modal
-                  title='修改用户'
+                  title='修改产品类型'
                   visible={this.state.upModalShow}
                   onOk={() => this.onUpOk()}
                   onCancel={() => this.onUpClose()}
@@ -502,13 +462,13 @@ class Category extends React.Component {
               >
                 <Form>
                     <FormItem
-                        label="角色名"
+                        label="类型名"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('upRoleName', {
+                        {getFieldDecorator('upName', {
                             initialValue: undefined,
                             rules: [
-                                {required: true, whitespace: true, message: '请输入角色名'},
+                                {required: true, whitespace: true, message: '请输入产品类型名称'},
                                 { validator: (rule, value, callback) => {
                                     const v = tools.trim(value);
                                     if (v) {
@@ -520,21 +480,45 @@ class Category extends React.Component {
                                 }}
                             ],
                         })(
-                            <Input placeholder="请输入角色名" />
+                            <Input placeholder="请输入产品类型名称" />
                         )}
                     </FormItem>
                     <FormItem
-                        label="职责"
+                        label="详细说明"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('upRoleDuty', {
+                        {getFieldDecorator('upDetail', {
                             initialValue: undefined,
                             rules: [
-                                {required: true, whitespace: true, message: '请输入职责'},
                                 {max: 100, message: '最多输入100个字符'}
                             ],
                         })(
-                            <Input placeholder="请输入职责" />
+                            <Input placeholder="请输入详细说明" />
+                        )}
+                    </FormItem>
+                    <FormItem
+                        label="排序"
+                        {...formItemLayout}
+                    >
+                        {getFieldDecorator('upSorts', {
+                            initialValue: 0,
+                            rules: [{required: true, message: '请输入排序号'}],
+                        })(
+                            <InputNumber min={0} max={99999} />
+                        )}
+                    </FormItem>
+                    <FormItem
+                        label="状态"
+                        {...formItemLayout}
+                    >
+                        {getFieldDecorator('upConditions', {
+                            rules: [],
+                            initialValue: "0",
+                        })(
+                            <RadioGroup>
+                                <Radio value="0">启用</Radio>
+                                <Radio value="-1">禁用</Radio>
+                            </RadioGroup>
                         )}
                     </FormItem>
                 </Form>
@@ -591,17 +575,6 @@ class Category extends React.Component {
                 </FormItem>
                 </Form>
               </Modal>
-                {/* 菜单树 多选 */}
-                <TreeTable
-                    title={this.state.nowData ? `分配菜单：${this.state.nowData.roleName}` : '分配菜单'}
-                    menuData={this.state.roleTreeData}
-                    defaultChecked={this.state.menuDefault}
-                    initloading={this.state.treeLoading}
-                    loading={this.state.treeOnOkLoading}
-                    modalShow={this.state.menuTreeShow}
-                    onOk={(arr) => this.onMenuTreeOk(arr)}
-                    onClose={() => this.onMenuTreeClose()}
-                />
             </div>
         );
     }
@@ -615,7 +588,6 @@ Category.propTypes = {
     location: P.any,
     history: P.any,
     actions: P.any,
-    allMenu: P.any,
 };
 
 // ==================
@@ -624,9 +596,9 @@ Category.propTypes = {
 const WrappedHorizontalRole = Form.create()(Category);
 export default connect(
     (state) => ({
-        allMenu: state.sys.allMenu,
+
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findAllRole, findRolesByKeys, updateRoleInfo, deleteRoleInfo, deleteAdminUserInfo, AssigningMenuToRoleId, updateAdminUserInfo, findAllMenu, findAllMenuByRoleId, addRoleInfo }, dispatch),
+        actions: bindActionCreators({ findProductTypeByWhere, addProductType, updateProductType, deleteProductType, findAllRole, findRolesByKeys, updateRoleInfo, deleteRoleInfo, deleteAdminUserInfo, AssigningMenuToRoleId, updateAdminUserInfo, findAllMenu, findAllMenuByRoleId, addRoleInfo }, dispatch),
     })
 )(WrappedHorizontalRole);
