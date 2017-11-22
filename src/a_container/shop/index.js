@@ -18,7 +18,7 @@ import './index.scss';
 
 import List from './container/product/List';
 import Category from './container/product/Category';
-
+import OrderList from './container/order/List';
 // ==================
 // 本页面所需action
 // ==================
@@ -64,6 +64,7 @@ class SystemContainer extends React.Component {
                     <Redirect exact from={`/${this.state.baseURL}`} to={`/${this.state.baseURL}/${this.getFirstMenu(this.props.menuSourceData)}`} />
                     <Route exact path={`/${this.state.baseURL}/product/list`} component={List} />
                     <Route exact path={`/${this.state.baseURL}/product/category`} component={Category} />
+                    <Route exact path={`/${this.state.baseURL}/order/list`} component={OrderList} />
                 </Switch>
             </div>
         );

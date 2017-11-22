@@ -23,7 +23,6 @@ import UrlBread from '../../../../../a_component/urlBread';
 // 本页面所需action
 // ==================
 
-import { findAllRole, findRolesByKeys, updateRoleInfo, deleteRoleInfo, deleteAdminUserInfo, AssigningMenuToRoleId, updateAdminUserInfo, findAllMenu, findAllMenuByRoleId, addRoleInfo } from '../../../../../a_action/sys-action';
 import { findProductTypeByWhere, addProductType, updateProductType, deleteProductType } from '../../../../../a_action/shop-action';
 
 // ==================
@@ -90,8 +89,10 @@ class Category extends React.Component {
         const { form } = me.props;
         console.log('Record:', record);
         form.setFieldsValue({
-            upRoleName: record.roleName,
-            upRoleDuty: record.roleDuty,
+            upName: record.name,
+            upDetail: record.detail,
+            upSorts: record.sorts,
+            upConditions: `${record.conditions}`
         });
         me.setState({
             nowData: record,
@@ -251,24 +252,19 @@ class Category extends React.Component {
             },
             {
                 title: '类型名',
-                dataIndex: 'roleName',
-                key: 'roleName',
+                dataIndex: 'name',
+                key: 'name',
             },
             {
                 title: '详细说明',
-                dataIndex: 'roleDuty',
-                key: 'roleDuty',
-            },
-            {
-                title: '排序编号',
-                dataIndex: 'menus',
-                key: 'menus',
+                dataIndex: 'detail',
+                key: 'detail',
             },
             {
                 title: '状态',
                 dataIndex: 'conditions',
                 key: 'conditions',
-                render: (text, record) => text === "0" ? <span style={{color: 'green'}}>启用</span> : <span style={{color: 'red'}}>禁用</span>
+                render: (text, record) => text === 0 ? <span style={{color: 'green'}}>启用</span> : <span style={{color: 'red'}}>禁用</span>
             },
             {
                 title: '操作',
@@ -288,13 +284,6 @@ class Category extends React.Component {
                         <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
                             <Tooltip placement="top" title="修改">
                                 <Icon type="edit" />
-                            </Tooltip>
-                        </span>
-                    );
-                    Power.test(power.system.role.power.code) && controls.push(
-                        <span key="2" className="control-btn blue" onClick={() => this.onMenuClick(record)} >
-                            <Tooltip placement="top" title="分配权限">
-                                <Icon type="tool" />
                             </Tooltip>
                         </span>
                     );
@@ -328,12 +317,16 @@ class Category extends React.Component {
         return data.map((item, index) => {
             return {
                 key: index,
-                roleId: item.id,
+                id: item.id,
                 serial:(index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
-                roleName: item.roleName,
-                roleDuty: item.roleDuty,
-                menus: item.menus,
-                control: item.id,
+                name: item.name,
+                sorts: item.sorts,
+                updateTime: item.updateTime,
+                updater: item.updater,
+                conditions: item.conditions,
+                detail: item.detail,
+                createTime: item.createTime,
+                creator: item.creator,
             }
         });
     }
@@ -523,56 +516,38 @@ class Category extends React.Component {
                     </FormItem>
                 </Form>
               </Modal>
-                {/* 查看用户详情模态框 */}
+                {/* 查看详情模态框 */}
               <Modal
-                  title="角色详情"
+                  title="查看详情"
                   visible={this.state.queryModalShow}
                   onOk={() => this.onQueryModalClose()}
                   onCancel={() => this.onQueryModalClose()}
               >
                 <Form>
                   <FormItem
-                      label="角色名"
+                      label="类型名"
                       {...formItemLayout}
                   >
-                      {!!this.state.nowData ? this.state.nowData.roleName : ''}
+                      {!!this.state.nowData ? this.state.nowData.name : ''}
                   </FormItem>
                   <FormItem
-                      label="角色权限"
+                      label="详细说明"
                       {...formItemLayout}
                   >
-                      {!!this.state.nowData ? this.state.nowData.roleDuty : ''}
+                      {!!this.state.nowData ? this.state.nowData.detail : ''}
                   </FormItem>
-                  <FormItem
-                      label="菜单权限"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.menus.join(',') : ''}
-                  </FormItem>
-                  <FormItem
-                      label="创建时间"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.createTime : ''}
-                  </FormItem>
-                  <FormItem
-                      label="创建人"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.creator : ''}
-                  </FormItem>
-                  <FormItem
-                      label="最后修改"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.updateTime : ''}
-                  </FormItem>
-                <FormItem
-                    label="修改人"
-                    {...formItemLayout}
-                >
-                    {!!this.state.nowData ? this.state.nowData.updater : ''}
-                </FormItem>
+                    <FormItem
+                        label="排序编号"
+                        {...formItemLayout}
+                    >
+                        {!!this.state.nowData ? this.state.nowData.sorts : ''}
+                    </FormItem>
+                    <FormItem
+                        label="状态"
+                        {...formItemLayout}
+                    >
+                        {(!!this.state.nowData) && this.state.nowData.conditions === 0 ? <span style={{ color: 'green' }}>启用</span> : <span style={{ color: 'red' }}>禁用</span>}
+                    </FormItem>
                 </Form>
               </Modal>
             </div>
@@ -599,6 +574,6 @@ export default connect(
 
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findProductTypeByWhere, addProductType, updateProductType, deleteProductType, findAllRole, findRolesByKeys, updateRoleInfo, deleteRoleInfo, deleteAdminUserInfo, AssigningMenuToRoleId, updateAdminUserInfo, findAllMenu, findAllMenuByRoleId, addRoleInfo }, dispatch),
+        actions: bindActionCreators({ findProductTypeByWhere, addProductType, updateProductType, deleteProductType }, dispatch),
     })
 )(WrappedHorizontalRole);

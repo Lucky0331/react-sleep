@@ -15,7 +15,6 @@ class Menus extends React.Component {
             show: false, // 是否显示
             chosedKey: [], // 当前选中
             openKeys: [], //
-            collapsed: false,
         };
     }
 
@@ -39,11 +38,6 @@ class Menus extends React.Component {
     }
 
     componentWillUpdate(nextP, nextS) {
-        if (nextS.collapsed !== this.state.collapsed && nextS.collapsed) {
-            this.setState({
-                openKeys: [],
-            });
-        }
     }
 
     componentWillReceiveProps(nextP) {
@@ -63,7 +57,7 @@ class Menus extends React.Component {
     initChosed(location) {
         const paths = location.pathname.split('/').filter((item) => !!item);
         this.setState({
-            chosedKey: [paths[paths.length - 1]],
+            chosedKey: [location.pathname], // [paths[paths.length - 1]],
             openKeys: paths
         });
     }
@@ -77,7 +71,6 @@ class Menus extends React.Component {
 
     // 处理原始数据，将原始数据处理为层级关系
     makeSourceData(data) {
-        console.log('原始数据是什么222222：', data);
         let d = _.cloneDeep(data);
         // 按照sort排序
         d.sort((a, b) => {
@@ -90,7 +83,7 @@ class Menus extends React.Component {
                 sourceData.push(temp);
             }
         });
-        console.log('jsonMenu是什么11111：', sourceData);
+
         this.props.saveMenuSourceData(sourceData);
         const treeDom = this.makeTreeDom(sourceData, '');
         this.setState({
@@ -122,20 +115,13 @@ class Menus extends React.Component {
             const newKey = `${key}/${item.menuUrl.replace(/\//,'')}`;
             if (item.children) {
                 return (
-                    <SubMenu key={item.menuUrl} title={<span>{item.menuName}</span>}>
+                    <SubMenu key={newKey} title={<span>{item.menuName}</span>}>
                         { this.makeTreeDom(item.children, newKey) }
                     </SubMenu>
                 );
             } else {
-                return <MenuItem key={item.menuUrl}><Link to={newKey}>{item.menuName}</Link></MenuItem>;
+                return <MenuItem key={newKey}><Link to={newKey}>{item.menuName}</Link></MenuItem>;
             }
-        });
-    }
-
-    // 收起/展开 按钮被点击
-    onCollapsed() {
-        this.setState({
-            collapsed: !this.state.collapsed,
         });
     }
 
@@ -146,15 +132,15 @@ class Menus extends React.Component {
                 key="1"
                 theme="dark"
                 mode="inline"
-                className={this.state.collapsed ? 'the-menu' : 'the-menu open'}
+                className={this.props.collapsed ? 'the-menu' : 'the-menu open'}
                 selectedKeys={this.state.chosedKey}
 
                 onOpenChange={(e) => this.onOpenChange(e)}
-                inlineCollapsed={this.state.collapsed}
+                inlineCollapsed={this.props.collapsed}
             >
                 {this.state.treeDom}
-            </Menu>, <div key="2" className={this.state.collapsed ? "collapsed-box" : "collapsed-box open"} >
-                <Icon className="collapsed-icon" onClick={() => this.onCollapsed()} type={this.state.collapsed ? 'menu-unfold' : 'menu-fold'} />
+            </Menu>, <div key="2" className={this.props.collapsed ? "collapsed-box" : "collapsed-box open"} >
+                <Icon className="collapsed-icon" onClick={() => this.props.onCollapsed()} type={this.props.collapsed ? 'menu-unfold' : 'menu-fold'} />
             </div>] : null
         );
     }
@@ -162,7 +148,9 @@ class Menus extends React.Component {
 
 Menus.propTypes = {
     location: P.any,
+    collapsed: P.bool,  // 展开还是收起
     saveMenuSourceData: P.func,
+    onCollapsed: P.func,
 };
 
 export default Menus;

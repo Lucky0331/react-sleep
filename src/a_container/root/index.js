@@ -35,7 +35,7 @@ class RootContainer extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-        collapsed: false, // 控制Menu的收起和打开
+        collapsed: false,
     }
   }
 
@@ -54,6 +54,12 @@ class RootContainer extends React.Component {
     console.log('root:', this.props );
   }
 
+  onCollapsed() {
+    this.setState({
+        collapsed: !this.state.collapsed,
+    });
+  }
+
   render() {
     return ([
       <Router history={history} key='browserrouter'>
@@ -65,12 +71,13 @@ class RootContainer extends React.Component {
                   <div className="the-menu-box flex-none">
                     <TheMenu
                         location={props.location}
-                        saveMenuSourceData={this.props.actions.saveMenuSourceData}
                         collapsed={this.state.collapsed}
+                        onCollapsed={() => this.onCollapsed()}
+                        saveMenuSourceData={this.props.actions.saveMenuSourceData}
                     />
                   </div>
 
-                  <div className="flex-auto">
+                  <div className="flex-auto" style={{ maxWidth: this.state.collapsed ? 'calc(100% - 64px)' : 'calc(100% - 256px)' }}>
                     <Switch>
                       <Redirect exact from='/' to='/home' />
                       <Route path="/login" component={Login} />

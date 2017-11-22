@@ -85,9 +85,6 @@ class Menus extends React.Component {
                 mode="inline"
             >
                 {this.state.treeDom}
-                <MenuItem key="/system/role">
-                    <Link to='/system/role'>角色管理</Link>
-                 </MenuItem>
             </Menu>
         );
     }
