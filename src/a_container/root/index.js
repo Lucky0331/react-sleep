@@ -54,6 +54,20 @@ class RootContainer extends React.Component {
     console.log('root:', this.props );
   }
 
+  // 决定下面div容器的最大宽度
+  _initWidth(location) {
+      let width = '100%';
+      const path = location.pathname.split('/')[1];
+      if (['login'].indexOf(path) > -1) {
+        width = '100%';
+      } else if(this.state.collapsed) {
+        width = 'calc(100% - 64px)';
+      } else {
+        width = 'calc(100% - 256px)';
+      }
+      return width;
+  }
+  // 决定菜单收起还是展开
   onCollapsed() {
     this.setState({
         collapsed: !this.state.collapsed,
@@ -77,10 +91,10 @@ class RootContainer extends React.Component {
                     />
                   </div>
 
-                  <div className="flex-auto" style={{ maxWidth: this.state.collapsed ? 'calc(100% - 64px)' : 'calc(100% - 256px)' }}>
+                  <div className="flex-auto" style={{ maxWidth: this._initWidth(props.location) }}>
                     <Switch>
                       <Redirect exact from='/' to='/home' />
-                      <Route path="/login" component={Login} />
+                      <Route exact path="/login" component={Login} />
                       <Route path="/home" render={(props) => this.onEnter(Home, props)} />
                       <Route path="/system" render={(props) => this.onEnter(System, props)} />
                       <Route path="/shop" render={(props) => this.onEnter(Shop, props)} />
