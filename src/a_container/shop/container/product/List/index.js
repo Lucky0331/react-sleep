@@ -8,11 +8,13 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
+import Config from '../../../../../config/config';
 import { Form, Button, Icon, Input, InputNumber, Table, message, Popconfirm, Modal, Radio, Tooltip, Select, Upload } from 'antd';
 import './index.scss';
 import tools from '../../../../../util/tools'; // 工具
 import Power from '../../../../../util/power'; // 权限
 import { power } from '../../../../../util/data';
+import _ from 'lodash';
 // ==================
 // 所需的所有组件
 // ==================
@@ -50,6 +52,8 @@ class Category extends React.Component {
             total: 0, // 数据库总共多少条数据
             fileList: [],   // 产品图片已上传的列表
             fileListDetail: [], // 详细图片已上传的列表
+            fileLoading: false, // 产品图片正在上传
+            fileDetailLoading: false,   // 详细图片正在上传
         };
     }
 
@@ -139,6 +143,7 @@ class Category extends React.Component {
             nowData: record,
             addOrUp: 'up',
             addnewModalShow: true,
+            // fileList: record.
         });
     }
 
@@ -190,14 +195,21 @@ class Category extends React.Component {
         ]);
         this.setState({
             addOrUp: 'add',
+            fileList: [],
+            fileListDetail: [],
             addnewModalShow: true,
         });
     }
 
-    // 添加新用户确定
+    // 添加新的确定
     onAddNewOk() {
         const me = this;
         const { form } = me.props;
+        if (me.state.fileList || me.state.fileListDetail) {
+            message.warning('有图片正在上传...');
+            return;
+        }
+
         form.validateFields([
             'addnewName',
             'addnewPrice',
@@ -220,7 +232,9 @@ class Category extends React.Component {
                 saleMode: Number(values.addnewSaleMode),
                 marketPrice: values.addnewMarketPrice,
                 amount: values.addnewAmount,
-                onShelf: values.addnewOnShelf === '1',
+                onShelf: values.addnewOnShelf ? 1 : 0,
+                productImg: this.state.fileList.map((item) => item.url).join(','),
+                detailImg: this.state.fileListDetail.length ? this.state.fileListDetail[0].url : '',
             };
             if (this.state.addOrUp === 'add') { // 新增
                 me.props.actions.addProduct(params).then((res) => {
@@ -265,8 +279,119 @@ class Category extends React.Component {
     }
 
     // 产品图片 - 上传中、上传成功、上传失败的回调
-    onUpLoadChange(f) {
-        console.log('f是什么：', f);
+    onUpLoadChange(obj) {
+        console.log('图片上传：', obj);
+        if (obj.file.status === 'done' && obj.file.response.data) {
+            // 上传成功后调用,将新的地址加进原list
+            if (obj.file.response.data) {
+                const list = _.cloneDeep(this.state.fileList);
+                const t = list.find((item) => item.uid === obj.file.uid);
+                t.url = obj.file.response.data.imageUrl;
+                this.setState({
+                    fileList: list,
+                    fileLoading: false,
+                });
+            } else {
+                const list = _.cloneDeep(this.state.fileList);
+                this.setState({
+                    fileList: list.filter((item) => item.uid !== obj.file.uid),
+                    fileLoading: false,
+                });
+                message.error('图片上传失败');
+            }
+        } else if (obj.file.status === 'uploading') {
+            this.setState({
+                fileLoading: true,
+            });
+        } else if(obj.file.status === 'error'){
+            const list = _.cloneDeep(this.state.fileList);
+            this.setState({
+                fileList: list.filter((item) => item.uid !== obj.file.uid),
+                fileLoading: false,
+            });
+            message.error('图片上传失败');
+        }
+    }
+
+    // 产品图片 - 上传前
+    onUploadBefore(f, fl) {
+        console.log('上传前：', f, fl);
+        if (['jpg', 'jpeg', 'png', 'bmp', 'gif'].indexOf(f.type.split('/')[1]) < 0) {
+            message.error('只能上传jpg、jpeg、png、bmp、gif格式的图片');
+            return false;
+        } else {
+            const newList = _.cloneDeep(this.state.fileList);
+            newList.push(f);
+            this.setState({
+                fileList: newList,
+            });
+            return true;
+        }
+    }
+
+    // 产品图片 - 删除一个图片
+    onUpLoadRemove(f) {
+        console.log('删除；', f);
+        const list = _.cloneDeep(this.state.fileList);
+        this.setState({
+            fileList: list.filter((item) => item.uid !== f.uid),
+        });
+    }
+
+    // 详细图片 - 上传前
+    onUploadDetailBefore(f ,fl) {
+        if (['jpg', 'jpeg', 'png', 'bmp', 'gif'].indexOf(f.type.split('/')[1]) < 0) {
+            message.error('只能上传jpg、jpeg、png、bmp、gif格式的图片');
+            return false;
+        } else {
+            const newList = _.cloneDeep(this.state.fileListDetail);
+            newList.push(f);
+            this.setState({
+                fileListDetail: newList,
+            });
+            return true;
+        }
+    }
+
+    // 详细图片 - 上传中、成功、失败
+    onUpLoadDetailChange(obj) {
+        if (obj.file.status === 'done') {
+            // 上传成功后调用,将新的地址加进原list
+            if (obj.file.response.data) {
+                const list = _.cloneDeep(this.state.fileListDetail);
+                const t = list.find((item) => item.uid === obj.file.uid);
+                t.url = obj.file.response.data.imageUrl;
+                this.setState({
+                    fileListDetail: list,
+                    fileDetailLoading: false,
+                });
+            } else {
+                const list = _.cloneDeep(this.state.fileListDetail);
+                this.setState({
+                    fileDetailLoading: list.filter((item) => item.uid !== obj.file.uid),
+                    fileLoading: false,
+                });
+            }
+        } else if (obj.file.status === 'uploading') {
+            this.setState({
+                fileDetailLoading: true,
+            });
+        } else if(obj.file.status === 'error'){
+            const list = _.cloneDeep(this.state.fileListDetail);
+            this.setState({
+                fileDetailLoading: list.filter((item) => item.uid !== obj.file.uid),
+                fileLoading: false,
+            });
+            message.error('图片上传失败');
+        }
+    }
+
+    // 详细图片 - 删除
+    onUpLoadDetailRemove() {
+        const list = _.cloneDeep(this.state.fileListDetail);
+        this.setState({
+            fileListDetail: list.filter((item) => item.uid !== f.uid),
+        });
     }
 
     // 构建字段
@@ -572,12 +697,12 @@ class Category extends React.Component {
                         {...formItemLayout}
                     >
                         {getFieldDecorator('addnewMarketPrice', {
-                            initialValue: undefined,
+                            initialValue: 0,
                             rules: [
                                 {required: true, message: '请输入市场价'},
                             ],
                         })(
-                            <InputNumber placeholder="请输入市场价" min={0} max={9999999}/>
+                            <InputNumber min={0} max={9999999}/>
                         )}
                     </FormItem>
                     <FormItem
@@ -585,13 +710,16 @@ class Category extends React.Component {
                         {...formItemLayout}
                     >
                         <Upload
-                            action="#"
+                            name="pImg"
+                            action={`${Config.baseURL}/manager/uploadImage`}
                             listType="picture-card"
                             withCredentials={true}
                             fileList={this.state.fileList}
+                            beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
                             onChange={(f) => this.onUpLoadChange(f)}
+                            onRemove={(f) => this.onUpLoadRemove(f)}
                         >
-                            {this.state.fileList.length >= 3 ? null :
+                            {this.state.fileList.length >= 8 ? null :
                              <div>
                                 <Icon type="plus" />
                                 <div className="ant-upload-text">Upload</div>
@@ -603,13 +731,16 @@ class Category extends React.Component {
                         {...formItemLayout}
                     >
                         <Upload
-                            action="#"
+                            name="pImg"
+                            action={`${Config.baseURL}/manager/uploadImage`}
                             listType="picture-card"
-                            withCredentials={true}
+                            withCredentials
                             fileList={this.state.fileListDetail}
-                            onChange={(f) => this.onUpLoadChange(f)}
+                            beforeUpload={(f, fl) => this.onUploadDetailBefore(f, fl)}
+                            onChange={(f) => this.onUpLoadDetailChange(f)}
+                            onRemove={(f) => this.onUpLoadDetailRemove(f)}
                         >
-                            {this.state.fileListDetail.length >= 3 ? null :
+                            {this.state.fileListDetail.length >= 1 ? null :
                                 <div>
                                     <Icon type="plus" />
                                     <div className="ant-upload-text">Upload</div>
@@ -621,7 +752,7 @@ class Category extends React.Component {
                         {...formItemLayout}
                     >
                         {getFieldDecorator('addnewAmount', {
-                            initialValue: undefined,
+                            initialValue: 0,
                             rules: [
                                 {required: true, message: '请输入库存'},
                             ],

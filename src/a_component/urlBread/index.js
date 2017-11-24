@@ -23,7 +23,7 @@ class UrlBread extends React.Component {
             tempPath = `${tempPath}/${item}`;
             console.log('URL:tempPath:', tempPath);
             return (
-                <Breadcrumb.Item key={index}><Link to={tempPath}>{tools.getUrlName(tempPath)}</Link></Breadcrumb.Item>
+                <Breadcrumb.Item key={index}>{tools.getUrlName(tempPath)}</Breadcrumb.Item>
             );
         });
     }
