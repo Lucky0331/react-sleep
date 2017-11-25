@@ -101,6 +101,16 @@ class Category extends React.Component {
         return t ? t.name : '';
     }
 
+    // 工具 - 根据ID获取销售方式的名字
+    getNameBySaleModeName(code) {
+        switch(Number(code)) {
+            case 1: return '租赁';
+            case 2: return '买卖';
+            case 3: return '服务';
+            default: return '';
+        }
+    }
+
     // 搜索 - 用户名输入框值改变时触发
     searchNameChange(e) {
         if (e.target.value.length < 20) {
@@ -132,7 +142,7 @@ class Category extends React.Component {
         form.setFieldsValue({
             addnewName: record.name,
             addnewPrice: record.price,
-            addnewTypeId: record.typeId,
+            addnewTypeId: `${record.typeId}`,
             addnewTypeCode: record.typeCode,
             addnewSaleMode: String(record.saleMode),
             addnewMarketPrice: record.marketPrice,
@@ -201,11 +211,11 @@ class Category extends React.Component {
         });
     }
 
-    // 添加新的确定
+    // 添加或修改确定
     onAddNewOk() {
         const me = this;
         const { form } = me.props;
-        if (me.state.fileList || me.state.fileListDetail) {
+        if (me.state.fileLoading || me.state.fileDetailLoading) {
             message.warning('有图片正在上传...');
             return;
         }
@@ -237,7 +247,7 @@ class Category extends React.Component {
                 detailImg: this.state.fileListDetail.length ? this.state.fileListDetail[0].url : '',
             };
             if (this.state.addOrUp === 'add') { // 新增
-                me.props.actions.addProduct(params).then((res) => {
+                me.props.actions.addProduct(tools.clearNull(params)).then((res) => {
                     me.setState({
                         addnewLoading: false,
                     });
@@ -281,7 +291,7 @@ class Category extends React.Component {
     // 产品图片 - 上传中、上传成功、上传失败的回调
     onUpLoadChange(obj) {
         console.log('图片上传：', obj);
-        if (obj.file.status === 'done' && obj.file.response.data) {
+        if (obj.file.status === 'done') {
             // 上传成功后调用,将新的地址加进原list
             if (obj.file.response.data) {
                 const list = _.cloneDeep(this.state.fileList);
@@ -368,8 +378,8 @@ class Category extends React.Component {
             } else {
                 const list = _.cloneDeep(this.state.fileListDetail);
                 this.setState({
-                    fileDetailLoading: list.filter((item) => item.uid !== obj.file.uid),
-                    fileLoading: false,
+                    fileListDetail: list.filter((item) => item.uid !== obj.file.uid),
+                    fileDetailLoading: false,
                 });
             }
         } else if (obj.file.status === 'uploading') {
@@ -379,7 +389,7 @@ class Category extends React.Component {
         } else if(obj.file.status === 'error'){
             const list = _.cloneDeep(this.state.fileListDetail);
             this.setState({
-                fileDetailLoading: list.filter((item) => item.uid !== obj.file.uid),
+                fileListDetail: list.filter((item) => item.uid !== obj.file.uid),
                 fileLoading: false,
             });
             message.error('图片上传失败');
@@ -428,6 +438,7 @@ class Category extends React.Component {
                 dataIndex: 'saleMode',
                 key: 'saleMode',
                 width: 200,
+                render: (text) => this.getNameBySaleModeName(text),
             },
             {
                 title: '单价',
@@ -686,9 +697,9 @@ class Category extends React.Component {
                             <Select
                                 placeholder="请选择销售方式"
                             >
-                                <Option value={`1`}>销售方式1</Option>
-                                <Option value={`2`}>销售方式2</Option>
-                                <Option value={`3`}>销售方式3</Option>
+                                <Option value={`1`}>租赁</Option>
+                                <Option value={`2`}>买卖</Option>
+                                <Option value={`3`}>服务</Option>
                             </Select>
                         )}
                     </FormItem>
@@ -865,7 +876,6 @@ Category.propTypes = {
     location: P.any,
     history: P.any,
     actions: P.any,
-    allMenu: P.any,
 };
 
 // ==================
@@ -874,7 +884,7 @@ Category.propTypes = {
 const WrappedHorizontalRole = Form.create()(Category);
 export default connect(
     (state) => ({
-        allMenu: state.sys.allMenu,
+
     }),
     (dispatch) => ({
         actions: bindActionCreators({ findProductByWhere, findProductTypeByWhere, addProduct, updateProduct, deleteProduct }, dispatch),

@@ -425,7 +425,7 @@ export function findMenuByMainMenu(params = {}) {
 export function findAllOrganizer() {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/organizer/findAllOrganizer', {pageNum: 1, pageSize: 9999}
+            '/manager/organization/list', {pageNum: 1, pageSize: 9999}
         ).then(
             msg => {
                 if(msg.returnCode === '0') {
@@ -461,7 +461,7 @@ export function findOrganizerByParentId(params = {}) {
 export function addOrganizer(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/organizer/addOrganizer', params, 'post', true
+            '/manager/organization/save', params, 'post', true
         ).then(
             msg => {
                 return msg;
@@ -476,7 +476,7 @@ export function addOrganizer(params = {}) {
 export function updateOrganizer(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/organizer/updateOrganizer', params, 'post', true
+            '/manager/organization/update', params, 'post', true
         ).then(
             msg => {
                 return msg;
@@ -491,7 +491,7 @@ export function updateOrganizer(params = {}) {
 export function deleteOrganizer(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/organizer/deleteOrganizer', params, 'post', true
+            '/manager/organization/delete', params, 'post', true
         ).then(
             msg => {
                 return msg;

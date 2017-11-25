@@ -1,5 +1,6 @@
 import reqwest from 'reqwest';
 import config from '../config/config.js';
+import { message } from 'antd';
 // import axios from 'axios';
 
 export default class ApiService {
@@ -23,6 +24,13 @@ export default class ApiService {
             withCredentials: true,
             data: JSON.stringify(bodyObj),
             type: 'json',
+        }).then((res) => {
+            if(res.returnCode == '1'){
+                sessionStorage.clear();
+                message.error(res.returnMessaage);
+                setTimeout(() => {location.href = '/';}, 1000);
+            }
+            return res;
         });
     } else {
         return reqwest({
@@ -32,6 +40,13 @@ export default class ApiService {
             crossOrigin: true,
             withCredentials: true,
             data: bodyObj,
+        }).then((res) => {
+            if(res.returnCode == '1'){
+                sessionStorage.clear();
+                message.error(res.returnMessaage);
+                setTimeout(() => {location.href = '/';}, 1000);
+            }
+            return res;
         });
     }
   }

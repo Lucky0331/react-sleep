@@ -201,6 +201,11 @@ class Category extends React.Component {
                 key: 'serial',
             },
             {
+                title: '订单号',
+                dataIndex: 'id',
+                key: 'id',
+            },
+            {
                 title: '订单生成时间',
                 dataIndex: 'createTime',
                 key: 'createTime',
@@ -216,10 +221,26 @@ class Category extends React.Component {
                 key: 'typeCode',
             },
             {
+                title: '购买数量',
+                dataIndex: 'count',
+                key: 'count',
+            },
+            {
+                title: '总费用',
+                dataIndex: 'fee',
+                key: 'fee',
+            },
+            {
                 title: '支付状态',
                 dataIndex: 'pay',
                 key: 'pay',
                 render: (text, record) => text ? <span style={{color: 'green'}}>已支付</span> : <span style={{color: 'red'}}>未支付</span>
+            },
+            {
+                title: '支付时间',
+                dataIndex: 'payTime',
+                key: 'payTime',
+                render: (text) => text ? tools.dateToStr(new Date(text)) : ''
             },
             {
                 title: '受理状态',
@@ -234,14 +255,14 @@ class Category extends React.Component {
                 render: (text, record) => {
                     const controls = [];
 
-                    Power.test(power.system.role.query.code) && controls.push(
+                    controls.push(
                         <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
                             <Tooltip placement="top" title="查看">
                                 <Icon type="eye" />
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.role.update.code) && controls.push(
+                    controls.push(
                         <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
                             <Tooltip placement="top" title="修改">
                                 <Icon type="edit" />
@@ -268,6 +289,15 @@ class Category extends React.Component {
         return data.map((item, index) => {
             return {
                 key: index,
+                addrId: item.addrId,
+                count: item.count,
+                ecId: item.ecId,
+                fee: item.fee,
+                feeType: item.feeType,
+                openAccountFee: item.openAccountFee,
+                orderType: item.orderType,
+                payTime: item.payTime,
+                payType: item.payType,
                 id: item.id,
                 serial:(index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
                 createTime: item.createTime,
@@ -275,6 +305,11 @@ class Category extends React.Component {
                 name: item.product ? item.product.name : '',
                 typeCode: item.product ? item.product.typeCode : '',
                 conditions: item.conditions,
+                remark: item.remark,
+                shipCode: item.shipCode,
+                shipPrice: item.shipPrice,
+                transport: item.transport,
+                userId: item.userId,
             }
         });
     }
@@ -298,15 +333,12 @@ class Category extends React.Component {
             <div>
               <UrlBread location={this.props.location}/>
               <div className="system-search">
-                  { Power.test(power.system.role.query.code) &&
                   <ul className="search-ul">
                       <li><Input placeholder="产品名称" onChange={(e) => this.searchProductNameChange(e)} value={this.state.searchProductName}/></li>
                       <li><InputNumber min={0} max={999999} placeholder="最小价格" onChange={(e) => this.searchMinPriceChange(e)} value={this.state.searchMinPrice}/></li>
                       <li><InputNumber min={0} max={999999} placeholder="最大价格" onChange={(e) => this.searchMaxPriceChange(e)} value={this.state.searchMaxPrice}/></li>
                       <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
                   </ul>
-                  }
-
               </div>
               <div className="system-table">
                 <Table
@@ -359,6 +391,12 @@ class Category extends React.Component {
                   onCancel={() => this.onQueryModalClose()}
               >
                 <Form>
+                    <FormItem
+                        label="订单号"
+                        {...formItemLayout}
+                    >
+                        {!!this.state.nowData ? this.state.nowData.id : ''}
+                    </FormItem>
                   <FormItem
                       label="生成时间"
                       {...formItemLayout}
@@ -378,10 +416,46 @@ class Category extends React.Component {
                         {!!this.state.nowData ? this.state.nowData.typeCode : ''}
                     </FormItem>
                     <FormItem
+                        label="购买数量"
+                        {...formItemLayout}
+                    >
+                        {!!this.state.nowData ? this.state.nowData.count : ''}
+                    </FormItem>
+                    <FormItem
+                        label="总费用"
+                        {...formItemLayout}
+                    >
+                        {!!this.state.nowData ? this.state.nowData.fee : ''}
+                    </FormItem>
+                    <FormItem
+                        label="开户费"
+                        {...formItemLayout}
+                    >
+                        {!!this.state.nowData ? this.state.nowData.openAccountFee : ''}
+                    </FormItem>
+                    <FormItem
+                        label="购买人"
+                        {...formItemLayout}
+                    >
+                        {!!this.state.nowData ? this.state.nowData.userId : ''}
+                    </FormItem>
+                    <FormItem
                         label="支付状态"
                         {...formItemLayout}
                     >
                         {(!!this.state.nowData) && this.state.nowData.pay ? <span style={{ color: 'green' }}>已支付</span> : <span style={{ color: 'red' }}>未支付</span>}
+                    </FormItem>
+                    <FormItem
+                        label="支付时间"
+                        {...formItemLayout}
+                    >
+                        {(!!this.state.nowData && this.state.nowData.payTime) ? tools.dateToStr(new Date(this.state.nowData.payTime)) : '' }
+                    </FormItem>
+                    <FormItem
+                        label="受理状态"
+                        {...formItemLayout}
+                    >
+                        {(!!this.state.nowData && this.state.nowData.conditions) ? this.getConditionNameById(this.state.nowData.conditions) : ''}
                     </FormItem>
                 </Form>
               </Modal>
