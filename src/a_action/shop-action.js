@@ -194,3 +194,19 @@ export function updateOrder(params = {}) {
     };
 }
 
+// 删除商品的图片
+
+export function deleteImage(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/deleteImage', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+

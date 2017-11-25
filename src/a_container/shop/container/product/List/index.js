@@ -25,7 +25,7 @@ import UrlBread from '../../../../../a_component/urlBread';
 // 本页面所需action
 // ==================
 
-import { findProductByWhere, findProductTypeByWhere, addProduct, updateProduct, deleteProduct } from '../../../../../a_action/shop-action';
+import { findProductByWhere, findProductTypeByWhere, addProduct, updateProduct, deleteProduct, deleteImage } from '../../../../../a_action/shop-action';
 
 // ==================
 // Definition
@@ -153,7 +153,8 @@ class Category extends React.Component {
             nowData: record,
             addOrUp: 'up',
             addnewModalShow: true,
-            // fileList: record.
+            fileList: record.productImg.split(',').map((item, index) => ({ uid: index, url: item, status: 'done' })),   // 产品图片已上传的列表
+            fileListDetail: record.detailImg ? [{uid: -1, url: record.detailImg, status: 'done'}] : [], // 详细图片已上传的列表
         });
     }
 
@@ -287,16 +288,27 @@ class Category extends React.Component {
     onTablePageChange(page, pageSize) {
         this.onGetData(page, pageSize);
     }
+    // 真正从服务端删除商品的图片
+    deleteImg(uri) {
+        const temp = uri.split('/');
+        const fileName = temp.splice(-1,1);
+        const params = {
+            path: temp.join('/'),
+            fileName,
+        };
+        console.log('删除后的是啥？', temp.join('/'), fileName);
+        this.props.actions.deleteImage(params);
+    }
 
     // 产品图片 - 上传中、上传成功、上传失败的回调
     onUpLoadChange(obj) {
         console.log('图片上传：', obj);
         if (obj.file.status === 'done') {
             // 上传成功后调用,将新的地址加进原list
-            if (obj.file.response.data) {
+            if (obj.file.response.imageUrl) {
                 const list = _.cloneDeep(this.state.fileList);
                 const t = list.find((item) => item.uid === obj.file.uid);
-                t.url = obj.file.response.data.imageUrl;
+                t.url = obj.file.response.imageUrl;
                 this.setState({
                     fileList: list,
                     fileLoading: false,
@@ -342,6 +354,7 @@ class Category extends React.Component {
     // 产品图片 - 删除一个图片
     onUpLoadRemove(f) {
         console.log('删除；', f);
+        this.deleteImg(f.url);
         const list = _.cloneDeep(this.state.fileList);
         this.setState({
             fileList: list.filter((item) => item.uid !== f.uid),
@@ -367,10 +380,10 @@ class Category extends React.Component {
     onUpLoadDetailChange(obj) {
         if (obj.file.status === 'done') {
             // 上传成功后调用,将新的地址加进原list
-            if (obj.file.response.data) {
+            if (obj.file.response.imageUrl) {
                 const list = _.cloneDeep(this.state.fileListDetail);
                 const t = list.find((item) => item.uid === obj.file.uid);
-                t.url = obj.file.response.data.imageUrl;
+                t.url = obj.file.response.imageUrl;
                 this.setState({
                     fileListDetail: list,
                     fileDetailLoading: false,
@@ -411,78 +424,80 @@ class Category extends React.Component {
                 title: '序号',
                 dataIndex: 'serial',
                 key: 'serial',
-                fixed: 'left',
                 width: 50,
             },
             {
                 title: '产品名称',
                 dataIndex: 'name',
                 key: 'name',
-                width: 200,
             },
             {
                 title: '产品型号',
                 dataIndex: 'typeCode',
                 key: 'typeCode',
-                width: 200,
             },
             {
                 title: '产品类型',
                 dataIndex: 'typeId',
                 key: 'typeId',
-                width: 200,
                 render: (text) => this.findProductNameById(text),
             },
             {
                 title: '销售方式',
                 dataIndex: 'saleMode',
                 key: 'saleMode',
-                width: 200,
                 render: (text) => this.getNameBySaleModeName(text),
             },
             {
                 title: '单价',
                 dataIndex: 'price',
                 key: 'price',
-                width: 200,
             },
             {
                 title: '市场价',
                 dataIndex: 'marketPrice',
                 key: 'marketPrice',
-                width: 200,
             },
             {
                 title: '产品图片',
                 dataIndex: 'productImg',
                 key: 'productImg',
                 width: 300,
+                render: (text) => {
+                    if (text) {
+                        return text.split(',').map((item, index) => <img className="table-img" key={index} src={item} />);
+                    }
+                    return '';
+                }
             },
             {
                 title: '详情图片',
                 dataIndex: 'detailImg',
                 key: 'detailImg',
-                width: 300,
+                width: 200,
+                render: (text) => {
+                    if (text) {
+                        return <img className="table-img" src={text} />;
+                    }
+                    return '';
+                }
             },
             {
                 title: '库存',
                 dataIndex: 'amount',
                 key: 'amount',
-                width: 200,
             },
             {
                 title: '是否上架',
                 dataIndex: 'onShelf',
                 key: 'onShelf',
-                width: 100,
                 render: (text) => text ? <span style={{color: 'green'}}>是</span> :
                     <span style={{color: 'red'}}>否</span>
             },
             {
                 title: '操作',
                 key: 'control',
-                width: 150,
-                fixed: 'right',
+                width: 120,
                 render: (text, record) => {
                     const controls = [];
 
@@ -589,8 +604,8 @@ class Category extends React.Component {
               <div className="system-table" >
                 <Table
                     columns={this.makeColumns()}
+                    className="my-table"
                     dataSource={this.makeData(this.state.data)}
-                    scroll={{ x: 2300 }}
                     pagination={{
                         total: this.state.total,
                         current: this.state.pageNum,
@@ -841,13 +856,15 @@ class Category extends React.Component {
                         label="产品图片"
                         {...formItemLayout}
                     >
-                        {!!this.state.nowData ? this.state.nowData.productImg : ''}
+                        {(!!this.state.nowData && this.state.nowData.productImg) ? this.state.nowData.productImg.split(',').map((item, index) => {
+                            return <img className="small-img" src={item} key={index} />
+                        }): ''}
                     </FormItem>
                     <FormItem
                         label="详情图片"
                         {...formItemLayout}
                     >
-                        {!!this.state.nowData ? this.state.nowData.detailImg : ''}
+                        {(!!this.state.nowData && this.state.nowData.detailImg) ? <img src={this.state.nowData.detailImg} /> : ''}
                     </FormItem>
                     <FormItem
                         label="库存"
@@ -887,6 +904,6 @@ export default connect(
 
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findProductByWhere, findProductTypeByWhere, addProduct, updateProduct, deleteProduct }, dispatch),
+        actions: bindActionCreators({ findProductByWhere, findProductTypeByWhere, addProduct, updateProduct, deleteProduct, deleteImage }, dispatch),
     })
 )(WrappedHorizontalRole);
