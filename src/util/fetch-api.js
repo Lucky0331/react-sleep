@@ -25,7 +25,7 @@ export default class ApiService {
             data: JSON.stringify(bodyObj),
             type: 'json',
         }).then((res) => {
-            if(res.returnCode == '1'){
+            if(res.returnMessaage.indexOf('权限')>=0){
                 sessionStorage.clear();
                 message.error(res.returnMessaage);
                 setTimeout(() => {location.href = '/';}, 1000);
@@ -41,7 +41,7 @@ export default class ApiService {
             withCredentials: true,
             data: bodyObj,
         }).then((res) => {
-            if(res.returnCode == '1'){
+            if(res.returnMessaage.indexOf('权限')>=0){
                 sessionStorage.clear();
                 message.error(res.returnMessaage);
                 setTimeout(() => {location.href = '/';}, 1000);

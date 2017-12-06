@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import createHistory from 'history/createHashHistory';
 import './index.scss';
-import { Button, Icon } from 'antd';
+import { Button, Icon, Menu } from 'antd';
 import { saveMenuSourceData } from '../../a_action/app-action';
 import Login from '../login';
 
@@ -17,18 +17,20 @@ import Device from '../device';
 import Health from '../health';
 import DataStat from '../datastat';
 import Operate from '../operate';
-import Physical from '../physical';
 import Log from '../log';
 import Cost from '../cost';
 import Open from '../open';
 import Activity from '../activity';
 import Shop from '../shop';
 
+import NewProduct from '../NewProduct';
+import NewPhysical from '../NewPhysical';
+
 import NotFound from '../notfound';
 
 import Header from '../../a_component/header';
 import Footer from '../../a_component/footer';
-import TheMenu from '../../a_component/menu/menu.js';
+import TheMenu from '../../a_component/menu/index.js';
 
 const history = createHistory();
 class RootContainer extends React.Component {
@@ -61,7 +63,7 @@ class RootContainer extends React.Component {
       if (['login'].indexOf(path) > -1) {
         width = '100%';
       } else if(this.state.collapsed) {
-        width = 'calc(100% - 64px)';
+        width = 'calc(100% - 80px)';
       } else {
         width = 'calc(100% - 256px)';
       }
@@ -96,18 +98,19 @@ class RootContainer extends React.Component {
                       <Redirect exact from='/' to='/home' />
                       <Route exact path="/login" component={Login} />
                       <Route path="/home" render={(props) => this.onEnter(Home, props)} />
-                      <Route path="/system" render={(props) => this.onEnter(System, props)} />
-                      <Route path="/shop" render={(props) => this.onEnter(Shop, props)} />
-                      <Route path="/device" render={(props) => this.onEnter(Device, props)} />
-                      <Route path="/user" render={(props) => this.onEnter(User, props)} />
-                      <Route path="/health" render={(props) => this.onEnter(Health, props)} />
-                      <Route path="/data" render={(props) => this.onEnter(DataStat, props)} />
-                      <Route path="/operate" render={(props) => this.onEnter(Operate, props)} />
-                      <Route path="/physical" render={(props) => this.onEnter(Physical, props)} />
-                      <Route path="/log" render={(props) => this.onEnter(Log, props)} />
-                      <Route path="/cost" render={(props) => this.onEnter(Cost, props)} />
-                      <Route path="/open" render={(props) => this.onEnter(Open, props)} />
-                      <Route path="/activity" render={(props) => this.onEnter(Activity, props)} />
+                      {/*<Route path="/system" render={(props) => this.onEnter(System, props)} />*/}
+                      {/*<Route path="/shop" render={(props) => this.onEnter(Shop, props)} />*/}
+                      {/*<Route path="/device" render={(props) => this.onEnter(Device, props)} />*/}
+                      {/*<Route path="/user" render={(props) => this.onEnter(User, props)} />*/}
+                      {/*<Route path="/health" render={(props) => this.onEnter(Health, props)} />*/}
+                      {/*<Route path="/data" render={(props) => this.onEnter(DataStat, props)} />*/}
+                      {/*<Route path="/operate" render={(props) => this.onEnter(Operate, props)} />*/}
+                      {/*<Route path="/log" render={(props) => this.onEnter(Log, props)} />*/}
+                      {/*<Route path="/cost" render={(props) => this.onEnter(Cost, props)} />*/}
+                      {/*<Route path="/open" render={(props) => this.onEnter(Open, props)} />*/}
+                      {/*<Route path="/activity" render={(props) => this.onEnter(Activity, props)} />*/}
+                      <Route path="/product" render={(props) => this.onEnter(NewProduct, props)} />
+                      <Route path="/physical" render={(props) => this.onEnter(NewPhysical, props)} />
                       <Route component={NotFound} />
                     </Switch>
                     <Footer key="footer"/>

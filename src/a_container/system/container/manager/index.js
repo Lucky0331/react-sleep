@@ -8,7 +8,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
-import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, InputNumber, Select, Tooltip } from 'antd';
+import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, InputNumber, Select, Tooltip, Divider  } from 'antd';
 import './index.scss';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
@@ -406,7 +406,7 @@ class Manager extends React.Component {
                     const result = [];
                     controls.forEach((item, index) => {
                         if (index) {
-                            result.push(<span key={`line${index}`} className="ant-divider" />,);
+                            result.push(<Divider key={`line${index}`} type="vertical" />,);
                         }
                         result.push(item);
                     });
@@ -519,7 +519,7 @@ class Manager extends React.Component {
         <UrlBread location={this.props.location}/>
         <div className="system-search">
             { Power.test(power.system.manager.add.code) && <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加用户</Button></li></ul>}
-          <span className="ant-divider" />
+            <Divider type="vertical" />
             { Power.test(power.system.manager.query.code) &&
                 <ul className="search-ul">
                     <li>

@@ -8,7 +8,7 @@ import { message } from 'antd';
 export function findProductTypeByWhere(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/findProductTypeByWhere', params
+            '/manager/productType/list', params
         ).then(
             msg => {
                 dispatch({
@@ -27,7 +27,7 @@ export function findProductTypeByWhere(params = {}) {
 export function addProductType(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/addProductType', params, 'post', true
+            '/manager/productType/save', params, 'post', true
         ).then(
             msg => {
                 dispatch({
@@ -46,7 +46,7 @@ export function addProductType(params = {}) {
 export function updateProductType(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/updateProductType', params, 'post', true
+            '/manager/productType/update', params, 'post', true
         ).then(
             msg => {
                 dispatch({
@@ -65,7 +65,7 @@ export function updateProductType(params = {}) {
 export function deleteProductType(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/deleteProductType', params, 'post', true
+            '/manager/productType/delete', params, 'post', true
         ).then(
             msg => {
                 dispatch({
@@ -80,17 +80,73 @@ export function deleteProductType(params = {}) {
     };
 }
 
+// 查询产品型号
+export function findProductModelByWhere(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/productModel/list', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 添加新产品型号
+export function addProductModel(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/productModel/save', params, 'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 修改产品型号
+export function upProductModel(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/productModel/update', params, 'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 删除产品型号
+export function delProductModel(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/productModel/delete', params, 'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
 // 查询产品列表
 export function findProductByWhere(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/findProductByWhere', params
+            '/manager/product/list', params
         ).then(
             msg => {
-                dispatch({
-                    type: 'SHOP::findProductByWhere',
-                    payload: msg,
-                });
                 return msg;
             }
         ).catch(() => {
@@ -103,7 +159,7 @@ export function findProductByWhere(params = {}) {
 export function addProduct(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/addProduct', params, 'post', true
+            '/manager/product/save', params, 'post', true
         ).then(
             msg => {
                 dispatch({
@@ -122,13 +178,9 @@ export function addProduct(params = {}) {
 export function updateProduct(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/updateProduct', params, 'post', true
+            '/manager/product/update', params, 'post', true
         ).then(
             msg => {
-                dispatch({
-                    type: 'SHOP::updateProduct',
-                    payload: msg,
-                });
                 return msg;
             }
         ).catch(() => {
@@ -141,13 +193,9 @@ export function updateProduct(params = {}) {
 export function deleteProduct(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/deleteProduct', params, 'post', true
+            '/manager/product/delete', params, 'post', true
         ).then(
             msg => {
-                dispatch({
-                    type: 'SHOP::deleteProduct',
-                    payload: msg,
-                });
                 return msg;
             }
         ).catch(() => {
@@ -160,7 +208,7 @@ export function deleteProduct(params = {}) {
 export function findOrderByWhere(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/findOrderByWhere', params
+            '/manager/order/list', params
         ).then(
             msg => {
                 dispatch({
@@ -179,7 +227,7 @@ export function findOrderByWhere(params = {}) {
 export function updateOrder(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/updateOrder', params
+            '/manager/order/update', params
         ).then(
             msg => {
                 dispatch({
@@ -195,11 +243,55 @@ export function updateOrder(params = {}) {
 }
 
 // 删除商品的图片
-
 export function deleteImage(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
             '/manager/deleteImage', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 条件查询体检列表
+export function findReserveList(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/reserve/list', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 添加预约体检
+export function addReserveList(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/reserve/save', params, 'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 修改预约体检
+export function upReserveList(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/reserve/update', params, 'post', true
         ).then(
             msg => {
                 return msg;
