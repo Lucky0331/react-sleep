@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
 import Config from '../../../../config/config';
-import { Form, Button, InputNumber, message, Switch, Radio, Select, TimePicker } from 'antd';
+import { Form, Button, InputNumber, message, Switch, Radio, Select, Spin } from 'antd';
 import './index.scss';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
@@ -36,10 +36,10 @@ class Category extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            loading: false, // 正在异步请求
             stationData: {},    // 服务站基本信息
             data: {}, // 设置信息
             times: '',  // 当前的拥有的时间段
-            loading: false, // 是否正在添加新用户中
             isOpen: true,   // 开启还是关闭
         };
     }
@@ -62,12 +62,16 @@ class Category extends React.Component {
 
     // 预约提前天数改变时触发
     onDayCountChange(e) {
+        this.startLoading();
         this.props.actions.physicalSetOpenOrClose({ id: this.state.stationData.id, dayCount: e}).then((res) => {
             if (res.returnCode === '0') {
                 this.onGetStationData();
             } else {
                 message.error(res.returnMessaage || '操作失败');
             }
+            this.endLoading();
+        }).catch(() => {
+            this.endLoading();
         });
     }
 
@@ -106,6 +110,10 @@ class Category extends React.Component {
             'reserveInterval',
             'count',
         ], (err, values) => {
+            if (values.startTime > values.endTime) {
+                message.error('开始时间不能大于结束时间');
+                return false;
+            }
             const params = {
                 id: this.state.data.id,
                 beginTime: values.startTime,
@@ -113,21 +121,35 @@ class Category extends React.Component {
                 count: values.count,
                 reserveInterval: values.reserveInterval,
             };
+            this.startLoading();
             this.props.actions.reserveSettingUpdate(params).then((res) => {
                 if (res.returnCode === '0') {
+                    this.onGetData();
                     message.success('保存成功');
                 } else {
                     message.error('保存失败');
                 }
+                this.endLoading();
+            }).catch(() => {
+                this.endLoading();
             });
         });
-
-
     }
 
+    startLoading(){
+        this.setState({
+            loading: true,
+        });
+    }
+    endLoading(){
+        this.setState({
+            loading: false,
+        });
+    }
     // 保存开启和关闭
     setOpenOrClose(bool) {
         console.log('是啥：', bool);
+        this.startLoading();
         this.props.actions.physicalSetOpenOrClose({ id: this.state.stationData.id, state: bool ? 0 : -1 }).then((res) => {
             if (res.returnCode === '0') {
                 this.onGetStationData();
@@ -135,6 +157,9 @@ class Category extends React.Component {
             } else {
                 message.error(res.returnMessaage || '操作失败');
             }
+            this.endLoading();
+        }).catch(() => {
+            this.endLoading();
         });
     }
 
@@ -156,7 +181,8 @@ class Category extends React.Component {
         const endTime = getFieldValue('endTime');
         return (
             <div style={{ width: '100%' }}>
-                <div style={{ padding: '20px', maxWidth: '800px' }}>
+                <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+                    <Spin spinning={this.state.loading}>
                 <Form>
                     <FormItem
                         label="设置预约是否开启："
@@ -173,6 +199,7 @@ class Category extends React.Component {
                         <InputNumber
                             min={1}
                             max={99}
+                            style={{ width: '200px' }}
                             placeholder="请输入最大提前预约天数"
                             value={this.state.stationData.dayCount}
                             onChange={(e) => this.onDayCountChange(e)}
@@ -197,7 +224,7 @@ class Category extends React.Component {
                             <Select style={{ width: '200px' }}>
                                 {(() => {
                                     const map = [];
-                                    for(let i=0; i<24; i++) {
+                                    for(let i=0; i<25; i++) {
                                         map.push(<Option key={i} value={i}>{`${String(i).padStart(2, '0')}:00`}</Option>);
                                     }
                                     return map;
@@ -218,7 +245,7 @@ class Category extends React.Component {
                             <Select style={{ width: '200px' }}>
                                 {(() => {
                                     const map = [];
-                                    for(let i=0; i<24; i++) {
+                                    for(let i=0; i<25; i++) {
                                         map.push(<Option key={i} value={i}>{`${String(i).padStart(2, '0')}:00`}</Option>);
                                     }
                                     return map;
@@ -236,7 +263,7 @@ class Category extends React.Component {
                                 {required: true, message: '请填写时间间隔'},
                             ],
                         })(
-                            <InputNumber min={0} max={Math.abs(endTime - startTime) || 24} precision={0} style={{ width: '200px' }}/>
+                            <InputNumber min={1} max={24} precision={0} style={{ width: '200px' }}/>
                         )}
                     </FormItem>
                     <FormItem
@@ -253,6 +280,12 @@ class Category extends React.Component {
                         )}
                     </FormItem>
                     <FormItem
+                        label="您设置的可预约时间为"
+                        {...formItemLayout}
+                    >
+                        <span>{this.state.times}</span>
+                    </FormItem>
+                    <FormItem
                         label=" "
                         colon={false}
                         {...formItemLayout}
@@ -260,6 +293,7 @@ class Category extends React.Component {
                         <Button type="primary" style={{ width: '200px' }} onClick={() => this.onSubmit()}>保存</Button>
                     </FormItem>
                 </Form>
+                    </Spin>
                 </div>
             </div>
         );
