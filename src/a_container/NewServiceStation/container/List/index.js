@@ -1,4 +1,4 @@
-/* List 体检管理/体检列表 */
+/* List 服务站/产品上线/体检上线 */
 
 // ==================
 // 所需的各种插件
@@ -297,37 +297,37 @@ class Category extends React.Component {
                 width: 80,
             },
             {
-                title: '服务站名称',
+                title: '服务站地区',
                 dataIndex: 'stationName',
                 key: 'stationName',
                 width: 200,
             },
             {
-                title: '体检卡号',
+                title: '服务站名称',
                 dataIndex: 'code',
                 key: 'code',
                 width: 200,
             },
             {
-                title: '体检人',
+                title: '联系方式',
                 dataIndex: 'name',
                 key: 'name',
                 width: 100,
             },
             {
-                title: '身份证',
+                title: '体检仪ID',
                 dataIndex: 'idCard',
                 key: 'idCard',
                 width: 200,
             },
             {
-                title: '手机号',
+                title: '体检仪型号',
                 dataIndex: 'mobile',
                 key: 'mobile',
                 width: 200,
             },
             {
-                title: '性别',
+                title: '上线时间',
                 dataIndex: 'sex',
                 key: 'sex',
                 width: 100,
@@ -469,11 +469,10 @@ class Category extends React.Component {
         return (
             <div style={{ width: '100%' }}>
               <div className="system-search">
-                <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />新增体检人</Button></li></ul>
+                <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />体检上线</Button></li></ul>
                   <Divider type="vertical" />
                   <ul className="search-ul">
-                      <li><Input placeholder="手机号" onChange={(e) => this.searchMobileChange(e)} value={this.state.searchMobile}/></li>
-                      <li><Input placeholder="体检号" onChange={(e) => this.searchCodeChange(e)} value={this.state.searchCode}/></li>
+                      <li><Input placeholder="服务站" onChange={(e) => this.searchMobileChange(e)} value={this.state.searchMobile}/></li>
                       <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
                   </ul>
               </div>

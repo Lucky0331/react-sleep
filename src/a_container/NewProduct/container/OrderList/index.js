@@ -8,7 +8,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
-import { Form, Button, Icon, Input, Table, message, Modal, Tooltip, InputNumber, Select  } from 'antd';
+import { Form, Button, Icon, Input, Table, message, Modal, Tooltip, InputNumber, Select, Divider  } from 'antd';
 import './index.scss';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
@@ -272,7 +272,7 @@ class Category extends React.Component {
                     const result = [];
                     controls.forEach((item, index) => {
                         if (index) {
-                            result.push(<span key={`line${index}`} className="ant-divider" />,);
+                            result.push(<Divider key={`line${index}`} type="vertical" />);
                         }
                         result.push(item);
                     });

@@ -425,7 +425,7 @@ export function findMenuByMainMenu(params = {}) {
 export function findAllOrganizer() {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/organization/list', {pageNum: 1, pageSize: 9999}
+            '/manager/dictionary/listByDicType', {pageNum: 1, pageSize: 9999, dicType: 'orgType'}
         ).then(
             msg => {
                 if(msg.returnCode === '0') {
@@ -502,4 +502,174 @@ export function deleteOrganizer(params = {}) {
     };
 }
 
+// 查询所有省
+export function findAllProvince(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/area/findAllProvince', params, 'post', true
+        ).then(
+            msg => {
+                if(msg.returnCode === '0') {
+                    dispatch({
+                        type: 'SYS::findAllProvince',
+                        payload: msg.messsageBody,
+                    });
+                }
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
 
+// 查询所有市区
+export function findCityOrCounty(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/area/findCityOrCounty', params,
+        ).then(
+            msg => {
+
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 查询服务站列表
+export function queryStationList(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/station/list', params,
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 添加服务站
+export function addStationList(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/station/save', params, 'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 修改服务站
+export function upStationList(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/station/update', params, 'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 删除服务站
+export function delStationList(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/station/delete', params, 'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 通过省市区查找服务站
+export function findStationByArea(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/station/listByKeys', params,
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 体检预约开启和关闭
+export function physicalSetOpenOrClose(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/station/update', params,'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 查询体检预约设置的相关信息
+export function reserveSettingList(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/reserveSetting/list', params,
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 获取当前登录帐号所属服务站信息
+export function finStationByLogin(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/station/findStation', params, 'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 获取当前登录帐号所属服务站信息
+export function reserveSettingUpdate(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/reserveSetting/update', params, 'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}

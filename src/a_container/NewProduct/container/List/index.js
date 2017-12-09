@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
 import Config from '../../../../config/config';
-import { Form, Button, Icon, Input, InputNumber, Table, message, Popconfirm, Popover, Modal, Radio, Tooltip, Select, Upload } from 'antd';
+import { Form, Button, Icon, Input, InputNumber, Table, message, Popconfirm, Popover, Modal, Radio, Tooltip, Select, Upload, Divider } from 'antd';
 import './index.scss';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
@@ -500,7 +500,7 @@ class Category extends React.Component {
                     const result = [];
                     controls.forEach((item, index) => {
                         if (index) {
-                            result.push(<span key={`line${index}`} className="ant-divider" />,);
+                            result.push(<Divider key={index} type="vertical" />);
                         }
                         result.push(item);
                     });
@@ -562,7 +562,7 @@ class Category extends React.Component {
             <div style={{ width: '100%' }}>
               <div className="system-search">
                 <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加新产品</Button></li></ul>
-                <span className="ant-divider" />
+                  <Divider type="vertical" />
                   <ul className="search-ul">
                       <li><Input placeholder="产品名称" onChange={(e) => this.searchNameChange(e)} value={this.state.searchName}/></li>
                       <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>

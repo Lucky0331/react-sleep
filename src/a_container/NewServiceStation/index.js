@@ -1,4 +1,4 @@
-/* 体检管理模块下面的 */
+/* 服务站模块下面的 */
 
 // ==================
 // 所需的各种插件
@@ -16,8 +16,7 @@ import './index.scss';
 // ==================
 
 import List from './container/List';
-import Set from './container/Set';
-import PhyStatistics from './container/PhyStatistics';
+import Station from './container/Station';
 
 // ==================
 // 本页面所需action
@@ -49,8 +48,7 @@ class TheContainer extends React.Component {
                 <Switch>
                     <Redirect exact from={`${this.props.match.path}`} to={`${this.props.match.path}/list`} />
                     <Route exact path={`${this.props.match.path}/list`} component={List} />
-                    <Route exact path={`${this.props.match.path}/set`} component={Set} />
-                    <Route exact path={`${this.props.match.path}/phys`} component={PhyStatistics} />
+                    <Route exact path={`${this.props.match.path}/station`} component={Station} />
 
                 </Switch>
             </div>

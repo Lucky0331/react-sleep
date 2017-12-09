@@ -17,7 +17,6 @@ import { power } from '../../../../util/data';
 // 所需的所有组件
 // ==================
 
-import UrlBread from '../../../../a_component/urlBread';
 import TreeTable from '../../../../a_component/menuTree/treeTable';
 
 
@@ -341,28 +340,28 @@ class Role extends React.Component {
                 render: (text, record) => {
                     const controls = [];
 
-                    Power.test(power.system.role.query.code) && controls.push(
+                    controls.push(
                         <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
                             <Tooltip placement="top" title="查看">
                                 <Icon type="eye" />
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.role.update.code) && controls.push(
+                    controls.push(
                         <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
                             <Tooltip placement="top" title="修改">
                                 <Icon type="edit" />
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.role.power.code) && controls.push(
+                    controls.push(
                         <span key="2" className="control-btn blue" onClick={() => this.onMenuClick(record)} >
                             <Tooltip placement="top" title="分配权限">
                                 <Icon type="tool" />
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.role.del.code) && controls.push(
+                    controls.push(
                         <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
                             <span className="control-btn red">
                                 <Tooltip placement="top" title="删除">
@@ -419,17 +418,13 @@ class Role extends React.Component {
 
         return (
             <div>
-              <UrlBread location={this.props.location}/>
               <div className="system-search">
-                  { Power.test(power.system.role.add.code) && <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加角色</Button></li></ul>}
+                  <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加角色</Button></li></ul>
                 <span className="ant-divider" />
-                  { Power.test(power.system.role.query.code) &&
                   <ul className="search-ul">
                       <li><Input placeholder="请输入角色名" onChange={(e) => this.searchRoleNameChange(e)} value={this.state.searchRoleName}/></li>
                       <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
                   </ul>
-                  }
-
               </div>
               <div className="system-table">
                 <Table

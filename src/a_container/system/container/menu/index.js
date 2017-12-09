@@ -18,7 +18,6 @@ import { power } from '../../../../util/data';
 // 所需的所有组件
 // ==================
 
-import UrlBread from '../../../../a_component/urlBread';
 import MenuTree from '../../../../a_component/menuTree';
 
 // ==================
@@ -83,13 +82,15 @@ class Menu extends React.Component {
       const params = {
           menuId: id,
       };
-        Power.test(power.system.menu.query.code) && this.props.actions.findMenuByMainMenu(params).then((res) => {
+        this.props.actions.findMenuByMainMenu(params).then((res) => {
           if (res.returnCode === '0') {
               this.setState({
                   data: res.messsageBody,
               });
           } else {
-              message.error(res.returnMessaage || '获取数据失败');
+              this.setState({
+                  data: [],
+              });
           }
       });
     }
@@ -410,21 +411,21 @@ class Menu extends React.Component {
                 render: (text, record) => {
                     let controls = [];
 
-                    Power.test(power.system.menu.query.code) && controls.push(
+                    controls.push(
                         <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
                             <Tooltip placement="top" title="查看">
                                 <Icon type="eye" />
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.menu.update.code) && controls.push(
+                    controls.push(
                         <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
                             <Tooltip placement="top" title="修改">
                                 <Icon type="edit" />
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.menu.del.code) && controls.push(
+                    controls.push(
                         <Popconfirm key="2" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
                             <span className="control-btn red">
                                 <Tooltip placement="top" title="删除">
@@ -483,7 +484,6 @@ class Menu extends React.Component {
 
     return (
       <div className="page-menu">
-        <UrlBread location={this.props.location}/>
         <div className="menubox all_clear">
           <div className="l">
               <div className="title">
@@ -502,11 +502,9 @@ class Menu extends React.Component {
           </div>
           <div className="r system-table">
               <div className="menu-search">
-                  { Power.test(power.system.menu.add.code) &&
-                      <ul className="search-func">
-                          <li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加菜单</Button></li>
-                      </ul>
-                  }
+                  <ul className="search-func">
+                      <li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加菜单</Button></li>
+                  </ul>
               </div>
               <Table
                   columns={this.makeColumns()}
@@ -813,30 +811,3 @@ export default connect(
     actions: bindActionCreators({ findAllMenu, addMenuInfo, deleteMenuInfo, updateMenuInfo, findMenusByKeys, findMenuByMainMenu }, dispatch),
   })
 )(WrappedHorizontalMenu);
-
-{/*<span className="ant-divider" />*/}
-{/*{ Power.test(power.system.menu.query.code) &&*/}
-{/*<ul className="search-ul">*/}
-    {/*<li>*/}
-        {/*<Input*/}
-            {/*placeholder="菜单名"*/}
-            {/*onChange={(e) => this.searchMenuNameChange(e)}*/}
-            {/*value={this.state.searchMenuName}*/}
-            {/*onPressEnter={() => this.onSearch()}*/}
-        {/*/>*/}
-    {/*</li>*/}
-    {/*<li>*/}
-        {/*<Select*/}
-            {/*style={{ width: '150px' }}*/}
-            {/*placeholder="菜单状态"*/}
-            {/*allowClear*/}
-            {/*onChange={(e) => this.searchConditionsChange(e)}*/}
-            {/*value={this.state.searchConditions}*/}
-        {/*>*/}
-            {/*<Option value="0">启用</Option>*/}
-            {/*<Option value="-1">禁用</Option>*/}
-        {/*</Select>*/}
-    {/*</li>*/}
-    {/*<li><Button icon="search" type="primary" onClick={() => this.getData()}>搜索</Button></li>*/}
-{/*</ul>*/}
-{/*}*/}

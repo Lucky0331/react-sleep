@@ -18,7 +18,6 @@ import { power } from '../../../../util/data';
 // 所需的所有组件
 // ==================
 
-import UrlBread from '../../../../a_component/urlBread';
 
 // ==================
 // 本页面所需action
@@ -82,13 +81,15 @@ class Role extends React.Component {
         const params = {
             menuId: id,
         };
-        Power.test(power.system.jurisdiction.query.code) && this.props.actions.findButtonsByMenuId(params).then((res) => {
+        this.props.actions.findButtonsByMenuId(params).then((res) => {
             if (res.returnCode === '0') {
                 this.setState({
                     data: res.messsageBody,
                 });
             } else {
-                message.error(res.returnMessaage || '获取数据失败');
+                this.setState({
+                    data: [],
+                });
             }
         });
     }
@@ -366,21 +367,21 @@ class Role extends React.Component {
                 render: (text, record) => {
                     let controls = [];
 
-                    Power.test(power.system.jurisdiction.query.code) && controls.push(
+                    controls.push(
                         <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
                             <Tooltip placement="top" title="查看">
                                 <Icon type="eye" />
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.jurisdiction.update.code) && controls.push(
+                    controls.push(
                         <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
                             <Tooltip placement="top" title="修改">
                                 <Icon type="edit" />
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.jurisdiction.del.code) && controls.push(
+                    controls.push(
                         <Popconfirm key="2" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
                             <span className="control-btn red">
                                 <Tooltip placement="top" title="删除">
@@ -438,7 +439,6 @@ class Role extends React.Component {
 
         return (
             <div className="page-jurisdiction">
-                <UrlBread location={this.props.location}/>
                 <div className="menubox all_clear">
                     <div className="l">
                         <div className="title">
@@ -457,11 +457,9 @@ class Role extends React.Component {
                     </div>
                     <div className="r system-table">
                         <div className="menu-search">
-                            { Power.test(power.system.jurisdiction.add.code) &&
-                                <ul className="search-func">
-                                    <li className={this.state.nowData && 'show'}><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加权限</Button></li>
-                                </ul>
-                            }
+                            <ul className="search-func">
+                                <li className={this.state.nowData && 'show'}><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加权限</Button></li>
+                            </ul>
                         </div>
                         <Table
                             columns={this.makeColumns()}

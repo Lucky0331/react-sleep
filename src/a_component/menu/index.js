@@ -11,55 +11,47 @@ class Menus extends React.Component {
         super(props);
         this.state = {
             sourceData:[], // 层级结构的原始数据
-            sessionData: null, // sessionStorage中保存的Menu数据
             treeDom: [],   // 生成的菜单结构
             show: false, // 是否显示
             chosedKey: [], // 当前选中
-            openKeys: [], //
         };
     }
 
-    // 处理当前是否显示，和当前选中哪一个菜单
+    // 处理当前是否显示菜单
     static _initShow(location) {
         const path = location.pathname.split('/')[1];
-        console.log('触发：', !(['login'].indexOf(path) > -1), path);
         return !(['login'].indexOf(path) > -1);
+    }
+
+    // 处理当前选中 Menu的key跟location.pathname一致
+    initChosed(location) {
+        this.setState({
+            chosedKey: [location.pathname],
+        });
     }
 
     // 组件初始化完毕时触发
     componentDidMount() {
-        const data = JSON.parse(sessionStorage.getItem('adminMenu'));
-        console.log('得到的是什么：', data);
+        this.initChosed(this.props.location);
         this.setState({
             show: Menus._initShow(this.props.location),
-            sessionData: data,
         });
-    }
-
-    componentWillUpdate(nextP, nextS) {
     }
 
     componentWillReceiveProps(nextP) {
         if (nextP.location !== this.props.location) {
+            this.initChosed(nextP.location);
             this.setState({
                 show: Menus._initShow(nextP.location),
             });
         }
     }
 
-    // 处理当前选中
-    initChosed(location) {
-        const paths = location.pathname.split('/').filter((item) => !!item);
+    // 选中时触发
+    onMenuSelect(e) {
+        console.log('选中：', e);
         this.setState({
-            chosedKey: [location.pathname], // [paths[paths.length - 1]],
-            openKeys: paths
-        });
-    }
-
-    // 展开/关闭 时触发
-    onOpenChange(keys) {
-        this.setState({
-            openKeys: keys,
+            chosedKey: e.selectedKeys,
         });
     }
 
@@ -72,36 +64,39 @@ class Menus extends React.Component {
                     mode="inline"
                     className={this.props.collapsed ? 'the-menu' : 'the-menu open'}
                     inlineCollapsed={this.props.collapsed}
+                    selectedKeys={this.state.chosedKey}
+
+                    onSelect={(e) => this.onMenuSelect(e)}
                 >
+                    <SubMenu key="sub0" title={<span>系统管理</span>}>
+                        <Menu.Item key="/system/manager"><Link to="/system/manager">管理员信息管理</Link></Menu.Item>
+                        <Menu.Item key="/system/role"><Link to="/system/role">角色管理</Link></Menu.Item>
+                        <Menu.Item key="/system/menu"><Link to="/system/menu">菜单管理</Link></Menu.Item>
+                        <Menu.Item key="/system/jurisdiction"><Link to="/system/jurisdiction">权限管理</Link></Menu.Item>
+                        {/*<Menu.Item key="sub0-5"><Link to="/system/organization">组织机构管理</Link></Menu.Item>*/}
+                    </SubMenu>
                     <SubMenu key="sub1" title={<span>产品管理</span>}>
                             <SubMenu key="sub1-1" title={<span>产品列表</span>}>
-                                {/*<Menu.Item key="sub1-1-1">智能净水</Menu.Item>*/}
-                                {/*<Menu.Item key="sub1-1-2">健康食品</Menu.Item>*/}
-                                {/*<Menu.Item key="sub1-1-3">生物理疗</Menu.Item>*/}
-                                {/*<Menu.Item key="sub1-1-4">健康睡眠</Menu.Item>*/}
-                                <Menu.Item key="sub1-1-5"><Link to="/product/list">健康体检</Link></Menu.Item>
+                                <Menu.Item key="/product/list"><Link to="/product/list">健康体检</Link></Menu.Item>
                             </SubMenu>
-                            <Menu.Item key="sub1-2"><Link to="/product/type">产品类型</Link></Menu.Item>
-                            <Menu.Item key="sub1-3"><Link to="/product/model">产品型号</Link></Menu.Item>
+                            <Menu.Item key="/product/type"><Link to="/product/type">产品类型</Link></Menu.Item>
+                            <Menu.Item key="/product/model"><Link to="/product/model">产品型号</Link></Menu.Item>
                     </SubMenu>
                     <SubMenu key="sub2" title={<span>订单管理</span>}>
                         <SubMenu key="sub2-1" title="订单列表">
-                            {/*<Menu.Item key="sub2-1-1">智能净水</Menu.Item>*/}
-                            {/*<Menu.Item key="sub2-1-2">健康食品</Menu.Item>*/}
-                            {/*<Menu.Item key="sub2-1-3">生物理疗</Menu.Item>*/}
-                            {/*<Menu.Item key="sub2-1-4">健康睡眠</Menu.Item>*/}
-                            <Menu.Item key="sub2-1-5"><Link to="/product/orderlist">健康体检</Link></Menu.Item>
+                            <Menu.Item key="/product/orderlist"><Link to="/product/orderlist">健康体检</Link></Menu.Item>
                         </SubMenu>
                     </SubMenu>
                     <SubMenu key="sub3" title={<span>服务站</span>}>
+                        <Menu.Item key="/service/station"><Link to="/service/station">服务站管理</Link></Menu.Item>
                         <SubMenu key="sub3-1" title="产品上线">
-                            <Menu.Item key="sub3-1-1">体检上线</Menu.Item>
+                            <Menu.Item key="/service/list"><Link to="/service/list">体检上线</Link></Menu.Item>
                         </SubMenu>
                     </SubMenu>
                     <SubMenu key="sub4" title={<span>体检管理</span>}>
-                        <Menu.Item key="sub4-1"><Link to="/physical/list">体检列表</Link></Menu.Item>
-                        <Menu.Item key="sub4-1-2">预约设置</Menu.Item>
-                        <Menu.Item key="sub4-1-3">体检统计</Menu.Item>
+                        <Menu.Item key="/physical/list"><Link to="/physical/list">体检列表</Link></Menu.Item>
+                        <Menu.Item key="/physical/set"><Link to="/physical/set">预约设置</Link></Menu.Item>
+                        <Menu.Item key="/physical/phys"><Link to="/physical/phys">体检统计</Link></Menu.Item>
                         <Menu.Item key="sub4-1-4">服务站统计</Menu.Item>
                     </SubMenu>
                     <SubMenu key="sub5" title={<span>资金管理</span>}>

@@ -102,7 +102,7 @@ class TreeTable extends React.Component {
             title: '菜单',
             dataIndex: 'menuName',
             key: 'menuName',
-            width: '25%',
+            width: '30%',
         }, {
             title: '权限',
             dataIndex: 'btnDtoList',
@@ -197,7 +197,7 @@ class TreeTable extends React.Component {
             <Modal
                 className="menu-tree-table"
                 zIndex={1001}
-                width={680}
+                width={750}
                 title={this.props.title || '菜单选择'}
                 visible={this.props.modalShow}
                 onOk={() => this.onOk()}

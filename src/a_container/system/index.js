@@ -9,7 +9,6 @@ import { connect } from 'react-redux';
 import { Link, BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
-import { Menu } from 'antd';
 import './index.scss';
 
 // ==================
@@ -20,7 +19,6 @@ import Manager from './container/manager';
 import Organization from './container/organization';
 import Role from './container/role';
 import Jurisdiction from './container/jurisdiction';
-import Version from './container/version';
 import Menus from './container/menu';
 import NotFound from '../../a_container/notfound';
 // ==================
@@ -32,7 +30,7 @@ import { saveURL } from '../../a_action/app-action';
 // ==================
 // Definition
 // ==================
-const MenuItem = Menu.Item;
+
 class SystemContainer extends React.Component {
   constructor(props) {
     super(props);
@@ -70,7 +68,6 @@ class SystemContainer extends React.Component {
               <Route exact path={`/${this.state.baseURL}/role`} component={Role} />
               <Route exact path={`/${this.state.baseURL}/jurisdiction`} component={Jurisdiction} />
               <Route exact path={`/${this.state.baseURL}/menu`} component={Menus} />
-              <Route exact path={`/${this.state.baseURL}/version`} component={Version} />
               <Route exact path={`/${this.state.baseURL}/organization`} component={Organization} />
               <Route component={NotFound} />
           </Switch>

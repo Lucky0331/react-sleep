@@ -35,7 +35,7 @@ class Category extends React.Component {
         super(props);
         this.state = {
             data: [], // 当前页面全部数据
-            searchproductName: '', // 搜索 - 类型名
+            searchproductName: undefined, // 搜索 - 类型名
             addnewModalShow: false, // 添加模态框是否显示
             addnewLoading: false, // 是否正在添加中
             nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单

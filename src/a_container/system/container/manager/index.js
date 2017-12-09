@@ -8,7 +8,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
-import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, InputNumber, Select, Tooltip, Divider  } from 'antd';
+
 import './index.scss';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
@@ -17,14 +17,14 @@ import { power } from '../../../../util/data';
 // 所需的所有组件
 // ==================
 
-import UrlBread from '../../../../a_component/urlBread';
+import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, InputNumber, Select, Tooltip, Divider, Cascader  } from 'antd';
 import RoleTree from '../../../../a_component/roleTree';    // 角色树 用于选角色
-import OrTree from '../../../../a_component/menuTree/organizationTree'; // 组织部门树 用于选部门编号
+
 // ==================
 // 本页面所需action
 // ==================
 
-import { findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole, findAllOrganizer } from '../../../../a_action/sys-action';
+import { findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole, findAllOrganizer, findAllProvince, findCityOrCounty, findStationByArea } from '../../../../a_action/sys-action';
 
 // ==================
 // Definition
@@ -48,20 +48,42 @@ class Manager extends React.Component {
       upModalShow: false, // 修改用户模态框是否显示
       upLoading: false, // 是否正在修改用户中
       roleTreeShow: false, // 角色树是否显示
-        orTreeShow: false, // 部门树是否显示
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
+      citys: [],    // 所有的省
+      stations: [],   // 当前区域对应的服务站
+
     };
   }
 
   componentDidMount() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
-      if (!this.props.allOrganizer || this.props.allOrganizer.length <= 0) {
-          this.getAllOrganizer();
+      // 现在组织结构写死的，暂时不用，但接口保留
+      // if((!this.props.allOrganizer) || (!this.props.allOrganizer.length)) {
+      //     this.getAllOrganizer();
+      // }
+      if (!this.props.citys.length) { // 获取所有省，全局缓存
+          this.getAllCity0();
+      } else {
+          this.setState({
+              citys: this.props.citys.map((item, index) => ({ id: item.id, value: item.areaName, label: item.areaName, isLeaf: false})),
+          });
       }
+    this.onGetData(this.state.pageNum, this.state.pageSize);
   }
 
+    componentWillReceiveProps(nextP) {
+        if(nextP.citys !== this.props.citys) {
+            this.setState({
+                citys: nextP.citys.map((item, index) => ({ id: item.id, value: item.areaName, label: item.areaName, isLeaf: false})),
+            });
+        }
+    }
+
+    // 获取所有的省
+    getAllCity0() {
+        this.props.actions.findAllProvince();
+    }
   // 查询所有组织机构
     getAllOrganizer() {
         this.props.actions.findAllOrganizer();
@@ -76,7 +98,7 @@ class Manager extends React.Component {
             pageSize,
         };
 
-        Power.test(power.system.manager.query.code) && this.props.actions.findAdminUserByKeys(tools.clearNull(params)).then((res) => {
+        this.props.actions.findAdminUserByKeys(tools.clearNull(params)).then((res) => {
             if(res.returnCode === "0") {
                 this.setState({
                     data: res.messsageBody.result,
@@ -120,11 +142,13 @@ class Manager extends React.Component {
             upEmail: record.email || undefined,
             upDescription: record.description || undefined,
             upConditions: record.conditions || "0",
+            upOrgCode: record.orgCode || undefined,
+            upServiceStation: undefined,
+            upCascader: undefined,
         });
         me.setState({
             nowData: record,
             upModalShow: true,
-            orgCodeValue: record.orgCode ? { id: Number(record.orgCode), key: record.orgCode, title: this.getNameForId(record.orgCode) } : null,
         });
     }
 
@@ -133,22 +157,31 @@ class Manager extends React.Component {
       console.log('NOWDATA:', this.state.nowData);
       const me = this;
       const { form } = me.props;
-        form.validateFields([
-            'upUsername',
-            'upPassword',
-            'upSex',
-            'upAge',
-            'upPhone',
-            'upEmail',
-            'upDescription',
-            'upConditions',
-        ], (err, values) => {
+      const isStation = form.getFieldValue('upOrgCode') === 18;   // 是否是服务站
+      const check = [
+          'upUsername',
+          'upPassword',
+          'upSex',
+          'upAge',
+          'upPhone',
+          'upEmail',
+          'upDescription',
+          'upConditions',
+          'upOrgCode',
+      ];
+      // 如果是服务站，并且原数据服务站信息为null,则必须当前选择一个服务站
+        if(isStation && !String(this.state.nowData.stationId)){
+            check.push('upServiceStation');
+        }
+
+        form.validateFields(check, (err, values) => {
             if(err) { return; }
 
             me.setState({
                 upLoading: true,
             });
-
+            console.log('ABCCCCC:', values.upServiceStation);
+            const upServiceStation = form.getFieldValue('upServiceStation');
             const params = {
                 id: me.state.nowData.id,
                 userName: values.upUsername,
@@ -157,13 +190,15 @@ class Manager extends React.Component {
                 age: values.upAge || '',
                 phone: values.upPhone || '',
                 email: values.upEmail || '',
-                orgCode: this.state.orgCodeValue && this.state.orgCodeValue.id,
+                orgType: values.upOrgCode || '',
                 description: values.upDescription || '',
                 adminIp: '',
                 conditions: values.upConditions || '0',
+                stationId: isStation ? (upServiceStation ? upServiceStation.key : this.state.nowData.stationId) : '',
+                stationName: isStation ? (upServiceStation ? upServiceStation.label : this.state.nowData.stationName) : '',
             };
 
-            this.props.actions.updateAdminUserInfo(tools.clearNull(params)).then((res) => {
+            this.props.actions.updateAdminUserInfo(params).then((res) => {
                 if (res.returnCode === "0") {
                     message.success("修改成功");
                     this.onGetData(this.state.pageNum, this.state.pageSize);
@@ -205,6 +240,24 @@ class Manager extends React.Component {
         this.onGetData(1, this.state.pageSize);
     }
 
+    // 根据上级区域找下级区域
+    getAllCitySon(selectedOptions) {
+        console.log('SSS',selectedOptions);
+        const targetOption = selectedOptions[selectedOptions.length - 1];
+        targetOption.loading = true;
+        this.props.actions.findCityOrCounty({ parentId: selectedOptions[selectedOptions.length - 1].id }).then((res) => {
+            if (res.returnCode === '0') {
+                targetOption.children = res.messsageBody.map((item, index) => {
+                    return { id: item.id, value: item.areaName, label: item.areaName, isLeaf: item.level === 2, key: index };
+                });
+            }
+            targetOption.loading = false;
+            this.setState({
+                citys: [...this.state.citys]
+            });
+        });
+    }
+
     // 查询某一条数据的详情
     onQueryClick(record) {
         this.setState({
@@ -232,6 +285,8 @@ class Manager extends React.Component {
           'addnewPhone',
           'addnewEmail',
           'addnewDescription',
+          'addnewOrgCode',
+          'addCascader',
       ]);
         this.setState({
             addnewModalShow: true,
@@ -243,7 +298,7 @@ class Manager extends React.Component {
     onAddNewOk() {
         const me = this;
         const { form } = me.props;
-        form.validateFields([
+        const checks = [
             'addnewUsername',
             'addnewPassword',
             'addnewSex',
@@ -251,9 +306,15 @@ class Manager extends React.Component {
             'addnewPhone',
             'addnewEmail',
             'addnewDescription',
-        ], (err, values) => {
+            'addnewOrgCode',
+        ];
+        if (form.getFieldValue('addnewOrgCode') === 18) {   // 有服务站的情况
+            checks.push('addnewServiceStation');
+        }
+
+        form.validateFields(checks, (err, values) => {
+            console.log('都返回的是什么；', values);
             if (err) { return false; }
-            console.log('检查通过：', values);
             me.setState({
                 addnewLoading: true,
             });
@@ -264,10 +325,12 @@ class Manager extends React.Component {
                age: values.addnewAge || '',
                phone: values.addnewPhone || '',
                 email: values.addnewEmail || '',
-               orgCode: this.state.orgCodeValue ? this.state.orgCodeValue.id : '',
+               orgType: values.addnewOrgCode || '',
                description: values.addnewDescription || '',
                adminIp: '',
                conditions: '0',
+               stationId: values.addnewServiceStation ? values.addnewServiceStation.key : null,
+               stationName: values.addnewServiceStation ? values.addnewServiceStation.label : null,
             };
 
             me.props.actions.addAdminUserInfo(tools.clearNull(params)).then((res) => {
@@ -309,13 +372,13 @@ class Manager extends React.Component {
 
     // 工具函数 - 根据组织结构ID查组织结构名称
     getNameForId(id) {
-        const p = this.props.allOrganizer.find((item) => {
-            return `${item.id}` === `${id}`;
-        });
-        if (p) {
-            return p.orgName;
+        // const t = this.props.allOrganizer.find((item) => String(item.id) === String(id));
+        // return t ? t.dicValue : '';
+        switch(String(id)) {
+            case '1' : return '总部';
+            case '18': return '服务站';
+            default: return '';
         }
-        return '';
     }
 
     // 构建字段
@@ -355,7 +418,7 @@ class Manager extends React.Component {
                 key: 'email',
             },
             {
-                title: '部门',
+                title: '组织',
                 dataIndex: 'orgCode',
                 key: 'orgCode',
                 render: (text, record) => this.getNameForId(text)
@@ -373,28 +436,28 @@ class Manager extends React.Component {
                 render: (text, record) => {
                     let controls = [];
 
-                    Power.test(power.system.manager.query.code) && controls.push(
+                    controls.push(
                         <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
                             <Tooltip placement="top" title="查看">
                                 <Icon type="eye" />
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.manager.update.code) && controls.push(
+                    controls.push(
                         <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
                             <Tooltip placement="top" title="修改">
                                 <Icon type="edit" />
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.manager.power.code) && controls.push(
+                    controls.push(
                         <span key="2" className="control-btn blue" onClick={() => this.onRoleTreeShow(record)} >
                             <Tooltip placement="top" title="分配角色">
                                 <Icon type="tool" />
                             </Tooltip>
                         </span>
                     );
-                    Power.test(power.system.manager.del.code) && text.id !== 1 && controls.push(
+                    text.id !== 1 && controls.push(
                         <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
                             <span className="control-btn red">
                                 <Tooltip placement="top" title="删除">
@@ -434,13 +497,15 @@ class Manager extends React.Component {
                 createTime: item.createTime,
                 description: item.description,
                 email: item.email,
-                orgCode: item.orgCode,
+                orgCode: item.orgType,
                 phone: item.phone,
                 sex: item.sex,
                 updateTime: item.updateTime,
                 updater: item.updater,
                 userName: item.userName,
                 control: item.id,
+                stationId: item.stationId,
+                stationName: item.stationName,
             }
         });
     }
@@ -465,7 +530,7 @@ class Manager extends React.Component {
         const params = {
             userId: this.state.nowData.id,
             roles: arr.map((item) => item.id).join(','),
-        }
+        };
         this.props.actions.assigningRole(params).then((res) => {
             if (res.returnCode === '0') {
                 message.success('角色分配成功');
@@ -476,33 +541,31 @@ class Manager extends React.Component {
         this.onRoleTreeClose();
     }
 
-    // 打开OrTree
-    onOrTreeShow() {
-        this.setState({
-            orTreeShow: true,
+    // 添加区域被改变
+    onAddCascader(e) {
+        console.log('是什么:', e);
+        const me = this;
+        const { form } = me.props;
+        form.resetFields(['addnewServiceStation', 'upServiceStation']);
+        this.props.actions.findStationByArea({ province: e[0], city: e[1], region: e[2], pageNum: 0, pageSize: 9999 }).then((res) => {
+            if (res.returnCode === '0') {
+                this.setState({
+                    stations: res.messsageBody.result,
+                });
+            }
         });
     }
 
-    // 关闭OrTree
-    onOrTreeClose() {
-        this.setState({
-            orTreeShow: false,
-        });
+    // 添加组织被改变
+    onAddOrgCodeChange(e) {
+        const me = this;
+        const { form } = me.props;
+        form.resetFields(['addnewServiceStation']);
     }
-
-    // OrTree确定
-    onOrTreeOk(obj) {
-        console.log('OBJ选的什么：', obj);
-        this.setState({
-            orgCodeValue: obj,
-            orTreeShow: false,
-        });
-    }
-
   render() {
       const me = this;
       const { form } = me.props;
-      const { getFieldDecorator } = form;
+      const { getFieldDecorator, getFieldValue } = form;
       const formItemLayout = {
           labelCol: {
               xs: { span: 24 },
@@ -513,14 +576,14 @@ class Manager extends React.Component {
               sm: { span: 19 },
           },
       };
-
+    const addOrgCodeShow = getFieldValue('addnewOrgCode') === 18;
+    const upOrgCodeShow = getFieldValue('upOrgCode') === 18;
+    console.log('code是什么：', addOrgCodeShow);
     return (
       <div>
-        <UrlBread location={this.props.location}/>
         <div className="system-search">
-            { Power.test(power.system.manager.add.code) && <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加用户</Button></li></ul>}
+            <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加用户</Button></li></ul>
             <Divider type="vertical" />
-            { Power.test(power.system.manager.query.code) &&
                 <ul className="search-ul">
                     <li>
                         <Input
@@ -543,8 +606,6 @@ class Manager extends React.Component {
                     </li>
                     <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
                 </ul>
-            }
-
         </div>
         <div className="system-table">
           <Table
@@ -683,10 +744,52 @@ class Manager extends React.Component {
                       )}
                   </FormItem>
                   <FormItem
-                      label="部门"
+                      label="组织"
                       {...formItemLayout}
                   >
-                      <Input placeholder="请选择部门" readOnly value={this.state.orgCodeValue && this.state.orgCodeValue.title} onClick={() => this.onOrTreeShow()}/>
+                      {getFieldDecorator('addnewOrgCode', {
+                          initialValue: undefined,
+                          rules: [{required: true, message: '请选择组织'}],
+                      })(
+                          <Select placeholder="选择组织" onChange={(e) => this.onAddOrgCodeChange(e)}>
+                              <Option value={1} >总部</Option>
+                              <Option value={18} >服务站</Option>
+                          </Select>
+                      )}
+                  </FormItem>
+                  <FormItem
+                      label="区域"
+                      style={{ display: addOrgCodeShow ? 'block' : 'none' }}
+                      {...formItemLayout}
+                  >
+                      {getFieldDecorator('addCascader', {
+                          initialValue: undefined,
+                      })(
+                          <Cascader
+                              placeholder="请选择服务区域"
+                              options={this.state.citys}
+                              loadData={(e) => this.getAllCitySon(e)}
+                              onChange={(e) => this.onAddCascader(e)}
+                          />
+                      )}
+                  </FormItem>
+                  <FormItem
+                      label="服务站"
+                      style={{ display: addOrgCodeShow ? 'block' : 'none' }}
+                      {...formItemLayout}
+                  >
+                      {getFieldDecorator('addnewServiceStation', {
+                          initialValue: undefined,
+                          rules: [{required: true, message: '请选择服务站'}],
+                      })(
+                          <Select
+                              labelInValue
+                          >
+                              {this.state.stations.map((item, index) => {
+                                  return <Option value={item.id} key={index}>{ item.name }</Option>
+                              })}
+                          </Select>
+                      )}
                   </FormItem>
                   <FormItem
                       label="描述"
@@ -832,10 +935,53 @@ class Manager extends React.Component {
                       )}
                   </FormItem>
                   <FormItem
-                      label="部门"
+                      label="组织"
                       {...formItemLayout}
                   >
-                      <Input placeholder="请选择部门" value={this.state.orgCodeValue && this.state.orgCodeValue.title} onClick={() => this.onOrTreeShow()} />
+                      {getFieldDecorator('upOrgCode', {
+                          initialValue: undefined,
+                          rules: [{required: true, message: '请选择组织'}],
+                      })(
+                          <Select placeholder="选择组织">
+                              <Option value={1} >总部</Option>
+                              <Option value={18} >服务站</Option>
+                          </Select>
+                      )}
+                  </FormItem>
+                  <FormItem
+                      label="区域"
+                      style={{ display: upOrgCodeShow ? 'block' : 'none' }}
+                      {...formItemLayout}
+                  >
+                      {getFieldDecorator('upCascader', {
+                          initialValue: undefined,
+                      })(
+                          <Cascader
+                              placeholder="请选择服务区域"
+                              options={this.state.citys}
+                              loadData={(e) => this.getAllCitySon(e)}
+                              onChange={(e) => this.onAddCascader(e)}
+                          />
+                      )}
+                  </FormItem>
+                  <FormItem
+                      label="服务站"
+                      style={{ display: upOrgCodeShow ? 'block' : 'none' }}
+                      {...formItemLayout}
+                  >
+                      {getFieldDecorator('upServiceStation', {
+                          initialValue: undefined,
+                          rules: [{required: true, message: '请选择服务站'}],
+                      })(
+                          <Select
+                              labelInValue
+                              placeholder={this.state.nowData ? (this.state.nowData.stationName || '请选择服务站') : '请选择服务站'}
+                          >
+                              {this.state.stations.map((item, index) => {
+                                  return <Option value={item.id} key={index}>{ item.name }</Option>
+                              })}
+                          </Select>
+                      )}
                   </FormItem>
                   <FormItem
                       label="描述"
@@ -939,14 +1085,6 @@ class Manager extends React.Component {
               onOk={(arr) => this.onRoleTreeOk(arr)}
               onClose={() => this.onRoleTreeClose()}
           />
-          {/* 新增、修改 选组织部门 */}
-          <OrTree
-              data={this.props.allOrganizer} // 所需菜单原始数据
-              defaultKey={this.state.orgCodeValue ? [`${this.state.orgCodeValue.id}`] : []}
-              modalShow={this.state.orTreeShow} // Modal是否显示
-              onOk={(obj) => this.onOrTreeOk(obj)} // 确定时，获得选中的项信息
-              onClose={(obj) => this.onOrTreeClose(obj)} // 关闭
-          />
       </div>
     );
   }
@@ -962,6 +1100,7 @@ Manager.propTypes = {
   actions: P.any,
   allRoles: P.any,
   allOrganizer: P.any,
+    citys: P.array,
 };
 
 // ==================
@@ -972,8 +1111,9 @@ export default connect(
   (state) => ({
     allRoles: state.sys.allRoles,
     allOrganizer: state.sys.allOrganizer,
+      citys: state.sys.citys,
   }), 
   (dispatch) => ({
-    actions: bindActionCreators({ findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole, findAllOrganizer }, dispatch),
+    actions: bindActionCreators({ findAdminUserByKeys, addAdminUserInfo, deleteAdminUserInfo, updateAdminUserInfo, findAllRole, findAllRoleByUserId, assigningRole, findAllOrganizer, findAllProvince, findCityOrCounty, findStationByArea }, dispatch),
   })
 )(WrappedHorizontalManager);
