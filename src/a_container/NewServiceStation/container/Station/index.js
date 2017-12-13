@@ -386,7 +386,7 @@ class Category extends React.Component {
                 id: item.id,
                 serial:(index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
                 address: item.address,
-                citys: `${item.province}/${item.city}/${item.region}`,
+                citys: (item.province && item.city && item.region) ? `${item.province}/${item.city}/${item.region}` : '',
                 province: item.province,
                 city: item.city,
                 region: item.region,
@@ -468,7 +468,7 @@ class Category extends React.Component {
                         {...formItemLayout}
                     >
                         <span style={{ color: '#888' }}>
-                            {(this.state.nowData && this.state.addOrUp === 'up') ? `${this.state.nowData.province}/${this.state.nowData.city}/${this.state.nowData.region}` : null}
+                            {(this.state.nowData && this.state.addOrUp === 'up' && this.state.nowData.province && this.state.nowData.city && this.state.nowData.region) ? `${this.state.nowData.province}/${this.state.nowData.city}/${this.state.nowData.region}` : null}
                         </span>
                         {getFieldDecorator('addnewCitys', {
                             initialValue: undefined,
@@ -572,7 +572,7 @@ class Category extends React.Component {
                         label="地区"
                         {...formItemLayout}
                     >
-                        {!!this.state.nowData ? `${this.state.nowData.province}/${this.state.nowData.city}/${this.state.nowData.region}` : ''}
+                        {(!!this.state.nowData && this.state.nowData.province && this.state.nowData.city && this.state.nowData.region) ? `${this.state.nowData.province}/${this.state.nowData.city}/${this.state.nowData.region}` : ''}
                     </FormItem>
                   <FormItem
                       label="详细地址"

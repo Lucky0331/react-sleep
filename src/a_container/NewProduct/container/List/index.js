@@ -500,7 +500,7 @@ class Category extends React.Component {
                     const result = [];
                     controls.forEach((item, index) => {
                         if (index) {
-                            result.push(<Divider key={index} type="vertical" />);
+                            result.push(<Divider key={`line${index}`} type="vertical" />);
                         }
                         result.push(item);
                     });
@@ -557,7 +557,7 @@ class Category extends React.Component {
                 sm: { span: 19 },
             },
         };
-        console.log('是啥：', form.getFieldValue('addnewTypeId'));
+        console.log('是啥：', form.getFieldValue('addnewTypeId'), this.state.productModels.filter((item) => String(item.typeId) === String(form.getFieldValue('addnewTypeId'))));
         return (
             <div style={{ width: '100%' }}>
               <div className="system-search">
@@ -667,7 +667,7 @@ class Category extends React.Component {
                             <Select
                                 placeholder="请选择产品型号"
                             >
-                                { this.state.productModels.filter((item) => String(item.id) === String(form.getFieldValue('addnewTypeId'))).map((item, index) => <Option key={index} value={`${item.id}`}>{item.productModel}</Option>) }
+                                { this.state.productModels.filter((item) => String(item.typeId) === String(form.getFieldValue('addnewTypeId'))).map((item, index) => <Option key={index} value={`${item.id}`}>{this.getNameByModelId(item.id)}</Option>) }
                             </Select>
                         )}
                     </FormItem>
