@@ -6,7 +6,7 @@ import { message } from 'antd';
 export function findAllMenu() {
     return (dispatch) => {
       return Fetchapi.newPost(
-        '/menu/findAllMenu', {pageNum: 0, pageSize: 9999}
+        '/manager/menu/findAllMenu', {pageNum: 0, pageSize: 9999}
       ).then(
           msg => {
             dispatch({
@@ -25,7 +25,7 @@ export function findAllMenu() {
 export function findAll(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/user/findAll', params, 'post'
+            '/manager/user/findAll', params, 'post'
         ).then(
             msg => {
                 dispatch({
@@ -44,7 +44,7 @@ export function findAll(params = {}) {
 export function addAdminUserInfo(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/user/addAdminUserInfo', params, 'post', true
+            '/manager/user/addAdminUserInfo', params, 'post', true
         ).then(
             msg => {
                 dispatch({
@@ -63,7 +63,7 @@ export function addAdminUserInfo(params = {}) {
 export function deleteAdminUserInfo(params) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/user/deleteAdminUserInfo', params
+            '/manager/user/deleteAdminUserInfo', params
         ).then(
             msg => {
                 dispatch({
@@ -82,7 +82,7 @@ export function deleteAdminUserInfo(params) {
 export function updateAdminUserInfo(params) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/user/updateAdminUserInfo', params, 'post', true
+            '/manager/user/updateAdminUserInfo', params, 'post', true
         ).then(
             msg => {
                 dispatch({
@@ -101,7 +101,7 @@ export function updateAdminUserInfo(params) {
 export function findAllRole() {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/role/findAllRole', {pageNum: 0, pageSize: 9999}
+            '/manager/role/findAllRole', {pageNum: 0, pageSize: 9999}
         ).then(
             msg => {
                 if (msg.returnCode === "0") {
@@ -122,7 +122,7 @@ export function findAllRole() {
 export function addRoleInfo(params) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/role/addRoleInfo', params, 'post', true
+            '/manager/role/addRoleInfo', params, 'post', true
         ).then(
             msg => {
                 dispatch({
@@ -141,7 +141,7 @@ export function addRoleInfo(params) {
 export function updateRoleInfo(params) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/role/updateRoleInfo', params, 'post', true
+            '/manager/role/updateRoleInfo', params, 'post', true
         ).then(
             msg => {
                 dispatch({
@@ -160,7 +160,7 @@ export function updateRoleInfo(params) {
 export function deleteRoleInfo(params) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/role/deleteRoleInfo', params, 'post', true
+            '/manager/role/deleteRoleInfo', params, 'post', true
         ).then(
             msg => {
                 return msg;
@@ -175,7 +175,7 @@ export function deleteRoleInfo(params) {
 export function assigningRole(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/role/AssigningRole', params
+            '/manager/role/AssigningRole', params
         ).then(
             msg => {
                 dispatch({
@@ -194,7 +194,7 @@ export function assigningRole(params = {}) {
 export function AssigningMenuToRoleId(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/menu/AssigningMenuToRole', params
+            '/manager/menu/AssigningMenuToRole', params
         ).then(
             msg => {
                 dispatch({
@@ -213,7 +213,7 @@ export function AssigningMenuToRoleId(params = {}) {
 export function findAllRoleByUserId(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/role/findAllRoleByUserId', Object.assign({}, params, {
+            '/manager/role/findAllRoleByUserId', Object.assign({}, params, {
                 pageNum: 0,
                 pageSize: 9999,
             })
@@ -235,7 +235,7 @@ export function findAllRoleByUserId(params = {}) {
 export function findRolesByKeys(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/role/findRolesByKeys', params
+            '/manager/role/findRolesByKeys', params
         ).then(
             msg => {
                 dispatch({
@@ -254,7 +254,7 @@ export function findRolesByKeys(params = {}) {
 export function addMenuInfo(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/menu/addMenuInfo', params, 'post', true
+            '/manager/menu/addMenuInfo', params, 'post', true
         ).then(
             msg => {
                 return msg;
@@ -269,7 +269,7 @@ export function addMenuInfo(params = {}) {
 export function updateMenuInfo(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/menu/updateMenuInfo', params, 'post', true
+            '/manager/menu/updateMenuInfo', params, 'post', true
         ).then(
             msg => {
                 return msg;
@@ -284,7 +284,7 @@ export function updateMenuInfo(params = {}) {
 export function deleteMenuInfo(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/menu/deleteMenuInfo', params
+            '/manager/menu/deleteMenuInfo', params
         ).then(
             msg => {
                 return msg;
@@ -299,7 +299,7 @@ export function deleteMenuInfo(params = {}) {
 export function findAllMenuByRoleId(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/menu/findAllMenuByRoleId', Object.assign({}, params, {
+            '/manager/menu/findAllMenuByRoleId', Object.assign({}, params, {
                 pageNum: 0,
                 pageSize: 9999,
             })
@@ -317,7 +317,7 @@ export function findAllMenuByRoleId(params = {}) {
 export function findAdminUserByKeys(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/user/findAdminUserByKeys', params
+            '/manager/user/findAdminUserByKeys', params
         ).then(
             msg => {
                 return msg;
@@ -332,7 +332,7 @@ export function findAdminUserByKeys(params = {}) {
 export function findMenusByKeys(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/menu/findMenusByKeys', Object.assign({}, params, {
+            '/manager/menu/findMenusByKeys', Object.assign({}, params, {
                 pageNum: 1,
                 pageSize: 9999,
             })
@@ -350,7 +350,7 @@ export function findMenusByKeys(params = {}) {
 export function findButtonsByMenuId(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/buttons/findButtonsByMenuId', params
+            '/manager/buttons/findButtonsByMenuId', params
         ).then(
             msg => {
                 return msg;
@@ -365,7 +365,7 @@ export function findButtonsByMenuId(params = {}) {
 export function addButtons(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/buttons/addButtons', params, 'post', true
+            '/manager/buttons/addButtons', params, 'post', true
         ).then(
             msg => {
                 return msg;
@@ -380,7 +380,7 @@ export function addButtons(params = {}) {
 export function updateButtons(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/buttons/updateButtons', params, 'post', true
+            '/manager/buttons/updateButtons', params, 'post', true
         ).then(
             msg => {
                 return msg;
@@ -395,7 +395,7 @@ export function updateButtons(params = {}) {
 export function deleteButtons(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/buttons/deleteButtons', params
+            '/manager/buttons/deleteButtons', params
         ).then(
             msg => {
                 return msg;
@@ -410,7 +410,7 @@ export function deleteButtons(params = {}) {
 export function findMenuByMainMenu(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/menu/findMenuByMainMenu', params
+            '/manager/menu/findMenuByMainMenu', params
         ).then(
             msg => {
                 return msg;
@@ -446,7 +446,7 @@ export function findAllOrganizer() {
 export function findOrganizerByParentId(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/organizer/findOrganizerByParentId', params,
+            '/manager/organizer/findOrganizerByParentId', params,
         ).then(
             msg => {
                 return msg;

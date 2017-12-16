@@ -6,7 +6,7 @@ import { message } from 'antd';
 export function findAllLoginLog(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/loginLog/findAllLoginLog', params,
+            '/manager/loginLog/findAllLoginLog', params,
         ).then(
             msg => {
                 dispatch({
@@ -24,7 +24,7 @@ export function findAllLoginLog(params = {}) {
 export function findLoginLogBykeys(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/loginLog/findLoginLogByWhere', params,
+            '/manager/loginLog/findLoginLogByWhere', params,
         ).then(
             msg => {
                 dispatch({

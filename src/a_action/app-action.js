@@ -14,7 +14,7 @@ export function onTestAdd(num) {
 export function onLogin(params) {
     return (dispatch) => {
       return Fetchapi.newPost(
-        '/admin/submitLogin', params, 'post', true
+        '/manager/admin/submitLogin', params, 'post', true
       ).then(
 
           msg => {
@@ -51,7 +51,7 @@ export function saveMenuSourceData(data) {
 export function findButtonsByMenuId(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/buttons/findButtonsByMenuId', params
+            '/manager/buttons/findButtonsByMenuId', params
         ).then(
             msg => {
                 return msg;
