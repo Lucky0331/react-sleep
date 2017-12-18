@@ -409,7 +409,6 @@ class Category extends React.Component {
         return (
             <div>
               <div className="system-search">
-                <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加产品型号</Button></li></ul>
                 <span className="ant-divider" />
                   <ul className="search-ul">
                       <li>
@@ -419,7 +418,8 @@ class Category extends React.Component {
                               })}
                           </Select>
                       </li>
-                      <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
+                      <li><Button type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
+                      <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加产品型号</Button></li></ul>
                   </ul>
               </div>
               <div className="system-table">
@@ -499,7 +499,7 @@ class Category extends React.Component {
                                 {required: true,whitespace: true,message: '请输入体检券数量'}
                             ],
                         })(
-                            <Input placeholder="5" style={{marginLeft:'80px',width:'60%'}}/>
+                            <InputNumber placeholder="5" style={{marginLeft:'80px',width:'60%'}}/>
                         )}
                     </FormItem>
                     <FormItem
@@ -512,7 +512,7 @@ class Category extends React.Component {
                                 {required: true,whitespace: true,message: '请填写可用次数'}
                             ],
                         })(
-                            <Input placeholder="1" style={{marginLeft:'80px',width:'60%'}}/>
+                            <InputNumber placeholder="1" style={{marginLeft:'80px',width:'60%'}}/>
                         )}
                     </FormItem>
                 </Form>
@@ -657,20 +657,6 @@ class Category extends React.Component {
                             ],
                         })(
                             <InputNumber min={0} max={9999} placeholder="请输入有效期"/>
-                        )}
-                    </FormItem>
-                    <FormItem
-                        label="状态"
-                        {...formItemLayout}
-                    >
-                        {getFieldDecorator('upConditions', {
-                            rules: [],
-                            initialValue: "0",
-                        })(
-                            <RadioGroup>
-                                <Radio value="0">启用</Radio>
-                                <Radio value="-1">禁用</Radio>
-                            </RadioGroup>
                         )}
                     </FormItem>
                 </Form>

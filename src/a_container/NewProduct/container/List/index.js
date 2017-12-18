@@ -24,7 +24,7 @@ import _ from 'lodash';
 // 本页面所需action
 // ==================
 
-import { findProductByWhere, findProductTypeByWhere, addProduct, updateProduct, deleteProduct, deleteImage, findProductModelByWhere } from '../../../../a_action/shop-action';
+import { findProductByWhere, findProductTypeByWhere, addProduct, updateProduct, updateProductType,deleteProduct, deleteImage, findProductModelByWhere } from '../../../../a_action/shop-action';
 
 // ==================
 // Definition
@@ -153,7 +153,7 @@ class Category extends React.Component {
             nowData: record,
             addOrUp: 'up',
             addnewModalShow: true,
-            fileList: record.productImg.split(',').map((item, index) => ({ uid: index, url: item, status: 'done' })),   // 产品图片已上传的列表
+            fileList: record.productImg ? record.productImg.split(',').map((item, index) => ({ uid: index, url: item, status: 'done' })) : [],   // 产品图片已上传的列表
             fileListDetail: record.detailImg ? [{uid: -1, url: record.detailImg, status: 'done'}] : [], // 详细图片已上传的列表
         });
     }
@@ -209,6 +209,33 @@ class Category extends React.Component {
             fileList: [],
             fileListDetail: [],
             addnewModalShow: true,
+        });
+    }
+
+    // 下架或上架
+    onUpdateClick2(record) {
+        const params = {
+            name: record.addnewName,
+            price: record.addnewPrice,
+            typeId: Number(record.addnewTypeId),
+            typeCode: record.addnewTypeCode,
+            saleMode: Number(record.addnewSaleMode),
+            marketPrice: record.addnewMarketPrice,
+            amount: record.addnewAmount,
+            onShelf: record.addnewOnShelf ? 1 : 0,
+            productImg: this.state.fileList.map((item) => item.url).join(','),
+            detailImg: this.state.fileListDetail.length ? this.state.fileListDetail[0].url : '',
+        };
+
+        this.props.actions.updateProductType(params).then((res) => {
+            if (res.returnCode === "0") {
+                message.success("修改成功");
+                this.onGetData(this.state.pageNum, this.state.pageSize);
+            } else {
+                message.error(res.returnMessaage || '修改失败，请重试');
+            }
+        }).catch(() => {
+            message.error('修改失败');
         });
     }
 
@@ -433,8 +460,8 @@ class Category extends React.Component {
             },
             {
                 title: '缩略图',
-                dataIndex: 'detailImg',
-                key: 'detailImg',
+                dataIndex: 'productImg',
+                key: 'productImg',
                 width: 200,
                 render: (text) => {
                     if (text) {
@@ -474,20 +501,25 @@ class Category extends React.Component {
                     const controls = [];
 
                     controls.push(
-                        <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
-                            <Tooltip placement="top" title="查看">
+                        <span key="0" className="control-btn blue" onClick={() => this.onUpdateClick2(record)}>
+                            {record.conditions === 0 ? '下架' : '上架'}
+                        </span>
+                    );
+                    controls.push(
+                        <span key="1" className="control-btn green" onClick={() => this.onQueryClick(record)}>
+                            <Tooltip placement="top" title="详情">
                                 <Icon type="eye" />
                             </Tooltip>
                         </span>
                     );
-                    controls.push(
-                        <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
-                            <Tooltip placement="top" title="修改">
+                    record.conditions !== 0 && controls.push(
+                        <span key="2" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
+                            <Tooltip placement="top" title="编辑">
                                 <Icon type="edit" />
                             </Tooltip>
                         </span>
                     );
-                    controls.push(
+                    record.conditions !== 0 && controls.push(
                         <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
                             <span className="control-btn red">
                                 <Tooltip placement="top" title="删除">
@@ -550,23 +582,40 @@ class Category extends React.Component {
         const formItemLayout = {
             labelCol: {
                 xs: { span: 24 },
-                sm: { span: 4 },
+                sm: { span: 10 },
             },
             wrapperCol: {
                 xs: { span: 24 },
-                sm: { span: 19 },
+                sm: { span: 13 },
             },
         };
         console.log('是啥：', form.getFieldValue('addnewTypeId'), this.state.productModels.filter((item) => String(item.typeId) === String(form.getFieldValue('addnewTypeId'))));
         return (
             <div style={{ width: '100%' }}>
               <div className="system-search">
-                <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加新产品</Button></li></ul>
-                  <Divider type="vertical" />
-                  <ul className="search-ul">
-                      <li><Input placeholder="产品名称" onChange={(e) => this.searchNameChange(e)} value={this.state.searchName}/></li>
-                      <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
-                  </ul>
+                  <li className="search-ul">
+                    <li>
+                      <span style={{marginRight:'10px'}}>产品类型</span>
+                      <Select placeholder="全部" style={{ width: '120px',marginRight:'15px' }}>
+                          <Option value={0}>智能净水</Option>
+                          <Option value={1}>健康食品</Option>
+                          <Option value={2}>生物理疗</Option>
+                          <Option value={3}>健康睡眠</Option>
+                          <Option value={3}>健康体验</Option>
+                      </Select>
+                    </li>
+                    <li>
+                          <span style={{marginRight:'10px'}}>产品状态</span>
+                          <Select placeholder="全部" style={{ width: '120px',marginRight:'25px' }}>
+                              <Option value={0}>已上架</Option>
+                              <Option value={1}>未上架</Option>
+                          </Select>
+                      </li>
+                      {/*<li><Input placeholder="产品名称" onChange={(e) => this.searchNameChange(e)} value={this.state.searchName}/></li>*/}
+                      <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>查询</Button></li>
+                  </li>
+
+                  <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加产品</Button></li></ul>
               </div>
               <div className="system-table" >
                 <Table
@@ -585,48 +634,13 @@ class Category extends React.Component {
               </div>
                 {/* 添加模态框 */}
               <Modal
-                  title='添加新产品'
+                  title='添加产品'
                   visible={this.state.addnewModalShow}
                   onOk={() => this.onAddNewOk()}
                   onCancel={() => this.onAddNewClose()}
                   confirmLoading={this.state.addnewLoading}
               >
                 <Form>
-                  <FormItem
-                      label="产品名称"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewName', {
-                          initialValue: undefined,
-                          rules: [
-                              {required: true, whitespace: true, message: '请输入产品名称'},
-                              { validator: (rule, value, callback) => {
-                                  const v = tools.trim(value);
-                                  if (v) {
-                                      if (v.length > 12) {
-                                          callback('最多输入12位字符');
-                                      }
-                                  }
-                                  callback();
-                              }}
-                          ],
-                      })(
-                          <Input placeholder="请输入产品名称" />
-                      )}
-                  </FormItem>
-                    <FormItem
-                        label="单价"
-                        {...formItemLayout}
-                    >
-                        {getFieldDecorator('addnewPrice', {
-                            initialValue: 0,
-                            rules: [
-                                {required: true, message: '请输入单价'},
-                            ],
-                        })(
-                            <InputNumber placeholder="请输入单价" min={0} max={9999999}/>
-                        )}
-                    </FormItem>
                     <FormItem
                         label="产品类型"
                         {...formItemLayout}
@@ -643,6 +657,28 @@ class Category extends React.Component {
                             >
                                 { this.state.productTypes.map((item, index) => <Option key={index} value={`${item.id}`}>{item.name}</Option>) }
                             </Select>
+                        )}
+                    </FormItem>
+                    <FormItem
+                        label="产品名称"
+                        {...formItemLayout}
+                    >
+                        {getFieldDecorator('addnewName', {
+                            initialValue: undefined,
+                            rules: [
+                                {required: true, whitespace: true, message: '请输入产品名称'},
+                                { validator: (rule, value, callback) => {
+                                    const v = tools.trim(value);
+                                    if (v) {
+                                        if (v.length > 12) {
+                                            callback('最多输入12位字符');
+                                        }
+                                    }
+                                    callback();
+                                }}
+                            ],
+                        })(
+                            <Input placeholder="请输入产品名称" />
                         )}
                     </FormItem>
                     <FormItem
@@ -671,27 +707,27 @@ class Category extends React.Component {
                             </Select>
                         )}
                     </FormItem>
+                    {/*<FormItem*/}
+                        {/*label="销售方式"*/}
+                        {/*{...formItemLayout}*/}
+                    {/*>*/}
+                        {/*{getFieldDecorator('addnewSaleMode', {*/}
+                            {/*initialValue: undefined,*/}
+                            {/*rules: [*/}
+                                {/*{required: true, message: '请选择销售方式'},*/}
+                            {/*],*/}
+                        {/*})(*/}
+                            {/*<Select*/}
+                                {/*placeholder="请选择销售方式"*/}
+                            {/*>*/}
+                                {/*<Option value={`1`}>租赁</Option>*/}
+                                {/*<Option value={`2`}>买卖</Option>*/}
+                                {/*<Option value={`3`}>服务</Option>*/}
+                            {/*</Select>*/}
+                        {/*)}*/}
+                    {/*</FormItem>*/}
                     <FormItem
-                        label="销售方式"
-                        {...formItemLayout}
-                    >
-                        {getFieldDecorator('addnewSaleMode', {
-                            initialValue: undefined,
-                            rules: [
-                                {required: true, message: '请选择销售方式'},
-                            ],
-                        })(
-                            <Select
-                                placeholder="请选择销售方式"
-                            >
-                                <Option value={`1`}>租赁</Option>
-                                <Option value={`2`}>买卖</Option>
-                                <Option value={`3`}>服务</Option>
-                            </Select>
-                        )}
-                    </FormItem>
-                    <FormItem
-                        label="市场价"
+                        label="价格"
                         {...formItemLayout}
                     >
                         {getFieldDecorator('addnewMarketPrice', {
@@ -704,7 +740,32 @@ class Category extends React.Component {
                         )}
                     </FormItem>
                     <FormItem
-                        label="产品图片"
+                        label="有效期"
+                        {...formItemLayout}
+                    >
+                        {getFieldDecorator('addnewTimeLimitNum', {
+                            initialValue: 0,
+                            rules: [
+                                {required: true, message: '请输入有效期'}
+                            ],
+                        })(
+                            <InputNumber min={0} max={12} placeholder="请输入有效期"/>
+                        )}
+                        {getFieldDecorator('addnewTimeLimitType', {
+                            initialValue: 0,
+                            rules: [
+                                {required: true, message: '请选择有效期'}
+                            ],
+                        })(
+                            <Select style={{ marginLeft:'10px',width:'30%'}}>
+                                <Option value={0}>年</Option>
+                                <Option value={1}>月</Option>
+                                <Option value={2}>日</Option>
+                            </Select>
+                        )}
+                    </FormItem>
+                    <FormItem
+                        label="产品封面图片上传(最多5张)"
                         {...formItemLayout}
                     >
                         <Upload
@@ -717,15 +778,15 @@ class Category extends React.Component {
                             onChange={(f) => this.onUpLoadChange(f)}
                             onRemove={(f) => this.onUpLoadRemove(f)}
                         >
-                            {this.state.fileList.length >= 8 ? null :
+                            {this.state.fileList.length >= 5 ? null :
                              <div>
                                 <Icon type="plus" />
-                                <div className="ant-upload-text">Upload</div>
+                                <div className="ant-upload-text">选择文件</div>
                             </div>}
                         </Upload>
                     </FormItem>
                     <FormItem
-                        label="详情图片"
+                        label="产品详情图片上传(最多8张)"
                         {...formItemLayout}
                     >
                         <Upload
@@ -738,39 +799,13 @@ class Category extends React.Component {
                             onChange={(f) => this.onUpLoadDetailChange(f)}
                             onRemove={(f) => this.onUpLoadDetailRemove(f)}
                         >
-                            {this.state.fileListDetail.length >= 1 ? null :
+                            {this.state.fileListDetail.length >= 8 ? null :
                                 <div>
                                     <Icon type="plus" />
-                                    <div className="ant-upload-text">Upload</div>
-                                </div>}
+                                    <div className="ant-upload-text">选择文件</div>
+                                </div>
+                            }
                         </Upload>
-                    </FormItem>
-                    <FormItem
-                        label="库存"
-                        {...formItemLayout}
-                    >
-                        {getFieldDecorator('addnewAmount', {
-                            initialValue: 0,
-                            rules: [
-                                {required: true, message: '请输入库存'},
-                            ],
-                        })(
-                            <InputNumber min={0} max={9999999} placeholder="请输入库存" />
-                        )}
-                    </FormItem>
-                    <FormItem
-                        label="状态"
-                        {...formItemLayout}
-                    >
-                        {getFieldDecorator('addnewOnShelf', {
-                            rules: [],
-                            initialValue: "0",
-                        })(
-                            <RadioGroup>
-                                <Radio value="1">上架</Radio>
-                                <Radio value="0">下架</Radio>
-                            </RadioGroup>
-                        )}
                     </FormItem>
                 </Form>
               </Modal>
@@ -877,6 +912,6 @@ export default connect(
 
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findProductByWhere, findProductTypeByWhere, addProduct, updateProduct, deleteProduct, deleteImage, findProductModelByWhere }, dispatch),
+        actions: bindActionCreators({ findProductByWhere, findProductTypeByWhere, addProduct, updateProduct,updateProductType, deleteProduct, deleteImage, findProductModelByWhere }, dispatch),
     })
 )(WrappedHorizontalRole);

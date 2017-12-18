@@ -118,13 +118,13 @@ class Category extends React.Component {
     }
 
     // 搜索 - 名称输入框值改变时触发
-    searchNameChange(e) {
-        if (e.target.value.length < 24) {
-            this.setState({
-                searchName: e.target.value,
-            });
-        }
-    }
+    // searchNameChange(e) {
+    //     if (e.target.value.length < 24) {
+    //         this.setState({
+    //             searchName: e.target.value,
+    //         });
+    //     }
+    // }
 
     // 搜索 - 名称输入框值改变时触发
     searchAddressChange(e) {
@@ -222,7 +222,7 @@ class Category extends React.Component {
             'addnewCitys',
             'addnewName',
             'addnewAddress',
-            'addnewContactPerson',
+            'addnewID',
             'addnewContactPhone',
             'addnewDayCount',
             'addnewState',
@@ -236,7 +236,7 @@ class Category extends React.Component {
             const params = {
                 name: values.addnewName,
                 address: values.addnewAddress,
-                contactPerson: values.addnewContactPerson,
+                id: values.addnewId,
                 contactPhone: values.addnewContactPhone,
                 dayCount: values.addnewDayCount,
                 state: values.addnewState,
@@ -302,9 +302,7 @@ class Category extends React.Component {
                 key: 'serial',
             },
             {
-                title: '服务站名称',
-                dataIndex: 'name',
-                key: 'name',
+                title:'产品类型'
             },
             {
                 title: '服务站地区',
@@ -312,22 +310,30 @@ class Category extends React.Component {
                 key: 'citys',
             },
             {
-                title: '详细地址',
-                dataIndex: 'address',
-                key: 'address',
+                title: '服务站名称',
+                dataIndex: 'name',
+                key: 'name',
             },
             {
-                title: '联系电话',
+                title: '联系方式',
                 dataIndex: 'contactPhone',
                 key: 'contactPhone',
             },
+            // {
+            //     title: '详细地址',
+            //     dataIndex: 'address',
+            //     key: 'address',
+            // },
             {
-                title: '联系人',
-                dataIndex: 'contactPerson',
-                key: 'contactPerson',
+                title:'设备id',
+                dataIndex: 'id',
+                key: 'id',
             },
             {
-                title: '预约天数',
+                title:'设备型号',
+            },
+            {
+                title: '上线时间',
                 dataIndex: 'dayCount',
                 key: 'dayCount',
             },
@@ -335,7 +341,7 @@ class Category extends React.Component {
                 title: '状态',
                 dataIndex: 'state',
                 key: 'state',
-                render: (text) => String(text) === "0" ? <span style={{color: 'green'}}>启用</span> : <span style={{color: 'red'}}>禁用</span>
+                render: (text) => String(text) === "0" ? <span style={{color: 'green'}}>已上线</span> : <span style={{color: 'red'}}>未上线</span>
             },
             {
                 title: '操作',
@@ -352,7 +358,7 @@ class Category extends React.Component {
                     );
                     controls.push(
                         <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
-                            <Tooltip placement="top" title="修改">
+                            <Tooltip placement="top" title="编辑">
                                 <Icon type="edit" />
                             </Tooltip>
                         </span>
@@ -394,7 +400,7 @@ class Category extends React.Component {
                 province: item.province,
                 city: item.city,
                 region: item.region,
-                contactPerson: item.contactPerson,
+                id: item.id,
                 contactPhone: item.contactPhone,
                 dayCount: item.dayCount,
                 name: item.name,
@@ -421,19 +427,50 @@ class Category extends React.Component {
         return (
             <div style={{ width: '100%' }}>
               <div className="system-search">
-                  <ul className="search-one">
-                      <li className=""><span>产品类型</span></li>
-                      <li><span>服务站地区</span></li>
-                      <li><span>设备型号</span></li>
-                      <li><span>状态</span></li>
-                  </ul>
+                  {/*<ul className="search-one">*/}
+                      {/*<li><span>产品类型</span></li>*/}
+                      {/*<li><span>服务站地区</span></li>*/}
+                      {/*<li><span>设备型号</span></li>*/}
+                      {/*<li><span>状态</span></li>*/}
+                  {/*</ul>*/}
                   <ul className="search-ul">
-                      {/*<li><Input placeholder="服务站名称" onChange={(e) => this.searchNameChange(e)} value={this.state.searchName}/></li>*/}
-                      {/*<li><Input placeholder="详细地址" onChange={(e) => this.searchAddressChange(e)} value={this.state.searchAddress}/></li>*/}
-                      <li><Button  type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
-                      <li><Button  type="primary" onClick={() => this.onExport()}>导出</Button></li>
+                      <li>
+                          <span style={{marginRight:'10px'}}>产品类型</span>
+                          <Select allowClear placeholder="全部" value={this.state.searchTypeId} style={{ width: '120px',marginRight:'15px' }} onChange={(e) => this.onSearchTypeId(e)}>
+                              {this.state.productTypes.map((item, index) => {
+                                  return <Option key={index} value={item.id}>{ item.name }</Option>
+                              })}
+                          </Select>
+                      </li>
+                      <li>
+                          <span style={{marginRight:'10px'}}>服务站地区</span>
+                          <Select placeholder="全部" style={{ width: '120px',marginRight:'15px' }}>
+                              <Option value={0}>省</Option>
+                              <Option value={1}>市</Option>
+                              <Option value={2}>区</Option>
+                          </Select>
+                          {/*<Input placeholder="服务站地区" onChange={(e) => this.searchAddressChange(e)} value={this.state.searchAddress}/>*/}
+                      </li>
+                      <li>
+                          <span style={{marginRight:'10px'}}>设备型号</span>
+                          <Select placeholder="全部" style={{  width: '120px',marginRight:'15px' }}>
+                              <Option value={0}>体检仪1号</Option>
+                              <Option value={1}>体检仪2号</Option>
+                          </Select>
+                      </li>
+                      <li>
+                          <span style={{marginRight:'10px'}}>状态</span>
+                          <Select placeholder="全部" style={{ width: '120px',marginRight:'25px' }}>
+                              <Option value={0}>已上线</Option>
+                              <Option value={1}>已禁用</Option>
+                          </Select>
+                      </li>
+                      <li style={{width: '80px',marginRight:'15px'}}><Button  type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
+                      <li style={{width: '80px',marginRight:'35px'}}><Button  type="primary" onClick={() => this.onExport()}>导出</Button></li>
                   </ul>
-                  <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}>产品上线</Button></li></ul>
+                  <ul className="search-func">
+                      <li><Button type="primary" onClick={() => this.onAddNewShow()}>产品上线</Button></li>
+                  </ul>
               </div>
               <div className="system-table" >
                 <Table
@@ -535,19 +572,19 @@ class Category extends React.Component {
                             <Input placeholder="请输入联系电话" />
                         )}
                     </FormItem>
-                    <FormItem
-                        label="预约天数"
-                        {...formItemLayout}
-                    >
-                        {getFieldDecorator('addnewDayCount', {
-                            initialValue: undefined,
-                            rules: [
-                                {required: true, message: '请输入最大预约天数'},
-                            ],
-                        })(
-                            <InputNumber min={0} max={60} precision={0} placeholder="请输入最大预约天数"  style={{ width: '100%' }}/>
-                        )}
-                    </FormItem>
+                    {/*<FormItem*/}
+                        {/*label="预约天数"*/}
+                        {/*{...formItemLayout}*/}
+                    {/*>*/}
+                        {/*{getFieldDecorator('addnewDayCount', {*/}
+                            {/*initialValue: undefined,*/}
+                            {/*rules: [*/}
+                                {/*{required: true, message: '请输入最大预约天数'},*/}
+                            {/*],*/}
+                        {/*})(*/}
+                            {/*<InputNumber min={0} max={60} precision={0} placeholder="请输入最大预约天数"  style={{ width: '100%' }}/>*/}
+                        {/*)}*/}
+                    {/*</FormItem>*/}
                     <FormItem
                         label="状态"
                         {...formItemLayout}
@@ -557,8 +594,8 @@ class Category extends React.Component {
                             initialValue: "0",
                         })(
                             <RadioGroup>
-                                <Radio value="0">启用</Radio>
-                                <Radio value="-1">禁用</Radio>
+                                <Radio value="0">上线</Radio>
+                                <Radio value="-1">取消</Radio>
                             </RadioGroup>
                         )}
                     </FormItem>

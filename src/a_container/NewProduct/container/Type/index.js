@@ -8,7 +8,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
-import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, Tooltip, InputNumber  } from 'antd';
+import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, Tooltip, InputNumber ,Select} from 'antd';
 import './index.scss';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
@@ -30,6 +30,7 @@ import { findProductTypeByWhere, addProductType, updateProductType, deleteProduc
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
 const { TextArea } = Input;
+const Option = Select.Option;
 class Category extends React.Component {
     constructor(props) {
         super(props);
@@ -50,6 +51,18 @@ class Category extends React.Component {
 
     componentDidMount() {
         this.onGetData(this.state.pageNum, this.state.pageSize);
+    }
+
+    getCode(id){
+        switch (Number(id)){
+            case 1: return '水机';
+            case 2: return '养未来';
+            case 3: return '冷敷贴';
+            case 4: return '水机续费订单';
+            case -1: return '精准体检';
+            case -2: return '智能睡眠';
+            default: return '';
+        }
     }
 
     // 查询当前页面所需列表数据
@@ -201,10 +214,11 @@ class Category extends React.Component {
         const { form } = me.props;
         form.validateFields([
             'addnewName',
+            'addnewAppName',
             'addnewDetail',
             'addnewSorts',
             'addnewConditions',
-            'addnewCode',
+            'addnewCode'
         ], (err, values) => {
             if (err) { return false; }
             me.setState({
@@ -212,6 +226,7 @@ class Category extends React.Component {
             });
             const params = {
                 name: values.addnewName,
+                name: values.addnewAppName,
                 detail: values.addnewDetail,
                 code: values.addnewCode,
                 sorts: values.addnewSorts,
@@ -268,6 +283,7 @@ class Category extends React.Component {
                 title: '产品标识',
                 dataIndex: 'code',
                 key: 'code',
+                render: (text, record) => this.getCode(text)
             },
             {
                 title: '操作',
@@ -277,15 +293,8 @@ class Category extends React.Component {
                     const controls = [];
 
                     controls.push(
-                        <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
-                            <Tooltip placement="top" title="查看">
-                                <Icon type="eye" />
-                            </Tooltip>
-                        </span>
-                    );
-                    controls.push(
                         <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
-                            <Tooltip placement="top" title="修改">
+                            <Tooltip placement="top" title="编辑">
                                 <Icon type="edit" />
                             </Tooltip>
                         </span>
@@ -342,23 +351,22 @@ class Category extends React.Component {
         const formItemLayout = {
             labelCol: {
                 xs: { span: 24 },
-                sm: { span: 4 },
+                sm: { span: 8 },
             },
             wrapperCol: {
                 xs: { span: 24 },
-                sm: { span: 19 },
+                sm: { span: 15 },
             },
         };
-
         return (
             <div>
               <div className="system-search">
                 <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加产品类型</Button></li></ul>
-                <span className="ant-divider" />
-                  <ul className="search-ul">
-                      <li><Input placeholder="请输入类型名称" onChange={(e) => this.searchProductNameChange(e)} value={this.state.searchproductName}/></li>
-                      <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
-                  </ul>
+                {/*<span className="ant-divider" />*/}
+                  {/*<ul className="search-ul">*/}
+                      {/*<li><Input placeholder="请输入类型名称" onChange={(e) => this.searchProductNameChange(e)} value={this.state.searchproductName}/></li>*/}
+                      {/*<li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>*/}
+                  {/*</ul>*/}
               </div>
               <div className="system-table">
                 <Table
@@ -384,7 +392,7 @@ class Category extends React.Component {
               >
                 <Form>
                   <FormItem
-                      label="类型名称"
+                      label="产品类型名称"
                       {...formItemLayout}
                   >
                       {getFieldDecorator('addnewName', {
@@ -406,44 +414,49 @@ class Category extends React.Component {
                       )}
                   </FormItem>
                     <FormItem
-                        label="详细说明"
+                        label="APP前台展示名称"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('addnewDetail', {
+                        {getFieldDecorator('addnewAppName', {
                             initialValue: undefined,
                             rules: [
-                                {max: 100, message: '最多输入100个字符'}
+                                {required: true, whitespace: true, message: '请输入产品APP前台展示名称'},
+                                { validator: (rule, value, callback) => {
+                                    const v = tools.trim(value);
+                                    if (v) {
+                                        if (v.length > 12) {
+                                            callback('最多输入12位字符');
+                                        }
+                                    }
+                                    callback();
+                                }}
                             ],
                         })(
-                            <Input placeholder="请输入详细说明" />
+                            <Input placeholder="请输入APP前台展示名称" />
+                        )}
+                    </FormItem>
+                    <FormItem
+                        label="产品标识"
+                        {...formItemLayout}
+                    >
+                        {getFieldDecorator('addnewCode', {
+                            initialValue: 0,
+                            rules: [
+                                {required: true, message: '请选择产品标识'}
+                            ],
+                        })(
+                            <Select>
+                                <Option value={0}>请选择产品标识</Option>
+                                <Option value={1}>水机</Option>
+                                <Option value={2}>养未来</Option>
+                                <Option value={3}>冷敷贴</Option>
+                                <Option value={4}>水机续费订单</Option>
+                                <Option value={5}>精准体检</Option>
+                                <Option value={6}>智能睡眠</Option>
+                            </Select>
                         )}
                     </FormItem>
                 </Form>
-                  <FormItem
-                      label="排序"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewSorts', {
-                          initialValue: 0,
-                          rules: [{required: true, message: '请输入排序号'}],
-                      })(
-                          <InputNumber min={0} max={99999} />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="状态"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewConditions', {
-                          rules: [],
-                          initialValue: "0",
-                      })(
-                          <RadioGroup>
-                              <Radio value="0">启用</Radio>
-                              <Radio value="-1">禁用</Radio>
-                          </RadioGroup>
-                      )}
-                  </FormItem>
               </Modal>
                 {/* 修改用户模态框 */}
               <Modal
@@ -474,19 +487,6 @@ class Category extends React.Component {
                             ],
                         })(
                             <Input placeholder="请输入产品类型名称" />
-                        )}
-                    </FormItem>
-                    <FormItem
-                        label="详细说明"
-                        {...formItemLayout}
-                    >
-                        {getFieldDecorator('upDetail', {
-                            initialValue: undefined,
-                            rules: [
-                                {max: 100, message: '最多输入100个字符'}
-                            ],
-                        })(
-                            <Input placeholder="请输入详细说明" />
                         )}
                     </FormItem>
                     <FormItem

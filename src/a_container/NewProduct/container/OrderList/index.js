@@ -242,16 +242,8 @@ class Category extends React.Component {
                 title: '经销商账户'
             },
             {
-                title: '服务站地区'
-            },
-            {
                 title: '服务站名称'
             },
-            // {
-            //     title: '下单时间',
-            //     dataIndex: 'createTime',
-            //     key: 'createTime',
-            // },
             {
                 title: '下单时间',
                 dataIndex: 'payTime',
@@ -290,14 +282,6 @@ class Category extends React.Component {
                             </Tooltip>
                         </span>
                     );
-                    // controls.push(
-                    //     <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
-                    //         <Tooltip placement="top" title="修改">
-                    //             <Icon type="edit" />
-                    //         </Tooltip>
-                    //     </span>
-                    // );
-
                     const result = [];
                     controls.forEach((item, index) => {
                         if (index) {
@@ -361,10 +345,31 @@ class Category extends React.Component {
             <div>
               <div className="system-search">
                   <ul className="search-ul">
+                      <li>订单号  <InputNumber min={0}/></li>
+                      <li>
+                          <span style={{marginRight:'10px'}}>订单来源</span>
+                          <Select placeholder="全部" style={{ width: '100px',marginRight:'10px' }}>
+                              <Option value={0}>健康e家app</Option>
+                              <Option value={1}>经销商app</Option>
+                              <Option value={2}>微信公众号</Option>
+                          </Select>
+                      </li>
+                      <li>用户账号  <Input style={{width:'50%'}}/></li>
+                      <li>产品名称  <Input style={{width:'50%'}}/></li>
+                      <li>
+                          <span style={{marginRight:'10px'}}>产品型号</span>
+                          <Select placeholder="全部" style={{ width: '100px',marginRight:'10px' }}>
+                              <Option value={0}>精准体检卡</Option>
+                          </Select>
+                      </li>
+                      <li>总金额  <InputNumber min={0} style={{width:'25%'}}/>-<InputNumber min={0} style={{width:'25%'}}/></li>
+                      <li>  <Input style={{width:'50%'}}/></li>
                       <li><Input placeholder="产品名称" onChange={(e) => this.searchProductNameChange(e)} value={this.state.searchProductName}/></li>
                       <li><InputNumber min={0} max={999999} placeholder="最小价格" onChange={(e) => this.searchMinPriceChange(e)} value={this.state.searchMinPrice}/></li>
                       <li><InputNumber min={0} max={999999} placeholder="最大价格" onChange={(e) => this.searchMaxPriceChange(e)} value={this.state.searchMaxPrice}/></li>
-                      <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
+                      <li><Button  type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
+                      <li><Button  type="primary" onClick={() => this.onExport()}>导出</Button></li>
+
                   </ul>
               </div>
               <div className="system-table">
