@@ -205,44 +205,73 @@ class Category extends React.Component {
                 key: 'id',
             },
             {
-                title: '订单生成时间',
-                dataIndex: 'createTime',
-                key: 'createTime',
+                title: '订单来源'
             },
             {
-                title: '商品名称',
+                title: '用户账户'
+            },
+            {
+                title: '产品名称',
                 dataIndex: 'name',
                 key: 'name',
             },
             {
-                title: '商品型号',
+                title: '产品类型',
                 dataIndex: 'typeCode',
                 key: 'typeCode',
             },
             {
-                title: '购买数量',
+                title: '产品型号',
+                dataIndex: 'typeCode',
+                key: 'typeCode',
+            },
+            {
+                title: '数量',
                 dataIndex: 'count',
                 key: 'count',
             },
             {
-                title: '总费用',
+                title: '总金额',
                 dataIndex: 'fee',
                 key: 'fee',
             },
             {
-                title: '支付状态',
-                dataIndex: 'pay',
-                key: 'pay',
-                render: (text, record) => text ? <span style={{color: 'green'}}>已支付</span> : <span style={{color: 'red'}}>未支付</span>
+                title: '经销商名称'
             },
             {
-                title: '支付时间',
+                title: '经销商账户'
+            },
+            {
+                title: '服务站地区'
+            },
+            {
+                title: '服务站名称'
+            },
+            // {
+            //     title: '下单时间',
+            //     dataIndex: 'createTime',
+            //     key: 'createTime',
+            // },
+            {
+                title: '下单时间',
                 dataIndex: 'payTime',
                 key: 'payTime',
                 render: (text) => text ? tools.dateToStr(new Date(text)) : ''
             },
             {
-                title: '受理状态',
+                title: '支付方式',
+                dataIndex: 'pay',
+                key: 'pay',
+                render: (text, record) => text ? <span style={{color: 'green'}}>已支付</span> : <span style={{color: 'red'}}>未支付</span>
+            },
+            {
+                title: '支付状态',
+                dataIndex: 'conditions',
+                key: 'conditions',
+                render: (text, record) => this.getConditionNameById(text)
+            },
+            {
+                title: '订单状态',
                 dataIndex: 'conditions',
                 key: 'conditions',
                 render: (text, record) => this.getConditionNameById(text)
@@ -256,18 +285,18 @@ class Category extends React.Component {
 
                     controls.push(
                         <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
-                            <Tooltip placement="top" title="查看">
+                            <Tooltip placement="top" title="详情">
                                 <Icon type="eye" />
                             </Tooltip>
                         </span>
                     );
-                    controls.push(
-                        <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
-                            <Tooltip placement="top" title="修改">
-                                <Icon type="edit" />
-                            </Tooltip>
-                        </span>
-                    );
+                    // controls.push(
+                    //     <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
+                    //         <Tooltip placement="top" title="修改">
+                    //             <Icon type="edit" />
+                    //         </Tooltip>
+                    //     </span>
+                    // );
 
                     const result = [];
                     controls.forEach((item, index) => {

@@ -90,6 +90,7 @@ class Category extends React.Component {
         form.setFieldsValue({
             upName: record.name,
             upDetail: record.detail,
+            upCode:record.code,
             upSorts: record.sorts,
             upConditions: `${record.conditions}`
         });
@@ -105,6 +106,7 @@ class Category extends React.Component {
         const { form } = me.props;
         form.validateFields([
             'upName',
+            'upCode',
             'upDetail',
             'upSorts',
             'upConditions',
@@ -117,6 +119,7 @@ class Category extends React.Component {
             const params = {
                 id: me.state.nowData.id,
                 name: values.upName,
+                code:values.upCode,
                 detail: values.upDetail,
                 sorts: values.upSorts,
                 conditions: values.upConditions,
@@ -201,6 +204,7 @@ class Category extends React.Component {
             'addnewDetail',
             'addnewSorts',
             'addnewConditions',
+            'addnewCode',
         ], (err, values) => {
             if (err) { return false; }
             me.setState({
@@ -209,6 +213,7 @@ class Category extends React.Component {
             const params = {
                 name: values.addnewName,
                 detail: values.addnewDetail,
+                code: values.addnewCode,
                 sorts: values.addnewSorts,
                 conditions: values.addnewConditions,
             };
@@ -260,10 +265,9 @@ class Category extends React.Component {
                 key: 'detail',
             },
             {
-                title: '状态',
-                dataIndex: 'conditions',
-                key: 'conditions',
-                render: (text, record) => text === 0 ? <span style={{color: 'green'}}>启用</span> : <span style={{color: 'red'}}>禁用</span>
+                title: '产品标识',
+                dataIndex: 'code',
+                key: 'code',
             },
             {
                 title: '操作',
@@ -320,6 +324,7 @@ class Category extends React.Component {
                 serial:(index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
                 name: item.name,
                 sorts: item.sorts,
+                code:item.code,
                 updateTime: item.updateTime,
                 updater: item.updater,
                 conditions: item.conditions,

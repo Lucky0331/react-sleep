@@ -318,12 +318,12 @@ class Category extends React.Component {
                 key: 'inDate',
                 render: (text) => this.getNameForInDate(text),
             },
-            {
-                title: '状态',
-                dataIndex: 'conditions',
-                key: 'conditions',
-                render: (text, record) => text === 0 ? <span style={{color: 'green'}}>启用</span> : <span style={{color: 'red'}}>禁用</span>
-            },
+            // {
+            //     title: '产品标识',
+            //     dataIndex: 'conditions',
+            //     key: 'conditions',
+            //     render: (text, record) => text === 0 ? <span style={{color: 'green'}}>启用</span> : <span style={{color: 'red'}}>禁用</span>
+            // },
             {
                 title: '操作',
                 key: 'control',
@@ -397,11 +397,11 @@ class Category extends React.Component {
         const formItemLayout = {
             labelCol: {
                 xs: { span: 24 },
-                sm: { span: 4 },
+                sm: { span: 8 },
             },
             wrapperCol: {
                 xs: { span: 24 },
-                sm: { span: 19 },
+                sm: { span: 15 },
             },
         };
         const addnewTimeLimitType = getFieldValue('addnewTimeLimitType') === 0;
@@ -438,15 +438,32 @@ class Category extends React.Component {
               </div>
                 {/* 添加角色模态框 */}
               <Modal
-                  title='新增产品型号'
+                  title='添加产品型号'
                   visible={this.state.addnewModalShow}
                   onOk={() => this.onAddNewOk()}
                   onCancel={() => this.onAddNewClose()}
                   confirmLoading={this.state.addnewLoading}
               >
                 <Form>
+                    <FormItem
+                        label="产品类型"
+                        {...formItemLayout}
+                    >
+                        {getFieldDecorator('addnewTypeId', {
+                            initialValue: undefined,
+                            rules: [
+                                {required: true, message: '健康体检'}
+                            ],
+                        })(
+                            <Select style={{marginLeft:'80px',width:'60%'}}>
+                                {this.state.productTypes.map((item, index) => {
+                                    return <Option key={index} value={item.id}>{ item.name }</Option>
+                                })}
+                            </Select>
+                        )}
+                    </FormItem>
                   <FormItem
-                      label="型号名称"
+                      label="产品型号"
                       {...formItemLayout}
                   >
                       {getFieldDecorator('addnewName', {
@@ -456,59 +473,62 @@ class Category extends React.Component {
                               {max: 12, message: '最多输入12字符'}
                           ],
                       })(
-                          <Input placeholder="请输入产品型号名称" />
+                          <Input placeholder="TJK-A" style={{marginLeft:'80px',width:'60%'}}/>
                       )}
                   </FormItem>
                     <FormItem
-                        label="产品类型"
+                        label="描述"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('addnewTypeId', {
+                        {getFieldDecorator('addnewSay', {
                             initialValue: undefined,
                             rules: [
-                                {required: true, message: '请选择产品类型'}
+                                {required: true,whitespace: true,message: '请对产品进行描述'}
                             ],
                         })(
-                            <Select>
-                                {this.state.productTypes.map((item, index) => {
-                                    return <Option key={index} value={item.id}>{ item.name }</Option>
-                                })}
-                            </Select>
+                            <Input placeholder="服务站专用卡" style={{marginLeft:'80px',width:'60%'}}/>
+                        )}
+                    </FormItem>
+                    <FormItem
+                        label="体检券数量"
+                        {...formItemLayout}
+                    >
+                        {getFieldDecorator('addnewNum', {
+                            initialValue: undefined,
+                            rules: [
+                                {required: true,whitespace: true,message: '请输入体检券数量'}
+                            ],
+                        })(
+                            <Input placeholder="5" style={{marginLeft:'80px',width:'60%'}}/>
+                        )}
+                    </FormItem>
+                    <FormItem
+                        label="单张体检券可用次数"
+                        {...formItemLayout}
+                    >
+                        {getFieldDecorator('addnewTime', {
+                            initialValue: undefined,
+                            rules: [
+                                {required: true,whitespace: true,message: '请填写可用次数'}
+                            ],
+                        })(
+                            <Input placeholder="1" style={{marginLeft:'80px',width:'60%'}}/>
                         )}
                     </FormItem>
                 </Form>
                   <FormItem
-                      label="价格"
+                      label="产品价格"
                       {...formItemLayout}
                   >
                       {getFieldDecorator('addnewPrice', {
                           initialValue: 0,
                           rules: [{required: true, message: '请输入价格'}],
                       })(
-                          <InputNumber min={0} max={99999} />
-                      )}
-                  </FormItem>
-                  <FormItem
-                      label="期限类型"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewTimeLimitType', {
-                          initialValue: 0,
-                          rules: [
-                              {required: true, message: '请选择有效期'}
-                          ],
-                      })(
-                          <Select style={{ width: '100%' }}>
-                              <Option value={0}>长期有效</Option>
-                              <Option value={1}>年</Option>
-                              <Option value={2}>月</Option>
-                              <Option value={3}>日</Option>
-                          </Select>
+                          <InputNumber min={0} max={99999} style={{marginLeft:'80px',width:'60%'}}/>
                       )}
                   </FormItem>
                   <FormItem
                       label="有效期"
-                      style={{ display: addnewTimeLimitType ? 'none' : 'block' }}
                       {...formItemLayout}
                   >
                       {getFieldDecorator('addnewTimeLimitNum', {
@@ -517,23 +537,36 @@ class Category extends React.Component {
                               {required: true, message: '请输入有效期'}
                           ],
                       })(
-                          <InputNumber min={0} max={9999} placeholder="请输入有效期"/>
+                          <InputNumber min={0} max={12} placeholder="请输入有效期" style={{marginLeft:'80px'}}/>
                       )}
-                  </FormItem>
-                  <FormItem
-                      label="状态"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewConditions', {
-                          rules: [],
-                          initialValue: "0",
+                      {getFieldDecorator('addnewTimeLimitType', {
+                          initialValue: 0,
+                          rules: [
+                              {required: true, message: '请选择有效期'}
+                          ],
                       })(
-                          <RadioGroup>
-                              <Radio value="0">启用</Radio>
-                              <Radio value="-1">禁用</Radio>
-                          </RadioGroup>
+                          <Select style={{ marginLeft:'10px' }}>
+                              <Option value={0}>年</Option>
+                              <Option value={1}>月</Option>
+                              <Option value={2}>日</Option>
+                          </Select>
                       )}
+
                   </FormItem>
+                  {/*<FormItem*/}
+                      {/*label="有效期"*/}
+                      {/*style={{ display: addnewTimeLimitType ? 'none' : 'block' }}*/}
+                      {/*{...formItemLayout}*/}
+                  {/*>*/}
+                      {/*{getFieldDecorator('addnewTimeLimitNum', {*/}
+                          {/*initialValue: 0,*/}
+                          {/*rules: [*/}
+                              {/*{required: true, message: '请输入有效期'}*/}
+                          {/*],*/}
+                      {/*})(*/}
+                          {/*<InputNumber min={0} max={12} placeholder="请输入有效期"/>*/}
+                      {/*)}*/}
+                  {/*</FormItem>*/}
               </Modal>
                 {/* 修改用户模态框 */}
               <Modal

@@ -172,6 +172,10 @@ class Category extends React.Component {
     onSearch() {
         this.onGetData(this.state.pageNum, this.state.pageSize);
     }
+    // 导出
+    onExport() {
+        this.onGetData(this.state.pageNum, this.state.pageSize);
+    }
 
     // 查询某一条数据的详情
     onQueryClick(record) {
@@ -417,13 +421,19 @@ class Category extends React.Component {
         return (
             <div style={{ width: '100%' }}>
               <div className="system-search">
-                <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加服务站</Button></li></ul>
-                  <Divider type="vertical" />
-                  <ul className="search-ul">
-                      <li><Input placeholder="服务站名称" onChange={(e) => this.searchNameChange(e)} value={this.state.searchName}/></li>
-                      <li><Input placeholder="详细地址" onChange={(e) => this.searchAddressChange(e)} value={this.state.searchAddress}/></li>
-                      <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
+                  <ul className="search-one">
+                      <li className=""><span>产品类型</span></li>
+                      <li><span>服务站地区</span></li>
+                      <li><span>设备型号</span></li>
+                      <li><span>状态</span></li>
                   </ul>
+                  <ul className="search-ul">
+                      {/*<li><Input placeholder="服务站名称" onChange={(e) => this.searchNameChange(e)} value={this.state.searchName}/></li>*/}
+                      {/*<li><Input placeholder="详细地址" onChange={(e) => this.searchAddressChange(e)} value={this.state.searchAddress}/></li>*/}
+                      <li><Button  type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
+                      <li><Button  type="primary" onClick={() => this.onExport()}>导出</Button></li>
+                  </ul>
+                  <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}>产品上线</Button></li></ul>
               </div>
               <div className="system-table" >
                 <Table
