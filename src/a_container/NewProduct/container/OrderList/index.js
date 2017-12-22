@@ -76,6 +76,7 @@ class Category extends React.Component {
             productName: this.state.searchProductName,
             minPrice: this.state.searchMinPrice,
             maxPrice: this.state.searchMaxPrice,
+
         };
         this.props.actions.findOrderByWhere(tools.clearNull(params)).then((res) => {
             console.log('返回的什么：', res);

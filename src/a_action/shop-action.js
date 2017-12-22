@@ -397,7 +397,21 @@ export function findProductLine(params = {}) {
 export function addProductLine(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/station/add/online', params
+            '/manager/station/add/online', params, 'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+export function updateProductLine(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/station/update/online', params
         ).then(
             msg => {
                 return msg;

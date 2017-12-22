@@ -103,10 +103,10 @@ class Category extends React.Component {
         form.setFieldsValue({
             upName: record.name,
             upAppName: record.appname,
-            upDetail: record.detail,
+            //upDetail: record.detail,
             upCode:record.code,
-            upSorts: record.sorts,
-            upConditions: `${record.conditions}`
+            //upSorts: record.sorts,
+            //upConditions: `${record.conditions}`
         });
         me.setState({
             nowData: record,

@@ -161,17 +161,18 @@ class Category extends React.Component {
     onUpdateClick(record) {
         const me = this;
         const { form } = me.props;
-
+        console.log('是什么：', record);
         form.setFieldsValue({
             addnewName: record.name,
-            addnewPrice: record.price,
+            //addnewPrice: record.price,
             addnewTypeId: `${record.typeId}`,
             addnewTypeCode: String(record.typeCode),
-            addnewSaleMode: String(record.saleMode),
-            addnewMarketPrice: record.marketPrice,
-            addnewAmount: record.amount,
-            addnewOnShelf: record.onShelf ? '1' : '0',
+            //addnewSaleMode: String(record.saleMode),
+            //addnewMarketPrice: record.marketPrice,
+            //addnewAmount: record.amount,
+           addnewOnShelf: record.onShelf ? '1' : '0',
         });
+        console.log('是什么：', record);
         me.setState({
             nowData: record,
             addOrUp: 'up',

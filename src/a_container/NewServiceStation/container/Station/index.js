@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
 import Config from '../../../../config/config';
-import { Form, Button, Icon, Input, InputNumber, Table, message, Modal, Radio, Tooltip, Select, Divider, Cascader, Popconfirm } from 'antd';
+import { Form, Button, Icon, Input, InputNumber, Table, message, Modal, Radio, Tooltip, Select, Divider, Cascader } from 'antd';
 import './index.scss';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
@@ -24,8 +24,8 @@ import _ from 'lodash';
 // 本页面所需action
 // ==================
 
-import { findAllProvince, findCityOrCounty, findProductTypeByWhere,queryStationList, addStationList, upStationList, delStationList } from '../../../../a_action/sys-action';
-import { findProductLine ,addProductLine} from '../../../../a_action/shop-action';
+import { findAllProvince,findStationByArea, findCityOrCounty, findProductTypeByWhere,queryStationList, addStationList, upStationList, delStationList } from '../../../../a_action/sys-action';
+import { findProductLine ,addProductLine,updateProductLine} from '../../../../a_action/shop-action';
 // ==================
 // Definition
 // ==================
@@ -37,6 +37,7 @@ class Category extends React.Component {
         super(props);
         this.state = {
             data: [], // 当前页面全部数据
+            stations: [], // 当前省市区下面的服务站
             productTypes: [],   // 所有的产品类型
             productModels: [],  // 所有的产品型号
             searchName: '', // 搜索 - 名称
@@ -62,8 +63,6 @@ class Category extends React.Component {
             });
         }
         this.onGetData(this.state.pageNum, this.state.pageSize);
-        //this.getAllTypes(); // 获取所有产品类型
-        //this.getAllProductLine();   // 获取上线产品
     }
 
     componentWillReceiveProps(nextP) {
@@ -72,17 +71,6 @@ class Category extends React.Component {
                 citys: nextP.citys.map((item, index) => ({ id: item.id, value: item.areaName, label: item.areaName, isLeaf: false})),
             });
         }
-    }
-
-    // 获取所有的产品类型，添加修改要用
-    getAllTypes() {
-        this.props.actions.findProductTypeByWhere({ pageNum: 0, pageSize: 9999 }).then((res) => {
-            if (res.returnCode === '0') {
-                this.setState({
-                    productTypes: res.messsageBody.result,
-                });
-            }
-        });
     }
 
     // // 获取所有的上线产品，添加修改要用
@@ -102,15 +90,23 @@ class Category extends React.Component {
         return t ? t.name : '';
     }
 
-    getNameByStation(id) {
-        const t = this.state.productTypes.find((item) => String(item.id) === String(id));
+    //工具 - 根据服务站地区返回服务站名称id
+    getStationId(id) {
+        const t = this.state.data.find((item) => String(item.id) === String(id));
         return t ? t.name : '';
+    }
+
+    // 搜索 - 产品类型输入框值改变时触发
+    onSearchTypeId(e) {
+        this.setState({
+            searchTypeId: e,
+        });
     }
 
     // 查询当前页面所需列表数据
     onGetData(pageNum, pageSize) {
         const params = {
-            pageNum,
+            pageNum:0,
             pageSize,
             name: this.state.searchName,
             address: this.state.searchAddress,
@@ -153,6 +149,25 @@ class Category extends React.Component {
         });
     }
 
+    // 选择省市区后查询对应的服务站
+    onCascaderChange(v) {
+        console.log("是什么：", v);
+        const params = {
+            province: v[0],
+            city: v[1],
+            region: v[2],
+            pageNum: 0,
+            pageSize: 9999,
+        };
+        this.props.actions.findStationByArea(params).then((res) => {
+            if (res.returnCode === '0') {
+                this.setState({
+                    stations: res.messsageBody.result,
+                });
+            }
+        });
+    }
+
     // 搜索 - 名称输入框值改变时触发
     // searchNameChange(e) {
     //     if (e.target.value.length < 24) {
@@ -191,6 +206,8 @@ class Category extends React.Component {
 
         form.setFieldsValue({
             addnewCitys: [undefined],
+            addnewStationId:record.stationId,
+            addnewId:record.addnewId,
             addnewName: record.name,
             addnewAddress: record.address,
             addnewContactPerson: record.contactPerson,
@@ -205,17 +222,36 @@ class Category extends React.Component {
         });
     }
 
-    // 删除某一条数据
-    onDeleteClick(id) {
-        this.props.actions.delStationList({id: id}).then((res) => {
-            if(res.returnCode === "0") {
-                message.success('删除成功');
+    // 下线或上线
+    onUpdateClick2(record) {
+        console.log('LO:', record.online);
+        const params = {
+            onlineId:Number(record.id),
+            online:record.online? false:true
+        };
+        this.props.actions.updateProductLine(params).then((res) => {
+            if (res.returnCode === "0") {
+                message.success("修改成功");
                 this.onGetData(this.state.pageNum, this.state.pageSize);
             } else {
-                message.error(res.returnMessaage || '删除失败，请重试');
+                message.error(res.returnMessaage || '修改失败，请重试');
             }
+        }).catch(() => {
+            message.error('修改失败');
         });
     }
+
+    // 删除某一条数据
+    // onDeleteClick(id) {
+    //     this.props.actions.delStationList({id: id}).then((res) => {
+    //         if(res.returnCode === "0") {
+    //             message.success('删除成功');
+    //             this.onGetData(this.state.pageNum, this.state.pageSize);
+    //         } else {
+    //             message.error(res.returnMessaage || '删除失败，请重试');
+    //         }
+    //     });
+    // }
 
     // 搜索
     onSearch() {
@@ -241,12 +277,15 @@ class Category extends React.Component {
         });
     }
 
+
     // 产品上线模态框出现
     onAddNewShow() {
         const me = this;
         const { form } = me.props;
         form.resetFields([
             'addnewCitys',
+            'addnewStationId',
+            'addnewId',
             'addnewName',
             'addnewAddress',
             'addnewContactPerson',
@@ -269,37 +308,31 @@ class Category extends React.Component {
         const { form } = me.props;
         form.validateFields([
             'addnewCitys',
+            'addnewStationId',
             'addnewName',
             'addnewAddress',
-            'addnewID',
             'addnewContactPhone',
             'addnewDayCount',
             'addnewState',
+            'addnewTypeId',
+            'addnewUnittype',
+            'addnewId',
         ], (err, values) => {
             if (err) { return false; }
             me.setState({
                 addnewLoading: true,
             });
             console.log('区域是什么；', values.addnewCitys);
+            console.log('具体服务站名称是：',values.addnewStationId);
 
             const params = {
-                name: values.addnewName,
-                address: values.addnewAddress,
-                id: values.addnewId,
-                contactPhone: values.addnewContactPhone,
-                dayCount: values.addnewDayCount,
-                state: values.addnewState,
-                code: values.addnewCode,
+                stationId: Number(values.addnewStationId),
+                productType: values.addnewTypeId,
+                online: true,
+                deviceId: values.addnewId,
+                deviceType: values.addnewUnittype,
+
             };
-            if(values.addnewCitys[0] && values.addnewCitys[1] && values.addnewCitys[2]) {
-                params.province = values.addnewCitys[0];
-                params.city = values.addnewCitys[1];
-                params.region = values.addnewCitys[2];
-            } else if (this.state.addOrUp === 'up') {   // 是修改，但没有修改区域
-                params.province = this.state.nowData.province;
-                params.city = this.state.nowData.city;
-                params.region = this.state.nowData.region;
-            }
 
             if (this.state.addOrUp === 'add') { // 新增
                 me.props.actions.addProductLine(tools.clearNull(params)).then((res) => {
@@ -353,16 +386,18 @@ class Category extends React.Component {
             },
             {
                 title: '产品类型',
-                dataIndex: 'name',
-                key: 'name',
+                dataIndex: 'typeName',
+                key: 'typeName',
             },
             {
                 title: '服务站地区',
-                dataIndex: 'citys',
-                key: 'citys',
+                dataIndex: 'station.city',
+                key: 'station.city',
             },
             {
                 title: '服务站名称',
+                dataIndex: 'station.name',
+                key: 'station.name',
             },
             {
                 title: '联系方式',
@@ -371,22 +406,24 @@ class Category extends React.Component {
             },
             {
                 title:'设备id',
-                dataIndex: 'id',
-                key: 'id',
+                dataIndex: 'deviceId',
+                key: 'deviceId',
             },
             {
                 title:'设备型号',
+                dataIndex: 'station.id',
+                key: 'station.id',
             },
             {
                 title: '上线时间',
-                dataIndex: 'dayCount',
-                key: 'dayCount',
+                dataIndex: 'station.updateTime',
+                key: 'station.updateTime',
             },
             {
                 title: '状态',
-                dataIndex: 'state',
-                key: 'state',
-                render: (text) => String(text) === "0" ? <span style={{color: 'green'}}>已上线</span> : <span style={{color: 'red'}}>未上线</span>
+                dataIndex: 'online',
+                key: 'online',
+                render: (text) => String(text) === 'true' ? <span style={{color: 'green'}}>已上线</span> : <span style={{color: 'red'}}>未上线</span>
             },
             {
                 title: '操作',
@@ -408,14 +445,29 @@ class Category extends React.Component {
                             </Tooltip>
                         </span>
                     );
-                    controls.push(
-                        <Popconfirm key="2" title="确定修改状态吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
-                            <span className="control-btn red">
-                                <Tooltip placement="top" title="状态">
-                                    <Icon type="setting" />
-                                </Tooltip>
-                            </span>
-                        </Popconfirm>
+                    // controls.push(
+                    //     <Popconfirm key="2" title="确定修改状态吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
+                    //         <span className="control-btn red">
+                    //             <Tooltip placement="top" title="">
+                    //                 <Icon type="setting" />
+                    //             </Tooltip>
+                    //         </span>
+                    //     </Popconfirm>
+                    // );
+                    // (!record.onShelf) && controls.push(
+                     controls.push(
+                        <span key="2" className="control-btn blue" onClick={() => this.onUpdateClick2(record)}>
+                            <Tooltip placement="top" title="上线">
+                                <Icon type="caret-up" />
+                            </Tooltip>
+                        </span>
+                    );
+                     controls.push(
+                        <span key="3" className="control-btn red" onClick={() => this.onUpdateClick2(record)}>
+                            <Tooltip placement="top" title="下线">
+                                <Icon type="caret-down" />
+                            </Tooltip>
+                        </span>
                     );
 
                     const result = [];
@@ -446,13 +498,16 @@ class Category extends React.Component {
                 typeId: item.typeId,
                 station:item.station,
                 typeName: this.getNameByTypeId(item.typeId),
-                stationName:this.getNameByStation(item.stationId),
+                stationId:this.getStationId,
+                stationName:this.getStationId(item.stationId),
                 city: item.city,
                 region: item.region,
                 contactPhone: item.contactPhone,
                 dayCount: item.dayCount,
                 name: item.name,
                 state: item.state,
+                online:item.online,
+                onlineId:item.onlineId
             }
         });
     }
@@ -515,7 +570,7 @@ class Category extends React.Component {
                           <span style={{marginRight:'10px'}}>状态</span>
                           <Select placeholder="全部" style={{ width: '120px',marginRight:'25px' }}>
                               <Option value={0}>已上线</Option>
-                              <Option value={1}>已禁用</Option>
+                              <Option value={1}>未上线</Option>
                           </Select>
                       </li>
                       <li style={{width: '80px',marginRight:'15px'}}><Button  type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
@@ -566,6 +621,7 @@ class Category extends React.Component {
                                 placeholder="请选择服务区域"
                                 options={this.state.citys}
                                 loadData={(e) => this.getAllCitySon(e)}
+                                onChange={(v) => this.onCascaderChange(v)}
                             />
                         )}
                     </FormItem>
@@ -573,14 +629,17 @@ class Category extends React.Component {
                         label="服务站名称"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('addnewName', {
+                        {getFieldDecorator('addnewStationId', {
                             initialValue: undefined,
                             rules: [
-                                {required: true, whitespace: true, message: '请输入服务站名称'},
-                                {max: 18, message: '最多输入18位字符'},
+                                {required: true, whitespace: true, message: '请输入服务站名称'}
                             ],
                         })(
-                            <Input placeholder="请输入服务站名称" />
+                            <Select
+                                placeholder="请选择服务站名称"
+                            >
+                                { this.state.stations.map((item, index) => <Option key={index} value={`${item.id}`}>{item.name}</Option>) }
+                            </Select>
                         )}
                     </FormItem>
                     <FormItem
@@ -623,8 +682,7 @@ class Category extends React.Component {
                         {getFieldDecorator('addnewId', {
                             initialValue: undefined,
                             rules: [
-                                {required: true,required: true, message: '请输入设备id'},
-                                {max: 12, message: '最多输入12位字符'},
+                                {required: true, message: '请输入设备id'},
                             ],
                         })(
                             <Input placeholder="请输入设备id" type="number"  min="1"/>
@@ -755,7 +813,7 @@ class Category extends React.Component {
                         label="状态"
                         {...formItemLayout}
                     >
-                        {!!this.state.nowData ? (String(this.state.nowData.state) === "0" ? <span style={{ color: 'green' }}>启用</span> : <span style={{ color: 'red' }}>禁用</span>) : ''}
+                        {!!this.state.nowData ? (String(this.state.nowData.state) === "0" ? <span style={{ color: 'green' }}>已上线</span> : <span style={{ color: 'red' }}>未上线</span>) : ''}
                     </FormItem>
                 </Form>
               </Modal>
@@ -785,6 +843,6 @@ export default connect(
         citys: state.sys.citys,
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findAllProvince, findCityOrCounty, findProductTypeByWhere,queryStationList, addStationList, upStationList, delStationList ,findProductLine,addProductLine}, dispatch),
+        actions: bindActionCreators({ findAllProvince, findCityOrCounty,findStationByArea,updateProductLine, findProductTypeByWhere,queryStationList, addStationList, upStationList, delStationList ,findProductLine,addProductLine}, dispatch),
     })
 )(WrappedHorizontalRole);

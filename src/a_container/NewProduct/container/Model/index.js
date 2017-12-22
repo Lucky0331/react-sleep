@@ -476,7 +476,7 @@ class Category extends React.Component {
                               {max: 12, message: '最多输入12字符'}
                           ],
                       })(
-                          <Input placeholder="TJK-A" style={{marginLeft:'80px',width:'60%'}}/>
+                          <Input style={{marginLeft:'80px',width:'60%'}}/>
                       )}
                   </FormItem>
                     <FormItem
@@ -486,10 +486,10 @@ class Category extends React.Component {
                         {getFieldDecorator('addnewConditions', {
                             initialValue: undefined,
                             rules: [
-                                {required: true,whitespace: true,message: '请对产品进行描述'}
+                                {whitespace: true,message: '请对产品进行描述'}
                             ],
                         })(
-                            <Input placeholder="服务站专用卡" style={{marginLeft:'80px',width:'60%'}}/>
+                            <Input style={{marginLeft:'80px',width:'60%'}}/>
                         )}
                     </FormItem>
                     <FormItem
@@ -525,7 +525,7 @@ class Category extends React.Component {
                   >
                       {getFieldDecorator('addnewPrice', {
                           initialValue: undefined,
-                          rules: [{required: true,whitespace: true, message: '请输入价格'}],
+                          rules: [{required: true, message: '请输入价格'}],
                       })(
                           <InputNumber min={0} max={99999} style={{marginLeft:'80px',width:'60%'}}/>
                       )}

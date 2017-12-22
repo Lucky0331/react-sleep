@@ -633,6 +633,21 @@ export function findStationByArea(params = {}) {
     };
 }
 
+// // 通过省市区查找服务站
+// export function findStationByArea(params = {}) {
+//     return (dispatch) => {
+//         return Fetchapi.newPost(
+//             '/manager/station/listByKeys', params,
+//         ).then(
+//             msg => {
+//                 return msg;
+//             }
+//         ).catch(() => {
+//             message.error('网络错误，请重试');
+//         });
+//     };
+// }
+
 // 体检预约开启和关闭
 export function physicalSetOpenOrClose(params = {}) {
     return (dispatch) => {
