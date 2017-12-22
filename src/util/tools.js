@@ -30,6 +30,21 @@ const tools = {
       const s = date.getSeconds().toString().padStart(2,'0');
       return `${date.getFullYear()}-${m}-${d} ${h}:${min}:${s}`;
     },
+
+    /** 将标准格式字符串进行日期格式化 **/
+    dateformart(str) {
+        if (!str) { return ''; }
+        let date = str;
+        if (!(str instanceof Date)) {
+            date = new Date(str);
+        }
+        let m = date.getMonth() + 1;
+        let d = date.getDate();
+        if (m < 10) { m = `0${m}`; }
+        if (d < 10) { d = `0${d}`; }
+        return `${date.getFullYear()}-${m}-${d}`;
+    },
+
     /**
      * 验证字符串
      * 只能为汉字、字母、数字、下划线
