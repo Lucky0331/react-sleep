@@ -21,6 +21,25 @@ export function findAllMenu() {
     };
 }
 
+// 条件查询产品类型(查询所有)
+export function findProductTypeByWhere(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/productType/list', params
+        ).then(
+            msg => {
+                dispatch({
+                    type: 'SHOP::findProductTypeByWhere',
+                    payload: msg,
+                });
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
 // 查询所有用户（内部用户）
 export function findAll(params = {}) {
     return (dispatch) => {

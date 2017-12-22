@@ -122,6 +122,7 @@ class Category extends React.Component {
         form.setFieldsValue({
             upName: record.name,
             upTypeId: record.typeId,
+            upDescription:record.description,
             upPrice: record.price,
             upInDate: record.inDate,
             upConditions: `${record.conditions}`
@@ -139,6 +140,7 @@ class Category extends React.Component {
         form.validateFields([
             'upName',
             'upTypeId',
+            'upDescription',
             'upPrice',
             'upConditions',
             'upTimeLimitType',
@@ -153,6 +155,7 @@ class Category extends React.Component {
                 id: me.state.nowData.id,
                 name: values.upName,
                 typeId: values.upTypeId,
+                updescription:values.upDescription,
                 price: values.upPrice,
                 conditions: values.upConditions,
                 timeLimitType: values.upTimeLimitType,
@@ -254,7 +257,7 @@ class Category extends React.Component {
             const params = {
                 name: values.addnewName,
                 typeId: Number(values.addnewTypeId),
-                price: values.addnewPrice,
+                price: Number(values.addnewPrice),
                 inDate: Number(values.addnewInDate),
                 conditions: values.addnewConditions,
                 timeLimitType: values.addnewTimeLimitType,
@@ -346,7 +349,7 @@ class Category extends React.Component {
                         </span>
                     );
                     controls.push(
-                        <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
+                        <Popconfirm key="2" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
                             <span className="control-btn red">
                                 <Tooltip placement="top" title="删除">
                                     <Icon type="delete" />
@@ -409,10 +412,10 @@ class Category extends React.Component {
         return (
             <div>
               <div className="system-search">
-                <span className="ant-divider" />
                   <ul className="search-ul">
                       <li>
-                          <Select allowClear placeholder="产品类型" value={this.state.searchTypeId} style={{ width: '200px' }} onChange={(e) => this.onSearchTypeId(e)}>
+                          <span style={{marginRight:'10px'}}>产品类型</span>
+                          <Select allowClear placeholder="全部" value={this.state.searchTypeId} style={{ width: '200px' }} onChange={(e) => this.onSearchTypeId(e)}>
                               {this.state.productTypes.map((item, index) => {
                                   return <Option key={index} value={item.id}>{ item.name }</Option>
                               })}
@@ -452,7 +455,7 @@ class Category extends React.Component {
                         {getFieldDecorator('addnewTypeId', {
                             initialValue: undefined,
                             rules: [
-                                {required: true, message: '健康体检'}
+                                {required: true, message: '请选择产品类型'}
                             ],
                         })(
                             <Select style={{marginLeft:'80px',width:'60%'}}>
@@ -480,7 +483,7 @@ class Category extends React.Component {
                         label="描述"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('addnewSay', {
+                        {getFieldDecorator('addnewConditions', {
                             initialValue: undefined,
                             rules: [
                                 {required: true,whitespace: true,message: '请对产品进行描述'}
@@ -496,10 +499,10 @@ class Category extends React.Component {
                         {getFieldDecorator('addnewNum', {
                             initialValue: undefined,
                             rules: [
-                                {required: true,whitespace: true,message: '请输入体检券数量'}
+                                {required: true,whitespace: true,message: '请填写体检券数量'}
                             ],
                         })(
-                            <InputNumber placeholder="5" style={{marginLeft:'80px',width:'60%'}}/>
+                            <Input style={{marginLeft:'80px',width:'60%'}} min={0} type="number" />
                         )}
                     </FormItem>
                     <FormItem
@@ -509,10 +512,10 @@ class Category extends React.Component {
                         {getFieldDecorator('addnewTime', {
                             initialValue: undefined,
                             rules: [
-                                {required: true,whitespace: true,message: '请填写可用次数'}
+                                {required: true,whitespace: true,message: '请选择体检券数量'}
                             ],
                         })(
-                            <InputNumber placeholder="1" style={{marginLeft:'80px',width:'60%'}}/>
+                            <Input style={{marginLeft:'80px',width:'60%'}} min={0} type="number" />
                         )}
                     </FormItem>
                 </Form>
@@ -521,8 +524,8 @@ class Category extends React.Component {
                       {...formItemLayout}
                   >
                       {getFieldDecorator('addnewPrice', {
-                          initialValue: 0,
-                          rules: [{required: true, message: '请输入价格'}],
+                          initialValue: undefined,
+                          rules: [{required: true,whitespace: true, message: '请输入价格'}],
                       })(
                           <InputNumber min={0} max={99999} style={{marginLeft:'80px',width:'60%'}}/>
                       )}
@@ -673,7 +676,7 @@ class Category extends React.Component {
                       label="产品型号"
                       {...formItemLayout}
                   >
-                      {!!this.state.nowData ? this.state.nowData.productModel : ''}
+                      {!!this.state.nowData ? this.state.nowData.name : ''}
                   </FormItem>
                   <FormItem
                       label="产品类型"
@@ -693,12 +696,12 @@ class Category extends React.Component {
                     >
                         {!!this.state.nowData ? this.getNameForInDate(this.state.nowData.inDate) : ''}
                     </FormItem>
-                    <FormItem
-                        label="状态"
-                        {...formItemLayout}
-                    >
-                        {(!!this.state.nowData) && this.state.nowData.conditions === 0 ? <span style={{ color: 'green' }}>启用</span> : <span style={{ color: 'red' }}>禁用</span>}
-                    </FormItem>
+                    {/*<FormItem*/}
+                        {/*label="状态"*/}
+                        {/*{...formItemLayout}*/}
+                    {/*>*/}
+                        {/*{(!!this.state.nowData) && this.state.nowData.conditions === 0 ? <span style={{ color: 'green' }}>启用</span> : <span style={{ color: 'red' }}>禁用</span>}*/}
+                    {/*</FormItem>*/}
                 </Form>
               </Modal>
             </div>

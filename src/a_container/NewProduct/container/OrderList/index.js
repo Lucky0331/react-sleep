@@ -8,7 +8,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
-import { Form, Button, Icon, Input, Table, message, Modal, Tooltip, InputNumber, Select, Divider  } from 'antd';
+import { Form, Button, Icon, Input, Table, message, Modal, Tooltip, InputNumber, Select, Divider ,Cascader } from 'antd';
 import './index.scss';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
@@ -22,7 +22,7 @@ import { power } from '../../../../util/data';
 // 本页面所需action
 // ==================
 
-import { findOrderByWhere, updateOrder, findProductTypeByWhere, addProductType, updateProductType, deleteProductType } from '../../../../a_action/shop-action';
+import { findAllProvince, findCityOrCounty,findOrderByWhere,addStationList, updateOrder, findProductTypeByWhere, addProductType, updateProductType, deleteProductType } from '../../../../a_action/shop-action';
 
 // ==================
 // Definition
@@ -38,18 +38,35 @@ class Category extends React.Component {
             searchMinPrice: undefined,  // 搜索 - 最小价格
             searchMaxPrice: undefined,  // 搜索- 最大价格
             nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
-            queryModalShow: false, // 查看详情模态框是否显示
+            addnewModalShow: false, // 查看地区模态框是否显示
             upModalShow: false, // 修改模态框是否显示
             upLoading: false, // 是否正在修改用户中
-            pageNum: 1, // 当前第几页
+            pageNum: 0, // 当前第几页
             pageSize: 10, // 每页多少条
             total: 0, // 数据库总共多少条数据
+            citys: [],  // 符合Cascader组件的城市数据
         };
     }
 
     componentDidMount() {
+        if (!this.props.citys.length) { // 获取所有省，全局缓存
+            this.getAllCity0();
+        } else {
+            this.setState({
+                citys: this.props.citys.map((item, index) => ({ id: item.id, value: item.areaName, label: item.areaName, isLeaf: false})),
+            });
+        }
         this.onGetData(this.state.pageNum, this.state.pageSize);
     }
+
+    componentWillReceiveProps(nextP) {
+        if(nextP.citys !== this.props.citys) {
+            this.setState({
+                citys: nextP.citys.map((item, index) => ({ id: item.id, value: item.areaName, label: item.areaName, isLeaf: false})),
+            });
+        }
+    }
+
 
     // 查询当前页面所需列表数据
     onGetData(pageNum, pageSize) {
@@ -87,6 +104,123 @@ class Category extends React.Component {
         }
     }
 
+    // // 工具 - 根据产品类型ID查产品类型名称
+    // findProductNameById(id) {
+    //     const t = this.state.productTypes.find((item) => String(item.id) === String(id));
+    //     return t ? t.name : '';
+    // }
+
+    // 点击查看地区模态框出现
+   onAddNewShow() {
+        const me = this;
+        const { form } = me.props;
+        form.resetFields([
+            'addnewCitys',
+        ]);
+        this.setState({
+            addOrUp: 'add',
+            fileList: [],
+            fileListDetail: [],
+            addnewModalShow: true,
+        });
+    }
+
+    // 添加或修改确定
+    onAddNewOk() {
+        const me = this;
+        const { form } = me.props;
+
+        form.validateFields([
+            'addnewCitys',
+        ], (err, values) => {
+            if (err) { return false; }
+            me.setState({
+                addnewLoading: true,
+            });
+            console.log('区域是什么；', values.addnewCitys);
+
+            const params = {
+                contactPhone: values.addnewContactPhone,
+                dayCount: values.addnewDayCount,
+                state: values.addnewState,
+                code: values.addnewCode,
+            };
+            if(values.addnewCitys[0] && values.addnewCitys[1] && values.addnewCitys[2]) {
+                params.province = values.addnewCitys[0];
+                params.city = values.addnewCitys[1];
+                params.region = values.addnewCitys[2];
+            } else if (this.state.addOrUp === 'up') {   // 是修改，但没有修改区域
+                params.province = this.state.nowData.province;
+                params.city = this.state.nowData.city;
+                params.region = this.state.nowData.region;
+            }
+
+            if (this.state.addOrUp === 'add') { // 新增
+                me.props.actions.addStationList(tools.clearNull(params)).then((res) => {
+                    if (res.returnCode === '0') {
+                        me.setState({
+                            addnewLoading: false,
+                        });
+                        this.onGetData(this.state.pageNum, this.state.pageSize);
+                        this.onAddNewClose();
+                    } else {
+                        message.error(res.returnMessaage || '操作失败');
+                        this.onAddNewClose();
+                    }
+                }).catch(() => {
+                    this.onAddNewClose();
+                });
+            } else {
+                params.id = this.state.nowData.id;
+                me.props.actions.upStationList(params).then((res) => {
+                    if(res.returnCode === '0') {
+                        me.setState({
+                            addnewLoading: false,
+                        });
+                        this.onGetData(this.state.pageNum, this.state.pageSize);
+                        this.onAddNewClose();
+                    } else {
+                        message.error(res.returnMessaage || '操作失败');
+                        this.onAddNewClose();
+                    }
+                }).catch(() => {
+                    this.onAddNewClose();
+                });
+            }
+        });
+    }
+
+    // 关闭模态框
+    onAddNewClose() {
+        this.setState({
+            addnewModalShow: false,
+        });
+    }
+
+    // 获取所有的省
+    getAllCity0() {
+
+        this.props.actions.findAllProvince();
+    }
+
+    // 获取某省下面的市
+    getAllCitySon(selectedOptions) {
+        console.log('SSS',selectedOptions);
+        const targetOption = selectedOptions[selectedOptions.length - 1];
+        targetOption.loading = true;
+        this.props.actions.findCityOrCounty({ parentId: selectedOptions[selectedOptions.length - 1].id }).then((res) => {
+            if (res.returnCode === '0') {
+                targetOption.children = res.messsageBody.map((item, index) => {
+                    return { id: item.id, value: item.areaName, label: item.areaName, isLeaf: item.level === 2, key: index };
+                });
+            }
+            targetOption.loading = false;
+            this.setState({
+                citys: [...this.state.citys]
+            });
+        });
+    }
+
     // 搜索 - 用户名输入框值改变时触发
     searchProductNameChange(e) {
         if (e.target.value.length < 20) {
@@ -110,18 +244,18 @@ class Category extends React.Component {
         });
     }
     // 修改某一条数据 模态框出现
-    onUpdateClick(record) {
-        const me = this;
-        const { form } = me.props;
-        console.log('Record:', record);
-        form.setFieldsValue({
-            upOrderStatus: `${record.conditions}`
-        });
-        me.setState({
-            nowData: record,
-            upModalShow: true,
-        });
-    }
+    // onUpdateClick(record) {
+    //     const me = this;
+    //     const { form } = me.props;
+    //     console.log('Record:', record);
+    //     form.setFieldsValue({
+    //         upOrderStatus: `${record.conditions}`
+    //     });
+    //     me.setState({
+    //         nowData: record,
+    //         upModalShow: true,
+    //     });
+    // }
 
     // 确定修改某一条数据
     onUpOk() {
@@ -169,6 +303,10 @@ class Category extends React.Component {
     onSearch() {
         this.onGetData(this.state.pageNum, this.state.pageSize);
     }
+    //导出
+    onExport(){
+        this.onGetData(this.state.pageNum, this.state.pageSize);
+    }
 
     // 查询某一条数据的详情
     onQueryClick(record) {
@@ -208,7 +346,9 @@ class Category extends React.Component {
                 title: '订单来源'
             },
             {
-                title: '用户账户'
+                title: '用户账户',
+                dataIndex: 'userId',
+                key: 'userId',
             },
             {
                 title: '产品名称',
@@ -217,8 +357,9 @@ class Category extends React.Component {
             },
             {
                 title: '产品类型',
-                dataIndex: 'typeCode',
-                key: 'typeCode',
+                dataIndex: 'typeId',
+                key: 'typeId',
+                // render: (text) => this.findProductNameById(text),
             },
             {
                 title: '产品型号',
@@ -242,7 +383,9 @@ class Category extends React.Component {
                 title: '经销商账户'
             },
             {
-                title: '服务站名称'
+                title: '服务站名称',
+                dataIndex: 'stationId',
+                key: 'stationId',
             },
             {
                 title: '下单时间',
@@ -254,13 +397,13 @@ class Category extends React.Component {
                 title: '支付方式',
                 dataIndex: 'pay',
                 key: 'pay',
-                render: (text, record) => text ? <span style={{color: 'green'}}>已支付</span> : <span style={{color: 'red'}}>未支付</span>
+                render: (text, record) => text ? <span style={{color: 'green'}}>微信</span> : <span style={{color: 'blue'}}>支付宝</span>
             },
             {
                 title: '支付状态',
-                dataIndex: 'conditions',
-                key: 'conditions',
-                render: (text, record) => this.getConditionNameById(text)
+                dataIndex: 'isPay',
+                key: 'isPay',
+                render: (text, record) => text ? <span style={{color: 'green'}}>已支付</span> : <span style={{color: 'red'}}>未支付</span>
             },
             {
                 title: '订单状态',
@@ -310,6 +453,9 @@ class Category extends React.Component {
                 orderType: item.orderType,
                 payTime: item.payTime,
                 payType: item.payType,
+                citys: (item.province && item.city && item.region) ? `${item.province}/${item.city}/${item.region}` : '',
+                province: item.province,
+                city: item.city,
                 id: item.id,
                 serial:(index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
                 createTime: item.createTime,
@@ -333,11 +479,11 @@ class Category extends React.Component {
         const formItemLayout = {
             labelCol: {
                 xs: { span: 24 },
-                sm: { span: 4 },
+                sm: { span: 7 },
             },
             wrapperCol: {
                 xs: { span: 24 },
-                sm: { span: 19 },
+                sm: { span: 16 },
             },
         };
 
@@ -345,31 +491,84 @@ class Category extends React.Component {
             <div>
               <div className="system-search">
                   <ul className="search-ul">
-                      <li>订单号  <InputNumber min={0}/></li>
+                      <li>订单号  <InputNumber min={0} style={{marginRight:'20px'}}/></li>
                       <li>
                           <span style={{marginRight:'10px'}}>订单来源</span>
-                          <Select placeholder="全部" style={{ width: '100px',marginRight:'10px' }}>
+                          <Select placeholder="全部" style={{ width: '120px',marginRight:'20px' }}>
                               <Option value={0}>健康e家app</Option>
                               <Option value={1}>经销商app</Option>
                               <Option value={2}>微信公众号</Option>
                           </Select>
                       </li>
-                      <li>用户账号  <Input style={{width:'50%'}}/></li>
-                      <li>产品名称  <Input style={{width:'50%'}}/></li>
+                      <li>用户账号  <Input style={{width:'50%',marginRight:'10px'}}/></li>
+                      <li>产品名称  <Input style={{width:'50%'}} onChange={(e) => this.searchProductNameChange(e)} value={this.state.searchProductName}/></li>
                       <li>
                           <span style={{marginRight:'10px'}}>产品型号</span>
-                          <Select placeholder="全部" style={{ width: '100px',marginRight:'10px' }}>
-                              <Option value={0}>精准体检卡</Option>
+                          <Select placeholder="全部" style={{ width: '100px',marginRight:'20px' }}>
+                              <Option value={1}>水机</Option>
+                              <Option value={2}>养未来</Option>
+                              <Option value={3}>冷敷贴</Option>
+                              <Option value={4}>水机续费订单</Option>
+                              <Option value={5}>精准体检</Option>
+                              <Option value={6}>智能睡眠</Option>
                           </Select>
                       </li>
-                      <li>总金额  <InputNumber min={0} style={{width:'25%'}}/>-<InputNumber min={0} style={{width:'25%'}}/></li>
-                      <li>  <Input style={{width:'50%'}}/></li>
-                      <li><Input placeholder="产品名称" onChange={(e) => this.searchProductNameChange(e)} value={this.state.searchProductName}/></li>
-                      <li><InputNumber min={0} max={999999} placeholder="最小价格" onChange={(e) => this.searchMinPriceChange(e)} value={this.state.searchMinPrice}/></li>
-                      <li><InputNumber min={0} max={999999} placeholder="最大价格" onChange={(e) => this.searchMaxPriceChange(e)} value={this.state.searchMaxPrice}/></li>
+                      <li>总金额  <InputNumber min={0} max={999999} placeholder="最小价格" onChange={(e) => this.searchMinPriceChange(e)} value={this.state.searchMinPrice} style={{width:'30%'}}/>--
+                          <InputNumber min={0} max={999999} placeholder="最大价格" onChange={(e) => this.searchMaxPriceChange(e)} value={this.state.searchMaxPrice}/>
+                      </li>
+                      <li>经销商账户  <Input style={{width:'48%'}}/></li>
+                   </ul>
+                  <ul className="search-ul" style={{marginTop:'20px'}}>
+                      <li style={{marginRight:'20px'}}>
+                          <ul className="search-func">
+                              <span style={{marginRight:'10px'}}>服务站地区</span>
+                              <span style={{ color: '#888' }}>
+                                    {(this.state.nowData && this.state.addOrUp === 'up' && this.state.nowData.province && this.state.nowData.city && this.state.nowData.region) ? `${this.state.nowData.province}/${this.state.nowData.city}/${this.state.nowData.region}` : null}
+                                </span>
+                                      {getFieldDecorator('addnewCitys', {
+                                          initialValue: undefined,
+                                          rules: [
+                                              {message: '请选择区域'},
+                                          ],
+                                      })(
+                                          <Cascader
+                                              placeholder="请选择服务区域"
+                                              options={this.state.citys}
+                                              loadData={(e) => this.getAllCitySon(e)}
+                                          />
+                                      )}
+                          </ul>
+                      </li>
+                      <li>下单时间  <InputNumber style={{width:'30%'}}/>--
+                          <InputNumber/>
+                      </li>
+                      <li>
+                          <span style={{marginRight:'10px'}}>支付方式</span>
+                          <Select placeholder="全部" style={{ width: '120px',marginRight:'20px' }}>
+                              <Option value={0}>微信</Option>
+                              <Option value={1}>支付宝</Option>
+                          </Select>
+                      </li>
+                      <li>
+                          <span style={{marginRight:'10px'}}>支付状态</span>
+                          <Select placeholder="全部" style={{ width: '120px',marginRight:'30px' }}>
+                              <Option value={0}>已支付</Option>
+                              <Option value={1}>未支付</Option>
+                          </Select>
+                      </li>
+                      <li>
+                          <span style={{marginRight:'20px'}}>订单状态</span>
+                          <Select placeholder="全部" style={{ width: '120px',marginRight:'70px' }}>
+                              <Option value="1">未受理</Option>
+                              <Option value="2">已受理</Option>
+                              <Option value="3">处理中</Option>
+                              <Option value="4">已完成</Option>
+                              <Option value="-1">审核中</Option>
+                              <Option value="-2">未通过</Option>
+                          </Select>
+                      </li>
                       <li><Button  type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
                       <li><Button  type="primary" onClick={() => this.onExport()}>导出</Button></li>
-
                   </ul>
               </div>
               <div className="system-table">
@@ -386,6 +585,36 @@ class Category extends React.Component {
                     }}
                 />
               </div>
+                <Modal
+                    title='查看地区'
+                    visible={this.state.addnewModalShow}
+                    onOk={() => this.onAddNewOk()}
+                    onCancel={() => this.onAddNewClose()}
+                    confirmLoading={this.state.addnewLoading}
+                >
+                    <Form>
+                        <FormItem
+                            label="服务站地区"
+                            {...formItemLayout}
+                        >
+                        <span style={{ color: '#888' }}>
+                            {(this.state.nowData && this.state.addOrUp === 'up' && this.state.nowData.province && this.state.nowData.city && this.state.nowData.region) ? `${this.state.nowData.province}/${this.state.nowData.city}/${this.state.nowData.region}` : null}
+                        </span>
+                            {getFieldDecorator('addnewCitys', {
+                                initialValue: undefined,
+                                rules: [
+                                    {required: true, message: '请选择区域'},
+                                ],
+                            })(
+                                <Cascader
+                                    placeholder="请选择服务区域"
+                                    options={this.state.citys}
+                                    loadData={(e) => this.getAllCitySon(e)}
+                                />
+                            )}
+                        </FormItem>
+                    </Form>
+                </Modal>
                 {/* 修改用户模态框 */}
               <Modal
                   title='修改订单状态'
@@ -429,6 +658,12 @@ class Category extends React.Component {
                     >
                         {!!this.state.nowData ? this.state.nowData.id : ''}
                     </FormItem>
+                    {/*<FormItem*/}
+                        {/*label="产品类型"*/}
+                        {/*{...formItemLayout}*/}
+                    {/*>*/}
+                        {/*{!!this.state.nowData ? this.findProductNameById(this.state.nowData.typeId) : ''}*/}
+                    {/*</FormItem>*/}
                   <FormItem
                       label="生成时间"
                       {...formItemLayout}
@@ -459,14 +694,14 @@ class Category extends React.Component {
                     >
                         {!!this.state.nowData ? this.state.nowData.fee : ''}
                     </FormItem>
+                    {/*<FormItem*/}
+                        {/*label="开户费"*/}
+                        {/*{...formItemLayout}*/}
+                    {/*>*/}
+                        {/*{!!this.state.nowData ? this.state.nowData.openAccountFee : ''}*/}
+                    {/*</FormItem>*/}
                     <FormItem
-                        label="开户费"
-                        {...formItemLayout}
-                    >
-                        {!!this.state.nowData ? this.state.nowData.openAccountFee : ''}
-                    </FormItem>
-                    <FormItem
-                        label="购买人"
+                        label="用户账户"
                         {...formItemLayout}
                     >
                         {!!this.state.nowData ? this.state.nowData.userId : ''}
@@ -504,6 +739,7 @@ Category.propTypes = {
     location: P.any,
     history: P.any,
     actions: P.any,
+    citys: P.array, // 动态加载的省
 };
 
 // ==================
@@ -512,9 +748,9 @@ Category.propTypes = {
 const WrappedHorizontalRole = Form.create()(Category);
 export default connect(
     (state) => ({
-
+        citys: state.sys.citys,
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findOrderByWhere, updateOrder, findProductTypeByWhere, addProductType, updateProductType, deleteProductType }, dispatch),
+        actions: bindActionCreators({findAllProvince, findCityOrCounty, addStationList,findOrderByWhere, updateOrder, findProductTypeByWhere, addProductType, updateProductType, deleteProductType }, dispatch),
     })
 )(WrappedHorizontalRole);

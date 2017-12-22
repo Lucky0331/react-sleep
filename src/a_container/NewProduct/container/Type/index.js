@@ -102,6 +102,7 @@ class Category extends React.Component {
         console.log('Record:', record);
         form.setFieldsValue({
             upName: record.name,
+            upAppName: record.appname,
             upDetail: record.detail,
             upCode:record.code,
             upSorts: record.sorts,
@@ -119,6 +120,7 @@ class Category extends React.Component {
         const { form } = me.props;
         form.validateFields([
             'upName',
+            'upAppName',
             'upCode',
             'upDetail',
             'upSorts',
@@ -132,6 +134,7 @@ class Category extends React.Component {
             const params = {
                 id: me.state.nowData.id,
                 name: values.upName,
+                appname: values.upAppName,
                 code:values.upCode,
                 detail: values.upDetail,
                 sorts: values.upSorts,
@@ -226,9 +229,9 @@ class Category extends React.Component {
             });
             const params = {
                 name: values.addnewName,
-                name: values.addnewAppName,
+                appname: values.addnewAppName,
                 detail: values.addnewDetail,
-                code: values.addnewCode,
+                code: String(values.addnewCode),
                 sorts: values.addnewSorts,
                 conditions: values.addnewConditions,
             };
@@ -332,6 +335,7 @@ class Category extends React.Component {
                 id: item.id,
                 serial:(index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
                 name: item.name,
+                appname: item.appname,
                 sorts: item.sorts,
                 code:item.code,
                 updateTime: item.updateTime,
@@ -440,13 +444,12 @@ class Category extends React.Component {
                         {...formItemLayout}
                     >
                         {getFieldDecorator('addnewCode', {
-                            initialValue: 0,
+                            initialValue: undefined,
                             rules: [
                                 {required: true, message: '请选择产品标识'}
                             ],
                         })(
-                            <Select>
-                                <Option value={0}>请选择产品标识</Option>
+                            <Select placeholder="请选择产品标识">
                                 <Option value={1}>水机</Option>
                                 <Option value={2}>养未来</Option>
                                 <Option value={3}>冷敷贴</Option>
@@ -490,66 +493,117 @@ class Category extends React.Component {
                         )}
                     </FormItem>
                     <FormItem
-                        label="排序"
+                        label="App前台名称"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('upSorts', {
-                            initialValue: 0,
-                            rules: [{required: true, message: '请输入排序号'}],
+                        {getFieldDecorator('upAppName', {
+                            initialValue: undefined,
+                            rules: [
+                                {required: true, whitespace: true, message: '请输入产品类型名称'},
+                                { validator: (rule, value, callback) => {
+                                    const v = tools.trim(value);
+                                    if (v) {
+                                        if (v.length > 12) {
+                                            callback('最多输入12位字符');
+                                        }
+                                    }
+                                    callback();
+                                }}
+                            ],
                         })(
-                            <InputNumber min={0} max={99999} />
+                            <Input placeholder="请输入产品类型名称" />
                         )}
                     </FormItem>
                     <FormItem
-                        label="状态"
+                        label="产品标识"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('upConditions', {
-                            rules: [],
-                            initialValue: "0",
-                        })(
-                            <RadioGroup>
-                                <Radio value="0">启用</Radio>
-                                <Radio value="-1">禁用</Radio>
-                            </RadioGroup>
-                        )}
+                        {/*{getFieldDecorator('upCode', {*/}
+                            {/*initialValue: undefined,*/}
+                            {/*rules: [*/}
+                                {/*{required: true, whitespace: true, message: '请输入产品类型名称'},*/}
+                                {/*{ validator: (rule, value, callback) => {*/}
+                                    {/*const v = tools.trim(value);*/}
+                                    {/*if (v) {*/}
+                                        {/*if (v.length > 12) {*/}
+                                            {/*callback('最多输入12位字符');*/}
+                                        {/*}*/}
+                                    {/*}*/}
+                                    {/*callback();*/}
+                                {/*}}*/}
+                            {/*],*/}
+                        {/*})(*/}
+                            {/*<Input placeholder="请输入产品类型名称" />*/}
+                        {/*)}*/}
+                        {!!this.state.nowData ? this.state.nowData.code : ''}
                     </FormItem>
+                    {/*<FormItem*/}
+                        {/*label="排序"*/}
+                        {/*{...formItemLayout}*/}
+                    {/*>*/}
+                        {/*{getFieldDecorator('upSorts', {*/}
+                            {/*initialValue: 0,*/}
+                            {/*rules: [{required: true, message: '请输入排序号'}],*/}
+                        {/*})(*/}
+                            {/*<InputNumber min={0} max={99999} />*/}
+                        {/*)}*/}
+                    {/*</FormItem>*/}
+                    {/*<FormItem*/}
+                        {/*label="状态"*/}
+                        {/*{...formItemLayout}*/}
+                    {/*>*/}
+                        {/*{getFieldDecorator('upConditions', {*/}
+                            {/*rules: [],*/}
+                            {/*initialValue: "0",*/}
+                        {/*})(*/}
+                            {/*<RadioGroup>*/}
+                                {/*<Radio value="0">启用</Radio>*/}
+                                {/*<Radio value="-1">禁用</Radio>*/}
+                            {/*</RadioGroup>*/}
+                        {/*)}*/}
+                    {/*</FormItem>*/}
                 </Form>
               </Modal>
-                {/* 查看详情模态框 */}
-              <Modal
-                  title="查看详情"
-                  visible={this.state.queryModalShow}
-                  onOk={() => this.onQueryModalClose()}
-                  onCancel={() => this.onQueryModalClose()}
-              >
-                <Form>
-                  <FormItem
-                      label="类型名"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.name : ''}
-                  </FormItem>
-                  <FormItem
-                      label="详细说明"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.detail : ''}
-                  </FormItem>
-                    <FormItem
-                        label="排序编号"
-                        {...formItemLayout}
-                    >
-                        {!!this.state.nowData ? this.state.nowData.sorts : ''}
-                    </FormItem>
-                    <FormItem
-                        label="状态"
-                        {...formItemLayout}
-                    >
-                        {(!!this.state.nowData) && this.state.nowData.conditions === 0 ? <span style={{ color: 'green' }}>启用</span> : <span style={{ color: 'red' }}>禁用</span>}
-                    </FormItem>
-                </Form>
-              </Modal>
+                {/*/!* 查看详情模态框 *!/*/}
+              {/*<Modal*/}
+                  {/*title="查看详情"*/}
+                  {/*visible={this.state.queryModalShow}*/}
+                  {/*onOk={() => this.onQueryModalClose()}*/}
+                  {/*onCancel={() => this.onQueryModalClose()}*/}
+              {/*>*/}
+                {/*<Form>*/}
+                  {/*<FormItem*/}
+                      {/*label="类型名"*/}
+                      {/*{...formItemLayout}*/}
+                  {/*>*/}
+                      {/*{!!this.state.nowData ? this.state.nowData.name : ''}*/}
+                  {/*</FormItem>*/}
+                    {/*<FormItem*/}
+                        {/*label="App前台展示名"*/}
+                        {/*{...formItemLayout}*/}
+                    {/*>*/}
+                        {/*{!!this.state.nowData ? this.state.nowData.appname : ''}*/}
+                    {/*</FormItem>*/}
+                  {/*/!*<FormItem*!/*/}
+                      {/*/!*label="详细说明"*!/*/}
+                      {/*/!*{...formItemLayout}*!/*/}
+                  {/*/!*>*!/*/}
+                      {/*/!*{!!this.state.nowData ? this.state.nowData.detail : ''}*!/*/}
+                  {/*/!*</FormItem>*!/*/}
+                    {/*/!*<FormItem*!/*/}
+                        {/*/!*label="排序编号"*!/*/}
+                        {/*/!*{...formItemLayout}*!/*/}
+                    {/*/!*>*!/*/}
+                        {/*/!*{!!this.state.nowData ? this.state.nowData.sorts : ''}*!/*/}
+                    {/*/!*</FormItem>*!/*/}
+                    {/*/!*<FormItem*!/*/}
+                        {/*/!*label="状态"*!/*/}
+                        {/*/!*{...formItemLayout}*!/*/}
+                    {/*/!*>*!/*/}
+                        {/*/!*{(!!this.state.nowData) && this.state.nowData.conditions === 0 ? <span style={{ color: 'green' }}>启用</span> : <span style={{ color: 'red' }}>禁用</span>}*!/*/}
+                    {/*/!*</FormItem>*!/*/}
+                {/*</Form>*/}
+              {/*</Modal>*/}
             </div>
         );
     }

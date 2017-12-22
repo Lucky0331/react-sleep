@@ -14,7 +14,7 @@ export function onTestAdd(num) {
 export function onLogin(params) {
     return (dispatch) => {
       return Fetchapi.newPost(
-        '/manager/admin/submitLogin', params, 'post', true
+        '/admin/submitLogin', params, 'post', true
       ).then(
 
           msg => {

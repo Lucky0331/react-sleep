@@ -76,22 +76,20 @@ class Menus extends React.Component {
                         {/*<Menu.Item key="sub0-5"><Link to="/system/organization">组织机构管理</Link></Menu.Item>*/}
                     </SubMenu>
                     <SubMenu key="sub1" title={<span>产品管理</span>}>
-                            <SubMenu key="sub1-1" title={<span>产品列表</span>}>
-                                <Menu.Item key="/product/list"><Link to="/product/list">健康体检</Link></Menu.Item>
-                            </SubMenu>
+                            <Menu.Item key="/product/list"><Link to="/product/list">产品列表</Link></Menu.Item>
+                            {/*<SubMenu key="sub1-1" title={<span>产品列表</span>}>*/}
+                                {/*<Menu.Item key="/product/list"><Link to="/product/list">健康体检</Link></Menu.Item>*/}
+                            {/*</SubMenu>*/}
                             <Menu.Item key="/product/type"><Link to="/product/type">产品类型</Link></Menu.Item>
                             <Menu.Item key="/product/model"><Link to="/product/model">产品型号</Link></Menu.Item>
                     </SubMenu>
                     <SubMenu key="sub2" title={<span>订单管理</span>}>
-                        <SubMenu key="sub2-1" title="订单列表">
-                            <Menu.Item key="/product/orderlist"><Link to="/product/orderlist">健康体检</Link></Menu.Item>
-                        </SubMenu>
+                        {/*<SubMenu key="sub2-1" title="订单列表">*/}
+                            <Menu.Item key="/product/orderlist"><Link to="/product/orderlist">订单列表</Link></Menu.Item>
+                        {/*</SubMenu>*/}
                     </SubMenu>
-                    <SubMenu key="sub3" title={<span>服务站</span>}>
-                        <Menu.Item key="/service/station"><Link to="/service/station">服务站管理</Link></Menu.Item>
-                        <SubMenu key="sub3-1" title="产品上线">
-                            <Menu.Item key="/service/list"><Link to="/service/list">体检上线</Link></Menu.Item>
-                        </SubMenu>
+                    <SubMenu key="sub3" title={<span>服务站管理</span>}>
+                        <Menu.Item key="/service/station"><Link to="/service/station">产品上线</Link></Menu.Item>
                     </SubMenu>
                     <SubMenu key="sub4" title={<span>体检管理</span>}>
                         <Menu.Item key="/physical/list"><Link to="/physical/list">体检列表</Link></Menu.Item>

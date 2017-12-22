@@ -24,7 +24,7 @@ import _ from 'lodash';
 // 本页面所需action
 // ==================
 
-import { findProductByWhere, findProductTypeByWhere, addProduct, updateProduct, updateProductType,deleteProduct, deleteImage, findProductModelByWhere } from '../../../../a_action/shop-action';
+import { findProductByWhere, findProductTypeByWhere, addProduct, updateProduct, updateProductType,deleteProduct,removeProduct, deleteImage, findProductModelByWhere } from '../../../../a_action/shop-action';
 
 // ==================
 // Definition
@@ -39,6 +39,7 @@ class Category extends React.Component {
             data: [], // 当前页面全部数据
             productTypes: [],   // 所有的产品类型
             productModels: [],  // 所有的产品型号
+            searchTypeId: '', // 搜索 - 类型名
             searchName: '', // 搜索 - 名称
             addOrUp: 'add',     // 当前操作是新增还是修改
             addnewModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
@@ -67,6 +68,7 @@ class Category extends React.Component {
             pageNum,
             pageSize,
             productName: this.state.searchName,
+            typeId: this.state.searchTypeId,
         };
         this.props.actions.findProductByWhere(tools.clearNull(params)).then((res) => {
             if(res.returnCode === "0") {
@@ -114,17 +116,38 @@ class Category extends React.Component {
         return t ? t.name : '';
     }
 
-    // 工具 - 根据ID获取销售方式的名字
-    getNameBySaleModeName(code) {
-        switch(Number(code)) {
-            case 1: return '租赁';
-            case 2: return '买卖';
-            case 3: return '服务';
+    // 工具 - 根据有效期type获取有效期名称
+    getNameForInDate(type) {
+        switch(String(type)){
+            case '0': return '长期有效';
+            case '1': return '三天';
+            case '2': return '七天';
+            case '3': return '一个月';
+            case '4': return '半年';
+            case '5': return '一年';
+            case '6': return '两年';
             default: return '';
         }
     }
 
-    // 搜索 - 用户名输入框值改变时触发
+    // 工具 - 根据ID获取销售方式的名字
+    // getNameBySaleModeName(code) {
+    //     switch(Number(code)) {
+    //         case 1: return '租赁';
+    //         case 2: return '买卖';
+    //         case 3: return '服务';
+    //         default: return '';
+    //     }
+    // }
+
+    // 搜索 - 产品类型输入框值改变时触发
+    onSearchTypeId(e) {
+        this.setState({
+            searchTypeId: e,
+        });
+    }
+
+    //搜索 - 产品状态输入框值改变时触发
     searchNameChange(e) {
         if (e.target.value.length < 20) {
             this.setState({
@@ -143,7 +166,7 @@ class Category extends React.Component {
             addnewName: record.name,
             addnewPrice: record.price,
             addnewTypeId: `${record.typeId}`,
-            addnewTypeCode: record.typeCode,
+            addnewTypeCode: String(record.typeCode),
             addnewSaleMode: String(record.saleMode),
             addnewMarketPrice: record.marketPrice,
             addnewAmount: record.amount,
@@ -159,8 +182,8 @@ class Category extends React.Component {
     }
 
     // 删除某一条数据
-    onDeleteClick(id) {
-        this.props.actions.deleteProduct({id: id}).then((res) => {
+    onRemoveClick(id) {
+        this.props.actions.removeProduct({id: id}).then((res) => {
             if(res.returnCode === "0") {
                 message.success('删除成功');
                 this.onGetData(this.state.pageNum, this.state.pageSize);
@@ -169,6 +192,7 @@ class Category extends React.Component {
             }
         });
     }
+
 
     // 搜索
     onSearch() {
@@ -215,19 +239,19 @@ class Category extends React.Component {
     // 下架或上架
     onUpdateClick2(record) {
         const params = {
-            name: record.addnewName,
-            price: record.addnewPrice,
-            typeId: Number(record.addnewTypeId),
-            typeCode: record.addnewTypeCode,
-            saleMode: Number(record.addnewSaleMode),
-            marketPrice: record.addnewMarketPrice,
-            amount: record.addnewAmount,
-            onShelf: record.addnewOnShelf ? 1 : 0,
-            productImg: this.state.fileList.map((item) => item.url).join(','),
-            detailImg: this.state.fileListDetail.length ? this.state.fileListDetail[0].url : '',
+            id:record.id,
+            name: record.name,
+            price: record.price,
+            typeId: Number(record.typeId),
+            typeCode: record.typeCode,
+            saleMode: Number(record.saleMode),
+            marketPrice: record.marketPrice,
+            onShelf: record.onShelf ? 1 : 0,
+            productImg: record.productImg,
+            detailImg: record.detailImg,
         };
 
-        this.props.actions.updateProductType(params).then((res) => {
+        this.props.actions.deleteProduct(params).then((res) => {
             if (res.returnCode === "0") {
                 message.success("修改成功");
                 this.onGetData(this.state.pageNum, this.state.pageSize);
@@ -241,6 +265,7 @@ class Category extends React.Component {
 
     // 添加或修改确定
     onAddNewOk() {
+        console.log('AAAAAAAA');
         const me = this;
         const { form } = me.props;
         if (me.state.fileLoading || me.state.fileDetailLoading) {
@@ -262,11 +287,12 @@ class Category extends React.Component {
             me.setState({
                 addnewLoading: true,
             });
+
             const params = {
                 name: values.addnewName,
                 price: values.addnewPrice,
                 typeId: Number(values.addnewTypeId),
-                typeCode: values.addnewTypeCode,
+                typeCode: String(values.addnewTypeCode),
                 saleMode: Number(values.addnewSaleMode),
                 marketPrice: values.addnewMarketPrice,
                 amount: values.addnewAmount,
@@ -332,10 +358,10 @@ class Category extends React.Component {
         console.log('图片上传：', obj);
         if (obj.file.status === 'done') {
             // 上传成功后调用,将新的地址加进原list
-            if (obj.file.response.imageUrl) {
+            if (obj.file.response.messsageBody) {
                 const list = _.cloneDeep(this.state.fileList);
                 const t = list.find((item) => item.uid === obj.file.uid);
-                t.url = obj.file.response.imageUrl;
+                t.url = obj.file.response.messsageBody;
                 this.setState({
                     fileList: list,
                     fileLoading: false,
@@ -407,10 +433,10 @@ class Category extends React.Component {
     onUpLoadDetailChange(obj) {
         if (obj.file.status === 'done') {
             // 上传成功后调用,将新的地址加进原list
-            if (obj.file.response.imageUrl) {
+            if (obj.file.response.messsageBody) {
                 const list = _.cloneDeep(this.state.fileListDetail);
                 const t = list.find((item) => item.uid === obj.file.uid);
-                t.url = obj.file.response.imageUrl;
+                t.url = obj.file.response.messsageBody;
                 this.setState({
                     fileListDetail: list,
                     fileDetailLoading: false,
@@ -485,6 +511,7 @@ class Category extends React.Component {
                 title: '产品型号',
                 dataIndex: 'typeCode',
                 key: 'typeCode',
+                render: (text) => this.getNameByModelId(text),
             },
             {
                 title: '产品状态 ',
@@ -496,31 +523,41 @@ class Category extends React.Component {
             {
                 title: '操作',
                 key: 'control',
-                width: 120,
+                width: 170,
                 render: (text, record) => {
                     const controls = [];
 
-                    controls.push(
+                    (!record.onShelf) && controls.push(
                         <span key="0" className="control-btn blue" onClick={() => this.onUpdateClick2(record)}>
-                            {record.conditions === 0 ? '下架' : '上架'}
+                            <Tooltip placement="top" title="上架">
+                                <Icon type="caret-up" />
+                            </Tooltip>
                         </span>
                     );
+                    (record.onShelf) && controls.push(
+                        <span key="1" className="control-btn red" onClick={() => this.onUpdateClick2(record)}>
+                            <Tooltip placement="top" title="下架">
+                                <Icon type="caret-down" />
+                            </Tooltip>
+                        </span>
+                    );
+
                     controls.push(
-                        <span key="1" className="control-btn green" onClick={() => this.onQueryClick(record)}>
+                        <span key="2" className="control-btn green" onClick={() => this.onQueryClick(record)}>
                             <Tooltip placement="top" title="详情">
                                 <Icon type="eye" />
                             </Tooltip>
                         </span>
                     );
-                    record.conditions !== 0 && controls.push(
-                        <span key="2" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
+                    (!record.onShelf) && controls.push(
+                        <span key="3" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
                             <Tooltip placement="top" title="编辑">
                                 <Icon type="edit" />
                             </Tooltip>
                         </span>
                     );
-                    record.conditions !== 0 && controls.push(
-                        <Popconfirm key="3" title="确定删除吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
+                    (!record.onShelf) && controls.push(
+                        <Popconfirm key="4" title="确定删除吗?" onConfirm={() => this.onRemoveClick(record.id)} okText="确定" cancelText="取消">
                             <span className="control-btn red">
                                 <Tooltip placement="top" title="删除">
                                     <Icon type="delete" />
@@ -589,31 +626,28 @@ class Category extends React.Component {
                 sm: { span: 13 },
             },
         };
-        console.log('是啥：', form.getFieldValue('addnewTypeId'), this.state.productModels.filter((item) => String(item.typeId) === String(form.getFieldValue('addnewTypeId'))));
+        console.log('是啥：', this.state.productModels.filter((item) => String(item.typeId) === String(form.getFieldValue('addnewTypeId'))));
         return (
             <div style={{ width: '100%' }}>
               <div className="system-search">
-                  <li className="search-ul">
+                  <ul className="search-ul">
                     <li>
                       <span style={{marginRight:'10px'}}>产品类型</span>
-                      <Select placeholder="全部" style={{ width: '120px',marginRight:'15px' }}>
-                          <Option value={0}>智能净水</Option>
-                          <Option value={1}>健康食品</Option>
-                          <Option value={2}>生物理疗</Option>
-                          <Option value={3}>健康睡眠</Option>
-                          <Option value={3}>健康体验</Option>
-                      </Select>
+                        <Select allowClear placeholder="全部" value={this.state.searchTypeId} style={{ width: '200px' }} onChange={(e) => this.onSearchTypeId(e)}>
+                            {this.state.productTypes.map((item, index) => {
+                                return <Option key={index} value={item.id}>{ item.name }</Option>
+                            })}
+                        </Select>
                     </li>
                     <li>
-                          <span style={{marginRight:'10px'}}>产品状态</span>
-                          <Select placeholder="全部" style={{ width: '120px',marginRight:'25px' }}>
-                              <Option value={0}>已上架</Option>
-                              <Option value={1}>未上架</Option>
-                          </Select>
-                      </li>
-                      {/*<li><Input placeholder="产品名称" onChange={(e) => this.searchNameChange(e)} value={this.state.searchName}/></li>*/}
-                      <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>查询</Button></li>
+                      <span style={{marginRight:'10px'}}>产品状态</span>
+                      <Select placeholder="全部" style={{ width: '120px',marginRight:'25px' }}>
+                          <Option value={0}>已上架</Option>
+                          <Option value={1}>未上架</Option>
+                      </Select>
                   </li>
+                      <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>查询</Button></li>
+                  </ul>
 
                   <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />添加产品</Button></li></ul>
               </div>
@@ -634,7 +668,7 @@ class Category extends React.Component {
               </div>
                 {/* 添加模态框 */}
               <Modal
-                  title='添加产品'
+                  title={this.state.addOrUp === 'add' ? '添加产品' : '修改产品'}
                   visible={this.state.addnewModalShow}
                   onOk={() => this.onAddNewOk()}
                   onCancel={() => this.onAddNewClose()}
@@ -666,7 +700,7 @@ class Category extends React.Component {
                         {getFieldDecorator('addnewName', {
                             initialValue: undefined,
                             rules: [
-                                {required: true, whitespace: true, message: '请输入产品名称'},
+                                {required: true, message: '请输入产品名称'},
                                 { validator: (rule, value, callback) => {
                                     const v = tools.trim(value);
                                     if (v) {
@@ -688,8 +722,9 @@ class Category extends React.Component {
                         {getFieldDecorator('addnewTypeCode', {
                             initialValue: undefined,
                             rules: [
-                                {required: true, whitespace: true, message: '请选择产品型号'},
+                                {required: true, message: '请选择产品型号'},
                                 { validator: (rule, value, callback) => {
+                                    console.log('value===', value);
                                     const v = tools.trim(value);
                                     if (v) {
                                         if (v.length > 12) {
@@ -730,39 +765,39 @@ class Category extends React.Component {
                         label="价格"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('addnewMarketPrice', {
-                            initialValue: 0,
-                            rules: [
-                                {required: true, message: '请输入市场价'},
-                            ],
-                        })(
-                            <InputNumber min={0} max={9999999}/>
-                        )}
+                        {!!this.state.nowData ? this.state.nowData.marketPrice : ''}
                     </FormItem>
+                    {/*<FormItem*/}
+                        {/*label="市场价"*/}
+                        {/*{...formItemLayout}*/}
+                    {/*>*/}
+                        {/*{!!this.state.nowData ? this.state.nowData.marketPrice : '1000'}*/}
+                    {/*</FormItem>*/}
                     <FormItem
                         label="有效期"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('addnewTimeLimitNum', {
-                            initialValue: 0,
-                            rules: [
-                                {required: true, message: '请输入有效期'}
-                            ],
-                        })(
-                            <InputNumber min={0} max={12} placeholder="请输入有效期"/>
-                        )}
-                        {getFieldDecorator('addnewTimeLimitType', {
-                            initialValue: 0,
-                            rules: [
-                                {required: true, message: '请选择有效期'}
-                            ],
-                        })(
-                            <Select style={{ marginLeft:'10px',width:'30%'}}>
-                                <Option value={0}>年</Option>
-                                <Option value={1}>月</Option>
-                                <Option value={2}>日</Option>
-                            </Select>
-                        )}
+                        {/*{getFieldDecorator('addnewTimeLimitNum', {*/}
+                            {/*initialValue: 0,*/}
+                            {/*rules: [*/}
+                                {/*{required: true, message: '请输入有效期'}*/}
+                            {/*],*/}
+                        {/*})(*/}
+                            {/*<InputNumber min={0} max={12} placeholder="请输入有效期"/>*/}
+                        {/*)}*/}
+                        {/*{getFieldDecorator('addnewTimeLimitType', {*/}
+                            {/*initialValue: 0,*/}
+                            {/*rules: [*/}
+                                {/*{required: true, message: '请选择有效期'}*/}
+                            {/*],*/}
+                        {/*})(*/}
+                            {/*<Select style={{ marginLeft:'10px',width:'30%'}}>*/}
+                                {/*<Option value={0}>年</Option>*/}
+                                {/*<Option value={1}>月</Option>*/}
+                                {/*<Option value={2}>日</Option>*/}
+                            {/*</Select>*/}
+                        {/*)}*/}
+                        {!!this.state.nowData ? this.getNameForInDate(this.state.nowData.inDate) : ''}
                     </FormItem>
                     <FormItem
                         label="产品封面图片上传(最多5张)"
@@ -823,12 +858,6 @@ class Category extends React.Component {
                   >
                       {!!this.state.nowData ? this.state.nowData.name : ''}
                   </FormItem>
-                    <FormItem
-                        label="单价"
-                        {...formItemLayout}
-                    >
-                        {!!this.state.nowData ? this.state.nowData.price : ''}
-                    </FormItem>
                   <FormItem
                       label="产品类型"
                       {...formItemLayout}
@@ -839,19 +868,7 @@ class Category extends React.Component {
                         label="产品型号"
                         {...formItemLayout}
                     >
-                        {!!this.state.nowData ? this.state.nowData.typeCode : ''}
-                    </FormItem>
-                    <FormItem
-                        label="销售方式"
-                        {...formItemLayout}
-                    >
-                        {!!this.state.nowData ? this.state.nowData.saleMode : ''}
-                    </FormItem>
-                    <FormItem
-                        label="市场价"
-                        {...formItemLayout}
-                    >
-                        {!!this.state.nowData ? this.state.nowData.marketPrice : ''}
+                        {!!this.state.nowData ? this.getNameByModelId(this.state.nowData.typeCode) : ''}
                     </FormItem>
                     <FormItem
                         label="市场价"
@@ -872,12 +889,6 @@ class Category extends React.Component {
                         {...formItemLayout}
                     >
                         {(!!this.state.nowData && this.state.nowData.detailImg) ? <Popover placement="right" content={<img className="table-img-big" src={this.state.nowData.detailImg} />}><img className="small-img" src={this.state.nowData.detailImg} /></Popover> : ''}
-                    </FormItem>
-                    <FormItem
-                        label="库存"
-                        {...formItemLayout}
-                    >
-                        {!!this.state.nowData ? this.state.nowData.amount : ''}
                     </FormItem>
                     <FormItem
                         label="状态"
@@ -912,6 +923,6 @@ export default connect(
 
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findProductByWhere, findProductTypeByWhere, addProduct, updateProduct,updateProductType, deleteProduct, deleteImage, findProductModelByWhere }, dispatch),
+        actions: bindActionCreators({ findProductByWhere, findProductTypeByWhere, addProduct, updateProduct,updateProductType, deleteProduct,removeProduct, deleteImage, findProductModelByWhere }, dispatch),
     })
 )(WrappedHorizontalRole);

@@ -132,9 +132,13 @@ export function delProductModel(params = {}) {
             '/manager/productModel/delete', params, 'post', true
         ).then(
             msg => {
+                dispatch({
+                    type: 'SHOP::delProductModel',
+                    payload: msg,
+                });
                 return msg;
             }
-        ).catch(() => {
+    ).catch(() => {
             message.error('网络错误，请重试');
         });
     };
@@ -189,11 +193,44 @@ export function updateProduct(params = {}) {
     };
 }
 
-// 删除产品
+// 上架或下架产品
 export function deleteProduct(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
             '/manager/product/delete', params, 'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+//删除产品
+export function removeProduct(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/product/remove', params, 'post', true
+        ).then(
+            msg => {
+                dispatch({
+                    type: 'SHOP::removeProduct',
+                    payload: msg,
+                });
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+//添加服务站地区
+export function addStationList(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/station/save', params, 'post', true
         ).then(
             msg => {
                 return msg;
@@ -234,6 +271,41 @@ export function updateOrder(params = {}) {
                     type: 'SHOP::updateOrder',
                     payload: msg,
                 });
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+export function findAllProvince(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/area/findAllProvince', params, 'post', true
+        ).then(
+            msg => {
+                if(msg.returnCode === '0') {
+                    dispatch({
+                        type: 'SYS::findAllProvince',
+                        payload: msg.messsageBody,
+                    });
+                }
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+export function findCityOrCounty(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/area/findCityOrCounty', params,
+        ).then(
+            msg => {
+
                 return msg;
             }
         ).catch(() => {
@@ -301,5 +373,41 @@ export function upReserveList(params = {}) {
         });
     };
 }
+
+//产品上线列表查询
+export function findProductLine(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/station/query/online', params
+        ).then(
+            msg => {
+                dispatch({
+                    type: 'SHOP::findProductLine',
+                    payload: msg,
+                });
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+//服务站上线添加
+export function addProductLine(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/station/add/online', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+
 
 
