@@ -15,6 +15,7 @@ import System from '../system';   // 系统管理模块
 import NewProduct from '../NewProduct';               // 产品管理模块
 import NewPhysical from '../NewPhysical';             // 体检管理模块
 import NewServiceStation from '../NewServiceStation'; // 服务站模块
+import NewMoney from '../NewMoney'    //资金管理模块
 
 import NotFound from '../notfound'; // 404页
 
@@ -102,6 +103,7 @@ class RootContainer extends React.Component {
                       <Route path="/product" render={(props) => this.onEnter(NewProduct, props)} />
                       <Route path="/physical" render={(props) => this.onEnter(NewPhysical, props)} />
                       <Route path="/service" render={(props) => this.onEnter(NewServiceStation, props)} />
+                      <Route path="/money" render={(props) => this.onEnter(NewMoney, props)} />
                       <Route component={NotFound} />
                     </Switch>
                     <Footer key="footer"/>

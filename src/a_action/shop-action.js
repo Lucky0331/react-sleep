@@ -360,20 +360,20 @@ export function findReserveList(params = {}) {
     };
 }
 
-// // 添加预约体检
-// export function addReserveList(params = {}) {
-//     return (dispatch) => {
-//         return Fetchapi.newPost(
-//             '/manager/reserve/save', params, 'post', true
-//         ).then(
-//             msg => {
-//                 return msg;
-//             }
-//         ).catch(() => {
-//             message.error('网络错误，请重试');
-//         });
-//     };
-// }
+// 添加预约体检
+export function addReserveList(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/reserve/save', params, 'post', true
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
 
 // 修改预约体检
 export function upReserveList(params = {}) {

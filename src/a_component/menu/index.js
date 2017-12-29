@@ -73,17 +73,14 @@ class Menus extends React.Component {
                         <Menu.Item key="/system/role"><Link to="/system/role">角色管理</Link></Menu.Item>
                         <Menu.Item key="/system/menu"><Link to="/system/menu">菜单管理</Link></Menu.Item>
                         <Menu.Item key="/system/jurisdiction"><Link to="/system/jurisdiction">权限管理</Link></Menu.Item>
-                        {/*<Menu.Item key="sub0-5"><Link to="/system/organization">组织机构管理</Link></Menu.Item>*/}
-                    </SubMenu>
+                   </SubMenu>
                     <SubMenu key="sub1" title={<span>产品管理</span>}>
                             <Menu.Item key="/product/list"><Link to="/product/list">产品列表</Link></Menu.Item>
                             <Menu.Item key="/product/type"><Link to="/product/type">产品类型</Link></Menu.Item>
                             <Menu.Item key="/product/model"><Link to="/product/model">产品型号</Link></Menu.Item>
                     </SubMenu>
                     <SubMenu key="sub2" title={<span>订单管理</span>}>
-                        {/*<SubMenu key="sub2-1" title="订单列表">*/}
                             <Menu.Item key="/product/orderlist"><Link to="/product/orderlist">订单列表</Link></Menu.Item>
-                        {/*</SubMenu>*/}
                     </SubMenu>
                     <SubMenu key="sub3" title={<span>服务站管理</span>}>
                         <Menu.Item key="/service/station"><Link to="/service/station">产品上线</Link></Menu.Item>
@@ -99,10 +96,10 @@ class Menus extends React.Component {
                         </SubMenu>
                     </SubMenu>
                     <SubMenu key="sub5" title={<span>资金管理</span>}>
-                        <Menu.Item key="sub5-1">收款方管理</Menu.Item>
-                        <Menu.Item key="sub5-2">分配规则配置</Menu.Item>
-                        <Menu.Item key="sub5-3">资金流向</Menu.Item>
-                        <Menu.Item key="sub5-4">结算查询</Menu.Item>
+                        <Menu.Item key="/money/manage"><Link to="/money/manage">收款管理</Link></Menu.Item>
+                        <Menu.Item key="/money/set"><Link to="/money/set">分配规则配置</Link></Menu.Item>
+                        <Menu.Item key="/money/flow"><Link to="/money/flow">资金流向</Link></Menu.Item>
+                        <Menu.Item key="/money/query"><Link to="/money/query">结算查询</Link></Menu.Item>
                     </SubMenu>
                 </Menu>, <div key="2" className={this.props.collapsed ? "collapsed-box" : "collapsed-box open"} >
                     <Icon className="collapsed-icon" onClick={() => this.props.onCollapsed()} type={this.props.collapsed ? 'menu-unfold' : 'menu-fold'} />
