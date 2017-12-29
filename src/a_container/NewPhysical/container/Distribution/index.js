@@ -569,37 +569,55 @@ class Category extends React.Component {
         return (
             <div style={{ width: '100%' }}>
                 <div className="system-search">
-                    <ul className="search-ul">
-                        <li style={{marginRight:'20px'}}>
-                            <span style={{marginRight:'10px'}}>服务站地区</span>
+                    <ul className="search-ul more-ul">
+                        <li>
+                            <span>服务站地区</span>
                             <Cascader
+                                style={{width:'172px'}}
                                 placeholder="请选择服务区域"
                                 onChange={(v) => this.onSearchAddress(v)}
                                 options={this.state.citys}
                                 loadData={(e) => this.getAllCitySon(e)}
                             />
                         </li>
-                        <li>服务站关键字搜索：  <Input style={{width:'50%',marginRight:'10px'}}  onChange={(e) => this.searchStationNameChange(e)}/></li>
                         <li>
-                            <span style={{marginRight:'10px'}}>是否到期</span>
-                            <Select placeholder="全部" allowClear style={{  width: '120px',marginRight:'15px' }} onChange={(e) => this.searchExpireChange(e)}>
+                            <span>服务站</span>
+                            <Input placeholder="请输入关键字" style={{width:'172px'}}  onChange={(e) => this.searchStationNameChange(e)}/>
+                        </li>
+                        <li>
+                            <span>是否到期</span>
+                            <Select placeholder="全部" allowClear style={{  width: '172px'}} onChange={(e) => this.searchExpireChange(e)}>
                                 <Option value={0}>已到期</Option>
                                 <Option value={1}>未到期</Option>
                             </Select>
                         </li>
-                        <li>剩余可用次数：  <Input style={{width:'50%',marginRight:'10px'}}  onChange={(e) => this.searchSurplusChange(e)}/></li>
                         <li>
-                            <span style={{marginRight:'20px'}}>是否禁用</span>
-                            <Select placeholder="全部" allowClear style={{  width: '120px',marginRight:'15px' }} onChange={(e) => this.searchStateChange(e)}>
+                            <span>剩余可用次数</span>
+                            <Input style={{width:'172px'}}  onChange={(e) => this.searchSurplusChange(e)}/>
+                        </li>
+                        <li>
+                            <span>是否禁用</span>
+                            <Select placeholder="全部" allowClear style={{  width: '172px'}} onChange={(e) => this.searchStateChange(e)}>
                                 <Option value={0}>未禁用</Option>
                                 <Option value={1}>已禁用</Option>
                             </Select>
                         </li>
-                        <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}>分配体检卡</Button></li></ul>
-                    </ul>
-                    <ul className="search-ul" style={{marginTop:'20px'}}>
-                        <li>分配时间
+                        <li>
+                            <span>体检卡型号</span>
+                            <Select allowClear placeholder="全部" value={this.state.searchTicketModel} style={{width:'172px'}} onChange={(e) => this.searchTicketModelChange(e)}>
+                                {this.state.productModelIds.map((item, index) => {
+                                    return <Option key={index} value={item.id}>{ item.name }</Option>
+                                })}
+                            </Select>
+                        </li>
+                        <li>
+                            <span>体检卡号</span>
+                            <Input style={{width:'172px'}} onChange={(e) => this.searchTicketNo(e)}/>
+                        </li>
+                        <li>
+                            <span>分配时间</span>
                             <DatePicker
+                                style={{ width: '130px' }}
                                 dateRender={(current) => {
                                     const style = {};
                                     if (current.date() === 1) {
@@ -618,6 +636,7 @@ class Category extends React.Component {
                             />
                             --
                             <DatePicker
+                                style={{ width: '130px' }}
                                 dateRender={(current) => {
                                     const style = {};
                                     if (current.date() === 1) {
@@ -635,16 +654,14 @@ class Category extends React.Component {
                                 onChange={(e) => this.searchEndTime(e)}
                             />
                         </li>
+                    </ul>
+                    <ul className="search-ul more-ul btns">
                         <li>
-                            <span style={{marginRight:'30px'}}>体检卡型号</span>
-                            <Select allowClear placeholder="全部" value={this.state.searchTicketModel} style={{width:'150px'}} onChange={(e) => this.searchTicketModelChange(e)}>
-                                {this.state.productModelIds.map((item, index) => {
-                                    return <Option key={index} value={item.id}>{ item.name }</Option>
-                                })}
-                            </Select>
+                            <Button icon="search" type="primary" onClick={() => this.onSearch()}>查询</Button>
                         </li>
-                        <li>体检卡号  <Input style={{width:'50%',marginRight:'20px'}} onChange={(e) => this.searchTicketNo(e)}/></li>
-                        <li><Button type="primary" onClick={() => this.onSearch()}>查询</Button></li>
+                        <li>
+                            <Button type="primary" onClick={() => this.onAddNewShow()}>分配体检卡</Button>
+                        </li>
                     </ul>
                 </div>
                 <div className="system-table" >

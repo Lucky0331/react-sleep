@@ -491,8 +491,10 @@ class Category extends React.Component {
         const columns = [
             {
                 title: '序号',
+                fixed:'left',
                 dataIndex: 'serial',
                 key: 'serial',
+                width: 50,
             },
             {
                 title: '订单号',
@@ -671,19 +673,31 @@ class Category extends React.Component {
         return (
             <div>
               <div className="system-search">
-                  <ul className="search-ul">
-                      <li style={{width:'200px'}}>订单号  <Input style={{width:'50%'}} onChange={(e) => this.searchOrderNoChange(e)}/></li>
+                  <ul className="search-ul more-ul">
                       <li>
-                          <span style={{marginRight:'10px'}}>订单来源</span>
-                          <Select placeholder="全部" allowClear style={{ width: '120px',marginRight:'20px' }} onChange={(e) => this.onSearchorderFrom(e)}>
+                          <span>订单号</span>
+                          <Input style={{ width: '172px' }} onChange={(e) => this.searchOrderNoChange(e)}/>
+                      </li>
+                      <li>
+                          <span>订单来源</span>
+                          <Select placeholder="全部" allowClear style={{ width: '172px'}} onChange={(e) => this.onSearchorderFrom(e)}>
                               <Option value={1}>终端app</Option>
                               <Option value={2}>微信公众号</Option>
                               <Option value={3}>经销商app</Option>
                           </Select>
                       </li>
-                      <li style={{width:'200px'}}>用户账号  <Input style={{width:'50%'}} onChange={(e) => this.searchUserIdChange(e)}/></li>
-                      <li style={{width:'200px'}}>产品名称  <Input style={{width:'50%'}} onChange={(e) => this.searchProductNameChange(e)} value={this.state.searchProductName}/></li>
-                      <li style={{width:'200px'}}>产品型号  <Input style={{width:'50%'}} onChange={(e) => this.searchModelIdChange(e)} value={this.state.searchModelId}/></li>
+                      <li>
+                          <span>用户账号</span>
+                          <Input style={{ width: '172px' }} onChange={(e) => this.searchUserIdChange(e)}/>
+                      </li>
+                      <li>
+                          <span>产品名称</span>
+                          <Input style={{ width: '172px' }} onChange={(e) => this.searchProductNameChange(e)} value={this.state.searchProductName}/>
+                      </li>
+                      <li>
+                          <span>产品型号</span>
+                          <Input style={{ width: '172px' }} onChange={(e) => this.searchModelIdChange(e)} value={this.state.searchModelId}/>
+                      </li>
                       {/*<li>*/}
                           {/*<span style={{}}>产品型号</span>*/}
                           {/*<Select placeholder="全部" allowClear style={{ width: '100px',marginRight:'20px' }} >*/}
@@ -697,23 +711,51 @@ class Category extends React.Component {
                               {/*})}*/}
                           {/*</Select>*/}
                       {/*</li>*/}
-                      <li>总金额  <InputNumber min={0} max={999999} placeholder="最小价格" onChange={(e) => this.searchMinPriceChange(e)} value={this.state.searchMinPrice} style={{width:'30%'}}/>--
-                          <InputNumber min={0} max={999999} placeholder="最大价格" onChange={(e) => this.searchMaxPriceChange(e)} value={this.state.searchMaxPrice}/>
+
+                      <li>
+                          <span>总金额</span>
+                          <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最小价格" onChange={(e) => this.searchMinPriceChange(e)} value={this.state.searchMinPrice}/>--
+                          <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最大价格" onChange={(e) => this.searchMaxPriceChange(e)} value={this.state.searchMaxPrice}/>
                       </li>
-                      <li>经销商手机号  <Input style={{width:'48%'}}  /></li>
-                   </ul>
-                  <ul className="search-ul" style={{marginTop:'20px'}}>
-                      <li style={{marginRight:'20px'}}>
-                          <span style={{marginRight:'10px'}}>服务站地区</span>
-                              <Cascader
-                                  placeholder="请选择服务区域"
-                                  onChange={(v) => this.onSearchAddress(v)}
-                                  options={this.state.citys}
-                                  loadData={(e) => this.getAllCitySon(e)}
-                              />
+                      <li>
+                          <span>经销商手机号</span>
+                          <Input style={{ width: '172px' }}/>
                       </li>
-                      <li>下单时间
+                      <li>
+                          <span>服务站地区</span>
+                          <Cascader
+                              placeholder="请选择服务区域"
+                              style={{ width: '172px' }}
+                              onChange={(v) => this.onSearchAddress(v)}
+                              options={this.state.citys}
+                              loadData={(e) => this.getAllCitySon(e)}
+                          />
+                      </li>
+                      <li>
+                          <span>支付方式</span>
+                          <Select placeholder="全部" allowClear style={{ width: '172px' }} onChange={(e) => this.searchPayTypeChange(e)}>
+                              <Option value={1}>微信</Option>
+                              <Option value={2}>支付宝</Option>
+                          </Select>
+                      </li>
+                      <li>
+                          <span>支付状态</span>
+                          <Select placeholder="全部" allowClear style={{ width: '172px' }} onChange={(e) => this.searchNameChange(e)}>
+                              <Option value={0}>未支付</Option>
+                              <Option value={1}>已支付</Option>
+                          </Select>
+                      </li>
+                      <li>
+                          <span>订单状态</span>
+                          <Select placeholder="全部" allowClear style={{ width: '172px' }} onChange={(e) => this.searchConditionsChange(e)}>
+                              <Option value={4}>已完成</Option>
+                              <Option value={1}>未完成</Option>
+                          </Select>
+                      </li>
+                      <li>
+                          <span style={{marginRight:'10px'}}>下单时间</span>
                           <DatePicker
+                              style={{ width: '130px' }}
                               dateRender={(current) => {
                                   const style = {};
                                   if (current.date() === 1) {
@@ -727,11 +769,12 @@ class Category extends React.Component {
                                   );
                               }}
                               format="YYYY-MM-DD"
-                              placeholder="起始时间"
+                              placeholder="开始时间"
                               onChange={(e) => this.searchBeginTime(e)}
                           />
                           --
                           <DatePicker
+                              style={{ width: '130px' }}
                               dateRender={(current) => {
                                   const style = {};
                                   if (current.date() === 1) {
@@ -749,30 +792,15 @@ class Category extends React.Component {
                               onChange={(e) => this.searchEndTime(e)}
                           />
                       </li>
-                      <li>
-                          <span style={{marginRight:'10px'}}>支付方式</span>
-                          <Select placeholder="全部" allowClear style={{ width: '120px',marginRight:'20px' }} onChange={(e) => this.searchPayTypeChange(e)}>
-                              <Option value={1}>微信</Option>
-                              <Option value={2}>支付宝</Option>
-                          </Select>
-                      </li>
-                      <li>
-                          <span style={{marginRight:'10px'}}>支付状态</span>
-                          <Select placeholder="全部" allowClear style={{ width: '120px',marginRight:'30px' }} onChange={(e) => this.searchNameChange(e)}>
-                              <Option value={0}>未支付</Option>
-                              <Option value={1}>已支付</Option>
-                          </Select>
-                      </li>
-                      <li>
-                          <span style={{marginRight:'10px',width:'100px'}}>订单状态</span>
-                          <Select placeholder="全部" allowClear style={{ width: '120px',marginRight:'70px' }} onChange={(e) => this.searchConditionsChange(e)}>
-                              <Option value={4}>已完成</Option>
-                              <Option value={1}>未完成</Option>
-                          </Select>
-                      </li>
-                      <li><Button  type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
-                      <li><Button  type="primary" onClick={() => this.onExport()}>导出</Button></li>
                   </ul>
+                  <ul className="search-ul more-ul btns">
+                      <li>
+                          <Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button>
+                      </li>
+                      <li>
+                          <Button icon="download" type="primary" onClick={() => this.onExport()}>导出</Button>
+                      </li>
+                   </ul>
               </div>
               <div className="system-table">
                 <Table

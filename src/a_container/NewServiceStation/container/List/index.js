@@ -24,7 +24,7 @@ import _ from 'lodash';
 // 本页面所需action
 // ==================
 
-import { findReserveList, addReserveList, addProduct, upReserveList, deleteProduct, deleteImage, findProductModelByWhere } from '../../../../a_action/shop-action';
+import { findReserveList, addProduct, upReserveList, deleteProduct, deleteImage, findProductModelByWhere } from '../../../../a_action/shop-action';
 
 // ==================
 // Definition
@@ -723,6 +723,6 @@ export default connect(
 
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findReserveList, addReserveList, addProduct, upReserveList, deleteProduct, deleteImage, findProductModelByWhere }, dispatch),
+        actions: bindActionCreators({ findReserveList, addProduct, upReserveList, deleteProduct, deleteImage, findProductModelByWhere }, dispatch),
     })
 )(WrappedHorizontalRole);
