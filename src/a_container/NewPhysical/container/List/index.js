@@ -9,12 +9,12 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
 import Config from '../../../../config/config';
-import { Form, Button, Icon, Input, InputNumber, Table, message, Popconfirm, Popover, Modal, Radio, Tooltip, Select, Upload, Divider } from 'antd';
+import { Form, Button, Icon, Input, InputNumber, Table, message, Popconfirm, Popover, Modal, Radio, Tooltip, Select, DatePicker, Divider } from 'antd';
 import './index.scss';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
 import { power } from '../../../../util/data';
-import _ from 'lodash';
+import moment from 'moment';
 // ==================
 // 所需的所有组件
 // ==================
@@ -24,8 +24,7 @@ import _ from 'lodash';
 // 本页面所需action
 // ==================
 
-import { findReserveList, addReserveList, addProduct, upReserveList, deleteProduct, deleteImage, findProductModelByWhere } from '../../../../a_action/shop-action';
-
+import { ticketList, ticketSave, ticketUpdate } from '../../../../a_action/phy-action';
 // ==================
 // Definition
 // ==================
@@ -41,7 +40,8 @@ class Category extends React.Component {
             productModels: [],  // 所有的产品型号
             searchMobile: '', // 搜索 - 手机号
             searchCode: '', // 搜索 - 体检卡号
-            addOrUp: 'add',     // 当前操作是新增还是修改
+            searchDate: undefined, // 搜索 - 预约体检日期
+            addOrUp: 'add',     // 当前操作是新增还是修改 add添加， up修改
             addnewModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
             addnewLoading: false, // 是否正在添加新用户中
             nowData: null, // 当前选中用户的信息，用于查看详情、修改、分配菜单
@@ -66,9 +66,10 @@ class Category extends React.Component {
             pageNum,
             pageSize,
             mobile: this.state.searchMobile,
-            code: this.state.searchCode,
+            ticketNo: this.state.searchCode,
+            beginTime: this.state.searchDate ? tools.dateToStr(this.state.searchDate._d) : null,
         };
-        this.props.actions.findReserveList(tools.clearNull(params)).then((res) => {
+        this.props.actions.ticketList(tools.clearNull(params)).then((res) => {
             if(res.returnCode === "0") {
                 this.setState({
                     data: res.messsageBody.result,
@@ -103,8 +104,10 @@ class Category extends React.Component {
     getNameByModelId(id) {
         switch(String(id)) {
             case '1': return 'APP 预约';
-            case '2': return '公众号预约';
-            case '3': return '后台添加';
+            case '2': return '微信公众号';
+            case '3': return '体检系统';
+            case '4': return '经销商APP';
+            case '5': return '后台管理系统';
             default: return '';
         }
     }
@@ -122,10 +125,10 @@ class Category extends React.Component {
     // 工具 - 根据type获取状态名称
     getNameByType(type) {
         switch(String(type)) {
-            case '0': return '未使用';
-            case '1': return '成功';
-            case '-1': return '失败';
-            case '-2': return '过期';
+            case '1': return '未使用';
+            case '2': return '已用';
+            case '3': return '禁用';
+            case '4': return '过期';
             default: return '';
         }
     }
@@ -148,6 +151,12 @@ class Category extends React.Component {
         }
     }
 
+    // 搜索 - 预约体检日期
+    searchDateChange(e) {
+        this.setState({
+            searchDate: e,
+        });
+    }
     // 修改某一条数据 模态框出现
     onUpdateClick(record) {
         const me = this;
@@ -158,9 +167,11 @@ class Category extends React.Component {
             addnewName: record.name,
             addnewIdCard: record.idCard,
             addnewMobile: record.mobile,
-            addnewSex: record.sex,
+            addnewSex: record.sex === '男',
             addnewHeight: record.height,
             addnewWeight: record.weight,
+            addnewReserveTime: record.reserveTime ? moment(record.reserveTime) : undefined,
+            addnewBirthDate: record.birthdate ? moment(record.birthdate) : undefined,
         });
         me.setState({
             nowData: record,
@@ -236,26 +247,37 @@ class Category extends React.Component {
             'addnewSex',
             'addnewHeight',
             'addnewWeight',
+            'addnewReserveTime',
+            'addnewBirthDate',
         ], (err, values) => {
             if (err) { return false; }
             me.setState({
                 addnewLoading: true,
             });
+            console.log('获取到的值：', values);
             const params = {
-                code: values.addnewCode,
-                name: values.addnewName,
+                ticketNo: values.addnewCode,
+                userName: values.addnewName,
                 idCard: values.addnewIdCard,
-                mobile: values.addnewMobile,
+                phone: values.addnewMobile,
                 sex: values.addnewSex,
                 height: values.addnewHeight,
                 weight: values.addnewWeight,
+                reserveTime: values.addnewReserveTime ? tools.dateToStr(values.addnewReserveTime._d) : null,
+                birthDate: values.addnewBirthDate ? tools.dateformart(values.addnewBirthDate._d) : null,
+                reserveFrom: 5,
             };
             if (this.state.addOrUp === 'add') { // 新增
-                me.props.actions.addReserveList(tools.clearNull(params)).then((res) => {
+                me.props.actions.ticketSave(tools.clearNull(params)).then((res) => {
+                    if (res.returnCode === '0') {
+                        this.onGetData(this.state.pageNum, this.state.pageSize);
+                    } else {
+                        message.error(res.returnMessaage);
+                    }
                     me.setState({
                         addnewLoading: false,
                     });
-                    this.onGetData(this.state.pageNum, this.state.pageSize);
+
                     this.onAddNewClose();
                 }).catch(() => {
                     me.setState({
@@ -264,11 +286,15 @@ class Category extends React.Component {
                 });
             } else {
                 params.id = this.state.nowData.id;
-                me.props.actions.upReserveList(params).then((res) => {
+                me.props.actions.ticketUpdate(params).then((res) => {
+                    if(res.returnCode === '0') {
+                        this.onGetData(this.state.pageNum, this.state.pageSize);
+                    } else {
+                        message.error(res.returnMessaage);
+                    }
                     me.setState({
                         addnewLoading: false,
                     });
-                    this.onGetData(this.state.pageNum, this.state.pageSize);
                     this.onAddNewClose();
                 }).catch(() => {
                     me.setState({
@@ -293,7 +319,6 @@ class Category extends React.Component {
                 title: '序号',
                 dataIndex: 'serial',
                 key: 'serial',
-                fixed: 'left',
                 width: 80,
             },
             {
@@ -334,27 +359,6 @@ class Category extends React.Component {
                 render: (text) => text ? '男' : '女',
             },
             {
-                title: '身高',
-                dataIndex: 'height',
-                key: 'height',
-                width: 100,
-                render: (text) => `${text}cm`,
-            },
-            {
-                title: '体重',
-                dataIndex: 'weight',
-                key: 'weight',
-                width: 100,
-                render: (text) => `${text}kg`,
-            },
-            {
-                title: '用户来源',
-                dataIndex: 'userSource',
-                key: 'userSource',
-                width: 100,
-                render: (text) => this.getNameByModelId(text),
-            },
-            {
                 title: '预约体检日期',
                 dataIndex: 'reserveTime',
                 key: 'reserveTime',
@@ -374,21 +378,15 @@ class Category extends React.Component {
                 render: (text) => this.getNameByType(text),
             },
             {
-                title: '操作人',
-                dataIndex: 'updater',
-                key: 'updater',
+                title: '用户来源',
+                dataIndex: 'userSource',
+                key: 'userSource',
                 width: 100,
-            },
-            {
-                title: '操作时间',
-                dataIndex: 'updateTime',
-                key: 'updateTime',
-                width: 200,
+                render: (text) => this.getNameByModelId(text),
             },
             {
                 title: '操作',
                 key: 'control',
-                fixed: 'right',
                 width: 120,
                 render: (text, record) => {
                     const controls = [];
@@ -411,7 +409,7 @@ class Category extends React.Component {
                     const result = [];
                     controls.forEach((item, index) => {
                         if (index) {
-                            result.push(<Divider type="vertical" />);
+                            result.push(<Divider key={`line${index}`} type="vertical" />);
                         }
                         result.push(item);
                     });
@@ -430,22 +428,23 @@ class Category extends React.Component {
                 key: index,
                 id: item.id,
                 serial:(index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
-                arriveTime: item.arriveTime,
-                code: item.code,
-                conditions: item.conditions,
+                arriveTime: item.useTime,
+                code: item.cardId,
+                conditions: item.ticketStatus,
                 createTime: item.createTime,
                 creator: item.creator,
                 height: item.height,
-                idCard: item.idCard,
-                mobile: item.mobile,
-                name: item.name,
+                idCard: item.hraCustomer ? item.hraCustomer.idcard : null,
+                mobile: item.hraCustomer ? item.hraCustomer.phone : null,
+                name: item.hraCustomer ? item.hraCustomer.username : null,
+                birthdate: item.hraCustomer ? item.hraCustomer.birthdate : null,
                 reserveTime: item.reserveTime,
-                sex: item.sex,
+                sex: item.hraCustomer ? item.hraCustomer.sex : null,
                 stationId: item.stationId,
-                stationName: item.stationName,
+                stationName: item.station,
                 updateTime: item.updateTime,
                 updater: item.updater,
-                userSource: item.userSource,
+                userSource: item.reserveFrom,
                 weight: item.weight,
             }
         });
@@ -472,8 +471,9 @@ class Category extends React.Component {
                 <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />新增体检人</Button></li></ul>
                   <Divider type="vertical" />
                   <ul className="search-ul">
+                      <li><DatePicker placeholder="预约体检日期" onChange={(e) => this.searchDateChange(e)} value={this.state.searchDate}/></li>
                       <li><Input placeholder="手机号" onChange={(e) => this.searchMobileChange(e)} value={this.state.searchMobile}/></li>
-                      <li><Input placeholder="体检号" onChange={(e) => this.searchCodeChange(e)} value={this.state.searchCode}/></li>
+                      <li><Input placeholder="体检卡号" onChange={(e) => this.searchCodeChange(e)} value={this.state.searchCode}/></li>
                       <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
                   </ul>
               </div>
@@ -481,7 +481,6 @@ class Category extends React.Component {
                 <Table
                     columns={this.makeColumns()}
                     className="my-table"
-                    scroll={{ x: 2400 }}
                     dataSource={this.makeData(this.state.data)}
                     pagination={{
                         total: this.state.total,
@@ -493,9 +492,9 @@ class Category extends React.Component {
                     }}
                 />
               </div>
-                {/* 添加模态框 */}
+                {/* 添加和修改模态框 */}
               <Modal
-                  title='新增体检人'
+                  title={this.state.addOrUp === 'add' ? '新增' : '修改'}
                   visible={this.state.addnewModalShow}
                   onOk={() => this.onAddNewOk()}
                   onCancel={() => this.onAddNewClose()}
@@ -536,7 +535,7 @@ class Category extends React.Component {
                         {getFieldDecorator('addnewIdCard', {
                             initialValue: undefined,
                             rules: [
-                                {required: true, whitespace: true, message: '请输入身份证号'},
+                                {min: 18, message: '请输入18位有效身份证'},
                                 {max: 18, message: '最多输入18位字符'},
                             ],
                         })(
@@ -560,6 +559,17 @@ class Category extends React.Component {
                             ],
                         })(
                             <Input placeholder="请输入手机号" />
+                        )}
+                    </FormItem>
+                    <FormItem
+                        label="出生日期"
+                        {...formItemLayout}
+                    >
+                        {getFieldDecorator('addnewBirthDate', {
+                            initialValue: undefined,
+                            rules: [],
+                        })(
+                            <DatePicker />
                         )}
                     </FormItem>
                     <FormItem
@@ -602,6 +612,19 @@ class Category extends React.Component {
                             ],
                         })(
                             <InputNumber min={0} max={300}  placeholder="请输入体重(kg)"  style={{ width: '100%' }}/>
+                        )}
+                    </FormItem>
+                    <FormItem
+                        label="预约日期"
+                        {...formItemLayout}
+                    >
+                        {getFieldDecorator('addnewReserveTime', {
+                            initialValue: undefined,
+                            rules: [
+                                {required: true, message: '请选择预约体检日期'},
+                            ],
+                        })(
+                            <DatePicker />
                         )}
                     </FormItem>
                 </Form>
@@ -724,6 +747,6 @@ export default connect(
 
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findReserveList, addReserveList, addProduct, upReserveList, deleteProduct, deleteImage, findProductModelByWhere }, dispatch),
+        actions: bindActionCreators({ ticketList, ticketSave, ticketUpdate }, dispatch),
     })
 )(WrappedHorizontalRole);

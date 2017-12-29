@@ -42,10 +42,12 @@ class Category extends React.Component {
             productTypes: [],   // 所有的产品类型
             productModels: [],  // 所有的产品型号
             productModelIds: [],   // 所有的体检卡型号
-            searchCode: '', // 搜索 - 体检卡号
+            searchTicketNo: '', // 搜索 - 体检卡号
             searchAddress: [], // 搜索 - 地址
             searchTicketModel: undefined, // 搜索 - 体检卡型号
             searchStationName: '',  //搜索 - 关键字搜索
+            searchBeginTime: '',  // 搜索 - 开始时间
+            searchEndTime: '',  // 搜索- 结束时间
             addOrUp: 'add',     // 当前操作是新增还是修改
             addnewModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
             addnewLoading: false, // 是否正在添加新用户中
@@ -62,6 +64,7 @@ class Category extends React.Component {
             stations: [], // 当前省市区下面的服务站
             searchState: '', // 搜索 - 是否禁用
             searchExpire: '', // 搜索 - 是否到期
+            searchSurplus:'', //搜索剩余可用次数
         };
     }
 
@@ -92,12 +95,17 @@ class Category extends React.Component {
             pageSize,
             state: this.state.searchState,
             isExpire: this.state.searchExpire,
+            surplus: this.state.searchSurplus,
             province: this.state.searchAddress[0],
             city: this.state.searchAddress[1],
             region: this.state.searchAddress[2],
             mobile: this.state.searchMobile,
             code: this.state.searchCode,
+            stationName: this.state.searchStationName,
+            ticketNo:this.state.searchTicketNo,
             ticketModel: this.state.searchTicketModel,
+            beginTime: this.state.searchBeginTime ? tools.dateToStrD(this.state.searchBeginTime._d) : '',
+            endTime: this.state.searchEndTime ? tools.dateToStrD(this.state.searchEndTime._d) : '',
         };
         this.props.actions.findReserveList(tools.clearNull(params)).then((res) => {
             if(res.returnCode === "0") {
@@ -124,13 +132,6 @@ class Category extends React.Component {
         });
     }
 
-
-    // 工具 - 根据体检卡型号ID获取体检卡型号名称
-    getticketModel(id) {
-        const t = this.state.productModelIds.find((item) => String(item.id) === String(id));
-        return t ? t.name : '';
-    }
-
     // 工具 - 根据有效期type和num组合成有效期
     getNameForInDate(time, type) {
         switch(String(type)){
@@ -155,11 +156,46 @@ class Category extends React.Component {
         });
     }
 
+    //搜索 - 关键字搜索
+    searchStationNameChange(e){
+        this.setState({
+            searchStationName: e.target.value,
+        });
+    }
+
+    //搜索 - 体检卡号搜索
+    searchTicketNo(e){
+        this.setState({
+            searchTicketNo: e.target.value,
+        });
+    }
+
+    // 搜索 - 开始时间变化
+    searchBeginTime(v) {
+        this.setState({
+            searchBeginTime: v,
+        });
+    }
+
+    // 搜索 - 结束时间变化
+    searchEndTime(v) {
+        this.setState({
+            searchEndTime: v,
+        });
+    }
+
     // 搜索 - 是否到期
     searchExpireChange(e){
         this.setState({
             searchExpire: e,
         });
+    }
+
+    //搜索 - 剩余可用次数
+    searchSurplusChange(e){
+        this.setState({
+            searchSurplus: e.target.value,
+        })
     }
 
     // 获取所有的省
@@ -385,7 +421,6 @@ class Category extends React.Component {
                 title:'体检卡型号',
                 dataIndex: 'name',
                 key: 'name',
-                // render: (text) => this.getticketModel(text),
             },
             {
                 title:'有效期',
@@ -418,7 +453,7 @@ class Category extends React.Component {
                 title:'是否禁用',
                 dataIndex: 'state',
                 key: 'state',
-                render: (text) => String(text) === '0' ? <span style={{color: 'green'}}>未禁用</span> : <span style={{color: 'red'}}>已禁用</span>
+                render: (text) => String(text) === '1' ? <span style={{color: 'green'}}>未禁用</span> : <span style={{color: 'red'}}>已禁用</span>
             },
             {
                 title:'分配时间',
@@ -544,7 +579,7 @@ class Category extends React.Component {
                                 loadData={(e) => this.getAllCitySon(e)}
                             />
                         </li>
-                        <li>服务站关键字搜索：  <Input style={{width:'50%',marginRight:'10px'}} /></li>
+                        <li>服务站关键字搜索：  <Input style={{width:'50%',marginRight:'10px'}}  onChange={(e) => this.searchStationNameChange(e)}/></li>
                         <li>
                             <span style={{marginRight:'10px'}}>是否到期</span>
                             <Select placeholder="全部" allowClear style={{  width: '120px',marginRight:'15px' }} onChange={(e) => this.searchExpireChange(e)}>
@@ -552,12 +587,12 @@ class Category extends React.Component {
                                 <Option value={1}>未到期</Option>
                             </Select>
                         </li>
-                        <li>剩余可用次数：  <Input style={{width:'50%',marginRight:'10px'}} /></li>
+                        <li>剩余可用次数：  <Input style={{width:'50%',marginRight:'10px'}}  onChange={(e) => this.searchSurplusChange(e)}/></li>
                         <li>
                             <span style={{marginRight:'20px'}}>是否禁用</span>
                             <Select placeholder="全部" allowClear style={{  width: '120px',marginRight:'15px' }} onChange={(e) => this.searchStateChange(e)}>
-                                <Option value={0}>已禁用</Option>
-                                <Option value={1}>未禁用</Option>
+                                <Option value={0}>未禁用</Option>
+                                <Option value={1}>已禁用</Option>
                             </Select>
                         </li>
                         <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}>分配体检卡</Button></li></ul>
@@ -608,7 +643,7 @@ class Category extends React.Component {
                                 })}
                             </Select>
                         </li>
-                        <li>体检卡号  <Input style={{width:'50%',marginRight:'20px'}} onChange={(e) => this.searchCodeChange(e)} value={this.state.searchCode}/></li>
+                        <li>体检卡号  <Input style={{width:'50%',marginRight:'20px'}} onChange={(e) => this.searchTicketNo(e)}/></li>
                         <li><Button type="primary" onClick={() => this.onSearch()}>查询</Button></li>
                     </ul>
                 </div>
@@ -787,7 +822,7 @@ class Category extends React.Component {
                             label="是否到期"
                             {...formItemLayout}
                         >
-                            {!!this.state.nowData ? (String(this.state.nowData.isExpire) === "true" ? <span style={{ color: 'red' }}>已到期</span> : <span style={{ color: 'green' }}>未到期</span>) : ''}
+                            {!!this.state.nowData ? (String(this.state.nowData.isExpire) === "0" ? <span style={{ color: 'red' }}>已到期</span> : <span style={{ color: 'green' }}>未到期</span>) : ''}
                         </FormItem>
                         <FormItem
                             label="是否禁用"
