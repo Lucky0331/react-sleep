@@ -55,12 +55,11 @@ class Category extends React.Component {
 
     getCode(id){
         switch (Number(id)){
-            case 1: return '水机';
-            case 2: return '养未来';
-            case 3: return '冷敷贴';
-            case 4: return '水机续费订单';
-            case -1: return '精准体检';
-            case -2: return '智能睡眠';
+            case 1: return '智能净水';
+            case 2: return '健康食品';
+            case 3: return '生物理疗';
+            case 4: return '健康睡眠';
+            case 5: return '健康体检';
             default: return '';
         }
     }
@@ -102,8 +101,7 @@ class Category extends React.Component {
         console.log('Record:', record);
         form.setFieldsValue({
             upName: record.name,
-            upAppName: record.appname,
-            //upDetail: record.detail,
+            upDetail: record.detail,
             upCode:record.code,
             //upSorts: record.sorts,
             //upConditions: `${record.conditions}`
@@ -120,7 +118,6 @@ class Category extends React.Component {
         const { form } = me.props;
         form.validateFields([
             'upName',
-            'upAppName',
             'upCode',
             'upDetail',
             'upSorts',
@@ -134,7 +131,6 @@ class Category extends React.Component {
             const params = {
                 id: me.state.nowData.id,
                 name: values.upName,
-                appname: values.upAppName,
                 code:values.upCode,
                 detail: values.upDetail,
                 sorts: values.upSorts,
@@ -208,6 +204,7 @@ class Category extends React.Component {
         ]);
         this.setState({
             addnewModalShow: true,
+            nowData:null
         });
     }
 
@@ -217,7 +214,6 @@ class Category extends React.Component {
         const { form } = me.props;
         form.validateFields([
             'addnewName',
-            'addnewAppName',
             'addnewDetail',
             'addnewSorts',
             'addnewConditions',
@@ -229,7 +225,6 @@ class Category extends React.Component {
             });
             const params = {
                 name: values.addnewName,
-                appname: values.addnewAppName,
                 detail: values.addnewDetail,
                 code: String(values.addnewCode),
                 sorts: values.addnewSorts,
@@ -278,7 +273,7 @@ class Category extends React.Component {
                 key: 'name',
             },
             {
-                title: '详细说明',
+                title: 'App前台展示说明',
                 dataIndex: 'detail',
                 key: 'detail',
             },
@@ -335,7 +330,6 @@ class Category extends React.Component {
                 id: item.id,
                 serial:(index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
                 name: item.name,
-                appname: item.appname,
                 sorts: item.sorts,
                 code:item.code,
                 updateTime: item.updateTime,
@@ -421,7 +415,7 @@ class Category extends React.Component {
                         label="APP前台展示名称"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('addnewAppName', {
+                        {getFieldDecorator('addnewDetail', {
                             initialValue: undefined,
                             rules: [
                                 {required: true, whitespace: true, message: '请输入产品APP前台展示名称'},
@@ -450,12 +444,11 @@ class Category extends React.Component {
                             ],
                         })(
                             <Select placeholder="请选择产品标识">
-                                <Option value={1}>水机</Option>
-                                <Option value={2}>养未来</Option>
-                                <Option value={3}>冷敷贴</Option>
-                                <Option value={4}>水机续费订单</Option>
-                                <Option value={5}>精准体检</Option>
-                                <Option value={6}>智能睡眠</Option>
+                                <Option value={1}>智能净水</Option>
+                                <Option value={2}>健康食品</Option>
+                                <Option value={3}>生物理疗</Option>
+                                <Option value={4}>健康睡眠</Option>
+                                <Option value={5}>健康体检</Option>
                             </Select>
                         )}
                     </FormItem>
@@ -471,7 +464,7 @@ class Category extends React.Component {
               >
                 <Form>
                     <FormItem
-                        label="类型名"
+                        label="产品类型"
                         {...formItemLayout}
                     >
                         {getFieldDecorator('upName', {
@@ -496,7 +489,7 @@ class Category extends React.Component {
                         label="App前台名称"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('upAppName', {
+                        {getFieldDecorator('upDetail', {
                             initialValue: undefined,
                             rules: [
                                 {required: true, whitespace: true, message: '请输入产品类型名称'},
@@ -511,7 +504,7 @@ class Category extends React.Component {
                                 }}
                             ],
                         })(
-                            <Input placeholder="请输入产品类型名称" />
+                            <Input placeholder="请输入App前台展示说明" />
                         )}
                     </FormItem>
                     <FormItem
@@ -535,7 +528,7 @@ class Category extends React.Component {
                         {/*})(*/}
                             {/*<Input placeholder="请输入产品类型名称" />*/}
                         {/*)}*/}
-                        {!!this.state.nowData ? this.state.nowData.code : ''}
+                        {!!this.state.nowData ? this.getCode(this.state.nowData.code):''}
                     </FormItem>
                     {/*<FormItem*/}
                         {/*label="排序"*/}
@@ -584,12 +577,12 @@ class Category extends React.Component {
                     {/*>*/}
                         {/*{!!this.state.nowData ? this.state.nowData.appname : ''}*/}
                     {/*</FormItem>*/}
-                  {/*/!*<FormItem*!/*/}
-                      {/*/!*label="详细说明"*!/*/}
-                      {/*/!*{...formItemLayout}*!/*/}
-                  {/*/!*>*!/*/}
-                      {/*/!*{!!this.state.nowData ? this.state.nowData.detail : ''}*!/*/}
-                  {/*/!*</FormItem>*!/*/}
+                  {/*<FormItem*/}
+                      {/*label="App前台展示说明"*/}
+                      {/*{...formItemLayout}*/}
+                  {/*>*/}
+                      {/*{!!this.state.nowData ? this.state.nowData.detail : ''}*/}
+                  {/*</FormItem>*/}
                     {/*/!*<FormItem*!/*/}
                         {/*/!*label="排序编号"*!/*/}
                         {/*/!*{...formItemLayout}*!/*/}

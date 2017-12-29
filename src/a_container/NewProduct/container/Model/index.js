@@ -60,7 +60,7 @@ class Category extends React.Component {
         const params = {
             pageNum,
             pageSize,
-            typeId: this.state.searchTypeId,
+            productTypeId: this.state.searchTypeId,
         };
         this.props.actions.findProductModelByWhere(tools.clearNull(params)).then((res) => {
             console.log('返回的什么：', res);
@@ -87,16 +87,13 @@ class Category extends React.Component {
         });
     }
 
-    // 工具 - 根据有效期type获取有效期名称
-    getNameForInDate(type) {
+    // 工具 - 根据有效期type和num组合成有效期
+    getNameForInDate(time, type) {
         switch(String(type)){
             case '0': return '长期有效';
-            case '1': return '三天';
-            case '2': return '七天';
-            case '3': return '一个月';
-            case '4': return '半年';
-            case '5': return '一年';
-            case '6': return '两年';
+            case '1': return `${time}日`;
+            case '2': return `${time}月`;
+            case '3': return `${time}年`;
             default: return '';
         }
     }
@@ -107,10 +104,11 @@ class Category extends React.Component {
         return t ? t.name : '';
     }
 
-    // 搜索 - 用户名输入框值改变时触发
-    onSearchTypeId(e) {
+
+    // 搜索 - 产品类型输入框值改变时触发
+    onSearchTypeId(typeId) {
         this.setState({
-            searchTypeId: e,
+            searchTypeId: typeId,
         });
     }
 
@@ -124,8 +122,12 @@ class Category extends React.Component {
             upTypeId: record.typeId,
             upDescription:record.description,
             upPrice: record.price,
+            upBuildCount:record.buildCount,
+            upUseCount:record.useCount,
             upInDate: record.inDate,
-            upConditions: `${record.conditions}`
+            upModelDetail: `${record.modelDetail}`,
+            upTimeLimitNum: record.timeLimitNum,
+            upTimeLimitType: record.timeLimitType,
         });
         me.setState({
             nowData: record,
@@ -142,7 +144,9 @@ class Category extends React.Component {
             'upTypeId',
             'upDescription',
             'upPrice',
-            'upConditions',
+            'upBuildCount',
+            'upUseCount',
+            'upModelDetail',
             'upTimeLimitType',
             'upTimeLimitNum',
         ], (err, values) => {
@@ -157,7 +161,9 @@ class Category extends React.Component {
                 typeId: values.upTypeId,
                 updescription:values.upDescription,
                 price: values.upPrice,
-                conditions: values.upConditions,
+                buildCount:values.buildCount,
+                useCount:values.upUseCount,
+                modelDetail: values.upModelDetail,
                 timeLimitType: values.upTimeLimitType,
                 timeLimitNum: values.upTimeLimitNum,
             };
@@ -227,13 +233,16 @@ class Category extends React.Component {
             'addnewName',
             'addnewTypeId',
             'addnewPrice',
+            'addnewUseCount',
+            'addnewBuildCount',
             'addnewInDate',
-            'addnewConditions',
+            'addnewModelDetail',
             'addnewTimeLimitType',
             'addnewTimeLimitNum',
         ]);
         this.setState({
             addnewModalShow: true,
+            nowData:null
         });
     }
 
@@ -245,8 +254,10 @@ class Category extends React.Component {
             'addnewName',
             'addnewTypeId',
             'addnewPrice',
+            'addnewUseCount',
+            'addnewBuildCount',
             'addnewInDate',
-            'addnewConditions',
+            'addnewModelDetail',
             'addnewTimeLimitType',
             'addnewTimeLimitNum',
         ], (err, values) => {
@@ -258,8 +269,10 @@ class Category extends React.Component {
                 name: values.addnewName,
                 typeId: Number(values.addnewTypeId),
                 price: Number(values.addnewPrice),
+                useCount:Number(values.addnewUseCount),
+                buildCount:Number(values.addnewBuildCount),
                 inDate: Number(values.addnewInDate),
-                conditions: values.addnewConditions,
+                modelDetail: values.addnewModelDetail,
                 timeLimitType: values.addnewTimeLimitType,
                 timeLimitNum: values.addnewTimeLimitNum,
             };
@@ -317,9 +330,9 @@ class Category extends React.Component {
             },
             {
                 title: '有效期',
-                dataIndex: 'inDate',
-                key: 'inDate',
-                render: (text) => this.getNameForInDate(text),
+                dataIndex: 'timeLimitNum',
+                key: 'timeLimitNum',
+                render: (text, record) => this.getNameForInDate(text, record.timeLimitType),
             },
             // {
             //     title: '产品标识',
@@ -384,11 +397,14 @@ class Category extends React.Component {
                 typeId: item.typeId,
                 typeName: this.getNameByTypeId(item.typeId),
                 price: item.price,
+                useCount:item.useCount,
                 inDate: item.inDate,
-                conditions: item.conditions,
+                modelDetail: item.modelDetail,
                 detail: item.detail,
                 createTime: item.createTime,
                 creator: item.creator,
+                timeLimitNum:item.timeLimitNum,
+                timeLimitType: item.timeLimitType,
             }
         });
     }
@@ -483,7 +499,7 @@ class Category extends React.Component {
                         label="描述"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('addnewConditions', {
+                        {getFieldDecorator('addnewModelDetail', {
                             initialValue: undefined,
                             rules: [
                                 {whitespace: true,message: '请对产品进行描述'}
@@ -496,7 +512,7 @@ class Category extends React.Component {
                         label="体检券数量"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('addnewNum', {
+                        {getFieldDecorator('addnewBuildCount', {
                             initialValue: undefined,
                             rules: [
                                 {required: true,whitespace: true,message: '请填写体检券数量'}
@@ -509,7 +525,7 @@ class Category extends React.Component {
                         label="单张体检券可用次数"
                         {...formItemLayout}
                     >
-                        {getFieldDecorator('addnewTime', {
+                        {getFieldDecorator('addnewUseCount', {
                             initialValue: undefined,
                             rules: [
                                 {required: true,whitespace: true,message: '请选择体检券数量'}
@@ -540,7 +556,7 @@ class Category extends React.Component {
                               {required: true, message: '请输入有效期'}
                           ],
                       })(
-                          <InputNumber min={0} max={12} placeholder="请输入有效期" style={{marginLeft:'80px'}}/>
+                          <InputNumber min={0} max={31} placeholder="请输入有效期" style={{marginLeft:'80px'}}/>
                       )}
                       {getFieldDecorator('addnewTimeLimitType', {
                           initialValue: 0,
@@ -549,27 +565,14 @@ class Category extends React.Component {
                           ],
                       })(
                           <Select style={{ marginLeft:'10px' }}>
-                              <Option value={0}>年</Option>
-                              <Option value={1}>月</Option>
-                              <Option value={2}>日</Option>
+                              <Option value={0}>长期有效</Option>
+                              <Option value={1}>日</Option>
+                              <Option value={2}>月</Option>
+                              <Option value={3}>年</Option>
                           </Select>
                       )}
 
                   </FormItem>
-                  {/*<FormItem*/}
-                      {/*label="有效期"*/}
-                      {/*style={{ display: addnewTimeLimitType ? 'none' : 'block' }}*/}
-                      {/*{...formItemLayout}*/}
-                  {/*>*/}
-                      {/*{getFieldDecorator('addnewTimeLimitNum', {*/}
-                          {/*initialValue: 0,*/}
-                          {/*rules: [*/}
-                              {/*{required: true, message: '请输入有效期'}*/}
-                          {/*],*/}
-                      {/*})(*/}
-                          {/*<InputNumber min={0} max={12} placeholder="请输入有效期"/>*/}
-                      {/*)}*/}
-                  {/*</FormItem>*/}
               </Modal>
                 {/* 修改用户模态框 */}
               <Modal
@@ -631,26 +634,7 @@ class Category extends React.Component {
                         )}
                     </FormItem>
                     <FormItem
-                        label="期限类型"
-                        {...formItemLayout}
-                    >
-                        {getFieldDecorator('upTimeLimitType', {
-                            initialValue: 0,
-                            rules: [
-                                {required: true, message: '请选择有效期'}
-                            ],
-                        })(
-                            <Select style={{ width: '100%' }}>
-                                <Option value={0}>长期有效</Option>
-                                <Option value={1}>年</Option>
-                                <Option value={2}>月</Option>
-                                <Option value={3}>日</Option>
-                            </Select>
-                        )}
-                    </FormItem>
-                    <FormItem
                         label="有效期"
-                        style={{ display: upTimeLimitType ? 'none' : 'block' }}
                         {...formItemLayout}
                     >
                         {getFieldDecorator('upTimeLimitNum', {
@@ -659,8 +643,22 @@ class Category extends React.Component {
                                 {required: true, message: '请输入有效期'}
                             ],
                         })(
-                            <InputNumber min={0} max={9999} placeholder="请输入有效期"/>
+                            <InputNumber min={0} max={31} placeholder="请输入有效期"/>
                         )}
+                        {getFieldDecorator('upTimeLimitType', {
+                            initialValue: 0,
+                            rules: [
+                                {required: true, message: '请选择有效期'}
+                            ],
+                        })(
+                            <Select style={{ marginLeft:'10px',width:'40%'}}>
+                                <Option value={0}>长期有效</Option>
+                                <Option value={1}>日</Option>
+                                <Option value={2}>月</Option>
+                                <Option value={3}>年</Option>
+                            </Select>
+                        )}
+
                     </FormItem>
                 </Form>
               </Modal>
@@ -694,7 +692,7 @@ class Category extends React.Component {
                         label="有效期"
                         {...formItemLayout}
                     >
-                        {!!this.state.nowData ? this.getNameForInDate(this.state.nowData.inDate) : ''}
+                        {!!this.state.nowData ? this.getNameForInDate(this.state.nowData.timeLimitNum, this.state.nowData.timeLimitType) : ''}
                     </FormItem>
                     {/*<FormItem*/}
                         {/*label="状态"*/}

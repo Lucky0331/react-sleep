@@ -40,10 +40,12 @@ class Category extends React.Component {
             stations: [], // 当前省市区下面的服务站
             productTypes: [],   // 所有的产品类型
             productModels: [],  // 所有的产品型号
-            searchName: '', // 搜索 - 名称
-            searchAddress: '', // 搜索 - 地址
+            searchTypeId: undefined, // 搜索 - 产品类型
+            searchName: '', // 搜索 - 状态
+            searchAddress: [], // 搜索 - 地址
+            searchId: '', // 搜索 - 体检仪型号
             addOrUp: 'add',     // 当前操作是新增还是修改
-            addnewModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
+            upModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
             addnewLoading: false, // 是否正在添加新用户中
             nowData: null, // 当前选中用户的信息，用于查看详情、修改、分配菜单
             queryModalShow: false, // 查看详情模态框是否显示
@@ -96,20 +98,42 @@ class Category extends React.Component {
         return t ? t.name : '';
     }
 
+    // 工具 - 根据ID获取用户来源名字
+    getNameByModelId(id) {
+        switch(String(id)) {
+            case '1': return 'APP 预约';
+            case '2': return '公众号预约';
+            case '3': return '后台添加';
+            default: return '';
+        }
+    }
+
     // 搜索 - 产品类型输入框值改变时触发
-    onSearchTypeId(e) {
+    onSearchTypeId(typeId) {
         this.setState({
-            searchTypeId: e,
+            searchTypeId: typeId,
         });
     }
+
+    // 搜索 - 服务站地区输入框值改变时触发
+    onSearchAddress(c) {
+        this.setState({
+            searchAddress: c,
+        });
+    }
+
 
     // 查询当前页面所需列表数据
     onGetData(pageNum, pageSize) {
         const params = {
             pageNum:0,
             pageSize,
-            name: this.state.searchName,
-            address: this.state.searchAddress,
+            online: this.state.searchName,
+            province: this.state.searchAddress[0],
+            city: this.state.searchAddress[1],
+            region: this.state.searchAddress[2],
+            hraDeviceType:this.state.searchId,
+            productType: this.state.searchTypeId,
         };
         this.props.actions.findProductLine(tools.clearNull(params)).then((res) => {
             if(res.returnCode === "0") {
@@ -177,48 +201,74 @@ class Category extends React.Component {
     //     }
     // }
 
-    // 搜索 - 名称输入框值改变时触发
-    searchAddressChange(e) {
-        if (e.target.value.length < 200) {
-            this.setState({
-                searchAddress: e.target.value,
-            });
-        }
-    }
-
-    // 工具 - 根据受理状态码查询对应的名字
-    // getConditionNameById(id) {
-    //     switch(id) {
-    //         case 1: return '未受理';
-    //         case 2: return '已受理';
-    //         case 3: return '处理中';
-    //         case 4: return '已完成';
-    //         case 5: return '审核中';
-    //         case 6: return '未通过';
-    //         default: return '';
-    //     }
-    // }
 
     // 修改某一条数据 模态框出现
     onUpdateClick(record) {
         const me = this;
         const { form } = me.props;
+        console.log('Record:', record);
 
         form.setFieldsValue({
-            addnewCitys: [undefined],
-            addnewStationId:record.stationId,
-            addnewId:record.addnewId,
-            addnewName: record.name,
-            addnewAddress: record.address,
-            addnewContactPerson: record.contactPerson,
-            addnewContactPhone: record.contactPhone,
-            addnewDayCount: record.dayCount,
-            addnewState: record.state,
+            upStationId: record.stationId,
+            upProductType: record.productType,
+            upOnline: `${record.online}`,
+            upDeviceId:record.deviceId,
+            upDeviceType: record.deviceType,
         });
         me.setState({
             nowData: record,
             addOrUp: 'up',
-            addnewModalShow: true,
+            upModalShow: true,
+        });
+    }
+
+    // 确定修改某一条数据
+    onUpOk() {
+        const me = this;
+        const { form } = me.props;
+        form.validateFields([
+            'upStationId',
+            'upProductType',
+            'upOnline',
+            'upDeviceId',
+            'upDeviceType'
+        ], (err, values) => {
+            if(err) { return; }
+
+            me.setState({
+                upLoading: true,
+            });
+            const params = {
+                id: me.state.nowData.id,
+                stationId:values.upStationId,
+                productType: values.upProductType,
+                typeId: values.upOnline,
+                deviceId:values.upDeviceId,
+                deviceType: values.upDeviceType,
+            };
+
+            this.props.actions.addProductLine(params).then((res) => {
+                if (res.returnCode === "0") {
+                    message.success("修改成功");
+                    this.onGetData(this.state.pageNum, this.state.pageSize);
+                    this.onUpClose();
+                } else {
+                    message.error(res.returnMessaage || '修改失败，请重试');
+                }
+                me.setState({
+                    upLoading: false,
+                });
+            }).catch(() => {
+                me.setState({
+                    upLoading: false,
+                });
+            });
+        });
+    }
+    // 关闭修改某一条数据
+    onUpClose() {
+        this.setState({
+            upModalShow: false,
         });
     }
 
@@ -298,7 +348,7 @@ class Category extends React.Component {
             addOrUp: 'add',
             fileList: [],
             fileListDetail: [],
-            addnewModalShow: true,
+            upModalShow: true,
         });
     }
 
@@ -327,11 +377,10 @@ class Category extends React.Component {
 
             const params = {
                 stationId: Number(values.addnewStationId),
-                productType: values.addnewTypeId,
+                productType: Number(values.addnewTypeId),
                 online: true,
-                deviceId: values.addnewId,
-                deviceType: values.addnewUnittype,
-
+                deviceId: String(values.addnewId),
+                deviceType: Number(values.addnewUnittype),
             };
 
             if (this.state.addOrUp === 'add') { // 新增
@@ -372,10 +421,28 @@ class Category extends React.Component {
     // 关闭模态框
     onAddNewClose() {
         this.setState({
-            addnewModalShow: false,
+            upModalShow: false,
         });
     }
 
+    //搜索 - 产品状态输入框值改变时触发
+    searchNameChange(e) {
+        this.setState({
+            searchName: e,
+        });
+    }
+
+    //搜索 - 体检仪型号输入框值改变时触发
+    searchIdChange(e) {
+        this.setState({
+            searchId: e,
+        });
+    }
+
+    // 搜索 - 城市变化
+    onSearchCity(v) {
+        console.log('城市：', v);
+    }
     // 构建字段
     makeColumns(){
         const columns = [
@@ -386,13 +453,15 @@ class Category extends React.Component {
             },
             {
                 title: '产品类型',
-                dataIndex: 'typeName',
-                key: 'typeName',
+                dataIndex: 'productType',
+                key: 'productType',
+                render: (text) => this.getNameByTypeId(text)
             },
             {
                 title: '服务站地区',
                 dataIndex: 'station.city',
                 key: 'station.city',
+                render: (text, record) => {return `${record.station.province}/${record.station.city}/${record.station.region}`;},
             },
             {
                 title: '服务站名称',
@@ -401,8 +470,8 @@ class Category extends React.Component {
             },
             {
                 title: '联系方式',
-                dataIndex: 'contactPhone',
-                key: 'contactPhone',
+                dataIndex: 'station.phone',
+                key: 'station.phone',
             },
             {
                 title:'设备id',
@@ -411,13 +480,14 @@ class Category extends React.Component {
             },
             {
                 title:'设备型号',
-                dataIndex: 'station.id',
-                key: 'station.id',
+                dataIndex: 'deviceType',
+                key: 'deviceType',
+                render: (text) => String(text) === '1' ? <span>体检仪一号</span> : <span>体检仪二号</span>
             },
             {
                 title: '上线时间',
-                dataIndex: 'station.updateTime',
-                key: 'station.updateTime',
+                dataIndex: 'createTime',
+                key: 'createTime',
             },
             {
                 title: '状态',
@@ -438,31 +508,21 @@ class Category extends React.Component {
                             </Tooltip>
                         </span>
                     );
-                    controls.push(
-                        <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
-                            <Tooltip placement="top" title="编辑">
-                                <Icon type="edit" />
-                            </Tooltip>
-                        </span>
-                    );
-                    // controls.push(
-                    //     <Popconfirm key="2" title="确定修改状态吗?" onConfirm={() => this.onDeleteClick(record.id)} okText="确定" cancelText="取消">
-                    //         <span className="control-btn red">
-                    //             <Tooltip placement="top" title="">
-                    //                 <Icon type="setting" />
-                    //             </Tooltip>
-                    //         </span>
-                    //     </Popconfirm>
+                    // (!record.online) && controls.push(
+                    //     <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
+                    //         <Tooltip placement="top" title="编辑">
+                    //             <Icon type="edit" />
+                    //         </Tooltip>
+                    //     </span>
                     // );
-                    // (!record.onShelf) && controls.push(
-                     controls.push(
+                    (!record.online) && controls.push(
                         <span key="2" className="control-btn blue" onClick={() => this.onUpdateClick2(record)}>
                             <Tooltip placement="top" title="上线">
                                 <Icon type="caret-up" />
                             </Tooltip>
                         </span>
                     );
-                     controls.push(
+                    (record.online) && controls.push(
                         <span key="3" className="control-btn red" onClick={() => this.onUpdateClick2(record)}>
                             <Tooltip placement="top" title="下线">
                                 <Icon type="caret-down" />
@@ -507,7 +567,11 @@ class Category extends React.Component {
                 name: item.name,
                 state: item.state,
                 online:item.online,
-                onlineId:item.onlineId
+                onlineId:item.onlineId,
+                deviceType:item.deviceType,
+                deviceId:item.deviceId,
+                createTime:item.createTime,
+                productType:item.productType
             }
         });
     }
@@ -527,6 +591,7 @@ class Category extends React.Component {
             },
         };
         console.log('是啥：', form.getFieldValue('addnewTypeId'));
+        // console.log('什么东西:',productTypes);
         return (
             <div style={{ width: '100%' }}>
               <div className="system-search">
@@ -540,37 +605,26 @@ class Category extends React.Component {
                           </Select>
                       </li>
                       <li style={{marginRight:'20px'}}>
-                          <ul className="search-func">
                               <span style={{marginRight:'10px'}}>服务站地区</span>
-                              <span style={{ color: '#888' }}>
-                                    {(this.state.nowData && this.state.addOrUp === 'up' && this.state.nowData.province && this.state.nowData.city && this.state.nowData.region) ? `${this.state.nowData.province}/${this.state.nowData.city}/${this.state.nowData.region}` : null}
-                                </span>
-                              {getFieldDecorator('addnewCitys', {
-                                  initialValue: undefined,
-                                  rules: [
-                                      {message: '请选择区域'},
-                                  ],
-                              })(
-                                  <Cascader
-                                      placeholder="请选择服务区域"
-                                      options={this.state.citys}
-                                      loadData={(e) => this.getAllCitySon(e)}
-                                  />
-                              )}
-                          </ul>
+                              <Cascader
+                                  placeholder="请选择服务区域"
+                                  onChange={(v) => this.onSearchAddress(v)}
+                                  options={this.state.citys}
+                                  loadData={(e) => this.getAllCitySon(e)}
+                              />
                       </li>
                       <li>
                           <span style={{marginRight:'10px'}}>体检仪型号</span>
-                          <Select placeholder="全部" style={{  width: '120px',marginRight:'15px' }}>
-                              <Option value={0}>体检仪1号</Option>
-                              <Option value={1}>体检仪2号</Option>
+                          <Select placeholder="全部" allowClear style={{  width: '120px',marginRight:'15px' }} onChange={(e) => this.searchIdChange(e)}>
+                              <Option value={1}>体检仪一号</Option>
+                              <Option value={0}>体检仪二号</Option>
                           </Select>
                       </li>
                       <li>
                           <span style={{marginRight:'10px'}}>状态</span>
-                          <Select placeholder="全部" style={{ width: '120px',marginRight:'25px' }}>
-                              <Option value={0}>已上线</Option>
-                              <Option value={1}>未上线</Option>
+                          <Select placeholder="全部" allowClear style={{ width: '120px',marginRight:'25px' }}  onChange={(e) => this.searchNameChange(e)}>
+                              <Option value={0}>未上线</Option>
+                              <Option value={1}>已上线</Option>
                           </Select>
                       </li>
                       <li style={{width: '80px',marginRight:'15px'}}><Button  type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
@@ -598,7 +652,7 @@ class Category extends React.Component {
                 {/* 添加模态框 */}
               <Modal
                   title='产品上线'
-                  visible={this.state.addnewModalShow}
+                  visible={this.state.upModalShow}
                   onOk={() => this.onAddNewOk()}
                   onCancel={() => this.onAddNewClose()}
                   confirmLoading={this.state.addnewLoading}
@@ -670,8 +724,8 @@ class Category extends React.Component {
                             ],
                         })(
                             <Select>
-                                <Option value={0}>体检仪1号</Option>
-                                <Option value={1}>体检仪2号</Option>
+                                <Option value={1}>体检仪一号</Option>
+                                <Option value={0}>体检仪二号</Option>
                             </Select>
                         )}
                     </FormItem>
@@ -767,53 +821,53 @@ class Category extends React.Component {
                   onCancel={() => this.onQueryModalClose()}
               >
                 <Form>
-                  <FormItem
-                      label="服务站"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.name : ''}
-                  </FormItem>
                     <FormItem
                         label="产品类型"
                         {...formItemLayout}
                     >
-                        {!!this.state.nowData ? this.state.nowData.typeName : ''}
+                        {!!this.state.nowData ? this.state.nowData.productType : ''}
                     </FormItem>
                     <FormItem
-                        label="地区"
+                        label="服务站地区"
                         {...formItemLayout}
                     >
-                        {(!!this.state.nowData && this.state.nowData.province && this.state.nowData.city && this.state.nowData.region) ? `${this.state.nowData.province}/${this.state.nowData.city}/${this.state.nowData.region}` : ''}
+                        {!!this.state.nowData?this.componentDidMount(this.state.nowData.station.city,this.state.nowData.station.province ): ''}
+                    </FormItem>
+                    <FormItem
+                        label="服务站名称"
+                        {...formItemLayout}
+                    >
+                        {!!this.state.nowData ? this.state.nowData.station.name : ''}
                     </FormItem>
                   <FormItem
-                      label="详细地址"
+                      label="联系方式"
                       {...formItemLayout}
                   >
-                      {!!this.state.nowData ? this.state.nowData.address : ''}
+                      {!!this.state.nowData ? this.state.nowData.station.phone : ''}
                   </FormItem>
                     <FormItem
-                        label="联系电话"
+                        label="设备id"
                         {...formItemLayout}
                     >
-                        {!!this.state.nowData ? this.state.nowData.contactPhone : ''}
+                        {!!this.state.nowData ? this.state.nowData.deviceId : ''}
                     </FormItem>
                     <FormItem
-                        label="联系人"
+                        label="设备型号"
                         {...formItemLayout}
                     >
-                        {!!this.state.nowData ? this.state.nowData.contactPerson : ''}
+                        {!!this.state.nowData ? (String(this.state.nowData.deviceType) === '1' ? <span>体检仪一号</span> : <span>体检仪二号</span>) : ''}
                     </FormItem>
                     <FormItem
-                        label="预约天数"
+                        label="上线时间"
                         {...formItemLayout}
                     >
-                        {!!this.state.nowData ? this.state.nowData.dayCount : '' }
+                        {!!this.state.nowData ? this.state.nowData.createTime : '' }
                     </FormItem>
                     <FormItem
                         label="状态"
                         {...formItemLayout}
                     >
-                        {!!this.state.nowData ? (String(this.state.nowData.state) === "0" ? <span style={{ color: 'green' }}>已上线</span> : <span style={{ color: 'red' }}>未上线</span>) : ''}
+                        {!!this.state.nowData ? (String(this.state.nowData.online) === "true" ? <span style={{ color: 'green' }}>已上线</span> : <span style={{ color: 'red' }}>未上线</span>) : ''}
                     </FormItem>
                 </Form>
               </Modal>

@@ -77,9 +77,6 @@ class Menus extends React.Component {
                     </SubMenu>
                     <SubMenu key="sub1" title={<span>产品管理</span>}>
                             <Menu.Item key="/product/list"><Link to="/product/list">产品列表</Link></Menu.Item>
-                            {/*<SubMenu key="sub1-1" title={<span>产品列表</span>}>*/}
-                                {/*<Menu.Item key="/product/list"><Link to="/product/list">健康体检</Link></Menu.Item>*/}
-                            {/*</SubMenu>*/}
                             <Menu.Item key="/product/type"><Link to="/product/type">产品类型</Link></Menu.Item>
                             <Menu.Item key="/product/model"><Link to="/product/model">产品型号</Link></Menu.Item>
                     </SubMenu>
@@ -96,6 +93,10 @@ class Menus extends React.Component {
                         <Menu.Item key="/physical/set"><Link to="/physical/set">预约设置</Link></Menu.Item>
                         <Menu.Item key="/physical/phys"><Link to="/physical/phys">体检统计</Link></Menu.Item>
                         <Menu.Item key="sub4-1-4">服务站统计</Menu.Item>
+                        <SubMenu key="sub5-1" title="体检卡管理">
+                            <Menu.Item key="/physical/distribution"><Link to="/physical/distribution">体检卡分配</Link></Menu.Item>
+                            <Menu.Item key="/physical/detail"><Link to="/physical/detail">分配详情</Link></Menu.Item>
+                        </SubMenu>
                     </SubMenu>
                     <SubMenu key="sub5" title={<span>资金管理</span>}>
                         <Menu.Item key="sub5-1">收款方管理</Menu.Item>

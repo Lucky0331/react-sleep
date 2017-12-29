@@ -95,6 +95,21 @@ export function findProductModelByWhere(params = {}) {
     };
 }
 
+// 查询体检卡型号
+export function findticketModelByWhere(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/productModel/listByTypeId', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
 // 添加新产品型号
 export function addProductModel(params = {}) {
     return (dispatch) => {
@@ -129,7 +144,7 @@ export function upProductModel(params = {}) {
 export function delProductModel(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/productModel/delete', params, 'post', true
+            '/manager/productModel/delete', params,'post', true
         ).then(
             msg => {
                 dispatch({
@@ -143,6 +158,7 @@ export function delProductModel(params = {}) {
         });
     };
 }
+
 
 // 查询产品列表
 export function findProductByWhere(params = {}) {
@@ -318,7 +334,7 @@ export function findCityOrCounty(params = {}) {
 export function deleteImage(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/deleteImage', params
+            '/manager/product/deleteImage', params
         ).then(
             msg => {
                 return msg;
@@ -333,8 +349,8 @@ export function deleteImage(params = {}) {
 export function findReserveList(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/reserve/list', params
-        ).then(
+            '/manager/ticket/allotList', params
+    ).then(
             msg => {
                 return msg;
             }
@@ -344,20 +360,20 @@ export function findReserveList(params = {}) {
     };
 }
 
-// 添加预约体检
-export function addReserveList(params = {}) {
-    return (dispatch) => {
-        return Fetchapi.newPost(
-            '/manager/reserve/save', params, 'post', true
-        ).then(
-            msg => {
-                return msg;
-            }
-        ).catch(() => {
-            message.error('网络错误，请重试');
-        });
-    };
-}
+// // 添加预约体检
+// export function addReserveList(params = {}) {
+//     return (dispatch) => {
+//         return Fetchapi.newPost(
+//             '/manager/reserve/save', params, 'post', true
+//         ).then(
+//             msg => {
+//                 return msg;
+//             }
+//         ).catch(() => {
+//             message.error('网络错误，请重试');
+//         });
+//     };
+// }
 
 // 修改预约体检
 export function upReserveList(params = {}) {
@@ -408,6 +424,21 @@ export function addProductLine(params = {}) {
     };
 }
 
+//分配体检卡添加
+export function addticket(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/ticket/allot', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
 export function updateProductLine(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
@@ -421,6 +452,32 @@ export function updateProductLine(params = {}) {
         });
     };
 }
+
+export function disabledRangeTime(_, type) {
+    if (type === 'start') {
+        return {
+            disabledHours: () => range(0, 60).splice(4, 20),
+            disabledMinutes: () => range(30, 60),
+            disabledSeconds: () => [55, 56],
+        };
+    }
+    return {
+        disabledHours: () => range(0, 60).splice(20, 4),
+        disabledMinutes: () => range(0, 31),
+        disabledSeconds: () => [55, 56],
+    };
+}
+
+export function onChange(value, dateString) {
+    console.log('Selected Time: ', value);
+    console.log('Formatted Selected Time: ', dateString);
+}
+
+export function onOk(value) {
+    console.log('onOk: ', value);
+}
+
+
 
 
 

@@ -31,6 +31,19 @@ const tools = {
       return `${date.getFullYear()}-${m}-${d} ${h}:${min}:${s}`;
     },
     /**
+     * 标准日期转字符串年月日，时分秒
+     * 返回年月日
+     * */
+    dateToStrD(date) {
+        if (!date) { return ''; }
+        const m = `${date.getMonth() + 1}`.padStart(2,'0');
+        const d = date.getDate().toString().padStart(2,'0');
+        const h = date.getHours().toString().padStart(2,'0');
+        const min = date.getMinutes().toString().padStart(2,'0');
+        const s = date.getSeconds().toString().padStart(2,'0');
+        return `${date.getFullYear()}-${m}-${d}`;
+    },
+    /**
      * 验证字符串
      * 只能为汉字、字母、数字、下划线
      * 可以为空
