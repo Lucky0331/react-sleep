@@ -19,7 +19,9 @@ import List from './container/List';
 import Set from './container/Set';
 import PhyStatistics from './container/PhyStatistics';
 import Detail from './container/Detail';
-import Distribution from './container/distribution';
+import Distribution from './container/Distribution';
+import Station from './container/Station';
+
 
 // ==================
 // 本页面所需action
@@ -49,12 +51,13 @@ class TheContainer extends React.Component {
         return (
             <div key='page' className="allpage page-shop">
                 <Switch>
-                    <Redirect exact from={`${this.props.match.path}`} to={`${this.props.match.path}/list`} />
-                    <Route exact path={`${this.props.match.path}/list`} component={List} />
+                    <Redirect exact from={`${this.props.match.path}`} to={`${this.props.match.path}/hracard/distribution`} />
+                    <Route exact path={`${this.props.match.path}/checklist`} component={List} />
                     <Route exact path={`${this.props.match.path}/set`} component={Set} />
                     <Route exact path={`${this.props.match.path}/phys`} component={PhyStatistics} />
-                    <Route exact path={`${this.props.match.path}/detail`} component={Detail}/>
-                    <Route exact path={`${this.props.match.path}/distribution`} component={Distribution}/>
+                    <Route exact path={`${this.props.match.path}/hracard/detail`} component={Detail}/>
+                    <Route exact path={`${this.props.match.path}/hracard/distribution`} component={Distribution}/>
+                    <Route exact path={`${this.props.match.path}/station`} component={Station}/>
                 </Switch>
             </div>
         );

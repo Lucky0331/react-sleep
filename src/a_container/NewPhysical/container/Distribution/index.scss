@@ -18,3 +18,13 @@
   max-height: 350px;
   border-radius: 4px;
 }
+
+.ant-table-tbody{
+  .ant-table-row{
+    text-align: center;
+  }
+}
+
+.ant-table-thead>tr>th,.ant-table-tbody > tr > td{
+  text-align: center;
+}

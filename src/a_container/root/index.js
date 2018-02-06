@@ -6,22 +6,26 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import createHistory from 'history/createHashHistory';
 import './index.scss';
-import { saveMenuSourceData } from '../../a_action/app-action';
+import { saveMenuSourceData, saveMenuType } from '../../a_action/app-action';
 import Login from '../login';
 
 import Home from '../home';       // home页
 import System from '../system';   // 系统管理模块
 
 import NewProduct from '../NewProduct';               // 产品管理模块
+import NewOrder from '../NewOrder';               // 订单管理模块
 import NewPhysical from '../NewPhysical';             // 体检管理模块
 import NewServiceStation from '../NewServiceStation'; // 服务站模块
 import NewMoney from '../NewMoney'    //资金管理模块
+import NewInvoice from '../NewInvoice'    //发票管理模块
+import NewContent from '../NewContent'    //内容管理模块
+
 
 import NotFound from '../notfound'; // 404页
 
 import Header from '../../a_component/header';          // 头部组件
 import Footer from '../../a_component/footer';          // 底部组件
-import TheMenu from '../../a_component/menu/index.js';  // 左侧导航组件
+import TheMenu from '../../a_component/menu/menu.js';  // 左侧导航组件
 
 const history = createHistory();
 class RootContainer extends React.Component {
@@ -67,13 +71,17 @@ class RootContainer extends React.Component {
     });
   }
 
+  // 头部导航改变时出发
+    onMenuChange(type) {
+      this.props.actions.saveMenuType(type);
+    }
   render() {
     return ([
       <Router history={history} key='browserrouter'>
         <Route render={(props) => {
           return (
             <div className="boss">
-                <Header {...props}/>
+                <Header {...props} onMenuChange={(type) => this.onMenuChange(type)}/>
                 <div className="the-body">
                   <div className="the-menu-box flex-none">
                     <TheMenu
@@ -81,6 +89,7 @@ class RootContainer extends React.Component {
                         collapsed={this.state.collapsed}
                         onCollapsed={() => this.onCollapsed()}
                         saveMenuSourceData={this.props.actions.saveMenuSourceData}
+                        menuType={this.props.menuType}
                     />
                   </div>
 
@@ -101,9 +110,12 @@ class RootContainer extends React.Component {
                       {/*<Route path="/open" render={(props) => this.onEnter(Open, props)} />*/}
                       {/*<Route path="/activity" render={(props) => this.onEnter(Activity, props)} />*/}
                       <Route path="/product" render={(props) => this.onEnter(NewProduct, props)} />
+                      <Route path="/order" render={(props) => this.onEnter(NewOrder, props)} />
                       <Route path="/physical" render={(props) => this.onEnter(NewPhysical, props)} />
                       <Route path="/service" render={(props) => this.onEnter(NewServiceStation, props)} />
                       <Route path="/money" render={(props) => this.onEnter(NewMoney, props)} />
+                      <Route path="/invoice" render={(props) => this.onEnter(NewInvoice, props)} />
+                      <Route path="/content" render={(props) => this.onEnter(NewContent, props)} />
                       <Route component={NotFound} />
                     </Switch>
                     <Footer key="footer"/>
@@ -126,6 +138,7 @@ RootContainer.propTypes = {
   location: P.any,
   history: P.any,
   actions: P.any,
+  menuType: P.any,
 };
 
 // ==================
@@ -134,8 +147,9 @@ RootContainer.propTypes = {
 
 export default connect(
   (state) => ({
+      menuType: state.app.menuType,
   }), 
   (dispatch) => ({
-      actions: bindActionCreators({ saveMenuSourceData }, dispatch),
+      actions: bindActionCreators({ saveMenuSourceData, saveMenuType }, dispatch),
   })
 )(RootContainer);

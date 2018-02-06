@@ -1,4 +1,4 @@
-/* List 体检管理/体检列表 */
+/* List 体检管理/体检卡管理/体检卡分配 */
 
 // ==================
 // 所需的各种插件
@@ -25,7 +25,7 @@ import _ from 'lodash';
 // 本页面所需action
 // ==================
 
-import { findReserveList, addProduct, upReserveList, deleteProduct, deleteImage, findticketModelByWhere,addticket} from '../../../../a_action/shop-action';
+import { findReserveList, addProduct, upReserveList, deleteProduct, deleteImage, findticketModelByWhere,addticket,updateTicketStatus} from '../../../../a_action/shop-action';
 import { findAllProvince,findStationByArea, findCityOrCounty, findProductTypeByWhere,queryStationList, addStationList, upStationList, delStationList } from '../../../../a_action/sys-action';
 // ==================
 // Definition
@@ -65,6 +65,7 @@ class Category extends React.Component {
             searchState: '', // 搜索 - 是否禁用
             searchExpire: '', // 搜索 - 是否到期
             searchSurplus:'', //搜索剩余可用次数
+
         };
     }
 
@@ -93,7 +94,6 @@ class Category extends React.Component {
         const params = {
             pageNum,
             pageSize,
-            state: this.state.searchState,
             isExpire: this.state.searchExpire,
             surplus: this.state.searchSurplus,
             province: this.state.searchAddress[0],
@@ -101,19 +101,20 @@ class Category extends React.Component {
             region: this.state.searchAddress[2],
             mobile: this.state.searchMobile,
             code: this.state.searchCode,
+            state:this.state.searchState,
             stationName: this.state.searchStationName,
             ticketNo:this.state.searchTicketNo,
             ticketModel: this.state.searchTicketModel,
-            beginTime: this.state.searchBeginTime ? tools.dateToStrD(this.state.searchBeginTime._d) : '',
-            endTime: this.state.searchEndTime ? tools.dateToStrD(this.state.searchEndTime._d) : '',
+            beginTime: this.state.searchBeginTime ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00` : '',
+            endTime: this.state.searchEndTime ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59 ` : '',
         };
         this.props.actions.findReserveList(tools.clearNull(params)).then((res) => {
             if(res.returnCode === "0") {
                 this.setState({
-                    data: res.messsageBody.ticketPage,
+                    data: res.messsageBody.ticketPage.result || [],
                     pageNum,
                     pageSize,
-                    total: res.messsageBody.total,
+                    total: res.messsageBody.ticketPage.total,
                 });
             } else {
                 message.error(res.returnMessaage || '获取数据失败，请重试');
@@ -150,7 +151,7 @@ class Category extends React.Component {
     }
 
     //搜索 - 是否禁用输入框值改变时触发
-    searchStateChange(e) {
+    searchTicketStatusChange(e) {
         this.setState({
             searchState: e,
         });
@@ -194,7 +195,7 @@ class Category extends React.Component {
     //搜索 - 剩余可用次数
     searchSurplusChange(e){
         this.setState({
-            searchSurplus: e.target.value,
+            searchSurplus: e,
         })
     }
 
@@ -241,14 +242,6 @@ class Category extends React.Component {
         });
     }
 
-    // 搜索 - 手机号输入框值改变时触发
-    searchMobileChange(e) {
-        if (e.target.value.length < 12) {
-            this.setState({
-                searchMobile: e.target.value,
-            });
-        }
-    }
 
     // 搜索 - 体检卡输入框值改变时触发
     searchCodeChange(e) {
@@ -293,6 +286,24 @@ class Category extends React.Component {
         });
     }
 
+    // 启用或禁用
+    onUpdateClick2(record) {
+        const params = {
+            ticketId:Number(record.id),
+        };
+
+        this.props.actions.updateTicketStatus(params).then((res) => {
+            if (res.returnCode === "0") {
+                message.success("修改成功");
+                this.onGetData(this.state.pageNum, this.state.pageSize);
+            } else {
+                message.error(res.returnMessaage || '修改失败，请重试');
+            }
+        }).catch(() => {
+            message.error('修改失败');
+        });
+    }
+
     // 添加分配体检卡模态框出现
     onAddNewShow() {
         const me = this;
@@ -305,6 +316,7 @@ class Category extends React.Component {
             'addnewSaleMode',
             'addnewDisabled',
             'addnewSelfStation',
+            'addnewIsExpire',
             'addnewStationId',
             'addnewProductModelId',
             'addnewCardCount'
@@ -321,7 +333,6 @@ class Category extends React.Component {
     onAddNewOk() {
         const me = this;
         const { form } = me.props;
-
         form.validateFields([
             'addnewCitys',
             'addnewCode',
@@ -333,6 +344,7 @@ class Category extends React.Component {
             'addnewWeight',
             'addnewDisabled',
             'addnewSelfStation',
+            'addnewIsExpire',
             'addnewStationId',
             'addnewProductModelId',
             'addnewCardCount'
@@ -353,6 +365,7 @@ class Category extends React.Component {
                 weight: values.addnewWeight,
                 disabled: values.addnewDisabled,
                 selfStation:values.addnewSelfStation,
+                isExpire:values.addnewIsExpire,
                 stationId:values.addnewStationId,
                 productModelId:values.addnewProductModelId,
                 cardCount:values.addnewCardCount,
@@ -393,6 +406,12 @@ class Category extends React.Component {
         });
     }
 
+    // 表单页码改变
+    onTablePageChange(page, pageSize) {
+        console.log('页码改变：', page, pageSize);
+        this.onGetData(page, pageSize);
+    }
+
     // 构建字段
     makeColumns(){
         const columns = [
@@ -403,9 +422,9 @@ class Category extends React.Component {
             },
             {
                 title: '服务站地区',
-                dataIndex: 'station.city',
-                key: 'station.city',
-                render: (text, record) => {return `${record.station.province}/${record.station.city}/${record.station.region}`;},
+                dataIndex: 'station',
+                key: 'station',
+                render: (text, record) => {return (record.station && record.station.province) ? `${record.station.province}/${record.station.city}/${record.station.region}` : ''},
             },
             {
                 title: '服务站名称',
@@ -435,14 +454,14 @@ class Category extends React.Component {
             },
             {
                 title:'是否到期',
-                dataIndex: 'isExpire',
-                key: 'isExpire',
-                render: (text) => String(text) === '0' ? <span style={{color: 'red'}}>已到期</span> : <span style={{color: 'green'}}>未到期</span>
+                dataIndex: 'hasExpire',
+                key: 'hasExpire',
+                render: (text) => String(text) === 'true' ? <span style={{color: 'red'}}>已到期</span> : <span style={{color: 'green'}}>未到期</span>
             },
             {
                 title:'总可用次数',
-                dataIndex: 'hraCard.ticketNum',
-                key: 'hraCard.ticketNum',
+                dataIndex: 'total',
+                key: 'total',
             },
             {
                 title:'剩余可用次数',
@@ -451,9 +470,16 @@ class Category extends React.Component {
             },
             {
                 title:'是否禁用',
-                dataIndex: 'state',
-                key: 'state',
+                dataIndex: 'ticketStatus',
+                key: 'ticketStatus',
                 render: (text) => String(text) === '1' ? <span style={{color: 'green'}}>未禁用</span> : <span style={{color: 'red'}}>已禁用</span>
+            },
+            {
+                title:'是否限制仅该服务站使用',
+                width:110,
+                dataIndex: 'selfStation',
+                key: 'selfStation',
+                render: (text) =>String(text) === '1' ? <span style={{color:'red'}}>已限制</span> : <span style={{color:'green'}}>未限制</span>
             },
             {
                 title:'分配时间',
@@ -461,7 +487,7 @@ class Category extends React.Component {
                 key:'createTime'
             },
             {
-                title:'操作人'
+                title:'操作人',
             },
             {
                 title: '操作',
@@ -478,17 +504,17 @@ class Category extends React.Component {
                             </Tooltip>
                         </span>
                     );
-                    controls.push(
+                    (record.ticketStatus === 3) && controls.push(
                         <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick2(record)}>
                             <Tooltip placement="top" title="启用">
-                                <Icon type="caret-up" />
+                                <Icon type="check-square-o" />
                             </Tooltip>
                         </span>
                     );
-                    controls.push(
+                    (record.ticketStatus === 1) &&controls.push(
                         <span key="2" className="control-btn red" onClick={() => this.onUpdateClick2(record)}>
                             <Tooltip placement="top" title="禁用">
-                                <Icon type="caret-down" />
+                                <Icon type="close-square-o" />
                             </Tooltip>
                         </span>
                     );
@@ -517,7 +543,6 @@ class Category extends React.Component {
                 arriveTime: item.arriveTime,
                 code: item.code,
                 conditions: item.conditions,
-                createTime: item.createTime,
                 creator: item.creator,
                 height: item.height,
                 idCard: item.idCard,
@@ -538,14 +563,17 @@ class Category extends React.Component {
                 createTime: item.createTime,
                 timeLimitNum:item.hraCard.productModel.timeLimitNum,
                 timeLimitType: item.hraCard.productModel.timeLimitType,
-                state:item.state,
+                ticketStatus:item.ticketStatus,
                 ticketModel:item.ticketModel,
                 disabled:item.disabled,
                 selfStation:item.selfStation,
                 station:item.station,
                 productModelId:item.productModelId,
                 cardCount:item.cardCount,
+                total:item.total,
                 hraCard:item.hraCard,
+                ticketId:item.ticketId,
+                surplus:item.surplus,
                 citys: (item.province && item.city && item.region) ? `${item.province}/${item.city}/${item.region}` : '',
             }
         });
@@ -587,19 +615,19 @@ class Category extends React.Component {
                         <li>
                             <span>是否到期</span>
                             <Select placeholder="全部" allowClear style={{  width: '172px'}} onChange={(e) => this.searchExpireChange(e)}>
-                                <Option value={0}>已到期</Option>
                                 <Option value={1}>未到期</Option>
+                                <Option value={0}>已到期</Option>
                             </Select>
                         </li>
                         <li>
                             <span>剩余可用次数</span>
-                            <Input style={{width:'172px'}}  onChange={(e) => this.searchSurplusChange(e)}/>
+                            <InputNumber placeholder="请输入剩余可用次数" style={{width:'172px'}}  onChange={(e) => this.searchSurplusChange(e)} /*value={this.state.searchSurplus}*/ />
                         </li>
                         <li>
                             <span>是否禁用</span>
-                            <Select placeholder="全部" allowClear style={{  width: '172px'}} onChange={(e) => this.searchStateChange(e)}>
-                                <Option value={0}>未禁用</Option>
-                                <Option value={1}>已禁用</Option>
+                            <Select placeholder="全部" allowClear style={{  width: '172px'}} onChange={(e) => this.searchTicketStatusChange(e)}>
+                                <Option value={1}>未禁用</Option>
+                                <Option value={3}>已禁用</Option>
                             </Select>
                         </li>
                         <li>
@@ -612,7 +640,7 @@ class Category extends React.Component {
                         </li>
                         <li>
                             <span>体检卡号</span>
-                            <Input style={{width:'172px'}} onChange={(e) => this.searchTicketNo(e)}/>
+                            <Input placeholder="请输入体检卡号" style={{width:'172px'}}  onChange={(e) => this.searchTicketNo(e)}/>
                         </li>
                         <li>
                             <span>分配时间</span>
@@ -654,12 +682,10 @@ class Category extends React.Component {
                                 onChange={(e) => this.searchEndTime(e)}
                             />
                         </li>
-                    </ul>
-                    <ul className="search-ul more-ul btns">
-                        <li>
+                        <li style={{marginLeft:'10px'}}>
                             <Button icon="search" type="primary" onClick={() => this.onSearch()}>查询</Button>
                         </li>
-                        <li>
+                        <li style={{marginLeft:'10px'}}>
                             <Button type="primary" onClick={() => this.onAddNewShow()}>分配体检卡</Button>
                         </li>
                     </ul>
@@ -829,23 +855,23 @@ class Category extends React.Component {
                         >
                             {!!this.state.nowData ? this.getNameForInDate(this.state.nowData.timeLimitNum, this.state.nowData.timeLimitType) : ''}
                         </FormItem>
-                        {/*<FormItem*/}
-                            {/*label="操作时间"*/}
-                            {/*{...formItemLayout}*/}
-                        {/*>*/}
-                            {/*{!!this.state.nowData ? this.state.nowData.updateTime : ''}*/}
-                        {/*</FormItem>*/}
                         <FormItem
                             label="是否到期"
                             {...formItemLayout}
                         >
-                            {!!this.state.nowData ? (String(this.state.nowData.isExpire) === "0" ? <span style={{ color: 'red' }}>已到期</span> : <span style={{ color: 'green' }}>未到期</span>) : ''}
+                            {!!this.state.nowData ? (String(this.state.nowData.hasExpire) === "true" ? <span style={{ color: 'red' }}>已到期</span> : <span style={{ color: 'green' }}>未到期</span>) : ''}
                         </FormItem>
                         <FormItem
                             label="是否禁用"
                             {...formItemLayout}
                         >
-                            {!!this.state.nowData ? (String(this.state.nowData.state) === "1" ? <span style={{ color: 'green' }}>未禁用</span> : <span style={{ color: 'red' }}>已禁用</span>) : ''}
+                            {!!this.state.nowData ? (String(this.state.nowData.ticketStatus) === "1" ? <span style={{ color: 'green' }}>未禁用</span> : <span style={{ color: 'red' }}>已禁用</span>) : ''}
+                        </FormItem>
+                        <FormItem
+                            label="是否限制仅该服务站使用"
+                            {...formItemLayout}
+                        >
+                            {!!this.state.nowData ? (String(this.state.nowData.selfStation) === "1" ? <span style={{ color: 'green' }}>已限制</span> : <span style={{ color: 'red' }}>未限制</span>) : ''}
                         </FormItem>
                     </Form>
                 </Modal>
@@ -875,6 +901,6 @@ export default connect(
         citys: state.sys.citys,
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findReserveList,addticket, addProduct, upReserveList, deleteProduct, deleteImage, findticketModelByWhere ,findAllProvince,findStationByArea, findCityOrCounty, findProductTypeByWhere,queryStationList, addStationList, upStationList, delStationList}, dispatch),
+        actions: bindActionCreators({ findReserveList,addticket, addProduct, upReserveList, deleteProduct, deleteImage, findticketModelByWhere ,findAllProvince,findStationByArea, updateTicketStatus,findCityOrCounty, findProductTypeByWhere,queryStationList, addStationList, upStationList, delStationList}, dispatch),
     })
 )(WrappedHorizontalRole);

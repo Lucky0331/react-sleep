@@ -31,6 +31,20 @@ const tools = {
       return `${date.getFullYear()}-${m}-${d} ${h}:${min}:${s}`;
     },
 
+    /**
+     * 标准日期转字符串年月日，时分秒
+     * 体检管理体检列表里预约体检时间设置后多了8个小时
+     * */
+    dateToStr2(date) {
+        if (!date) { return '' }
+        const m = `${date.getMonth() + 1}`.padStart(2,'0');
+        const d = date.getDate().toString().padStart(2,'0');
+        const h = `${date.getHours() - 8}`.toString().padStart(2,'0');
+        const min = date.getMinutes().toString().padStart(2,'0');
+        const s = date.getSeconds().toString().padStart(2,'0');
+        return `${date.getFullYear()}-${m}-${d} ${h}:${min}:${s}`;
+    },
+
     /** 将标准格式字符串进行日期格式化 **/
     dateformart(str) {
         if (!str) { return ''; }

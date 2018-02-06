@@ -61,3 +61,12 @@ export function findButtonsByMenuId(params = {}) {
         });
     };
 }
+
+// 保存头部当前选中的哪一个
+export function saveMenuType(type) {
+    console.log('there:', type);
+    return {
+        type: 'APP::saveMenuType',
+        payload: type,
+    };
+}

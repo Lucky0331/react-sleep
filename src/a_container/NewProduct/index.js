@@ -18,7 +18,6 @@ import './index.scss';
 import List from './container/List';
 import Type from './container/Type';
 import Model from './container/Model';
-import OrderList from './container/OrderList';
 // ==================
 // 本页面所需action
 // ==================
@@ -47,11 +46,10 @@ class TheContainer extends React.Component {
         return (
             <div key='page' className="allpage page-shop">
                 <Switch>
-                    <Redirect exact from={`${this.props.match.path}`} to={`${this.props.match.path}/list`} />
-                    <Route exact path={`${this.props.match.path}/list`} component={List} />
-                    <Route exact path={`${this.props.match.path}/type`} component={Type} />
+                    <Redirect exact from={`${this.props.match.path}`} to={`${this.props.match.path}/productlist`} />
+                    <Route exact path={`${this.props.match.path}/productlist`} component={List} />
+                    <Route exact path={`${this.props.match.path}/protype`} component={Type} />
                     <Route exact path={`${this.props.match.path}/model`} component={Model} />
-                    <Route exact path={`${this.props.match.path}/orderlist`} component={OrderList} />
                 </Switch>
             </div>
         );

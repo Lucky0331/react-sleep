@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, Icon } from 'antd';
 import P from 'prop-types';
+import './menu.scss';
 
 const MenuItem = Menu.Item;
 const SubMenu = Menu.SubMenu;
@@ -14,14 +15,15 @@ class Menus extends React.Component {
             treeDom: [],   // 生成的菜单结构
             show: false, // 是否显示
             chosedKey: [], // 当前选中
-            openKeys: [], //
+            openKeys: [], // 需要被打开的项
+            menuType: this.props.menuType,
         };
     }
 
-    // 处理当前是否显示，和当前选中哪一个菜单
+    // 处理当前是否显示
     static _initShow(location) {
         const path = location.pathname.split('/')[1];
-        console.log('触发：', !(['login'].indexOf(path) > -1), path);
+        console.log('当前location:', location);
         return !(['login'].indexOf(path) > -1);
     }
 
@@ -29,22 +31,24 @@ class Menus extends React.Component {
     componentDidMount() {
         const data = JSON.parse(sessionStorage.getItem('adminMenu'));
         console.log('得到的是什么：', data);
-       this.makeSourceData(data || []);
-       this.initChosed(this.props.location);
+        this.makeSourceData(data || []);
+
         this.setState({
             show: Menus._initShow(this.props.location),
             sessionData: data,
         });
     }
 
-    componentWillUpdate(nextP, nextS) {
-    }
-
     componentWillReceiveProps(nextP) {
         if (nextP.location !== this.props.location) {
-            this.initChosed(nextP.location);
             this.setState({
                 show: Menus._initShow(nextP.location),
+            });
+            this.initChosed(nextP.location);
+        }
+        if (this.state.menuType !== nextP.menuType){
+            this.setState({
+                menuType: nextP.menuType,
             });
         }
         const data = JSON.parse(sessionStorage.getItem('adminMenu'));
@@ -56,16 +60,10 @@ class Menus extends React.Component {
     // 处理当前选中
     initChosed(location) {
         const paths = location.pathname.split('/').filter((item) => !!item);
+        console.log('openKeysPath:', paths);
         this.setState({
             chosedKey: [location.pathname], // [paths[paths.length - 1]],
-            openKeys: paths
-        });
-    }
-
-    // 展开/关闭 时触发
-    onOpenChange(keys) {
-        this.setState({
-            openKeys: keys,
+            openKeys: paths.map((item) => `/${item}`)
         });
     }
 
@@ -125,23 +123,27 @@ class Menus extends React.Component {
         });
     }
 
+    // 菜单展开或关闭时触发
+    onOpenChange(keys) {
+        console.log('KEYS:', keys);
+        this.setState({
+            openKeys: keys,
+        });
+    }
     render() {
         return (
-            this.state.show ?
-            [<Menu
+            <Menu
                 key="1"
                 theme="dark"
                 mode="inline"
-                className={this.props.collapsed ? 'the-menu' : 'the-menu open'}
                 selectedKeys={this.state.chosedKey}
-
-                onOpenChange={(e) => this.onOpenChange(e)}
+                openKeys={this.state.openKeys}
+                className={ this.state.show ?  'the-menu open' :  'the-menu open hide'}
+                onOpenChange={(keys) => this.onOpenChange(keys)}
                 inlineCollapsed={this.props.collapsed}
             >
                 {this.state.treeDom}
-            </Menu>, <div key="2" className={this.props.collapsed ? "collapsed-box" : "collapsed-box open"} >
-                <Icon className="collapsed-icon" onClick={() => this.props.onCollapsed()} type={this.props.collapsed ? 'menu-unfold' : 'menu-fold'} />
-            </div>] : null
+            </Menu>
         );
     }
 }
@@ -151,6 +153,7 @@ Menus.propTypes = {
     collapsed: P.bool,  // 展开还是收起
     saveMenuSourceData: P.func,
     onCollapsed: P.func,
+    menuType: P.any,
 };
 
 export default Menus;

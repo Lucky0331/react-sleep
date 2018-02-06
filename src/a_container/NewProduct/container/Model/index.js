@@ -8,7 +8,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
-import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, Tooltip, InputNumber, Select  } from 'antd';
+import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, Tooltip, InputNumber, Select ,Checkbox, Row } from 'antd';
 import './index.scss';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
@@ -22,7 +22,7 @@ import { power } from '../../../../util/data';
 // 本页面所需action
 // ==================
 
-import { findProductModelByWhere, addProductModel, findProductTypeByWhere, upProductModel, delProductModel } from '../../../../a_action/shop-action';
+import { findProductModelByWhere, addProductModel, findProductTypeByWhere, upProductModel, delProductModel , onChange3 } from '../../../../a_action/shop-action';
 
 // ==================
 // Definition
@@ -37,6 +37,7 @@ class Category extends React.Component {
         this.state = {
             data: [], // 当前页面全部数据
             productTypes: [],   // 所有的产品类型
+            chargeTypes: [], //所有的计费方式
             searchTypeId: undefined, // 搜索 - 类型名
             addnewModalShow: false, // 添加模态框是否显示
             addnewLoading: false, // 是否正在添加中
@@ -47,6 +48,8 @@ class Category extends React.Component {
             pageNum: 1, // 当前第几页
             pageSize: 10, // 每页多少条
             total: 0, // 数据库总共多少条数据
+            code:undefined,  //产品类型所对应的code值
+            feeType: [],   //计费方式的数组
         };
     }
 
@@ -66,9 +69,11 @@ class Category extends React.Component {
             console.log('返回的什么：', res);
             if(res.returnCode === "0") {
                 this.setState({
-                    data: res.messsageBody.result,
+                    data: res.messsageBody.modelList.result || [],
+                    chargeTypes:res.messsageBody.chargeTypeList,
                     pageNum,
                     pageSize,
+                    total:res.messsageBody.total,
                 });
             } else {
                 message.error(res.returnMessaage || '获取数据失败，请重试');
@@ -76,7 +81,7 @@ class Category extends React.Component {
         });
     }
 
-    // 获取所有的产品类型，添加修改要用
+    // 获取所有的产品类型，当前页要用
     getAllTypes() {
         this.props.actions.findProductTypeByWhere({ pageNum: 0, pageSize: 9999 }).then((res) => {
             if (res.returnCode === '0') {
@@ -104,13 +109,24 @@ class Category extends React.Component {
         return t ? t.name : '';
     }
 
-
     // 搜索 - 产品类型输入框值改变时触发
     onSearchTypeId(typeId) {
         this.setState({
             searchTypeId: typeId,
         });
     }
+
+    //根据code值不同显示的字段不同
+    Newproduct(e){
+        this.setState({
+            code:e
+        })
+        console.log('e的数值是：',e)
+        // //产品类型改变时，重置产品型号的值位undefined
+        // const {form} = this.props;
+        // form.resetFields(['addnewTypeCode']);
+    }
+
 
     // 修改某一条数据 模态框出现
     onUpdateClick(record) {
@@ -122,15 +138,19 @@ class Category extends React.Component {
             upTypeId: record.typeId,
             upDescription:record.description,
             upPrice: record.price,
+            upShipFee:record.shipFee,
+            upOpenAccountFee:record.openAccountFee,
             upBuildCount:record.buildCount,
-            upUseCount:record.useCount,
             upInDate: record.inDate,
             upModelDetail: `${record.modelDetail}`,
             upTimeLimitNum: record.timeLimitNum,
             upTimeLimitType: record.timeLimitType,
+            upCharges: record.chargeTypes ? record.chargeTypes.map((item) => String(item.id)) : [],
         });
         me.setState({
             nowData: record,
+            code:record.typeId,
+            feeType:record.feeType,
             upModalShow: true,
         });
     }
@@ -139,19 +159,25 @@ class Category extends React.Component {
     onUpOk() {
         const me = this;
         const { form } = me.props;
-        form.validateFields([
+        const uparr=[
             'upName',
             'upTypeId',
             'upDescription',
             'upPrice',
             'upBuildCount',
-            'upUseCount',
             'upModelDetail',
-            'upTimeLimitType',
-            'upTimeLimitNum',
-        ], (err, values) => {
-            if(err) { return; }
-
+        ];
+        if([1].includes(this.state.code)){
+            uparr.push( 'upCharges','upOpenAccountFee');
+        };
+        if([2,3,4,5].includes(this.state.code)){
+            uparr.push( 'upTimeLimitType','upTimeLimitNum',);
+        }
+        if([2,3].includes(this.state.code)){
+            uparr.push('upShipFee')
+        }
+        form.validateFields(uparr, (err, values) => {
+            if(err) { return false;}
             me.setState({
                 upLoading: true,
             });
@@ -161,6 +187,9 @@ class Category extends React.Component {
                 typeId: values.upTypeId,
                 updescription:values.upDescription,
                 price: values.upPrice,
+                shipFee: values.upShipFee,
+                openAccountFee: values.upOpenAccountFee,
+                charges:String(values.upCharges),
                 buildCount:values.buildCount,
                 useCount:values.upUseCount,
                 modelDetail: values.upModelDetail,
@@ -214,6 +243,7 @@ class Category extends React.Component {
     onQueryClick(record) {
         this.setState({
             nowData: record,
+            code:record.typeId,
             queryModalShow: true,
         });
     }
@@ -233,16 +263,20 @@ class Category extends React.Component {
             'addnewName',
             'addnewTypeId',
             'addnewPrice',
+            'addnewCharges',
             'addnewUseCount',
             'addnewBuildCount',
             'addnewInDate',
             'addnewModelDetail',
             'addnewTimeLimitType',
+            'addnewShipFee',
+            'addnewOpenAccountFee',
             'addnewTimeLimitNum',
         ]);
         this.setState({
             addnewModalShow: true,
-            nowData:null
+            nowData:null,
+            code:undefined,
         });
     }
 
@@ -250,17 +284,25 @@ class Category extends React.Component {
     onAddNewOk() {
         const me = this;
         const { form } = me.props;
-        form.validateFields([
+        const newarr = [
             'addnewName',
             'addnewTypeId',
             'addnewPrice',
-            'addnewUseCount',
-            'addnewBuildCount',
             'addnewInDate',
             'addnewModelDetail',
             'addnewTimeLimitType',
             'addnewTimeLimitNum',
-        ], (err, values) => {
+        ];
+        if([4,5].includes(this.state.code)) {
+            newarr.push('addnewUseCount','addnewBuildCount');
+        }
+        if([2,3].includes(this.state.code)) {
+            newarr.push('addnewShipFee');
+        }
+        if([1].includes(this.state.code)){
+            newarr.push('addnewOpenAccountFee','addnewCharges')
+        }
+        form.validateFields(newarr, (err, values) => {
             if (err) { return false; }
             me.setState({
                 addnewLoading: true,
@@ -269,9 +311,12 @@ class Category extends React.Component {
                 name: values.addnewName,
                 typeId: Number(values.addnewTypeId),
                 price: Number(values.addnewPrice),
+                charges:String(values.addnewCharges),
                 useCount:Number(values.addnewUseCount),
                 buildCount:Number(values.addnewBuildCount),
                 inDate: Number(values.addnewInDate),
+                shipFee: Number(values.addnewShipFee) ? Number(values.addnewShipFee) : 0,
+                openAccountFee: Number(values.addnewOpenAccountFee)  ? Number(values.addnewOpenAccountFee): 0,
                 modelDetail: values.addnewModelDetail,
                 timeLimitType: values.addnewTimeLimitType,
                 timeLimitNum: values.addnewTimeLimitNum,
@@ -320,8 +365,9 @@ class Category extends React.Component {
             },
             {
                 title: '产品类型',
-                dataIndex: 'typeName',
-                key: 'typeName',
+                dataIndex: 'typeId',
+                key: 'typeId',
+                render: (text) => this.getNameByTypeId(text),
             },
             {
                 title: '价格',
@@ -334,12 +380,6 @@ class Category extends React.Component {
                 key: 'timeLimitNum',
                 render: (text, record) => this.getNameForInDate(text, record.timeLimitType),
             },
-            // {
-            //     title: '产品标识',
-            //     dataIndex: 'conditions',
-            //     key: 'conditions',
-            //     render: (text, record) => text === 0 ? <span style={{color: 'green'}}>启用</span> : <span style={{color: 'red'}}>禁用</span>
-            // },
             {
                 title: '操作',
                 key: 'control',
@@ -395,8 +435,8 @@ class Category extends React.Component {
                 serial:(index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
                 name: item.name,
                 typeId: item.typeId,
-                typeName: this.getNameByTypeId(item.typeId),
                 price: item.price,
+                shipFee: item.shipFee,
                 useCount:item.useCount,
                 inDate: item.inDate,
                 modelDetail: item.modelDetail,
@@ -405,6 +445,10 @@ class Category extends React.Component {
                 creator: item.creator,
                 timeLimitNum:item.timeLimitNum,
                 timeLimitType: item.timeLimitType,
+                chargeName:item.chargeName,
+                charges: item.charges,
+                chargeTypes: item.chargeTypes,
+                openAccountFee: item.openAccountFee,
             }
         });
     }
@@ -420,18 +464,17 @@ class Category extends React.Component {
             },
             wrapperCol: {
                 xs: { span: 24 },
-                sm: { span: 15 },
+                sm: { span: 16 },
             },
         };
         const addnewTimeLimitType = getFieldValue('addnewTimeLimitType') === 0;
-        const upTimeLimitType = getFieldValue('upTimeLimitType') === 0;
         return (
             <div>
               <div className="system-search">
                   <ul className="search-ul">
                       <li>
                           <span style={{marginRight:'10px'}}>产品类型</span>
-                          <Select allowClear placeholder="全部" value={this.state.searchTypeId} style={{ width: '200px' }} onChange={(e) => this.onSearchTypeId(e)}>
+                          <Select allowClear whitespace="true" placeholder="全部" value={this.state.searchTypeId} style={{ width: '200px' }} onChange={(e) => this.onSearchTypeId(e)}>
                               {this.state.productTypes.map((item, index) => {
                                   return <Option key={index} value={item.id}>{ item.name }</Option>
                               })}
@@ -461,6 +504,7 @@ class Category extends React.Component {
                   visible={this.state.addnewModalShow}
                   onOk={() => this.onAddNewOk()}
                   onCancel={() => this.onAddNewClose()}
+                  wrapClassName={"codNum"}
                   confirmLoading={this.state.addnewLoading}
               >
                 <Form>
@@ -474,27 +518,27 @@ class Category extends React.Component {
                                 {required: true, message: '请选择产品类型'}
                             ],
                         })(
-                            <Select style={{marginLeft:'80px',width:'60%'}}>
+                            <Select style={{width:'80%'}} onChange={(e)=>this.Newproduct(e)}>
                                 {this.state.productTypes.map((item, index) => {
                                     return <Option key={index} value={item.id}>{ item.name }</Option>
-                                })}
+                                     })}
                             </Select>
                         )}
                     </FormItem>
-                  <FormItem
-                      label="产品型号"
-                      {...formItemLayout}
-                  >
-                      {getFieldDecorator('addnewName', {
-                          initialValue: undefined,
-                          rules: [
-                              {required: true, whitespace: true, message: '请输入产品型号名称'},
-                              {max: 12, message: '最多输入12字符'}
-                          ],
-                      })(
-                          <Input style={{marginLeft:'80px',width:'60%'}}/>
-                      )}
-                  </FormItem>
+                      <FormItem
+                          label="产品型号"
+                          {...formItemLayout}
+                      >
+                          {getFieldDecorator('addnewName', {
+                              initialValue: undefined,
+                              rules: [
+                                  {required: true, whitespace: true, message: '请输入产品型号名称'},
+                                  {max: 12, message: '最多输入12字符'}
+                              ],
+                          })(
+                              <Input style={{width:'80%'}}/>
+                          )}
+                      </FormItem>
                     <FormItem
                         label="描述"
                         {...formItemLayout}
@@ -505,12 +549,13 @@ class Category extends React.Component {
                                 {whitespace: true,message: '请对产品进行描述'}
                             ],
                         })(
-                            <Input style={{marginLeft:'80px',width:'60%'}}/>
+                            <Input style={{width:'80%'}}/>
                         )}
                     </FormItem>
                     <FormItem
                         label="体检券数量"
                         {...formItemLayout}
+                        className = {this.state.code === 1 || this.state.code === 2 || this.state.code === 3 ? 'hide' : ''}
                     >
                         {getFieldDecorator('addnewBuildCount', {
                             initialValue: undefined,
@@ -518,37 +563,59 @@ class Category extends React.Component {
                                 {required: true,whitespace: true,message: '请填写体检券数量'}
                             ],
                         })(
-                            <Input style={{marginLeft:'80px',width:'60%'}} min={0} type="number" />
+                            <Input style={{width:'80%'}} min={0} type="number" />
                         )}
                     </FormItem>
                     <FormItem
                         label="单张体检券可用次数"
                         {...formItemLayout}
+                        className = {this.state.code === 1 || this.state.code === 2 || this.state.code === 3 ? 'hide' : '' }
                     >
                         {getFieldDecorator('addnewUseCount', {
                             initialValue: undefined,
                             rules: [
-                                {required: true,whitespace: true,message: '请选择体检券数量'}
+                                {required: true,whitespace: true,message: '请输入体检券数量'}
                             ],
                         })(
-                            <Input style={{marginLeft:'80px',width:'60%'}} min={0} type="number" />
+                            <Input style={{width:'80%'}} min={0} type="number" />
                         )}
                     </FormItem>
                 </Form>
                   <FormItem
-                      label="产品价格"
+                      label="价格"
                       {...formItemLayout}
                   >
                       {getFieldDecorator('addnewPrice', {
                           initialValue: undefined,
                           rules: [{required: true, message: '请输入价格'}],
                       })(
-                          <InputNumber min={0} max={99999} style={{marginLeft:'80px',width:'60%'}}/>
+                          <Input style={{width:'80%'}} min={0} type="number" />
+                          )}
+                  </FormItem>
+                  <FormItem
+                      label="计费方式"
+                      {...formItemLayout}
+                      className={ this.state.code === 2 || this.state.code === 3 || this.state.code === 4 || this.state.code === 5 ? 'show' : ''}
+                  >
+                      {getFieldDecorator('addnewCharges', {
+                          initialValue: undefined,
+                          rules: [
+                              {required: true, message: '请选择计费方式'},
+                          ],
+                      })(
+                          <Checkbox.Group style={{ width: '100%' }} onChange={onChange3}>
+                              <Row style={{width:'80%'}}>
+                                  {this.state.chargeTypes.map((item, index) => {
+                                      return <Checkbox key={index} value={item.id}>{ item.chargeName }</Checkbox>
+                                  })}
+                              </Row>
+                          </Checkbox.Group>,
                       )}
                   </FormItem>
                   <FormItem
                       label="有效期"
                       {...formItemLayout}
+                      className = { this.state.code === 1 || this.state.code === 2 || this.state.code === 3 ? 'hide' :''}
                   >
                       {getFieldDecorator('addnewTimeLimitNum', {
                           initialValue: 0,
@@ -556,7 +623,7 @@ class Category extends React.Component {
                               {required: true, message: '请输入有效期'}
                           ],
                       })(
-                          <InputNumber min={0} max={31} placeholder="请输入有效期" style={{marginLeft:'80px'}}/>
+                          <InputNumber min={0} max={31} placeholder="请输入有效期"/>
                       )}
                       {getFieldDecorator('addnewTimeLimitType', {
                           initialValue: 0,
@@ -564,14 +631,37 @@ class Category extends React.Component {
                               {required: true, message: '请选择有效期'}
                           ],
                       })(
-                          <Select style={{ marginLeft:'10px' }}>
+                          <Select style={{ marginLeft:'10px' ,width:'100px'}}>
                               <Option value={0}>长期有效</Option>
                               <Option value={1}>日</Option>
                               <Option value={2}>月</Option>
                               <Option value={3}>年</Option>
                           </Select>
                       )}
-
+                  </FormItem>
+                  <FormItem
+                      label="运费"
+                      {...formItemLayout}
+                      className={ this.state.code === 1 || this.state.code === 4 || this.state.code === 5 ? 'show' : ''}
+                  >
+                      {getFieldDecorator('addnewShipFee', {
+                          initialValue: undefined,
+                          rules: [{required: true, whiteSpace: true,message: '请填写邮寄运费'}],
+                      })(
+                          <Input style={{width:'80%'}} min={0} type="number" />
+                      )}
+                  </FormItem>
+                  <FormItem
+                      label="开户费"
+                      {...formItemLayout}
+                      className={ this.state.code === 2 || this.state.code === 3 || this.state.code === 4 || this.state.code === 5 ? 'show' : ''}
+                  >
+                      {getFieldDecorator('addnewOpenAccountFee', {
+                          initialValue: undefined,
+                          rules: [{required: true, whiteSpace: true,message: '请填写开户费'}],
+                      })(
+                          <Input style={{width:'80%'}} min={0} type="number" />
+                      )}
                   </FormItem>
               </Modal>
                 {/* 修改用户模态框 */}
@@ -580,6 +670,7 @@ class Category extends React.Component {
                   visible={this.state.upModalShow}
                   onOk={() => this.onUpOk()}
                   onCancel={() => this.onUpClose()}
+                  wrapClassName={"codNum"}
                   confirmLoading={this.state.upLoading}
               >
                 <Form>
@@ -615,7 +706,7 @@ class Category extends React.Component {
                                 {required: true, message: '请选择产品类型'}
                             ],
                         })(
-                            <Select>
+                            <Select onChange={(e)=>this.Newproduct(e)}>
                                 {this.state.productTypes.map((item, index) => {
                                     return <Option key={index} value={item.id}>{ item.name }</Option>
                                 })}
@@ -634,8 +725,55 @@ class Category extends React.Component {
                         )}
                     </FormItem>
                     <FormItem
+                        label="运费"
+                        {...formItemLayout}
+                        className={ this.state.code == 1 || this.state.code == 4 || this.state.code ==5 ? 'hide' : ''}
+                    >
+                        {getFieldDecorator('upShipFee',{
+                            initialValue:0,
+                            rules:[{required:true,message:'请输入运费'}],
+                        })(
+                            <InputNumber min={0} max={100000} />
+                        )}
+                    </FormItem>
+                    <FormItem
+                        label="开户费"
+                        {...formItemLayout}
+                        className={this.state.code == 2 || this.state.code ==3 || this.state.code ==4 || this.state.code ==5 ? 'hide' : ''}
+                    >
+                        {getFieldDecorator('upOpenAccountFee',{
+                            initialValue: 0,
+                            rules:[{required:true,message:'请输入开户费'}],
+                        })(
+                            <InputNumber min={0} max ={10000000} />
+                        )}
+                    </FormItem>
+                    <FormItem
+                        label="计费方式"
+                        {...formItemLayout}
+                        className={ this.state.code == 2 || this.state.code == 3 || this.state.code == 4 || this.state.code === 5 ? 'show' : ''}
+                    >
+                        {getFieldDecorator('upCharges', {
+                            initialValue: undefined,
+                            rules: [
+                                {required: true, message: '请选择计费方式'},
+                            ],
+                        })(
+                            <Checkbox.Group style={{ width: '100%' }}
+                                            onChange={onChange3}
+                            >
+                                <Row style={{width:'80%'}}>
+                                    {this.state.chargeTypes.map((item, index) => {
+                                        return <Checkbox key={index} value={String(item.id)}>{ item.chargeName }</Checkbox>
+                                    })}
+                                </Row>
+                            </Checkbox.Group>,
+                        )}
+                    </FormItem>
+                    <FormItem
                         label="有效期"
                         {...formItemLayout}
+                        className = {this.state.code == 1  ? 'hide' : ''}
                     >
                         {getFieldDecorator('upTimeLimitNum', {
                             initialValue: 0,
@@ -680,7 +818,7 @@ class Category extends React.Component {
                       label="产品类型"
                       {...formItemLayout}
                   >
-                      {!!this.state.nowData ? this.state.nowData.typeName : ''}
+                      {!!this.state.nowData ? this.getNameByTypeId(this.state.nowData.typeId) : ''}
                   </FormItem>
                     <FormItem
                         label="价格"
@@ -694,12 +832,6 @@ class Category extends React.Component {
                     >
                         {!!this.state.nowData ? this.getNameForInDate(this.state.nowData.timeLimitNum, this.state.nowData.timeLimitType) : ''}
                     </FormItem>
-                    {/*<FormItem*/}
-                        {/*label="状态"*/}
-                        {/*{...formItemLayout}*/}
-                    {/*>*/}
-                        {/*{(!!this.state.nowData) && this.state.nowData.conditions === 0 ? <span style={{ color: 'green' }}>启用</span> : <span style={{ color: 'red' }}>禁用</span>}*/}
-                    {/*</FormItem>*/}
                 </Form>
               </Modal>
             </div>
@@ -726,6 +858,6 @@ export default connect(
 
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findProductModelByWhere, addProductModel, findProductTypeByWhere, upProductModel, delProductModel }, dispatch),
+        actions: bindActionCreators({ findProductModelByWhere, addProductModel, findProductTypeByWhere, upProductModel, delProductModel,onChange3 }, dispatch),
     })
 )(WrappedHorizontalRole);

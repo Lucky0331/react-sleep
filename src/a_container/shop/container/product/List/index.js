@@ -261,7 +261,7 @@ class Category extends React.Component {
                 });
             } else {
                 params.id = this.state.nowData.id;
-                me.props.actions.updateProduct(params).then((res) => {
+                me.props.actions.updateProduct(params).then((res) => { //修改
                     me.setState({
                         addnewLoading: false,
                     });

@@ -21,6 +21,26 @@ export function findAllMenu() {
     };
 }
 
+// 查找所有的按钮权限的列表
+export function submitLogin(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/admin/submitLogin', Object.assign({}, params, {
+            })
+        ).then(
+            msg => {
+                dispatch({
+                    type: 'SYS::submitLogin',
+                    payload: msg,
+                });
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
 // 条件查询产品类型(查询所有)
 export function findProductTypeByWhere(params = {}) {
     return (dispatch) => {
@@ -182,6 +202,10 @@ export function deleteRoleInfo(params) {
             '/manager/role/deleteRoleInfo', params, 'post', true
         ).then(
             msg => {
+                dispatch({
+                    type: 'SYS::deleteRoleInfo',
+                    payload: msg,
+                });
                 return msg;
             }
         ).catch(() => {

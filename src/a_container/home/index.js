@@ -20,7 +20,8 @@ import LogoImg2 from '../../assets/logo-2.png';
 // 本页面所需action
 // ==================
 
-import { findAllMenu } from '../../a_action/sys-action';
+import { findAllMenu , submitLogin} from '../../a_action/sys-action';
+import { onLogin } from '../../a_action/app-action';
 import { findButtonsByMenuId } from '../../a_action/app-action';
 // ==================
 // Definition
@@ -40,6 +41,33 @@ class HomePageContainer extends React.Component {
         });
     }, 16);
   }
+
+    // 查询当前页面所需列表数据
+    onGetData(pageNum, pageSize) {
+        const params = {
+            pageNum,
+            pageSize,
+        };
+        this.props.actions.onLogin(tools.clearNull(params)).then((res) => {
+            console.log('返回的什么：', res);
+            if(res.returnCode === "0") {
+                this.setState({
+                    data: res.messsageBody.adminRole.btnDtoList,
+                    pageNum,
+                    pageSize,
+                    total: res.messsageBody.total,
+                });
+            } else {
+                message.error(res.returnMessaage || '获取数据失败，请重试');
+            }
+        });
+    }
+
+
+    // 构建table所需数据
+    makeData(data) {
+        console.log('data是个啥：', data);
+    }
 
   render() {
     return (
@@ -77,6 +105,6 @@ export default connect(
   (state) => ({
   }), 
   (dispatch) => ({
-    actions: bindActionCreators({ findAllMenu, findButtonsByMenuId }, dispatch),
+    actions: bindActionCreators({ findAllMenu, findButtonsByMenuId ,onLogin , submitLogin}, dispatch),
   })
 )(HomePageContainer);

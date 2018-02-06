@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
 import Echarts from 'echarts';
-import { Form, Button, Icon, Input, InputNumber, Table, message, Popconfirm, Popover, Modal, Radio, Tooltip, Select, Upload, Divider } from 'antd';
+import { Form, Button, Icon, Input, Cascader, Table, message, DatePicker, Popover, Modal, Radio, Tooltip, Select, Upload, Divider } from 'antd';
 import './index.scss';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
@@ -67,7 +67,7 @@ class Category extends React.Component {
         this.props.actions.findReserveList(tools.clearNull(params)).then((res) => {
             if(res.returnCode === "0") {
                 this.setState({
-                    data: res.messsageBody.result,
+                    data: res.messsageBody.result || [],
                     pageNum,
                     pageSize,
                 });
@@ -129,23 +129,6 @@ class Category extends React.Component {
         return option;
     }
 
-    // 搜索 - 手机号输入框值改变时触发
-    searchMobileChange(e) {
-        if (e.target.value.length < 12) {
-            this.setState({
-                searchMobile: e.target.value,
-            });
-        }
-    }
-
-    // 搜索 - 体检卡输入框值改变时触发
-    searchCodeChange(e) {
-        if (e.target.value.length < 20) {
-            this.setState({
-                searchCode: e.target.value,
-            });
-        }
-    }
 
     // 搜索
     onSearch() {
@@ -161,64 +144,6 @@ class Category extends React.Component {
                 key: 'serial',
                 fixed: 'left',
                 width: 80,
-            },
-            {
-                title: '服务站名称',
-                dataIndex: 'stationName',
-                key: 'stationName',
-                width: 200,
-            },
-            {
-                title: '体检卡号',
-                dataIndex: 'code',
-                key: 'code',
-                width: 200,
-            },
-            {
-                title: '体检人',
-                dataIndex: 'name',
-                key: 'name',
-                width: 100,
-            },
-            {
-                title: '身份证',
-                dataIndex: 'idCard',
-                key: 'idCard',
-                width: 200,
-            },
-            {
-                title: '手机号',
-                dataIndex: 'mobile',
-                key: 'mobile',
-                width: 200,
-            },
-            {
-                title: '性别',
-                dataIndex: 'sex',
-                key: 'sex',
-                width: 100,
-                render: (text) => text ? '男' : '女',
-            },
-            {
-                title: '身高',
-                dataIndex: 'height',
-                key: 'height',
-                width: 100,
-                render: (text) => `${text}cm`,
-            },
-            {
-                title: '体重',
-                dataIndex: 'weight',
-                key: 'weight',
-                width: 100,
-                render: (text) => `${text}kg`,
-            },
-            {
-                title: '用户来源',
-                dataIndex: 'userSource',
-                key: 'userSource',
-                width: 100,
-                render: (text) => this.getNameByModelId(text),
             },
             {
                 title: '预约体检日期',
@@ -240,12 +165,6 @@ class Category extends React.Component {
                 render: (text) => this.getNameByType(text),
             },
             {
-                title: '操作人',
-                dataIndex: 'updater',
-                key: 'updater',
-                width: 100,
-            },
-            {
                 title: '操作时间',
                 dataIndex: 'updateTime',
                 key: 'updateTime',
@@ -254,11 +173,8 @@ class Category extends React.Component {
             {
                 title: '操作',
                 key: 'control',
-                fixed: 'right',
-                width: 120,
                 render: (text, record) => {
                     const controls = [];
-
                     controls.push(
                         <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
                             <Tooltip placement="top" title="查看">
@@ -266,14 +182,6 @@ class Category extends React.Component {
                             </Tooltip>
                         </span>
                     );
-                    controls.push(
-                        <span key="1" className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
-                            <Tooltip placement="top" title="修改">
-                                <Icon type="edit" />
-                            </Tooltip>
-                        </span>
-                    );
-
                     const result = [];
                     controls.forEach((item, index) => {
                         if (index) {
@@ -335,11 +243,61 @@ class Category extends React.Component {
         return (
             <div style={{ width: '100%' }}>
               <div className="system-search">
-                <ul className="search-func"><li><Button type="primary" onClick={() => this.onAddNewShow()}><Icon type="plus-circle-o" />新增体检人</Button></li></ul>
-                  <Divider type="vertical" />
                   <ul className="search-ul">
-                      <li><Input placeholder="服务站地区" onChange={(e) => this.searchMobileChange(e)} value={this.state.searchMobile}/></li>
-                      <li><Input placeholder="服务站" onChange={(e) => this.searchCodeChange(e)} value={this.state.searchCode}/></li>
+                      <li>
+                          <span style={{marginRight:'10px'}}>服务站地区</span>
+                          <Cascader
+                              placeholder="请选择服务区域"
+                              style={{ width: '172px' }}
+                              onChange={(v) => this.onSearchAddress(v)}
+                              options={this.state.citys}
+                              loadData={(e) => this.getAllCitySon(e)}
+                          />
+                      </li>
+                      <li>
+                          <span style={{marginRight:'10px'}}>服务站关键字</span>
+                          <Input placeholder="服务站关键字搜索" style={{width:'172px'}} onChange={(e) => this.searchCodeChange(e)} value={this.state.searchCode}/>
+                      </li>
+                      <li>
+                          <span style={{marginRight:'10px'}}>选择时间</span>
+                          <DatePicker
+                              style={{width:'172px'}}
+                              dateRender={(current) => {
+                                  const style = {};
+                                  if (current.date() === 1) {
+                                      style.border = '1px solid #1890ff';
+                                      style.borderRadius = '45%';
+                                  }
+                                  return (
+                                      <div className="ant-calendar-date" style={style}>
+                                          {current.date()}
+                                      </div>
+                                  );
+                              }}
+                              format="YYYY-MM-DD"
+                              placeholder="开始时间"
+                              onChange={(e) => this.searchBeginTime(e)}
+                          />
+                          --
+                          <DatePicker
+                              style={{width:'172px'}}
+                              dateRender={(current) => {
+                                  const style = {};
+                                  if (current.date() === 1) {
+                                      style.border = '1px solid #1890ff';
+                                      style.borderRadius = '45%';
+                                  }
+                                  return (
+                                      <div className="ant-calendar-date" style={style}>
+                                          {current.date()}
+                                      </div>
+                                  );
+                              }}
+                              format="YYYY-MM-DD"
+                              placeholder="结束时间"
+                              onChange={(e) => this.searchEndTime(e)}
+                          />
+                      </li>
                       <li><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
                   </ul>
               </div>
@@ -350,7 +308,6 @@ class Category extends React.Component {
                 <Table
                     columns={this.makeColumns()}
                     className="my-table"
-                    scroll={{ x: 2400 }}
                     dataSource={this.makeData(this.state.data)}
                     pagination={{
                         total: this.state.total,

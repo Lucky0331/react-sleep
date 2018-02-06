@@ -16,9 +16,15 @@ import './index.scss';
 // ==================
 
 import Manage from './container/Manage';
-// import Set from './container/Set';
-// import Flow from './container/Flow';
-// import Query from './container/Query';
+import Set from './container/Set';
+import Flow from './container/Flow';
+import Query from './container/Query';
+import ServiceIn from './container/ServiceIn';
+import Flow2 from './container/Flow2';
+import Withdrawals from './container/Withdrawals';
+import Bill from './container/Bill';
+// import ServiceIn2  from './container/ServiceIn2';
+
 
 // ==================
 // 本页面所需action
@@ -48,11 +54,16 @@ class TheContainer extends React.Component {
         return (
             <div key='page' className="allpage page-shop">
                 <Switch>
-                    <Redirect exact from={`${this.props.match.path}`} to={`${this.props.match.path}/manage`} />
-                    <Route exact path={`${this.props.match.path}/manage`} component={Manage} />
-                    {/*<Route exact path={`${this.props.match.path}/set`} component={Set} />*/}
-                    {/*<Route exact path={`${this.props.match.path}/flow`} component={Flow} />*/}
-                    {/*<Route exact path={`${this.props.match.path}/query`} component={Query}/>*/}
+                    <Redirect exact from={`${this.props.match.path}`} to={`${this.props.match.path}/manager`} />
+                    <Route exact path={`${this.props.match.path}/manager`} component={Manage} />
+                    <Route exact path={`${this.props.match.path}/set`} component={Set} />
+                    <Route exact path={`${this.props.match.path}/management/flow`} component={Flow} />
+                    <Route exact path={`${this.props.match.path}/management/serviceIn`} component={ServiceIn}/>
+                    <Route exact path={`${this.props.match.path}/account/withdrawals`} component={Withdrawals} />
+                    <Route exact path={`${this.props.match.path}/account/bill`} component={Bill}/>
+                    <Route exact path={`${this.props.match.path}/flow2`} component={Flow2} />
+                    <Route exact path={`${this.props.match.path}/serviceIn2`} component={ServiceIn} />
+                    <Route exact path={`${this.props.match.path}/query`} component={Query}/>
                 </Switch>
             </div>
         );

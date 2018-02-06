@@ -17,6 +17,7 @@ import './index.scss';
 
 import List from './container/List';
 import Station from './container/Station';
+import Contracts from './container/Contracts';
 
 // ==================
 // 本页面所需action
@@ -46,8 +47,8 @@ class TheContainer extends React.Component {
         return (
             <div key='page' className="allpage page-shop">
                 <Switch>
-                    <Redirect exact from={`${this.props.match.path}`} to={`${this.props.match.path}/list`} />
-                    <Route exact path={`${this.props.match.path}/list`} component={List} />
+                    <Redirect exact from={`${this.props.match.path}`} to={`${this.props.match.path}/station`} />
+                    <Route exact path={`${this.props.match.path}/contracts`} component={Contracts} />
                     <Route exact path={`${this.props.match.path}/station`} component={Station} />
 
                 </Switch>

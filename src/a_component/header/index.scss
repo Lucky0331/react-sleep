@@ -4,15 +4,19 @@
   min-width: 1200px;
   z-index:999;
   top:0;
-  height: 45px;
-  line-height: 45px;
+  height: 46px;
+  line-height: 46px;
   box-sizing: border-box;
   padding:0 5px;
   color: #fefefe;
   background-color: #001529;
   font-size: 13px;
+  display: flex;
+  .menu-box{
+    flex: 1;
+  }
   .header-menu{
-    display: inline-block;
+    flex:none;
     li{
       display: inline-block;
       .logo{
@@ -45,7 +49,7 @@
     }
   }
   .header-userinfo{
-    float: right;
+    flex: none;
     color: #fefefe;
     font-size: 12px;
     width: auto;
@@ -68,5 +72,5 @@
 }
 .header-station{
   width: 100%;
-  height: 45px;
+  height: 46px;
 }

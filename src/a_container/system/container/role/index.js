@@ -76,6 +76,7 @@ class Role extends React.Component {
                     data: res.messsageBody.result,
                     pageNum,
                     pageSize,
+                    total: res.messsageBody.total,
                 });
             } else {
                 message.error(res.returnMessaage || '获取数据失败，请重试');
@@ -158,7 +159,7 @@ class Role extends React.Component {
 
     // 删除某一条数据
     onDeleteClick(id) {
-        this.props.actions.deleteRoleInfo({id: id}).then((res) => {
+        this.props.actions.deleteRoleInfo({id:id}).then((res) => {
             if(res.returnCode === "0") {
                 message.success('删除成功');
                 this.onGetData(this.state.pageNum, this.state.pageSize);
@@ -390,13 +391,14 @@ class Role extends React.Component {
         console.log('data是个啥：', data);
         return data.map((item, index) => {
             return {
+                id: item.id,
                 key: index,
                 roleId: item.id,
                 serial:(index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
                 roleName: item.roleName,
                 roleDuty: item.roleDuty,
                 menus: item.menus,
-                control: item.id,
+                // control: item.id,
             }
         });
     }

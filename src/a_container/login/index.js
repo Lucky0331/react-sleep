@@ -33,6 +33,7 @@ class LoginContainer extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      adminBtn:[],
       loginLoading: false, // 是否处于正在登陆状态
       rememberPassword: false, // 是否记住密码
       codeValue: '00000', // 当前验证码的值
@@ -66,27 +67,83 @@ class LoginContainer extends React.Component {
       this.setState({
           show: true,
       });
+
+      // const menusInfo = JSON.parse(sessionStorage.getItem('adminBtn'));
+      // console.log('是什么：', menusInfo);
+      // this.makeSourceData(menusInfo || []);
   }
+
+    // componentWillReceiveProps(nextP) {
+    //     const menusInfo = JSON.parse(sessionStorage.getItem('adminBtn'));
+    //     if(menusInfo !== this.state.sessionData ) {
+    //         this.makeSourceData(menusInfo || []);
+    //     }
+    // }
 
   async doSubmit(userName, password, callback, me, values) {
       let userInfo = null;
       let roleInfo = [];
       let menusInfo = [];
+      let btnInfo = [];
       try {
           const userRes = await this.props.actions.onLogin({userName, password});
           console.log('1.通过帐号密码得到userID：', userRes);
           if (userRes.returnCode === "0") {
               userInfo = userRes.messsageBody.adminUser;
               menusInfo = userRes.messsageBody.adminRole;
+              btnInfo = userRes.messsageBody.adminRole.btnDtoList;
           } else {
               message.error(userRes.returnMessaage || '登录失败，请重试');
           }
       } catch(err) {
           console.log('登陆报错：', err);
       }
-      console.log('最终返回：', {userInfo, roleInfo, menusInfo});
-      callback({userInfo, roleInfo, menusInfo}, me, values);
+
+      console.log('最终返回：', {userInfo, roleInfo, menusInfo, btnInfo});
+      console.log('btn权限是:' ,btnInfo)
+      callback({userInfo, roleInfo, menusInfo, btnInfo}, me, values);
   }
+
+    // 处理原始数据，将原始数据处理为层级关系
+    makeSourceData(menusInfo) {
+        let m = _.cloneDeep(menusInfo);
+        // 按照sort排序
+        m.sort((a, b) => {
+            return a.sorts - b.sorts;
+        });
+        const sourceData = [];
+        m.forEach((item) => {
+            if (item.btnDtoList) {
+                const temp = this.Menu(m, item);
+                sourceData.push(temp);
+            }
+        });
+
+        const treeDom = this.makeTreeDom(sourceData, '');
+        this.setState({
+            sourceData,
+            treeDom,
+        });
+    }
+
+    // 递归将扁平数据转换为层级数据
+   Menu(menusInfo, one) {
+        const child = _.cloneDeep(one);
+        child.children = [];
+        let sonChild = null;
+       menusInfo.forEach((item) => {
+            if (item.btnDtoList) {
+                sonChild = this.Menu(menusInfo, item);
+                child.children.push(sonChild);
+            }
+        });
+        if (child.children.length <=0) {
+            child.children = null;
+        }
+        return child;
+    }
+
+
 
   // 用户提交登陆
   onSubmit() {
@@ -112,6 +169,8 @@ class LoginContainer extends React.Component {
           sessionStorage.setItem('adminUser', JSON.stringify(loginInfo.userInfo)); // 保存用户基础信息
           sessionStorage.setItem('adminRole', JSON.stringify(loginInfo.roleInfo)); // 保存用户角色信息
           sessionStorage.setItem('adminMenu', JSON.stringify(loginInfo.menusInfo)); // 保存用户菜单信息
+          sessionStorage.setItem('adminBtn', JSON.stringify(loginInfo.btnInfo)); // 保存用户按钮信息
+
           // 如果选择了记住密码，用户名和密码加密保存到localStorage,否则清除
           if (me.state.rememberPassword) {
               localStorage.setItem('userLoginInfo', JSON.stringify({username: values.username, password: all.compile(values.password)})); // 保存用户名和密码

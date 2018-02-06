@@ -74,6 +74,7 @@ class Category extends React.Component {
                     data: res.messsageBody.result,
                     pageNum,
                     pageSize,
+                    total:res.messsageBody.total
                 });
             } else {
                 message.error(res.returnMessaage || '获取数据失败，请重试');
