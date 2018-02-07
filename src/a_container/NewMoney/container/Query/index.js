@@ -523,8 +523,8 @@ class Category extends React.Component {
                                                 <li>
                                                     <span>收益类型：</span>
                                                     <Select placeholder="全部" allowClear style={{ width: '150px'}} onChange={(e) => this.onSearchorderFrom(e)}>
-                                                        <Option value={1}>1</Option>
-                                                        <Option value={2}>2</Option>
+                                                        <Option value={1}>经营收益</Option>
+                                                        <Option value={2}>服务收益</Option>
                                                     </Select>
                                                 </li>
                                                 <li>

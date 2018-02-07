@@ -23,6 +23,9 @@ import ServiceIn from './container/ServiceIn';
 import Flow2 from './container/Flow2';
 import Withdrawals from './container/Withdrawals';
 import Bill from './container/Bill';
+import Biology from './container/Biology';
+import HealthFood from './container/HealthFood';
+import Waterpur from './container/Waterpur';
 // import ServiceIn2  from './container/ServiceIn2';
 
 
@@ -54,11 +57,14 @@ class TheContainer extends React.Component {
         return (
             <div key='page' className="allpage page-shop">
                 <Switch>
-                    <Redirect exact from={`${this.props.match.path}`} to={`${this.props.match.path}/manager`} />
+                    <Redirect exact from={`${this.props.match.path}`} to={`${this.props.match.path}/query`} />
                     <Route exact path={`${this.props.match.path}/manager`} component={Manage} />
                     <Route exact path={`${this.props.match.path}/set`} component={Set} />
-                    <Route exact path={`${this.props.match.path}/management/flow`} component={Flow} />
-                    <Route exact path={`${this.props.match.path}/management/serviceIn`} component={ServiceIn}/>
+                    <Route exact path={`${this.props.match.path}/management/health/flow`} component={Flow} />
+                    <Route exact path={`${this.props.match.path}/management/health/serviceIn`} component={ServiceIn}/>
+                    <Route exact path={`${this.props.match.path}/management/healthfood`} component={HealthFood}/>
+                    <Route exact path={`${this.props.match.path}/management/biology`} component={Biology}/>
+                    <Route exact path={`${this.props.match.path}/management/waterpur`} component={Waterpur}/>
                     <Route exact path={`${this.props.match.path}/account/withdrawals`} component={Withdrawals} />
                     <Route exact path={`${this.props.match.path}/account/bill`} component={Bill}/>
                     <Route exact path={`${this.props.match.path}/flow2`} component={Flow2} />

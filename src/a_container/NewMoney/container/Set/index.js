@@ -193,7 +193,7 @@ class Category extends React.Component {
             });
 
             const params = {
-                productType: Number(values.addnewProductType),
+                productCode: Number(values.addnewProductType),
                 userSaleRatio:Number(values.addnewUserSaleRatio),
                 distributorRatio:Number(values.addnewDistributorRatio),
                 stationRatio:Number(values.addnewStationRatio),
@@ -226,7 +226,6 @@ class Category extends React.Component {
         const { form } = me.props;
         console.log('Record：', record);
         form.setFieldsValue({
-            // upId:Number(record.id),
             upProductType:Number(record.productType),
             upUserSaleRatio:Number(record.userSaleRatio),
             upSupplierRatio:Number(record.supplierRatio),
@@ -245,7 +244,6 @@ class Category extends React.Component {
         const me = this;
         const { form } = me.props;
         form.validateFields([
-            // 'upId',
             'upProductType',
             'upUserSaleRatio',
             'upSupplierRatio',
@@ -258,7 +256,6 @@ class Category extends React.Component {
                 upLoading: true,
             });
             const params = {
-                // id:Number(record.id),
                 productType:Number(record.productType),
                 userSaleRatio:Number(values.upUserSaleRatio),
                 distributorRatio:Number(values.upDistributorRatio),
@@ -319,6 +316,9 @@ class Category extends React.Component {
         const { form } = me.props;
         form.validateFields([
             'upStationRatio',
+            'upUserSaleRatio',
+            'upDistributorRatio',
+            'upSupplierRatio',
         ], (err, values) => {
             if(err) { return; }
 
@@ -326,7 +326,11 @@ class Category extends React.Component {
                 upLoading: true,
             });
             const params = {
+                productType:Number(record.productType),
                 stationRatio:Number(values.upStationRatio),
+                userSaleRatio:Number(values.upUserSaleRatio),
+                distributorRatio:Number(values.upDistributorRatio),
+                supplierRatio:Number(values.upSupplierRatio)
             };
 
             this.props.actions.updateServiceList(params).then((res) => {
@@ -369,30 +373,49 @@ class Category extends React.Component {
                 key: 'serial',
             },
             {
-                title: '结算类型',
+              title:'结算类型',
+            },
+            {
+                title: '产品类型',
                 dataIndex: 'productType',
                 key: 'productType',
                 render: (text) => this.getNameByTypeId(text)
             },
             {
+              title:'收益类型'
+            },
+            {
                 title: '分销商',
                 dataIndex: 'userSaleRatio',
                 key: 'userSaleRatio',
+                render:(text)=>{
+                    return `${text}%`
+                }
             },
             {
                 title: '经销商',
                 dataIndex: 'distributorRatio',
                 key: 'distributorRatio',
+                render:(text)=>{
+                    return `${text}%`
+                }
             },
             {
                 title: '服务站',
                 dataIndex: 'stationRatio',
                 key: 'stationRatio',
-            },
+                render:(text)=>{
+                    return `${text}%`
+                }
+            }
+            ,
             {
                 title: '总部',
                 dataIndex: 'supplierRatio',
                 key: 'supplierRatio',
+                render:(text)=>{
+                    return `${text}%`
+                }
 
             },
             {
@@ -431,7 +454,10 @@ class Category extends React.Component {
                 key: 'serial',
             },
             {
-                title: '结算类型',
+                title:'结算类型',
+            },
+            {
+                title: '产品类型',
                 dataIndex: 'productType',
                 key: 'productType',
                 render: (text) => this.getNameByTypeId(text)
@@ -445,6 +471,9 @@ class Category extends React.Component {
                 title: '服务站',
                 dataIndex: 'stationRatio',
                 key: 'stationRatio',
+                render:(text)=>{
+                    return `${text}%`
+                }
             },
             {
                 title: '操作',
@@ -498,7 +527,8 @@ class Category extends React.Component {
                 supplierRatio:item.supplierRatio,
                 userSaleRatio:item.userSaleRatio,
                 stationRatio:item.stationRatio,
-                distributorRatio:item.distributorRatio
+                distributorRatio:item.distributorRatio,
+                productCode:item.productCode,
             }
         });
     }
@@ -523,6 +553,10 @@ class Category extends React.Component {
                 updater: item.updater,
                 control: item.id,
                 stationRatio:item.stationRatio,
+                productCode:item.productCode,
+                userSaleRatio:item.userSaleRatio,
+                distributorRatio:item.distributorRatio,
+                supplierRatio:item.supplierRatio,
             }
         });
     }
@@ -607,14 +641,44 @@ class Category extends React.Component {
                             label="结算类型"
                             {...formItemLayout}
                         >
-                            {getFieldDecorator('addnewProductType', {
+                            {getFieldDecorator('addnewProduct', {
                                 initialValue: undefined,
                                 rules: [
                                     {required: true, whitespace: true, message: '请选择结算类型',}
                                 ],
                             })(
-                                <Select style={{width:'60%'}} placeholder="请输入结算类型名称">
+                                <Select style={{width:'60%'}} placeholder="请选择结算类型">
+                                    {/*{ this.state.productTypes.map((item, index) => <Option key={index} value={`${item.id}`}>{item.name}</Option>) }*/}
+                                </Select>
+                            )}
+                        </FormItem>
+                        <FormItem
+                            label="产品类型"
+                            {...formItemLayout}
+                        >
+                            {getFieldDecorator('addnewProductType', {
+                                initialValue: undefined,
+                                rules: [
+                                    {required: true, whitespace: true, message: '请选择产品类型',}
+                                ],
+                            })(
+                                <Select style={{width:'60%'}} placeholder="请选择产品类型">
                                     { this.state.productTypes.map((item, index) => <Option key={index} value={`${item.id}`}>{item.name}</Option>) }
+                                </Select>
+                            )}
+                        </FormItem>
+                        <FormItem
+                            label="收益类型"
+                            {...formItemLayout}
+                        >
+                            {getFieldDecorator('addnewProfit', {
+                                initialValue: undefined,
+                                rules: [
+                                    {required: true, whitespace: true, message: '请选择收益类型',}
+                                ],
+                            })(
+                                <Select style={{width:'60%'}} placeholder="请选择收益类型">
+                                    {/*{ this.state.productTypes.map((item, index) => <Option key={index} value={`${item.id}`}>{item.name}</Option>) }*/}
                                 </Select>
                             )}
                         </FormItem>
@@ -713,7 +777,19 @@ class Category extends React.Component {
                                 label="结算类型"
                                 {...formItemLayout}
                             >
+                                {/*{!!this.state.nowData ? this.getNameByTypeId(this.state.nowData.productType):''}*/}
+                            </FormItem>
+                            <FormItem
+                                label="产品类型"
+                                {...formItemLayout}
+                            >
                                 {!!this.state.nowData ? this.getNameByTypeId(this.state.nowData.productType):''}
+                            </FormItem>
+                            <FormItem
+                                label="收益类型"
+                                {...formItemLayout}
+                            >
+                                {/*{!!this.state.nowData ? this.getNameByTypeId(this.state.nowData.productType):''}*/}
                             </FormItem>
                             <FormItem
                                 label="分销商"
@@ -811,13 +887,19 @@ class Category extends React.Component {
                             label="结算类型"
                             {...formItemLayout}
                         >
-                            {!!this.state.nowData2 ? this.getNameByTypeId(this.state.nowData2.productType):''}
+                            {/*{!!this.state.nowData ? this.getNameByTypeId(this.state.nowData.productType):''}*/}
+                        </FormItem>
+                        <FormItem
+                            label="产品类型"
+                            {...formItemLayout}
+                        >
+                            {!!this.state.nowData ? this.getNameByTypeId(this.state.nowData.productType):''}
                         </FormItem>
                         <FormItem
                             label="收益类型"
                             {...formItemLayout}
                         >
-                            {/*{!!this.state.nowData2 ? this.getNameByTypeId(this.state.nowData2.productType):''}*/}
+                            {/*{!!this.state.nowData ? this.getNameByTypeId(this.state.nowData.productType):''}*/}
                         </FormItem>
                         <FormItem
                             label="服务站"

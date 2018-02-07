@@ -105,7 +105,7 @@ class Category extends React.Component {
             distributionType:this.state.searchDistributionType,
             minPayTime: this.state.searchMinPayTime ? `${tools.dateToStrD(this.state.searchMinPayTime._d)} 00:00:00` : '',
             maxPayTime: this.state.searchMaxPayTime ? `${tools.dateToStrD(this.state.searchMaxPayTime._d)} 23:59:59` : '',
-            payMonth:this.state.searchPayMonth ? `${tools.dateToStrD(this.state.searchPayMonth._d)} 00:00:00` : '',
+            payMonth:this.state.searchPayMonth ? `${tools.dateToStrD(this.state.searchPayMonth._d)}` : '',
             minOrderFee:this.state.searchMinOrderFee,
             maxOrderFee:this.state.searchMaxOrderFee,
             distributorAccount:this.state.searchDistributorAccount,
@@ -385,25 +385,25 @@ class Category extends React.Component {
                 key: 'userId',
             },
             {
-                 title:
-                <Popover title="提示" content={<div>
-                    <Table
-                        columns={this.makeColumnsHint()}
-                        className="my-table"
-                        scroll={{ x: 900 }}
-                        // dataSource={this.makeData(this.state.data)}
-                        pagination={{
-                            total: this.state.total,
-                            current: this.state.pageNum,
-                            pageSize: this.state.pageSize,
-                            showQuickJumper: true,
-                            showTotal: (total, range) => `共 ${total} 条数据`,
-                            onChange: (page, pageSize) => this.onTablePageChange(page, pageSize)
-                        }}
-                    />
-                </div>} trigger="hover" placement="bottomLeft">
-                    <span>分配类型</span><Icon type="question-circle" style={{fontSize:'20px',marginLeft:'5px',marginTop:'3px'}}/>
-                </Popover> ,
+                title:
+                    <Popover title="提示" content={<div>
+                        <Table
+                            columns={this.makeColumnsHint()}
+                            className="my-table"
+                            scroll={{ x: 900 }}
+                            // dataSource={this.makeData(this.state.data)}
+                            pagination={{
+                                total: this.state.total,
+                                current: this.state.pageNum,
+                                pageSize: this.state.pageSize,
+                                showQuickJumper: true,
+                                showTotal: (total, range) => `共 ${total} 条数据`,
+                                onChange: (page, pageSize) => this.onTablePageChange(page, pageSize)
+                            }}
+                        />
+                    </div>} trigger="hover" placement="bottomLeft">
+                        <span>分配类型</span><Icon type="question-circle" style={{fontSize:'20px',marginLeft:'5px',marginTop:'3px'}}/>
+                    </Popover> ,
                 dataIndex: 'distributionType',
                 key: 'distributionType',
             },
@@ -418,12 +418,7 @@ class Category extends React.Component {
                 key: 'undistributedFee',
             },
             {
-                title: '流水号',
-                dataIndex: 'serialNumber',
-                key: 'serialNumber',
-            },
-            {
-                title: '支付时间',
+                title: '订单完成时间',
                 dataIndex: 'payTime',
                 key: 'payTime',
             },
@@ -448,27 +443,23 @@ class Category extends React.Component {
                 key: 'distributorAccount',
             },
             {
-                title: '服务站地区',
-                dataIndex: 'stationArea',
-                key: 'stationArea',
+                title: '安装工服务站地区',
+                // dataIndex: 'distributorId',
+                // key: 'distributorId',
             },
             {
-                title: '服务站名称',
-                dataIndex: 'stationName',
-                key: 'stationName',
+                title: '安装工服务站名称',
+                // dataIndex: 'distributorId',
+                // key: 'distributorId',
             },
             {
                 title: '经销商',
-                dataIndex: 'distributorIncome',
-                key: 'distributorIncome',
             },
             {
-                title:'分销商',
+                title: '分销商',
             },
             {
-                title: '服务站',
-                dataIndex: 'stationIncome',
-                key: 'stationIncome',
+                title: '安装工服务战',
             },
             {
                 title: '总部',
@@ -598,107 +589,115 @@ class Category extends React.Component {
                             <div>
                                 <Tabs type="card">
                                     <TabPane tab="经营收益" key="1" style={{width:'1630px'}}>
-                                      <div style={{borderBottom: 'solid 1px #CCC',marginBottom:'10px',paddingBottom:'10px'}}>
-                                         <ul className="search-ul more-ul">
-                                            <li>
-                                                <span>订单号查询</span>
-                                                <Input style={{ width: '172px' }} onChange={(e) => this.searchOrderIdChange(e)}/>
-                                            </li>
-                                            <li>
-                                                <span>用户账号</span>
-                                                <Input style={{ width: '172px', }} onChange={(e) => this.searchUserIdChange(e)}/>
-                                            </li>
-                                            <li>
-                                                <span>分配类型</span>
-                                                <Select allowClear whitespace="true" placeholder="全部" value={this.state.searchDistributionType} onChange={(e) => this.searchDistributionTypeChange(e)} style={{ width: '172px'}}>
-                                                    {this.state.distributionTypes.map((item, index) => {
-                                                        return <Option key={index} value={item.id}>{ item.ruleCode}</Option>
-                                                    })}
-                                                </Select>
-                                            </li>
-                                            <li>
-                                                <span>流水号查询</span>
-                                                <Input style={{ width: '172px',marginLeft:'8px' }} onChange={(e) => this.searchSerialNumberChange(e)}/>
-                                            </li>
-                                            <li>
-                                                <span style={{marginLeft:'8px'}}>结算月份</span>
-                                                <MonthPicker onChange={(e) => this.searchPayMonthChange(e)} style={{ width: '172px', }} placeholder="选择月份" />
-                                            </li>
-                                             <li>
-                                                 <span>服务站地区</span>
-                                                 <Cascader
-                                                     placeholder="请选择服务区域"
-                                                     style={{ width: '172px' }}
-                                                     onChange={(v) => this.onSearchAddress(v)}
-                                                     options={this.state.citys}
-                                                     loadData={(e) => this.getAllCitySon(e)}
-                                                 />
-                                             </li>
-                                            <li>
-                                                <span>订单金额</span>
-                                                <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最小价格" onChange={(e) => this.searchMinOrderFeeChange(e)} value={this.state.searchMinOrderFee}/>--
-                                                <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最大价格" onChange={(e) => this.searchMaxOrderFeeChange(e)} value={this.state.searchMaxOrderFee}/>
-                                            </li>
-                                             <li>
-                                                 <span>经销商id查询</span>
-                                                 <Input style={{ width: '172px' }}/>
-                                             </li>
-                                             <li>
-                                                 <span>经销商姓名查询</span>
-                                                 <Input style={{ width: '172px' }} onChange={(e) => this.searchDistributorName(e)}/>
-                                             </li>
-                                             <li>
-                                                 <span>经销商账户查询</span>
-                                                 <Input style={{ width: '172px' }} onChange={(e) => this.searchDistributorAccountChange(e)}/>
-                                             </li>
-                                             <li>
-                                                 <span style={{marginRight:'10px'}}>支付时间</span>
-                                                 <DatePicker
-                                                     style={{ width: '130px' }}
-                                                     dateRender={(current) => {
-                                                         const style = {};
-                                                         if (current.date() === 1) {
-                                                             style.border = '1px solid #1890ff';
-                                                             style.borderRadius = '45%';
-                                                         }
-                                                         return (
-                                                             <div className="ant-calendar-date" style={style}>
-                                                                 {current.date()}
-                                                             </div>
-                                                         );
-                                                     }}
-                                                     format="YYYY-MM-DD"
-                                                     placeholder="开始时间"
-                                                     onChange={(e) => this.searchMinPayTimeChange(e)}
-                                                 />
-                                                 --
-                                                 <DatePicker
-                                                     style={{ width: '130px' }}
-                                                     dateRender={(current) => {
-                                                         const style = {};
-                                                         if (current.date() === 1) {
-                                                             style.border = '1px solid #1890ff';
-                                                             style.borderRadius = '45%';
-                                                         }
-                                                         return (
-                                                             <div className="ant-calendar-date" style={style}>
-                                                                 {current.date()}
-                                                             </div>
-                                                         );
-                                                     }}
-                                                     format="YYYY-MM-DD"
-                                                     placeholder="结束时间"
-                                                     onChange={(e) => this.searchMaxPayTimeChange(e)}
-                                                 />
-                                             </li>
-                                             <li style={{marginLeft:'30px'}}>
-                                                 <Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button>
-                                             </li>
-                                             <li style={{marginLeft:'10px'}}>
-                                                 <Button icon="download" type="primary" onClick={() => this.onExport()}>导出</Button>
-                                             </li>
-                                        </ul>
-                                      </div>
+                                        <div style={{borderBottom: 'solid 1px #CCC',marginBottom:'10px',paddingBottom:'10px'}}>
+                                            <ul className="search-ul more-ul">
+                                                <li>
+                                                    <span>订单号查询</span>
+                                                    <Input style={{ width: '165px' }} onChange={(e) => this.searchOrderIdChange(e)}/>
+                                                </li>
+                                                <li>
+                                                    <span>用户账号</span>
+                                                    <Input style={{ width: '200px',marginRight:'57px' }} onChange={(e) => this.searchUserIdChange(e)}/>
+                                                </li>
+                                                {/*<li>*/}
+                                                {/*<span>产品类型</span>*/}
+                                                {/*<Select allowClear whitespace="true" placeholder="全部" value={this.state.searchTypeId} style={{ width: '170px',marginLeft:'15px'}} onChange={(e) => this.onSearchTypeId(e)}>*/}
+                                                {/*{this.state.productTypes.map((item, index) => {*/}
+                                                {/*return <Option key={index} value={item.id}>{ item.name }</Option>*/}
+                                                {/*})}*/}
+                                                {/*</Select>*/}
+                                                {/*</li>*/}
+                                                <li>
+                                                    <span style={{marginRight:'10px'}}>分配类型</span>
+                                                    <Select allowClear whitespace="true" placeholder="全部" value={this.state.searchDistributionType} onChange={(e) => this.searchDistributionTypeChange(e)} style={{ width: '172px',marginLeft:'8px'}}>
+                                                        {this.state.distributionTypes.map((item, index) => {
+                                                            return <Option key={index} value={item.id}>{ item.ruleCode}</Option>
+                                                        })}
+                                                    </Select>
+                                                </li>
+                                                <li>
+                                                    <span>流水号查询</span>
+                                                    <Input style={{ width: '172px' }} onChange={(e) => this.searchSerialNumberChange(e)}/>
+                                                </li>
+                                                <li>
+                                                    <span style={{marginRight:'10px'}}>结算月份</span>
+                                                    <MonthPicker onChange={(e) => this.searchPayMonthChange(e)} placeholder="选择月份" />
+                                                </li>
+                                                <li style={{marginRight:'50px'}}>
+                                                    <span>服务站地区</span>
+                                                    <Cascader
+                                                        placeholder="请选择服务区域"
+                                                        style={{ width: '172px' }}
+                                                        onChange={(v) => this.onSearchAddress(v)}
+                                                        options={this.state.citys}
+                                                        loadData={(e) => this.getAllCitySon(e)}
+                                                    />
+                                                </li>
+                                                <li>
+                                                    <span>订单金额</span>
+                                                    <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最小价格" onChange={(e) => this.searchMinOrderFeeChange(e)} value={this.state.searchMinOrderFee}/>--
+                                                    <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最大价格" onChange={(e) => this.searchMaxOrderFeeChange(e)} value={this.state.searchMaxOrderFee}/>
+                                                </li>
+                                                <li>
+                                                    <span>经销商id查询</span>
+                                                    <Input style={{ width: '172px' }}/>
+                                                </li>
+                                                <li>
+                                                    <span>经销商姓名查询</span>
+                                                    <Input style={{ width: '172px' }} onChange={(e) => this.searchDistributorName(e)}/>
+                                                </li>
+                                                <li>
+                                                    <span>经销商账户查询</span>
+                                                    <Input style={{ width: '172px' }} onChange={(e) => this.searchDistributorAccountChange(e)}/>
+                                                </li>
+                                                <li>
+                                                    <span style={{marginRight:'10px'}}>支付时间</span>
+                                                    <DatePicker
+                                                        style={{ width: '130px' }}
+                                                        dateRender={(current) => {
+                                                            const style = {};
+                                                            if (current.date() === 1) {
+                                                                style.border = '1px solid #1890ff';
+                                                                style.borderRadius = '45%';
+                                                            }
+                                                            return (
+                                                                <div className="ant-calendar-date" style={style}>
+                                                                    {current.date()}
+                                                                </div>
+                                                            );
+                                                        }}
+                                                        format="YYYY-MM-DD"
+                                                        placeholder="开始时间"
+                                                        onChange={(e) => this.searchMinPayTimeChange(e)}
+                                                    />
+                                                    --
+                                                    <DatePicker
+                                                        style={{ width: '130px' }}
+                                                        dateRender={(current) => {
+                                                            const style = {};
+                                                            if (current.date() === 1) {
+                                                                style.border = '1px solid #1890ff';
+                                                                style.borderRadius = '45%';
+                                                            }
+                                                            return (
+                                                                <div className="ant-calendar-date" style={style}>
+                                                                    {current.date()}
+                                                                </div>
+                                                            );
+                                                        }}
+                                                        format="YYYY-MM-DD"
+                                                        placeholder="结束时间"
+                                                        onChange={(e) => this.searchMaxPayTimeChange(e)}
+                                                    />
+                                                </li>
+                                                <li style={{marginLeft:'30px'}}>
+                                                    <Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button>
+                                                </li>
+                                                <li style={{marginLeft:'10px'}}>
+                                                    <Button icon="download" type="primary" onClick={() => this.onExport()}>导出</Button>
+                                                </li>
+                                            </ul>
+                                        </div>
                                         <div className="system-table">
                                             <Table
                                                 columns={this.makeColumns()}

@@ -39,7 +39,6 @@ class Category extends React.Component {
             data: [], // 当前页面全部数据
             stations: [], // 当前省市区下面的服务站
             productTypes: [],   // 所有的产品类型
-            productModels: [],  // 所有的产品型号
             searchTypeId: undefined, // 搜索 - 产品类型
             searchName: '', // 搜索 - 状态
             searchAddress: [], // 搜索 - 地址

@@ -162,7 +162,6 @@ class Category extends React.Component {
         form.setFieldsValue({
             addnewName: record.name,
             addnewTypeId: `${record.typeId}`,
-            addnewPrice:record.price,
             addnewTypeCode: String(record.typeCode),
             addnewOnShelf: record.onShelf ? '1' : '0',
             addnewProductImg:record.productImg,
@@ -188,7 +187,6 @@ class Category extends React.Component {
         form.validateFields([
             'addnewName',
             'addnewTypeId',
-            'addnewPrice',
             'addnewTypeCode',
             'addnewOnShelf',
             'addnewProductImg',
@@ -205,7 +203,6 @@ class Category extends React.Component {
                 id: me.state.nowData.id,
                 name: values.addnewName,
                 typeId: values.addnewTypeId,
-                price: values.addnewPrice,
                 typeCode:values.addnewTypeCode,
                 onShelf: values.addnewOnShelf,
                 timeLimitNum: values.addnewTimeLimitNum,
@@ -281,12 +278,8 @@ class Category extends React.Component {
         const { form } = me.props;
         form.resetFields([
             'addnewName',
-            'addnewPrice',
             'addnewTypeId',
             'addnewTypeCode',
-            'addnewSaleMode',
-            'addnewMarketPrice',
-            'addnewAmount',
             'addnewOnShelf',
             'addnewProductImg',
             'addnewDetailImg',
@@ -342,12 +335,8 @@ class Category extends React.Component {
 
         form.validateFields([
             'addnewName',
-            'addnewPrice',
             'addnewTypeId',
             'addnewTypeCode',
-            'addnewSaleMode',
-            'addnewMarketPrice',
-            'addnewAmount',
             'addnewOnShelf',
             'addnewProductImg',
             'addnewDetailImg',
@@ -361,12 +350,8 @@ class Category extends React.Component {
 
             const params = {
                 name: values.addnewName,
-                price: values.addnewPrice,
                 typeId: Number(values.addnewTypeId),
                 typeCode: Number(values.addnewTypeCode),
-                saleMode: Number(values.addnewSaleMode),
-                marketPrice: values.addnewMarketPrice,
-                amount: values.addnewAmount,
                 timeLimitType: values.addnewTimeLimitType,
                 timeLimitNum: values.addnewTimeLimitNum,
                 onShelf: values.addnewOnShelf ? 1 : 0,
@@ -562,7 +547,12 @@ class Category extends React.Component {
             return String(id) === String(item.id);
         });
         console.log("temp是什么：",temp)
-        return temp ? { price: temp.price, date: this.getNameForInDate(temp.timeLimitNum, temp.timeLimitType),shipFee:temp.shipFee,activationFee:temp.activationFee,charges:temp.chargeTypes ? temp.chargeTypes.map((item, index) => <div key={index}>{index+1}.{item.chargeName}</div>) : ''} : {};
+        return temp ? {
+            price: temp.price,
+            date: this.getNameForInDate(temp.timeLimitNum, temp.timeLimitType),
+            shipFee:temp.shipFee,
+            openAccountFee:temp.openAccountFee,
+            charges:temp.chargeTypes ? temp.chargeTypes.map((item, index) => <div key={index}>{index+1}.{item.chargeName}</div>) : ''} : {};
     }
     // 构建字段
     makeColumns(){
@@ -701,7 +691,7 @@ class Category extends React.Component {
                 timeLimitNum:item.typeModel ? item.typeModel.timeLimitNum : '',
                 timeLimitType:item.typeModel ? item.typeModel.timeLimitType : '',
                 shipFee:item.typeModel ? item.typeModel.shipFee : '',
-                activationFee: item.typeModel ? item .typeModel.activationFee : '',
+                openAccountFee: item.typeModel ? item .typeModel.openAccountFee : '',
                 charges:item.typeModel ? item.typeModel.charges : '',
             }
         });
@@ -805,8 +795,8 @@ class Category extends React.Component {
                                 { validator: (rule, value, callback) => {
                                     const v = tools.trim(value);
                                     if (v) {
-                                        if (v.length > 12) {
-                                            callback('最多输入12位字符');
+                                        if (v.length > 30) {
+                                            callback('最多输入30位字符');
                                         }
                                     }
                                     callback();
@@ -828,8 +818,8 @@ class Category extends React.Component {
                                     console.log('value===', value);
                                     const v = tools.trim(value);
                                     if (v) {
-                                        if (v.length > 12) {
-                                            callback('最多输入12位字符');
+                                        if (v.length > 20) {
+                                            callback('最多输入20位字符');
                                         }
                                     }
                                     callback();
@@ -875,7 +865,7 @@ class Category extends React.Component {
                         {...formItemLayout}
                         className={this.state.code === 2 || this.state.code === 3 || this.state.code === 4 || this.state.code === 5 ? 'hide' : ''}
                     >
-                        {obj.activationFee}
+                        {obj.openAccountFee}
                     </FormItem>
                     <FormItem
                         label="产品封面图片上传(最多5张)"
@@ -961,8 +951,8 @@ class Category extends React.Component {
                                     { validator: (rule, value, callback) => {
                                         const v = tools.trim(value);
                                         if (v) {
-                                            if (v.length > 12) {
-                                                callback('最多输入12位字符');
+                                            if (v.length > 30) {
+                                                callback('最多输入30位字符');
                                             }
                                         }
                                         callback();
@@ -984,8 +974,8 @@ class Category extends React.Component {
                                         console.log('value===', value);
                                         const v = tools.trim(value);
                                         if (v) {
-                                            if (v.length > 12) {
-                                                callback('最多输入12位字符');
+                                            if (v.length > 20) {
+                                                callback('最多输入20位字符');
                                             }
                                         }
                                         callback();
@@ -1018,6 +1008,13 @@ class Category extends React.Component {
                             className={this.state.code == 1 || this.state.code == 4 || this.state.code == 5 ? 'hide' : ''}
                         >
                             {obj.shipFee}
+                        </FormItem>
+                        <FormItem
+                            label="开户费"
+                            {...formItemLayout}
+                            className={this.state.code === 2 || this.state.code === 3 || this.state.code === 4 || this.state.code === 5 ? 'hide' : ''}
+                        >
+                            {obj.openAccountFee}
                         </FormItem>
                         <FormItem
                             label="产品封面图片上传(最多5张)"
@@ -1110,6 +1107,13 @@ class Category extends React.Component {
                         className = {this.state.code == 4 ||this.state.code == 5 ? 'hide' : ''}
                     >
                         {!!this.state.nowData ? this.state.nowData.shipFee : ''}
+                    </FormItem>
+                    <FormItem
+                        label = '开户费'
+                        {...formItemLayout}
+                        className = {this.state.code== 2|| this.state.code== 3 || this.state.code == 4 ||this.state.code == 5 ? 'hide' : ''}
+                    >
+                        {!!this.state.nowData ? this.state.nowData.openAccountFee : ''}
                     </FormItem>
                     <FormItem
                         label="产品图片"

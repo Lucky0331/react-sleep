@@ -43,7 +43,6 @@ class Category extends React.Component {
             data2: [], // 当前页面全部数据
             productTypes: [],   // 所有的产品类型
             distributionTypes:[], //所有的分配类型
-            productModels: [],  // 所有的产品型号
             productprice:'',  //产品的价格
             searchTypeId: undefined, // 搜索 - 类型名
             searchDistributionType: undefined, // 搜索 - 分配类型
@@ -82,7 +81,6 @@ class Category extends React.Component {
         }
         this.getAllProductType();   // 获取所有的产品类型
         this.getAllDistributionType(); //获取所有的分配类型
-        this.getAllProductModel();  // 获取所有的产品型号
         this.onGetData2(this.state.pageNum, this.state.pageSize);
     }
 
@@ -107,7 +105,7 @@ class Category extends React.Component {
             distributionType:this.state.searchDistributionType,
             minPayTime: this.state.searchMinPayTime ? `${tools.dateToStrD(this.state.searchMinPayTime._d)} 00:00:00` : '',
             maxPayTime: this.state.searchMaxPayTime ? `${tools.dateToStrD(this.state.searchMaxPayTime._d)} 23:59:59` : '',
-            payMonth:this.state.searchPayMonth ? `${tools.dateToStrD(this.state.searchPayMonth._d)}` : '',
+            payMonth:this.state.searchPayMonth ? `${tools.dateToStrD(this.state.searchPayMonth._d)} 00:00:00` : '',
             minOrderFee:this.state.searchMinOrderFee,
             maxOrderFee:this.state.searchMaxOrderFee,
             distributorAccount:this.state.searchDistributorAccount,
@@ -188,6 +186,13 @@ class Category extends React.Component {
     searchDistributionTypeChange(id){
         this.setState({
             searchDistributionType: id,
+        });
+    }
+
+    //搜索 - 流水号查询
+    searchSerialNumberChange(v) {
+        this.setState({
+            searchSerialNumber: v.target.value,
         });
     }
 
@@ -272,16 +277,6 @@ class Category extends React.Component {
         });
     }
 
-    // 获取所有产品型号，当前页要用
-    getAllProductModel() {
-        this.props.actions.findProductModelByWhere({ pageNum:0, pageSize: 9999 }).then((res) => {
-            if(res.returnCode === '0') {
-                this.setState({
-                    productModels: res.messsageBody.result,
-                });
-            }
-        });
-    }
 
     // 获取所有的省
     getAllCity0() {
@@ -313,12 +308,6 @@ class Category extends React.Component {
         return t ? t.name : '';
     }
 
-    // 工具 - 根据产品型号ID获取产品型号名称
-    getNameByModelId(id) {
-        const t = this.state.productModels.find((item) => String(item.id) === String(id));
-        return t ? t.name : '';
-    }
-
 
     // 工具 - 根据有效期type获取有效期名称
     getNameForInDate(time, type) {
@@ -329,6 +318,13 @@ class Category extends React.Component {
             case '3': return `${time}年`;
             default: return '';
         }
+    }
+
+    //搜索 - 用户账号查询
+    searchUserIdChange(v) {
+        this.setState({
+            searchUserId: v.target.value,
+        });
     }
 
 
@@ -584,7 +580,6 @@ class Category extends React.Component {
             },
         };
 
-        // console.log('是啥：', this.state.productModels.filter((item) => String(item.typeId) === String(form.getFieldValue('addnewTypeId'))));
         const modelId = form.getFieldValue('addnewTypeCode');
         return (
             <div style={{ width: '100%' }}>
@@ -622,7 +617,11 @@ class Category extends React.Component {
                                                 </li>
                                                 <li>
                                                     <span>流水号查询</span>
-                                                    <Input style={{ width: '172px' }}/>
+                                                    <Input style={{ width: '172px' }} onChange={(e) => this.searchSerialNumberChange(e)}/>
+                                                </li>
+                                                <li>
+                                                    <span>用户账号</span>
+                                                    <Input style={{ width: '172px' }} onChange={(e) => this.searchUserIdChange(e)}/>
                                                 </li>
                                                 <li>
                                                     <span style={{marginRight:'10px'}}>结算月份</span>
@@ -748,12 +747,6 @@ class Category extends React.Component {
                             {...formItemLayout}
                         >
                             {!!this.state.nowData2 ? this.state.nowData2.productType : ''}
-                        </FormItem>
-                        <FormItem
-                            label="产品型号"
-                            {...formItemLayout}
-                        >
-                            {!!this.state.nowData2 ? this.getNameByModelId(this.state.nowData2.typeCode) : ''}
                         </FormItem>
                         <FormItem
                             label="用户账户"

@@ -795,11 +795,26 @@ export function buyPower(params = {}) {
     };
 }
 
-// 提现到账列表
+// 提现对账列表
 export function cashRecord(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
             '/manager/cashRecord/list', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 订单对账列表
+export function statementList(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/order/statementList', params
         ).then(
             msg => {
                 return msg;
@@ -833,6 +848,10 @@ export function onChange3(feeType) {
 export function onChange(value, dateString) {
     console.log('Selected Time: ', value);
     console.log('Formatted Selected Time: ', dateString);
+}
+
+export function onChange4(date, dateString) {
+    console.log(date, dateString);
 }
 
 export function onOk(value) {

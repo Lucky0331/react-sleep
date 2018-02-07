@@ -258,7 +258,7 @@ class Category extends React.Component {
     makeOption3(data = null) {
         const option = {
             title: {
-                text: '按地狱统计',
+                text: '按地域统计',
                 left: 'center'
             },
             tooltip: {

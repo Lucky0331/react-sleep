@@ -494,7 +494,7 @@ class Category extends React.Component {
                 dataIndex: 'payType',
                 key: 'payType',
                 render: (text) => this.getBypayType(text),
-                },
+            },
             {
                 title: '支付状态',
                 dataIndex: 'pay',
@@ -575,9 +575,6 @@ class Category extends React.Component {
             }
         });
     }
-
-
-
 
     render() {
         const me = this;
@@ -761,32 +758,6 @@ class Category extends React.Component {
                         </FormItem>
                     </Form>
                 </Modal>
-                {/* 修改用户模态框 */}
-              <Modal
-                  title='修改订单状态'
-                  visible={this.state.upModalShow}
-                  onOk={() => this.onUpOk()}
-                  onCancel={() => this.onUpClose()}
-                  confirmLoading={this.state.upLoading}
-              >
-                <Form>
-                    <FormItem
-                        label="状态"
-                        {...formItemLayout}
-                    >
-                        {getFieldDecorator('upOrderStatus', {
-                            rules: [],
-                            initialValue: "1",
-                        })(
-                            <Select>
-                                <Option value="1">未完成</Option>
-                                <Option value="4">已完成</Option>
-                                <Option value="0">已关闭</Option>
-                            </Select>
-                        )}
-                    </FormItem>
-                </Form>
-              </Modal>
                 {/* 查看详情模态框 */}
               <Modal
                   title="查看详情"
