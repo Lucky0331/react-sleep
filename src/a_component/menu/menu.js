@@ -32,7 +32,7 @@ class Menus extends React.Component {
         const data = JSON.parse(sessionStorage.getItem('adminMenu'));
         console.log('得到的是什么：', data);
         this.makeSourceData(data || []);
-
+        this.initChosed(this.props.location);
         this.setState({
             show: Menus._initShow(this.props.location),
             sessionData: data,
@@ -60,10 +60,10 @@ class Menus extends React.Component {
     // 处理当前选中
     initChosed(location) {
         const paths = location.pathname.split('/').filter((item) => !!item);
-        console.log('openKeysPath:', paths);
+        // 处理需要展开的项
         this.setState({
             chosedKey: [location.pathname], // [paths[paths.length - 1]],
-            openKeys: paths.map((item) => `/${item}`)
+            openKeys: paths.reduce((a, b) => [...a, `${a[a.length - 1] || ''}/${b}`],[])
         });
     }
 
@@ -111,6 +111,7 @@ class Menus extends React.Component {
     makeTreeDom(data, key) {
         return data.map((item, index) => {
             const newKey = `${key}/${item.menuUrl.replace(/\//,'')}`;
+            console.log('key都是什么：', newKey);
             if (item.children) {
                 return (
                     <SubMenu key={newKey} title={<span>{item.menuName}</span>}>

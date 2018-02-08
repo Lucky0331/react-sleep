@@ -41,7 +41,8 @@ export default class ApiService {
             withCredentials: true,
             data: bodyObj,
         }).then((res) => {
-            if(res.returnMessaage.indexOf('过期')>=0){
+            const msg = res.returnMessaage || res.message || '';
+            if(msg.indexOf('过期')>=0){
                 sessionStorage.clear();
                 message.error(res.returnMessaage);
                 setTimeout(() => {location.href = '/';}, 1000);
