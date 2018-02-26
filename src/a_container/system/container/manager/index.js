@@ -51,10 +51,9 @@ class Manager extends React.Component {
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
-      addOrUp: 'add',     // 当前操作是新增还是修改
+      addOrUp: 'add',   // 当前操作是新增还是修改
       citys: [],    // 所有的省
       stations: [],   // 当前服务站地区所对应的服务站
-
     };
   }
 
@@ -121,6 +120,12 @@ class Manager extends React.Component {
     getRegionStationId(id) {
         const t = this.state.stations.find((item) => String(item.id) === String(id));
         return t ? t.region : '';
+    }
+
+    //工具 - 根据服务站地区返回服务站名称id
+    getNameStationId(id) {
+        const t = this.state.stations.find((item) => String(item.id) === String(id));
+        return t ? t.name : '';
     }
 
   // 查询所有组织机构

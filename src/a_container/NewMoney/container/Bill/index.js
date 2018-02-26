@@ -10,6 +10,7 @@ import { bindActionCreators } from 'redux';
 import P from 'prop-types';
 import { Form, Button, Icon, Input, Table, message, Modal, Tooltip, InputNumber, Select, Divider ,Cascader,DatePicker } from 'antd';
 import './index.scss';
+import Config from '../../../../config/config';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
 import { power } from '../../../../util/data';
@@ -170,6 +171,14 @@ class Category extends React.Component {
         }
     }
 
+    //工具
+    getCity(s,c,q,j){
+        if (!s){
+            return ' ';
+        }
+        return `${s}/${c}/${q}/${j}`;
+    }
+
     //搜索 - 对账时间的变化
     searchTime(v){
         this.setState({
@@ -288,7 +297,25 @@ class Category extends React.Component {
     }
     //导出
     onExport(){
-        this.onGetData(this.state.pageNum, this.state.pageSize);
+        this.onExportData(this.state.pageNum, this.state.pageSize);
+    }
+
+    // 导出订单对账列表数据
+    onExportData(pageNum, pageSize) {
+        const params = {
+            pageNum,
+            pageSize,
+        };
+        let form = document.getElementById('download-form');
+        if (!form) {
+            form = document.createElement('form');
+            document.body.appendChild(form);
+        };
+        form.id = 'download-form';
+        form.action = `${Config.baseURL}/manager/order/statementExport`;
+        form.method = 'post';
+        console.log('FORM:', form);
+        form.submit();
     }
 
     // 查询某一条数据的详情
@@ -297,8 +324,18 @@ class Category extends React.Component {
         this.setState({
             nowData: record,
             queryModalShow: true,
+            typeId:record.typeId
         });
+        console.log('typeId的数值是：',record.typeId)
     }
+
+    // //根据typeId值不同显示的字段不同
+    // codeType(record){
+    //     this.setState({
+    //         typeId:record.typeId
+    //     })
+    //     console.log('typeId的数值是：',typeId)
+    // }
 
     // 查看详情模态框关闭
     onQueryModalClose() {
@@ -313,13 +350,6 @@ class Category extends React.Component {
         this.onGetData(page, pageSize);
     }
 
-    //根据code值不同显示的字段不同
-    Newproduct(e){
-        this.setState({
-            code:e
-        })
-        console.log('e的数值是：',e)
-    }
 
     // 构建字段
     makeColumns(){
@@ -391,7 +421,6 @@ class Category extends React.Component {
                 width: 50,
                 render: (text, record) => {
                     const controls = [];
-
                     controls.push(
                         <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
                             <Tooltip placement="top" title="详情">
@@ -427,7 +456,6 @@ class Category extends React.Component {
                 orderNo: item.id,
                 serial:(index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
                 createTime: item.createTime,
-                pay: item.pay,
                 name: (item.product) ? item.product.name : '',
                 modelId:(item.product)?item.product.typeCode : '',
                 typeId:(item.product)?item.product.typeId :'',
@@ -439,8 +467,11 @@ class Category extends React.Component {
                 userId:item.userInfo.id,
                 modelType:item.modelType,
                 mchOrderId: item.payRecord.mchOrderId,
-                name:item.product.name,
-
+                mobile:(item.shopAddress) ? item.shopAddress.mobile : '',
+                province: (item.shopAddress) ? item.shopAddress.province :'' ,
+                city: (item.shopAddress) ? item.shopAddress.city : '',
+                region: (item.shopAddress) ? item.shopAddress.region : '',
+                street: (item.shopAddress) ? item.shopAddress.street :'',
             }
         });
     }
@@ -589,7 +620,7 @@ class Category extends React.Component {
                   visible={this.state.queryModalShow}
                   onOk={() => this.onQueryModalClose()}
                   onCancel={() => this.onQueryModalClose()}
-                  onChange={() => this.Newproduct()}
+                  onChange={() => this.onQueryClick()}
                   wrapClassName={"list"}
               >
                 <Form>
@@ -639,12 +670,11 @@ class Category extends React.Component {
                         label="订单金额"
                         {...formItemLayout}
                     >
-                        {!!this.state.nowData ? this.state.nowData.fee : ''}
+                        {!!this.state.nowData ? `￥${this.state.nowData.fee}` : ''}
                     </FormItem>
                     <FormItem
                         label="流水号"
                         {...formItemLayout}
-                        className={(this.state.code == 1 || this.state.code == 2 || this.state.code== 3) ? 'hide' : ''}
                     >
                         {!!this.state.nowData ? this.state.nowData.mchOrderId : ''}
                     </FormItem>
@@ -653,6 +683,34 @@ class Category extends React.Component {
                         {...formItemLayout}
                     >
                         {!!this.state.nowData ? this.state.nowData.createTime : ''}
+                    </FormItem>
+                    <FormItem
+                        label="用户收货地址"
+                        {...formItemLayout}
+                        className={(this.state.typeId == 4 || this.state.typeId== 5) ? 'hide' : ''}
+                    >
+                        {!!(this.state.nowData) ? this.getCity(this.state.nowData.province,this.state.nowData.city,this.state.nowData.region,this.state.nowData.street ): ''}
+                    </FormItem>
+                    <FormItem
+                        label="用户收货手机号"
+                        {...formItemLayout}
+                        className={(this.state.typeId == 4 || this.state.typeId== 5) ? 'hide' : ''}
+                    >
+                        {!!this.state.nowData ? this.state.nowData.mobile : ''}
+                    </FormItem>
+                    <FormItem
+                        label="安装工姓名"
+                        {...formItemLayout}
+                        className={(this.state.typeId == 2 || this.state.typeId == 3 || this.state.typeId == 4 || this.state.typeId == 5) ? 'hide' : ''}
+                    >
+                        {/*{!!this.state.nowData ? this.state.nowData.mobile : ''}*/}
+                    </FormItem>
+                    <FormItem
+                        label="安装工电话"
+                        {...formItemLayout}
+                        className={(this.state.typeId == 2 || this.state.typeId == 3 || this.state.typeId == 4 || this.state.typeId == 5 ) ? 'hide' : ''}
+                    >
+                        {/*{!!this.state.nowData ? this.state.nowData.mobile : ''}*/}
                     </FormItem>
                 </Form>
               </Modal>

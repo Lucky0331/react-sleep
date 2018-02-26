@@ -52,7 +52,7 @@ class Category extends React.Component {
             HQSearchOrderNo: undefined, // 总部 - 搜索 - 订单号
             HQSearchDate: moment(),     // 总部 - 搜索 - 年月
 
-            dataHQMain: [],             // 总部 - 上方列表 - 数据
+            dataHQMain: [], // 总部 - 上方列表 - 数据
 
             dataSE: [],                 // 服务 - 主列表 - 数据
             pageNumSE: 1,               // 服务 - 主列表 - 当前第几页
@@ -149,6 +149,8 @@ class Category extends React.Component {
     /** 总部 - 上面 - 查询总收益 **/
     onGetDataHQMain() {
         const params = {
+            pageNum:1,
+            pageSize:1,
             balanceMonth: this.state.HQSearchDate ? tools.dateToStr(this.state.HQSearchDate._d) : null,
         };
         this.props.actions.getSupplierIncomeList(tools.clearNull(params)).then((res) => {
@@ -217,16 +219,16 @@ class Category extends React.Component {
                 dataIndex: 'incomeType',
                 key: 'incomeType',
             },
-            {
-                title:
-                    <Popover title="提示" content={<div>
-                    </div>} trigger="hover" placement="bottomLeft">
-                        <span>分配类型</span><Icon type="question-circle" style={{fontSize:'20px',marginLeft:'5px',marginTop:'3px'}}/>
-                    </Popover> ,
-                dataIndex: 'distributionType',
-                key: 'distributionType',
-                render: (text) => this.getNameByDisCode(text),
-            },
+            // {
+            //     title:
+            //         <Popover title="提示" content={<div>
+            //         </div>} trigger="hover" placement="bottomLeft">
+            //             <span>分配类型</span><Icon type="question-circle" style={{fontSize:'20px',marginLeft:'5px',marginTop:'3px'}}/>
+            //         </Popover> ,
+            //     dataIndex: 'distributionType',
+            //     key: 'distributionType',
+            //     render: (text) => this.getNameByDisCode(text),
+            // },
             {
                 title: '订单号',
                 dataIndex: 'orderId',
@@ -616,25 +618,25 @@ class Category extends React.Component {
                                                 columns={this.makeColumnsTop()}
                                                 dataSource={this.makeDataTop(this.state.dataHQMain)}
                                                 pagination={{
-                                                    total: this.state.dataHQMain.length,
-                                                    pageSize: 10,
-                                                    showQuickJumper: true,
-                                                    showTotal: (total, range) => `共 ${total} 条数据`,
+                                                    total: 0,
+                                                    defaultPageSize:1,
+                                                    pageSizeOptions:1,
+                                                    hideOnSinglePage:true,
                                                 }}
                                             />
                                         </div>
                                         <div className="system-table" >
                                             <ul className="search-ul more-ul" style={{marginTop:'10px',marginBottom:'10px'}}>
-                                                <li style={{marginLeft:'-14px'}}>
-                                                    <span>分配类型：</span>
-                                                    <Select placeholder="全部" allowClear style={{ width: '200px'}} onChange={(e) => this.onHQSearchAllot(e)} value={this.state.HQSearchAllot}>
-                                                        {
-                                                            this.state.typesAllot.map((item, index) => {
-                                                                return <Option key={index} value={String(item.id)}>{item.ruleName}</Option>
-                                                            })
-                                                        }
-                                                    </Select>
-                                                </li>
+                                                {/*<li style={{marginLeft:'-14px'}}>*/}
+                                                    {/*<span>分配类型：</span>*/}
+                                                    {/*<Select placeholder="全部" allowClear style={{ width: '200px'}} onChange={(e) => this.onHQSearchAllot(e)} value={this.state.HQSearchAllot}>*/}
+                                                        {/*{*/}
+                                                            {/*this.state.typesAllot.map((item, index) => {*/}
+                                                                {/*return <Option key={index} value={String(item.id)}>{item.ruleName}</Option>*/}
+                                                            {/*})*/}
+                                                        {/*}*/}
+                                                    {/*</Select>*/}
+                                                {/*</li>*/}
                                                 <li>
                                                     <span>收益金额：</span>
                                                     <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最小价格" onChange={(e) => this.onHQSearchMin(e)} value={this.state.HQSearchMin}/>--
@@ -691,7 +693,7 @@ class Category extends React.Component {
                                         <div className="system-table" style={{width:'400px'}}>
                                             <ul className="more-ul" style={{margin:'10px'}}>
                                                 <li style={{marginBottom:'10px'}}>
-                                                    <span style={{margin:'10px'}}>结算月份：</span>
+                                                    <span style={{margin:'10px',marginLeft:'13px'}}>结算月份：</span>
                                                     <MonthPicker
                                                         style={{ width: '170px' }}
                                                         dateRender={(current) => {
@@ -724,10 +726,10 @@ class Category extends React.Component {
                                                     />
                                                 </li>
                                                 <li style={{marginBottom:'10px'}}>
-                                                    <span style={{marginRight:'8px'}}>服务站名称：{this.state.dataSEMain && this.state.dataSEMain.stationName}</span>
+                                                    <span style={{marginRight:'10px'}}>服务站名称：<span style={{marginLeft:'16px'}}>{this.state.dataSEMain && this.state.dataSEMain.stationName}</span></span>
                                                 </li>
                                                 <li style={{marginBottom:'10px'}}>
-                                                    <span style={{marginRight:'8px'}}>总收入：{this.state.dataSEMain && `￥${this.state.dataSEMain.income}`}</span>
+                                                    <span style={{marginRight:'8px',marginLeft:'28px'}}>总收入：<span style={{marginLeft:'13px'}}>{this.state.dataSEMain && `￥${this.state.dataSEMain.income}`}</span></span>
                                                 </li>
                                                 <li style={{marginLeft:'10px'}}>
                                                     <Button icon="search" type="primary" onClick={() => this.onSESearchMain()}>搜索</Button>
@@ -737,16 +739,16 @@ class Category extends React.Component {
                                         <div className="system-table" >
                                             <ul className="search-ul more-ul" style={{marginTop:'10px',marginBottom:'10px'}}>
                                                 <ul className="search-ul more-ul" style={{marginTop:'10px',marginBottom:'10px'}}>
-                                                    <li style={{marginLeft:'-14px'}}>
-                                                        <span>分配类型：</span>
-                                                        <Select placeholder="全部" allowClear style={{ width: '200px'}} onChange={(e) => this.onSESearchAllot(e)} value={this.state.SESearchAllot}>
-                                                            {
-                                                                this.state.typesAllot.map((item, index) => {
-                                                                    return <Option key={index} value={String(item.id)}>{item.ruleName}</Option>
-                                                                })
-                                                            }
-                                                        </Select>
-                                                    </li>
+                                                    {/*<li style={{marginLeft:'-14px'}}>*/}
+                                                        {/*<span>分配类型：</span>*/}
+                                                        {/*<Select placeholder="全部" allowClear style={{ width: '200px'}} onChange={(e) => this.onSESearchAllot(e)} value={this.state.SESearchAllot}>*/}
+                                                            {/*{*/}
+                                                                {/*this.state.typesAllot.map((item, index) => {*/}
+                                                                    {/*return <Option key={index} value={String(item.id)}>{item.ruleName}</Option>*/}
+                                                                {/*})*/}
+                                                            {/*}*/}
+                                                        {/*</Select>*/}
+                                                    {/*</li>*/}
                                                     <li>
                                                         <span>收益金额：</span>
                                                         <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最小价格" onChange={(e) => this.onSESearchMin(e)} value={this.state.SESearchMin}/>--
@@ -825,12 +827,12 @@ class Category extends React.Component {
                         >
                             {!!this.state.nowData ? this.state.nowData.incomeType : ''}
                         </FormItem>
-                        <FormItem
-                            label="分配类型"
-                            {...formItemLayout}
-                        >
-                            {!!this.state.nowData ? this.state.nowData.distributionType : ''}
-                        </FormItem>
+                        {/*<FormItem*/}
+                            {/*label="分配类型"*/}
+                            {/*{...formItemLayout}*/}
+                        {/*>*/}
+                            {/*{!!this.state.nowData ? this.state.nowData.distributionType : ''}*/}
+                        {/*</FormItem>*/}
                         <FormItem
                             label="订单号"
                             {...formItemLayout}

@@ -550,6 +550,21 @@ export function ServiceFlow(params = {}) {
     };
 }
 
+//查询 健康食品/生物理疗收益
+export function fBIncome(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/capital/genericIncome/list', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
 export function onChange2(date, dateString) {
     console.log(date, dateString);
 }

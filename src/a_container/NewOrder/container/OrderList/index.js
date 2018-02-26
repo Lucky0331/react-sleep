@@ -35,8 +35,10 @@ class Category extends React.Component {
         this.state = {
             data: [], // 当前页面全部数据
             productModels: [],  // 所有的产品型号
+            productTypes:[], //所有的产品类型
             searchProductName: '', // 搜索 - 产品名称
             searchModelId: '', // 搜索 - 产品型号
+            searchproductType:'',//搜索 - 产品类型
             searchMinPrice: undefined,  // 搜索 - 最小价格
             searchMaxPrice: undefined,  // 搜索- 最大价格
             searchBeginTime: '',  // 搜索 - 开始时间
@@ -92,7 +94,9 @@ class Category extends React.Component {
             id:this.state.searchId,
             userName:this.state.searchUserName,
             ambassadorName:this.state.searchambassadorName,
+            productName:this.state.searchProductName,
             modelId: this.state.searchModelId,
+            typeCode:this.state.searchproductType,
             orderFrom:this.state.searchorderFrom,
             orderNo: this.state.searchorderNo,
             province: this.state.searchAddress[0],
@@ -123,6 +127,8 @@ class Category extends React.Component {
         switch(id) {
             case 0: return '已关闭';
             case 1: return '未完成';
+            case 2: return '待发货';
+            case 3: return '待收货';
             case 4: return '已完成';
             default: return '';
         }
@@ -289,9 +295,16 @@ class Category extends React.Component {
 
     // 搜索 - 产品型号输入框值改变时触发
     searchModelIdChange(e) {
-            this.setState({
-                searchModelId: e,
-            });
+        this.setState({
+            searchModelId: e,
+        });
+    }
+
+    // 搜索 - 产品类型输入框值改变时触发
+    searchProductTypesChange(e){
+        this.setState({
+            searchproductType: e,
+        });
     }
 
     // 搜索 - 服务站地区输入框值改变时触发
@@ -612,6 +625,14 @@ class Category extends React.Component {
                           <Input style={{ width: '172px' }} onChange={(e) => this.searchUserNameChange(e)}/>
                       </li>
                       <li>
+                          <span>产品类型</span>
+                          <Select allowClear placeholder="全部" style={{ width: '172px' }} onChange={(e) => this.searchProductTypesChange(e)}>
+                              {this.state.productTypes.map((item, index) => {
+                                  return <Option key={index} value={item.id}>{ item.name }</Option>
+                              })}
+                          </Select>
+                      </li>
+                      <li>
                           <span>产品名称</span>
                           <Input style={{ width: '172px' }} onChange={(e) => this.searchProductNameChange(e)} value={this.state.searchProductName}/>
                       </li>
@@ -662,6 +683,8 @@ class Category extends React.Component {
                           <Select placeholder="全部" allowClear style={{ width: '172px' }} onChange={(e) => this.searchConditionsChange(e)}>
                               <Option value={0}>已关闭</Option>
                               <Option value={1}>未完成</Option>
+                              <Option value={2}>待发货</Option>
+                              <Option value={3}>待收货</Option>
                               <Option value={4}>已完成</Option>
                           </Select>
                       </li>
