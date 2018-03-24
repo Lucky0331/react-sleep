@@ -19,6 +19,7 @@ import Manage from './container/Manage';
 import Set from './container/Set';
 import Flow from './container/Flow';
 import Query from './container/Query';
+import Querydetail from './container/Querydetail';
 import ServiceIn from './container/ServiceIn';
 import Flow2 from './container/Flow2';
 import Withdrawals from './container/Withdrawals';
@@ -26,7 +27,7 @@ import Bill from './container/Bill';
 import Biology from './container/Biology';
 import HealthFood from './container/HealthFood';
 import Waterpur from './container/Waterpur';
-// import ServiceIn2  from './container/ServiceIn2';
+import Refund  from './container/Refund';
 
 
 // ==================
@@ -70,6 +71,8 @@ class TheContainer extends React.Component {
                     <Route exact path={`${this.props.match.path}/flow2`} component={Flow2} />
                     <Route exact path={`${this.props.match.path}/serviceIn2`} component={ServiceIn} />
                     <Route exact path={`${this.props.match.path}/query`} component={Query}/>
+                    <Route exact path={`${this.props.match.path}/querydetail`} component={Querydetail}/>
+                    <Route exact path={`${this.props.match.path}/account/refund`} component={Refund}/>
                 </Switch>
             </div>
         );

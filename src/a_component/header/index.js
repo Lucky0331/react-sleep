@@ -84,18 +84,18 @@ class Header extends React.Component {
 
     // 构建树结构
     makeTreeDom(data, key) {
-        return data.map((item, index) => {
-            const newKey = `${key}/${item.menuUrl.replace(/\//,'')}`;
-            if (item.children) {
-                return (
-                    <SubMenu key={newKey} title={<span>{item.menuName}</span>}>
-                        { this.makeTreeDom(item.children, newKey) }
-                    </SubMenu>
-                );
-            } else {
-                return <MenuItem key={newKey}><Link to={newKey}>{item.menuName}</Link></MenuItem>;
-            }
-        });
+        // return data.map((item, index) => {
+        //     const newKey = `${key}/${item.menuUrl.replace(/\//,'')}`;
+        //     if (item.children) {
+        //         return (
+        //             <SubMenu key={newKey} title={<span>{item.menuName}</span>}>
+        //                 { this.makeTreeDom(item.children, newKey) }
+        //             </SubMenu>
+        //         );
+        //     } else {
+        //         return <MenuItem key={newKey}><Link to={newKey}>{item.menuName}</Link></MenuItem>;
+        //     }
+        // });
     }
 
     // 获取sessionStorage中的用户信息，以同步导航栏状态

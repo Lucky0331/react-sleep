@@ -8,7 +8,8 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
-import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, Tooltip, InputNumber ,Select} from 'antd';
+import Config from '../../../../config/config';
+import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, Tooltip, InputNumber ,Select,Upload,Popover} from 'antd';
 import './index.scss';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
@@ -22,7 +23,7 @@ import { power } from '../../../../util/data';
 // 本页面所需action
 // ==================
 
-import { findProductTypeByWhere, addProductType, updateProductType, deleteProductType } from '../../../../a_action/shop-action';
+import { findProductTypeByWhere, addProductType, updateProductType, deleteProductType ,deleteImage} from '../../../../a_action/shop-action';
 
 // ==================
 // Definition
@@ -36,6 +37,7 @@ class Category extends React.Component {
         super(props);
         this.state = {
             data: [], // 当前页面全部数据
+            fileList: [],   // typeIcon已上传的列表
             searchproductName: undefined, // 搜索 - 类型名
             addnewModalShow: false, // 添加模态框是否显示
             addnewLoading: false, // 是否正在添加中
@@ -106,6 +108,7 @@ class Category extends React.Component {
             upCode:record.code,
         });
         me.setState({
+            fileList: record.typeIcon ? record.typeIcon.split(',').map((item, index) => ({ uid: index, url: item, status: 'done' })) : [],   // icon上传的列表
             nowData: record,
             upModalShow: true,
         });
@@ -121,9 +124,10 @@ class Category extends React.Component {
             'upDetail',
             'upSorts',
             'upConditions',
+            'upIcon'
         ], (err, values) => {
             if(err) { return; }
-
+            console.log("values:",values)
             me.setState({
                 upLoading: true,
             });
@@ -134,6 +138,7 @@ class Category extends React.Component {
                 detail: values.upDetail,
                 sorts: values.upSorts,
                 conditions: values.upConditions,
+                typeIcon:this.state.fileList.map((item) => item.url).join(','),
             };
 
             this.props.actions.updateProductType(params).then((res) => {
@@ -150,6 +155,7 @@ class Category extends React.Component {
             }).catch(() => {
                 me.setState({
                     upLoading: false,
+                    // fileList: record.typeIcon ? record.typeIcon.split(',').map((item, index) => ({ uid: index, url: item, status: 'done' })) : [],   // 标题图上传的列表
                 });
             });
         });
@@ -171,6 +177,79 @@ class Category extends React.Component {
                 message.error(res.returnMessaage || '删除失败，请重试');
             }
         });
+    }
+
+    // icon图 - 上传中、上传成功、上传失败的回调
+    onUpLoadChange(obj) {
+        // console.log('图片上传：', obj);
+        if (obj.file.status === 'done') {
+            // 上传成功后调用,将新的地址加进原list
+            if (obj.file.response.messsageBody) {
+                const list = _.cloneDeep(this.state.fileList);
+                const t = list.find((item) => item.uid === obj.file.uid);
+                t.url = obj.file.response.messsageBody;
+                this.setState({
+                    fileList: list,
+                    fileLoading: false,
+                });
+            } else {
+                const list = _.cloneDeep(this.state.fileList);
+                this.setState({
+                    fileList: list.filter((item) => item.uid !== obj.file.uid),
+                    fileLoading: false,
+                });
+                message.error('图片上传失败');
+            }
+        } else if (obj.file.status === 'uploading') {
+            this.setState({
+                fileLoading: true,
+            });
+        } else if(obj.file.status === 'error'){
+            const list = _.cloneDeep(this.state.fileList);
+            this.setState({
+                fileList: list.filter((item) => item.uid !== obj.file.uid),
+                fileLoading: false,
+            });
+            message.error('图片上传失败');
+        }
+    }
+
+    // icon图 - 上传前
+    onUploadBefore(f, fl) {
+        console.log('上传前：', f, fl);
+        if (['jpg', 'jpeg', 'png', 'bmp', 'gif'].indexOf(f.type.split('/')[1]) < 0) {
+            message.error('只能上传jpg、jpeg、png、bmp、gif格式的图片');
+            return false;
+        } else {
+            const newList = _.cloneDeep(this.state.fileList);
+            newList.push(f);
+            this.setState({
+                fileList: newList,
+            });
+            return true;
+        }
+    }
+
+    // icon图 - 删除一个图片
+    onUpLoadRemove(f) {
+        console.log('删除；', f);
+        this.deleteImg(f.url);
+        const list = _.cloneDeep(this.state.fileList);
+        this.setState({
+            fileList: list.filter((item) => item.uid !== f.uid),
+        });
+    }
+
+    // 真正从服务端删除icon的图片
+    deleteImg(uri) {
+        const temp = uri.split('/');
+        const fileName = temp.splice(-1,1);
+        const params = {
+            path: temp.join('/'),
+            fileName,
+        };
+        console.log('删除后的是啥？', temp.join('/'), fileName);
+        this.props.actions.deleteImage(params);
     }
 
     // 搜索
@@ -202,6 +281,7 @@ class Category extends React.Component {
             'addnewRoleDuty',
         ]);
         this.setState({
+            fileList: [],
             addnewModalShow: true,
             nowData:null
         });
@@ -216,9 +296,11 @@ class Category extends React.Component {
             'addnewDetail',
             'addnewSorts',
             'addnewConditions',
-            'addnewCode'
+            'addnewCode',
+            'addnewIcon'
         ], (err, values) => {
-            if (err) { return false; }
+            if (err) { return false;
+            }
             me.setState({
                 addnewLoading: true,
             });
@@ -228,6 +310,7 @@ class Category extends React.Component {
                 code: String(values.addnewCode),
                 sorts: values.addnewSorts,
                 conditions: values.addnewConditions,
+                typeIcon: this.state.fileList.map((item) => item.url).join(','),
             };
 
             me.props.actions.addProductType(params).then((res) => {
@@ -275,6 +358,18 @@ class Category extends React.Component {
                 title: 'App前台展示说明',
                 dataIndex: 'detail',
                 key: 'detail',
+            },
+            {
+                title:'产品icon',
+                dataIndex:'typeIcon',
+                key:'typeIcon',
+                render: (text,index) => {
+                    if (text) {
+                        const img = text.split(',');
+                        return <Popover key={index} placement="right" content={<img className="table-img-big" src={img[0]} />}><img className="table-img" src={img[0]} /></Popover>;
+                    }
+                    return '';
+                }
             },
             {
                 title: '产品标识',
@@ -336,6 +431,7 @@ class Category extends React.Component {
                 detail: item.detail,
                 createTime: item.createTime,
                 creator: item.creator,
+                typeIcon:item.typeIcon,
             }
         });
     }
@@ -427,6 +523,33 @@ class Category extends React.Component {
                         )}
                     </FormItem>
                     <FormItem
+                        label="添加产品icon"
+                        {...formItemLayout}
+                    >
+                        {
+                            getFieldDecorator('addnewIcon',{
+                                rules:[{required: true,}],
+                            })(
+                                <Upload
+                                    name="pImg"
+                                    action={`${Config.baseURL}/manager/product/uploadImage`}
+                                    listType="picture-card"
+                                    withCredentials={true}
+                                    fileList={this.state.fileList}
+                                    beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
+                                    onChange={(f) => this.onUpLoadChange(f)}
+                                    onRemove={(f) => this.onUpLoadRemove(f)}
+                                >
+                                    {this.state.fileList.length >= 1 ? null :
+                                        <div>
+                                            <Icon type="plus" />
+                                            <div className="ant-upload-text">选择文件</div>
+                                        </div>}
+                                </Upload>
+                            )
+                        }
+                    </FormItem>
+                    <FormItem
                         label="产品标识"
                         {...formItemLayout}
                     >
@@ -501,6 +624,34 @@ class Category extends React.Component {
                         )}
                     </FormItem>
                     <FormItem
+                        label="修改产品icon"
+                        {...formItemLayout}
+                    >
+                        {getFieldDecorator('upIcon',{
+                            rules:[
+                                {required:true}
+                            ]
+                        })(
+                            <Upload
+                                name="pImg"
+                                action={`${Config.baseURL}/manager/product/uploadImage`}
+                                listType="picture-card"
+                                withCredentials={true}
+                                fileList={this.state.fileList}
+                                beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
+                                onChange={(f) => this.onUpLoadChange(f)}
+                                onRemove={(f) => this.onUpLoadRemove(f)}
+                            >
+                                {this.state.fileList.length >= 1 ? null :
+                                    <div>
+                                        <Icon type="plus" />
+                                        <div className="ant-upload-text">选择文件</div>
+                                    </div>}
+                            </Upload>
+                        )
+                        }
+                    </FormItem>
+                    <FormItem
                         label="产品标识"
                         {...formItemLayout}
                     >
@@ -529,9 +680,8 @@ Category.propTypes = {
 const WrappedHorizontalRole = Form.create()(Category);
 export default connect(
     (state) => ({
-
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findProductTypeByWhere, addProductType, updateProductType, deleteProductType }, dispatch),
+        actions: bindActionCreators({ findProductTypeByWhere, addProductType, updateProductType, deleteProductType ,deleteImage}, dispatch),
     })
 )(WrappedHorizontalRole);

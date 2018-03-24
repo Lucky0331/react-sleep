@@ -9,7 +9,6 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
 import { Form, Button, Icon, Input, Table, message, Popconfirm, Modal, Radio, Tooltip  } from 'antd';
-import './index.scss';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
 import { power } from '../../../../util/data';
@@ -324,16 +323,16 @@ class Role extends React.Component {
                 key: 'roleName',
             },
             {
-                title: '职责',
+                title: '角色权限',
                 dataIndex: 'roleDuty',
                 key: 'roleDuty',
             },
-            {
-                title: '菜单权限',
-                dataIndex: 'menus',
-                key: 'menus',
-                render: (text, record) => text.join(','),
-            },
+            // {
+            //     title: '菜单权限',
+            //     dataIndex: 'menus',
+            //     key: 'menus',
+            //     render: (text, record) => text.join(','),
+            // },
             {
                 title: '操作',
                 key: 'control',
@@ -398,7 +397,11 @@ class Role extends React.Component {
                 roleName: item.roleName,
                 roleDuty: item.roleDuty,
                 menus: item.menus,
+                createTime: item.createTime,
+                creator: item.creator,
                 // control: item.id,
+                updateTime: item.updateTime,
+                updater:item.updater,
             }
         });
     }
@@ -556,12 +559,12 @@ class Role extends React.Component {
                   >
                       {!!this.state.nowData ? this.state.nowData.roleDuty : ''}
                   </FormItem>
-                  <FormItem
-                      label="菜单权限"
-                      {...formItemLayout}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.menus.join(',') : ''}
-                  </FormItem>
+                  {/*<FormItem*/}
+                      {/*label="菜单权限"*/}
+                      {/*{...formItemLayout}*/}
+                  {/*>*/}
+                      {/*{!!this.state.nowData ? this.state.nowData.menus.join(',') : ''}*/}
+                  {/*</FormItem>*/}
                   <FormItem
                       label="创建时间"
                       {...formItemLayout}

@@ -8,6 +8,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
+import { Router,Route,Link } from 'react-router-dom';
 import Config from '../../../../config/config';
 import { Form, Button, Icon, Input, Checkbox, Row , Table, message, Popconfirm, Popover, Modal, Radio, Tooltip, Select, Upload, Divider } from 'antd';
 import './index.scss';
@@ -138,6 +139,16 @@ class Category extends React.Component {
         }
     }
 
+    //工具 - 根据活动类型id获取活动名称
+    getActivity(id){
+        switch(String(id)){
+            case '1' : return '普通产品';
+            case '2' : return '活动产品';
+            default: return '';
+        }
+
+    }
+
 
     // 搜索 - 产品类型输入框值改变时触发
     onSearchTypeId(typeId) {
@@ -168,6 +179,7 @@ class Category extends React.Component {
             addnewDetailImg:record.detailImg,
             addnewTimeLimitNum: record.timeLimitNum,
             addnewTimeLimitType: record.timeLimitType,
+            addnewActivityType: record.activityType,
         });
         console.log('是什么：', record);
         me.setState({
@@ -175,7 +187,6 @@ class Category extends React.Component {
             upModalShow: true,
             code: record.typeId,
             fileList: record.productImg ? record.productImg.split(',').map((item, index) => ({ uid: index, url: item, status: 'done' })) : [],   // 产品图片已上传的列表
-            // fileListDetail: record.detailImg ? [{uid: -1, url: record.detailImg, status: 'done'}] : [], // 详细图片已上传的列表
             fileListDetail:record.detailImg ? record.detailImg.split(',').map((item, index) => ({ uid: index, url: item, status: 'done' })) : [],
         });
     }
@@ -193,6 +204,7 @@ class Category extends React.Component {
             'addnewDetailImg',
             'addnewTimeLimitNum',
             'addnewTimeLimitType',
+            'addnewActivityType'
         ], (err, values) => {
             if(err) { return; }
 
@@ -207,6 +219,7 @@ class Category extends React.Component {
                 onShelf: values.addnewOnShelf,
                 timeLimitNum: values.addnewTimeLimitNum,
                 timeLimitType: values.addnewTimeLimitType,
+                activityType: values.addnewActivityType,
                 productImg: this.state.fileList.map((item) => item.url).join(','),
                 detailImg: this.state.fileListDetail.map((item) => item.url).join(','),
                 // detailImg: this.state.fileListDetail.length ? this.state.fileListDetail[0].url : '',
@@ -285,6 +298,7 @@ class Category extends React.Component {
             'addnewDetailImg',
             'addnewTimeLimitType',
             'addnewTimeLimitNum',
+            'addnewActivityType'
         ]);
         this.setState({
             addOrUp: 'add',
@@ -309,6 +323,7 @@ class Category extends React.Component {
             onShelf: record.onShelf ? 1 : 0,
             productImg:record.productImg,
             detailImg: record.detailImg,
+            activityType:record.activityType,
         };
 
         this.props.actions.deleteProduct(params).then((res) => {
@@ -342,6 +357,7 @@ class Category extends React.Component {
             'addnewDetailImg',
             'addnewTimeLimitType',
             'addnewTimeLimitNum',
+            'addnewActivityType'
         ], (err, values) => {
             if (err) { return false; }
             me.setState({
@@ -355,6 +371,7 @@ class Category extends React.Component {
                 timeLimitType: values.addnewTimeLimitType,
                 timeLimitNum: values.addnewTimeLimitNum,
                 onShelf: values.addnewOnShelf ? 1 : 0,
+                activityType: values.addnewActivityType,
                 productImg: this.state.fileList.map((item) => item.url).join(','),
                 // detailImg: this.state.fileListDetail.length ? this.state.fileListDetail[0].url : '',
                 detailImg: this.state.fileListDetail.map((item) => item.url).join(','),
@@ -595,6 +612,12 @@ class Category extends React.Component {
                 render: (text) => this.getNameByModelId(text),
             },
             {
+                title:'活动方式',
+                dataIndex:'activityType',
+                key:'activityType',
+                render:(text) => this.getActivity(text),
+            },
+            {
                 title: '产品状态 ',
                 dataIndex: 'onShelf',
                 key: 'onShelf',
@@ -688,6 +711,7 @@ class Category extends React.Component {
                 updateTime: item.updateTime,
                 updater: item.updater,
                 control: item.id,
+                activityType: item.activityType,
                 timeLimitNum:item.typeModel ? item.typeModel.timeLimitNum : '',
                 timeLimitType:item.typeModel ? item.typeModel.timeLimitType : '',
                 shipFee:item.typeModel ? item.typeModel.shipFee : '',
@@ -780,7 +804,6 @@ class Category extends React.Component {
                                 onChange={(e) => this.Newproduct(e)}
                             >
                                 { this.state.productTypes.map((item, index) => <Option key={index} value={item.id}>{item.name}</Option>) }
-                                {/*{ this.state.productTypes.map((item, index) => <Option key={index} value={`${item.id}`}>{item.name}</Option>) }*/}
                             </Select>
                         )}
                     </FormItem>
@@ -796,7 +819,7 @@ class Category extends React.Component {
                                     const v = tools.trim(value);
                                     if (v) {
                                         if (v.length > 30) {
-                                            callback('最多输入30位字符');
+                                            callback('最多输入80位字符');
                                         }
                                     }
                                     callback();
@@ -830,6 +853,22 @@ class Category extends React.Component {
                                 placeholder="请选择产品型号"
                             >
                                 { this.state.productModels.filter((item) => String(item.typeId) === String(form.getFieldValue('addnewTypeId'))).map((item, index) => <Option key={index} value={`${item.id}`}>{this.getNameByModelId(item.id)}</Option>) }
+                            </Select>
+                        )}
+                    </FormItem>
+                    <FormItem
+                        label="活动方式"
+                        {...formItemLayout}
+                    >
+                        {getFieldDecorator('addnewActivityType', {
+                            initialValue: undefined,
+                            rules: [
+                                {required: true, message: '请选择活动方式'}
+                            ],
+                        })(
+                            <Select placeholder="请选择活动方式">
+                                <Option value={1}>普通商品</Option>
+                                <Option value={2}>活动商品</Option>
                             </Select>
                         )}
                     </FormItem>
@@ -952,7 +991,7 @@ class Category extends React.Component {
                                         const v = tools.trim(value);
                                         if (v) {
                                             if (v.length > 30) {
-                                                callback('最多输入30位字符');
+                                                callback('最多输入80位字符');
                                             }
                                         }
                                         callback();
@@ -986,6 +1025,22 @@ class Category extends React.Component {
                                     placeholder="请选择产品型号"
                                 >
                                     { this.state.productModels.filter((item) => String(item.typeId) === String(form.getFieldValue('addnewTypeId'))).map((item, index) => <Option key={index} value={`${item.id}`}>{this.getNameByModelId(item.id)}</Option>) }
+                                </Select>
+                            )}
+                        </FormItem>
+                        <FormItem
+                            label="活动方式"
+                            {...formItemLayout}
+                        >
+                            {getFieldDecorator('addnewActivityType', {
+                                initialValue: undefined,
+                                rules: [
+                                    {required: true, message: '请选择活动方式'}
+                                ],
+                            })(
+                                <Select placeholder="请选择活动方式">
+                                    <Option value={1}>普通商品</Option>
+                                    <Option value={2}>活动商品</Option>
                                 </Select>
                             )}
                         </FormItem>
@@ -1087,6 +1142,12 @@ class Category extends React.Component {
                         {...formItemLayout}
                     >
                         {!!this.state.nowData ? this.getNameByModelId(this.state.nowData.typeCode) : ''}
+                    </FormItem>
+                    <FormItem
+                        label="活动方式"
+                        {...formItemLayout}
+                    >
+                        {!!this.state.nowData ? this.getActivity(this.state.nowData.activityType) : ''}
                     </FormItem>
                     <FormItem
                         label="价格"

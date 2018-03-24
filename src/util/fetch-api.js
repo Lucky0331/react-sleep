@@ -25,9 +25,10 @@ export default class ApiService {
             data: JSON.stringify(bodyObj),
             type: 'json',
         }).then((res) => {
-            if(res.returnMessaage.indexOf('过期')>=0){
+            const msg = res.returnMessaage || res.message || '';
+            if(msg.indexOf('过期')>=0){
                 sessionStorage.clear();
-                message.error(res.returnMessaage);
+                message.error(msg);
                 setTimeout(() => {location.href = '/';}, 1000);
             }
             return res;
@@ -44,7 +45,7 @@ export default class ApiService {
             const msg = res.returnMessaage || res.message || '';
             if(msg.indexOf('过期')>=0){
                 sessionStorage.clear();
-                message.error(res.returnMessaage);
+                message.error(msg);
                 setTimeout(() => {location.href = '/';}, 1000);
             }
             return res;

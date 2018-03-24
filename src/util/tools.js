@@ -73,12 +73,13 @@ const tools = {
         return `${date.getFullYear()}-${m}-${d}`;
     },
 
+
     /**
      * 标准日期转字符串年月日，时分秒
      * 返回年月日
      * 对账日期 默认查询前一天日期
      * */
-    dateToStrT(date) {
+    dateToStrQ(date) {
         if (!date) { return ''; }
         const m = `${date.getMonth() + 1}`.padStart(2,'0');
         const d = `${date.getDate() - 1}`.toString().padStart(2,'0');

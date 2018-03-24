@@ -4,41 +4,41 @@
 import Fetchapi from '../util/fetch-api';
 import { message } from 'antd';
 
-// 分页条件查询总部收入列表
-export function getSupplierIncomeList(params = {}) {
-    return (dispatch) => {
-        return Fetchapi.newPost(
-            '/manager/capital/supplierIncome/list', params,
-        ).then(
-            msg => {
-                return msg;
-            }
-        ).catch(() => {
-            message.error('网络错误，请重试');
-        });
-    };
-}
-
-// 分页条件查询服务站收入列表
-export function getStationIncomeList(params = {}) {
-    return (dispatch) => {
-        return Fetchapi.newPost(
-            '/manager/capital/stationIncome/list', params,
-        ).then(
-            msg => {
-                return msg;
-            }
-        ).catch(() => {
-            message.error('网络错误，请重试');
-        });
-    };
-}
-
-// 查询公司的总收益 以及 订单的总金额
+// 分页条件查询结算查询-总部收益查询列表
 export function getSupplierIncomeMain(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/capital/supplierIncome/main', params,
+            '/manager/capital/supplierAccountIncome/main', params,
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 分页条件查询结算查询-总部收益详情查询列表
+export function getSupplierIncomeList(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/capital/supplierAccountIncome/detail', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
+
+// 分页条件查询结算查询-服务站收益查询列表
+export function getStationIncomeMain(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/capital/stationAccountIncome/main', params,
         ).then(
             msg => {
                 return msg;
@@ -63,3 +63,17 @@ export function searchCompanyIncome(params = {}) {
         });
     };
 }
+
+//产品公司的多种选择
+export function onChange(checkedValues) {
+    console.log('checked = ', checkedValues);
+}
+
+//产品公司的多种选择
+export function saveTest(v) {
+    return {
+        type: 'TEST::saveTest',
+        payload: v,
+    };
+}
+

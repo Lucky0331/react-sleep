@@ -7,6 +7,7 @@ const initState = {
   allRoles: [],   // 所有的角色
   allOrganizer: [], // 所有的组织机构
     citys: [],  // 保存省市区，cascader有用
+    test: {},
 };
 
 // ============================================
@@ -44,6 +45,14 @@ const findAllProvince = (state, action) => {
   });
 };
 
+const saveTest = (state, action) => {
+    const { payload } = action;
+    console.log('传的是个什么：', payload);
+    return Object.assign({}, state, {
+        test: payload,
+    });
+};
+
 // ============================================
 // reducer function
 
@@ -57,6 +66,8 @@ const reducerFn = (state = initState, action) => {
     return findAllOrganizer(state, action);
   case 'SYS::findAllProvince':  // 保存所有的省市区
     return findAllProvince(state, action);
+      case 'TEST::saveTest':
+        return saveTest(state, action);
   default:
     return actDefault(state, action);
   }

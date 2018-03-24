@@ -8,7 +8,8 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
-import { Form, Button, Icon, Input, Table, message, InputNumber, Cascader, Modal, Radio, Tooltip, Select, DatePicker,Tabs, Divider ,Popover} from 'antd';
+import _ from 'lodash';
+import { Form, Button, Icon, Input, Table, message, InputNumber, Cascader, Modal, Radio, Tooltip, Select, DatePicker,Tabs, Divider ,Popover,Checkbox,Row, Col} from 'antd';
 import './index.scss';
 import Config from '../../../../config/config';
 import tools from '../../../../util/tools'; // 工具
@@ -25,45 +26,45 @@ import moment from 'moment';
 // 本页面所需action
 // ==================
 
-import { findProductTypeByWhere, findSaleRuleByWhere, findAllProvince,findCityOrCounty } from '../../../../a_action/shop-action';
+import { findProductTypeByWhere, findSaleRuleByWhere, findAllProvince,findCityOrCounty,warning } from '../../../../a_action/shop-action';
 import { findStationByArea } from '../../../../a_action/sys-action';
-import { getSupplierIncomeList, getSupplierIncomeMain, getStationIncomeList, searchCompanyIncome } from '../../../../a_action/curr-action';
+import { getSupplierIncomeMain, getStationIncomeMain,onChange,saveTest} from '../../../../a_action/curr-action';
 // ==================
 // Definition
 // ==================
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
 const Option = Select.Option;
+    const children = [];
+        for (let i = 2012; i < 2032; i++) {
+            children.push(<Option key={i+'年'}>{i+'年'}</Option>);
+        }
+
+    const children2 = [];
+        for (let i = 1; i < 13; i++) {
+            children2.push(<Option key={i+'月'}>{i+'月'}</Option>);
+        }
+
+        function MonthChange(value) {
+            console.log(`selected ${value}`);
+        }
+const CheckboxGroup = Checkbox.Group;
 const TabPane = Tabs.TabPane;
 const { MonthPicker} = DatePicker;
 class Category extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            dataHQ: [],                 // 总部 - 主列表 - 数据
+            dataHQ: [],                 // 总部收益查询列表数据
             pageNumHQ: 1,               // 总部 - 主列表 - 当前第几页
-            pageSizeHQ: 10,             // 总部 - 主列表 - 每页多少条
+            pageSizeHQ: 14,             // 总部 - 主列表 - 每页多少条
             totalHQ: 0,                 // 总部 - 主列表 - 共多少条数据
-            HQSearchAllot: undefined,   // 总部 - 搜索 - 分配类型
-            HQSearchMin: undefined,     // 总部 - 搜索 - 最小金额
-            HQSearchMax: undefined,     // 总部 - 搜索 - 最大金额
-            HQSearchProfit: undefined,  // 总部 - 搜索 - 收益类型
-            HQSearchProduct: undefined, // 总部 - 搜索 - 产品类型
-            HQSearchOrderNo: undefined, // 总部 - 搜索 - 订单号
             HQSearchDate: moment(),     // 总部 - 搜索 - 年月
 
-            dataHQMain: [], // 总部 - 上方列表 - 数据
-
-            dataSE: [],                 // 服务 - 主列表 - 数据
+            dataSE: [],                 // 服务站收益查询列表数据
             pageNumSE: 1,               // 服务 - 主列表 - 当前第几页
             pageSizeSE: 10,             // 服务 - 主列表 - 每页多少条
             totalSE: 0,                 // 服务 - 主里诶报 - 共多少条数据
-            SESearchAllot: undefined,   // 服务 - 搜索 - 分配类型
-            SESearchMin: undefined,     // 服务 - 搜索 - 最小金额
-            SESearchMax: undefined,     // 服务 - 搜索 - 最大金额
-            SESearchProfit: undefined,  // 服务 - 搜索 - 收益类型
-            SESearchProduct: undefined, // 服务 - 搜索 - 产品类型
-            SESearchOrderNo: undefined, // 服务 - 搜索 - 订单号
 
             dataSEMain: null,             // 服务 - 上方列表 - 数据
 
@@ -81,8 +82,24 @@ class Category extends React.Component {
             citys: [],                  // 符合Cascader组件的城市数据
             stations: [],               // 当前省市区下面的服务站
 
+            years: [],                //年份的数组
+            searchyear : '',            //搜索 - 结算年份
+
         };
     }
+
+    // 查看record中有哪些数据
+    onQueryClick2(text, record){
+        const d = _.cloneDeep(record);
+        d.company = text.split('_')[1];
+        this.setState({
+            nowData: d,
+        })
+        this.props.actions.saveTest(d);
+        this.props.history.push('../NewMoney/Querydetail');
+        console.log('跳转页面的record带了哪些参数：',d)
+    }
+
 
     componentDidMount() {
         if (!this.props.citys.length) { // 获取所有省，全局缓存
@@ -93,17 +110,11 @@ class Category extends React.Component {
             });
         }
 
-        /** 查所有的分配类型 **/
-        this.getAllAllotTypes();
-        /** 查询所有的收益类型 **/
-        this.getProfitTypes();
+
         /** 查所有的产品类型 **/
         this.getAllProductTypes();
-        /** 进入页面查询总部上方表格数据 **/
-        this.onGetDataHQMain(this.state.HQSearchDate);
         /** 进入页面获取一次总部收入列表 **/
         this.onGetDataHQ(this.state.pageNumHQ, this.state.pageSizeHQ);
-
         /** 进入页面获取一次服务站收入列表 **/
         this.onGetDataSE(this.state.pageNumSE, this.state.pageSizeSE);
 
@@ -118,46 +129,22 @@ class Category extends React.Component {
         }
     }
 
-    /** 总部 - 主列表 - 查询主表格所需数据 **/
+    /** 总部收益查询-主列表所需数据 **/
     onGetDataHQ(pageNum, pageSize) {
         console.log('AAAA:', pageNum, pageSize);
         const params = {
             pageNum,
             pageSize,
-            distributionType: Number(this.state.HQSearchAllot),   // 总部 - 搜索 - 分配类型
-            minIncome: this.state.HQSearchMin,     // 总部 - 搜索 - 最小金额
-            maxIncome: this.state.HQSearchMax,     // 总部 - 搜索 - 最大金额
-            incomeType: this.state.HQSearchProfit,  // 总部 - 搜索 - 收益类型
-            orderId: this.state.HQSearchOrderNo,    // 总部 - 搜搜 - 订单号
-            balanceMonth: this.state.HQSearchDate ? tools.dateToStr(this.state.HQSearchDate._d) : null,
+            years:this.state.searchyear,
         };
-        this.props.actions.getSupplierIncomeList(tools.clearNull(params)).then((res) => {
+        this.props.actions.getSupplierIncomeMain(tools.clearNull(params)).then((res) => {
             if(res.status === 200) {
-                console.log('到底是什么：', res.data.result);
+                console.log('到底是什么：', res.data);
                 this.setState({
-                    dataHQ: res.data.result || [],
+                    dataHQ: res.data || [],
                     pageNumHQ: pageNum,
                     pageSizeHQ: pageSize,
                     totalHQ: res.data.total,
-                });
-            } else {
-                message.error(res.message || '获取数据失败，请重试');
-            }
-        });
-    }
-
-    /** 总部 - 上面 - 查询总收益 **/
-    onGetDataHQMain() {
-        const params = {
-            pageNum:1,
-            pageSize:1,
-            balanceMonth: this.state.HQSearchDate ? tools.dateToStr(this.state.HQSearchDate._d) : null,
-        };
-        this.props.actions.getSupplierIncomeList(tools.clearNull(params)).then((res) => {
-            if(res.status === 200) {
-                console.log('到底是什么：', res.data.result);
-                this.setState({
-                    dataHQMain: res.data.result || [],
                 });
             } else {
                 message.error(res.message || '获取数据失败，请重试');
@@ -170,39 +157,117 @@ class Category extends React.Component {
         this.onGetDataHQ(this.state.pageNumHQ, this.state.pageSizeHQ);
     }
 
-    /** 总部 - 搜索相关 **/
-    onHQSearchAllot(e) {     // 分配类型选择
+    /** 总部 - 搜索结算收益 **/
+    onSearchYear(e){          //搜索 - 结算年份
         this.setState({
-            HQSearchAllot: e,
-        });
+            searchyear:this.state.years.map((item)=>item.e).join(',')
+        })
     }
-    onHQSearchMin(e) {      // 最小金额
-        this.setState({
-            HQSearchMin: e,
-        });
-    }
-    onHQSearchMax(e) {      // 最大金额
-        this.setState({
-            HQSearchMax: e,
-        });
-    }
-    onHQSearchProfit(e) {   // 收益类型
-        this.setState({
-            HQSearchProfit: e,
-        });
-    }
-    onHQSearchOrderNo(e) {  // 订单号
-        this.setState({
-            HQSearchOrderNo: e.target.value,
-        });
-    }
-    onHQSearchProduct(e) {  // 产品类型
-        this.setState({
-            HQSearchProduct: e,
-        });
-    }
-    /** 总部&服务站 共用（因为字段一样 - 构建字段 **/
+
+
+    /**table总部收益表格数据显示**/
     makeColumns(){
+        const columns = [
+            {
+                title: '产品公司',
+                dataIndex: 'name',
+                key:'name'
+            },
+            {
+                title: '净水服务公司',
+                dataIndex: 'company1',
+                key:'company1',
+                render: (text,record) => {
+                    return {
+                        children: (() => {
+                            if(record.name == '月份\\年份'){
+                                return <span>{text.split('_')[0]}</span>
+                            }else{
+                                return <span onClick={() => this.onQueryClick2(text, record)}><a href="#/money/querydetail">{text.split('_')[0]}</a></span>
+                            }
+                        })(),
+                        props: {
+                            colSpan: 1,
+                        },
+                    };
+                },
+            },
+            {
+                title: '健康食品公司',
+                dataIndex: 'company2',
+                key: 'company2',
+                render: (text,record) => {
+                    return {
+                        children: (() =>{
+                            if(record.name == '月份\\年份'){
+                                return <span>{text.split('_')[0]}</span>
+                            }else{
+                                return <span onClick={() => this.onQueryClick2(text, record)}><a href="#/money/querydetail">{text.split('_')[0]}</a></span>
+                            }
+                        })(),
+                        props: {
+                            colSpan: 1,
+                        },
+                    };
+                },
+            },
+            {
+                title: '生物科技公司',
+                // colSpan: 0,
+                dataIndex: 'company3',
+                key: 'company3',
+                render: (text,record) => {
+                    return {
+                        children: (() => {
+                            if(record.name == '月份\\年份'){
+                                return <span>{text.split('_')[0]}</span>
+                            }else{
+                                return <span onClick={() => this.onQueryClick2(text, record)}><a href="#/money/querydetail">{text.split('_')[0]}</a></span>
+                            }
+                        })(),
+                        props: {
+                            colSpan: 1,
+                        },
+                    };
+                },
+            },
+            {
+                title: '健康评估公司',
+                dataIndex: 'company5',
+                key: 'company5',
+                render: (text,record) => {
+                    return {
+                        children: (() => {
+                            if(record.name == '月份\\年份'){
+                                return <span>{text.split('_')[0]}</span>
+                            }else{
+                                return <span onClick={() => this.onQueryClick2(text, record)}><a href="#/money/querydetail">{text.split('_')[0]}</a></span>
+                            }
+                        })(),
+                        props: {
+                            colSpan: 1,
+                        },
+                    };
+                },
+            },
+            {
+                title: '总计',
+                dataIndex: 'sum',
+                render: (text,record) => {
+                    return {
+                        children:<span>{text}</span>,
+                        props: {
+                            colSpan: 1,
+                        },
+                    };
+                },
+            },
+        ];
+        return columns;
+     }
+
+    //服务站收益列表
+    DataStation(){
         const columns = [
             {
                 title: '序号',
@@ -210,90 +275,386 @@ class Category extends React.Component {
                 key: 'serial',
             },
             {
-                title: '收益金额',
-                dataIndex: 'income',
-                key: 'income',
-            },
-            {
-                title: '收益类型',
-                dataIndex: 'incomeType',
-                key: 'incomeType',
-            },
-            // {
-            //     title:
-            //         <Popover title="提示" content={<div>
-            //         </div>} trigger="hover" placement="bottomLeft">
-            //             <span>分配类型</span><Icon type="question-circle" style={{fontSize:'20px',marginLeft:'5px',marginTop:'3px'}}/>
-            //         </Popover> ,
-            //     dataIndex: 'distributionType',
-            //     key: 'distributionType',
-            //     render: (text) => this.getNameByDisCode(text),
-            // },
-            {
-                title: '订单号',
-                dataIndex: 'orderId',
-                key: 'orderId',
-            },
-            {
-                title: '产品类型',
-                dataIndex: 'productTypeName',
-                key: 'productTypeName',
-            },
-            {
-                title: '订单总金额',
-                dataIndex: 'orderTotalFee',
-                key: 'orderTotalFee',
-            },
-            {
-                title: '结算月份',
-                dataIndex: 'balanceMonth',
-                key: 'balanceMonth',
-            },
-            {
-                title: '操作',
-                key: 'control',
-                width: 170,
-                render: (text, record) => {
-                    const controls = [];
-                    controls.push(
-                        <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
-                            <Tooltip placement="top" title="详情">
-                                <Icon type="eye" />
-                            </Tooltip>
-                        </span>
-                    );
-                    const result = [];
-                    controls.forEach((item, index) => {
-                        if (index) {
-                            result.push(<Divider key={`line${index}`} type="vertical" />);
-                        }
-                        result.push(item);
-                    });
-                    return result;
+                title: '服务站地区',
+                dataIndex: 'stationArea',
+                key:'stationArea',
+                render: (text) => {
+                    return {
+                        children: <a href="#/money/querydetail">{text}</a>,
+                        props: {
+                            colSpan: 1,
+                        },
+                    };
                 },
+            },
+            {
+                title: '服务站公司名称',
+                dataIndex: 'stationCompanyName',
+                key:'stationCompanyName',
+                render: (text) => {
+                    return {
+                        children: <a href="#/money/querydetail">{text}</a>,
+                        props: {
+                            colSpan: 1,
+                        },
+                    };
+                },
+            },
+            {
+                title: '2017',
+            },
+            {
+                title:'2018'
+            },
+            {
+                title: '总计',
+                dataIndex: 'sum',
             }
         ];
         return columns;
     }
 
-    /** 总部 构建table所需数据 **/
-    makeData(data) {
-        console.log('data是个啥：', data);
-        return data.map((item, index) => {
-            return {
-                key: index,
-                id: item.id,
-                serial:(index + 1) + ((this.state.pageNumHQ - 1) * this.state.pageSizeHQ),
-                income: item.income,                    // 金额
-                incomeType: item.incomeType,            // 收益类型
-                distributionType: item.distributionType,// 分配类型的code
-                orderId: item.orderId,                  // 订单号
-                productTypeName: item.productTypeName,  // 产品类型
-                orderTotalFee: item.orderTotalFee,      // 订单总金额
-                balanceMonth: item.balanceMonth,        // 结算月份
-                control: item,                          // 操作按钮
+    /** 总部&服务站 共用（因为字段一样 - 构建字段 **/
+    // makeColumns(){
+    //     const columns = [
+    //         {
+    //             title: '序号',
+    //             dataIndex: 'serial',
+    //             key: 'serial',
+    //         },
+    //         {
+    //             title: '收益金额',
+    //             dataIndex: 'income',
+    //             key: 'income',
+    //         },
+    //         {
+    //             title: '收益类型',
+    //             dataIndex: 'incomeType',
+    //             key: 'incomeType',
+    //         },
+    //         // {
+    //         //     title:
+    //         //         <Popover title="提示" content={<div>
+    //         //         </div>} trigger="hover" placement="bottomLeft">
+    //         //             <span>分配类型</span><Icon type="question-circle" style={{fontSize:'20px',marginLeft:'5px',marginTop:'3px'}}/>
+    //         //         </Popover> ,
+    //         //     dataIndex: 'distributionType',
+    //         //     key: 'distributionType',
+    //         //     render: (text) => this.getNameByDisCode(text),
+    //         // },
+    //         {
+    //             title: '订单号',
+    //             dataIndex: 'orderId',
+    //             key: 'orderId',
+    //         },
+    //         {
+    //             title: '产品类型',
+    //             dataIndex: 'productTypeName',
+    //             key: 'productTypeName',
+    //         },
+    //         {
+    //             title: '订单总金额',
+    //             dataIndex: 'orderTotalFee',
+    //             key: 'orderTotalFee',
+    //         },
+    //         {
+    //             title: '结算月份',
+    //             dataIndex: 'balanceMonth',
+    //             key: 'balanceMonth',
+    //         },
+    //         {
+    //             title: '操作',
+    //             key: 'control',
+    //             width: 170,
+    //             render: (text, record) => {
+    //                 const controls = [];
+    //                 controls.push(
+    //                     <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
+    //                         <Tooltip placement="top" title="详情">
+    //                             <Icon type="eye" />
+    //                         </Tooltip>
+    //                     </span>
+    //                 );
+    //                 const result = [];
+    //                 controls.forEach((item, index) => {
+    //                     if (index) {
+    //                         result.push(<Divider key={`line${index}`} type="vertical" />);
+    //                     }
+    //                     result.push(item);
+    //                 });
+    //                 return result;
+    //             },
+    //         }
+    //     ];
+    //     return columns;
+    // }
+
+    /** 总部收益表 构建table所需数据 **/
+    makeData(d) {
+        console.log('data是个啥：', d);
+        const res = [
+        ];
+        for(let i=0; i<=13; i++) {
+            const obj = {
+                company1: '0',
+                company2: '0',
+                company3: '0',
+                company5: '0'
+            };
+            switch(i){
+                case 0:
+                    obj.name = '月份/年份';
+                    d.forEach((item, index) => {
+                        if(item.company === '1'){
+                            obj.company1 = `${item.year || ''}_${item.company}`;
+                        } else if (item.company === '2') {
+                            obj.company2 = `${item.year || ''}_${item.company}`;
+                        } else if (item.company === '3') {
+                            obj.company3 = `${item.year || ''}_${item.company}`;
+                        } else if (item.company === '5') {
+                            obj.company5 = `${item.year || ''}_${item.company}`;
+                        }
+                        obj.year = item.year;
+                    });
+                    obj.sum = null;
+                    break;
+                case 1:
+                    obj.name = '1月份';
+                    d.forEach((item, index) => {
+                        if(item.company === '1'){
+                            obj.company1 = `${item.janurary || 0}_${item.company}`;
+                        } else if (item.company === '2') {
+                            obj.company2 = `${item.janurary || 0}_${item.company}`;
+                        } else if (item.company === '3') {
+                            obj.company3 = `${item.janurary || 0}_${item.company}`;
+                        } else if (item.company === '5') {
+                            obj.company5 = `${item.janurary || 0}_${item.company}`;
+                        }
+                        obj.year = item.year;
+                    });
+                    obj.sum = (Number(obj.company1.split('_')[0])) + (Number(obj.company2.split('_')[0])) + (Number(obj.company3.split('_')[0])) + (Number(obj.company5.split('_')[0]));
+
+                    break;
+                case 2:
+                    obj.name = '2月份';
+                    d.forEach((item, index) => {
+                        if(item.company === '1'){
+                            obj.company1 = `${item.february || 0}_${item.company}`;
+                        } else if (item.company === '2') {
+                            obj.company2 = `${item.february || 0}_${item.company}`;
+                        } else if (item.company === '3') {
+                            obj.company3 = `${item.february || 0}_${item.company}`;
+                        } else if (item.company === '5') {
+                            obj.company5 = `${item.february || 0}_${item.company}`;
+                        }
+                        obj.year = item.year;
+                    });
+                    obj.sum = (Number(obj.company1.split('_')[0])) + (Number(obj.company2.split('_')[0])) + (Number(obj.company3.split('_')[0])) + (Number(obj.company5.split('_')[0]));
+
+                    break;
+                case 3:
+                    obj.name = '3月份';
+                    d.forEach((item,index)=>{
+                        if(item.company === '1'){
+                            obj.company1 = `${item.march || 0}_${item.company}`;
+                        }else if(item.company === '2'){
+                            obj.company2 = `${item.march || 0}_${item.company}`;
+                        }else if(item.company === '3'){
+                            obj.company3 = `${item.march || 0}_${item.company}`;
+                        }else if(item.company === '5') {
+                            obj.company5 = `${item.march || 0}_${item.company}`
+                        }
+                        obj.year = item.year;
+                    });
+                    obj.sum = (Number(obj.company1.split('_')[0])) + (Number(obj.company2.split('_')[0])) + (Number(obj.company3.split('_')[0])) + (Number(obj.company5.split('_')[0]));
+
+                    break;
+                case 4:
+                    obj.name = '4月份';
+                    d.forEach((item,index)=>{
+                        if(item.company === '1'){
+                            obj.company1 = `${item.april || 0}_${item.company}`;
+                        }else if(item.company === '2'){
+                            obj.company2 = `${item.april || 0}_${item.company}`;
+                        }else if(item.company === '3'){
+                            obj.company3 = `${item.april || 0}_${item.company}`;
+                        }else if(item.company === '5') {
+                            obj.company5 = `${item.april || 0}_${item.company}`
+                        }
+                        obj.year = item.year;
+                    });
+                    obj.sum = (Number(obj.company1.split('_')[0])) + (Number(obj.company2.split('_')[0])) + (Number(obj.company3.split('_')[0])) + (Number(obj.company5.split('_')[0]));
+
+                    break;
+                case 5:
+                    obj.name = '5月份';
+                    d.forEach((item,index)=>{
+                        if(item.company === '1'){
+                            obj.company1 = `${item.may || 0}_${item.company}`;
+                        }else if(item.company === '2'){
+                            obj.company2 = `${item.may || 0}_${item.company}`;
+                        }else if(item.company === '3'){
+                            obj.company3 = `${item.may || 0}_${item.company}`;
+                        }else if(item.company === '5') {
+                            obj.company5 = `${item.may || 0}_${item.company}`
+                        }
+                        obj.year = item.year;
+                        obj.company = item.company;
+                    });
+                    obj.sum = (Number(obj.company1.split('_')[0])) + (Number(obj.company2.split('_')[0])) + (Number(obj.company3.split('_')[0])) + (Number(obj.company5.split('_')[0]));
+
+                    break;
+                case 6:
+                    obj.name = '6月份';
+                    d.forEach((item,index)=>{
+                        if(item.company === '1'){
+                            obj.company1 = `${item.june || 0}_${item.company}`;
+                        }else if(item.company === '2'){
+                            obj.company2 = `${item.june || 0}_${item.company}`;
+                        }else if(item.company === '3'){
+                            obj.company3 = `${item.june || 0}_${item.company}`;
+                        }else if(item.company === '5') {
+                            obj.company5 = `${item.june || 0}_${item.company}`
+                        }
+                        obj.year = item.year;
+                    });
+                    obj.sum = (Number(obj.company1.split('_')[0])) + (Number(obj.company2.split('_')[0])) + (Number(obj.company3.split('_')[0])) + (Number(obj.company5.split('_')[0]));
+
+                    break;
+                case 7:
+                    obj.name = '7月份';
+                    d.forEach((item,index)=>{
+                        if(item.company === '1'){
+                            obj.company1 = `${item.july || 0}_${item.company}`;
+                        }else if(item.company === '2'){
+                            obj.company2 = `${item.july || 0}_${item.company}`;
+                        }else if(item.company === '3'){
+                            obj.company3 = `${item.july || 0}_${item.company}`;
+                        }else if(item.company === '5') {
+                            obj.company5 = `${item.july || 0}_${item.company}`
+                        }
+                        obj.year = item.year;
+                    });
+                    obj.sum = (Number(obj.company1.split('_')[0])) + (Number(obj.company2.split('_')[0])) + (Number(obj.company3.split('_')[0])) + (Number(obj.company5.split('_')[0]));
+
+                    break;
+                case 8:
+                    obj.name = '8月份';
+                    d.forEach((item,index)=>{
+                        if(item.company === '1'){
+                            obj.company1 = `${item.august || 0}_${item.company}`;
+                        }else if(item.company === '2'){
+                            obj.company2 = `${item.august || 0}_${item.company}`;
+                        }else if(item.company === '3'){
+                            obj.company3 = `${item.august || 0}_${item.company}`;
+                        }else if(item.company === '5') {
+                            obj.company5 = `${item.august || 0}_${item.company}`
+                        }
+                        obj.year = item.year;
+                    });
+                    obj.sum = (Number(obj.company1.split('_')[0])) + (Number(obj.company2.split('_')[0])) + (Number(obj.company3.split('_')[0])) + (Number(obj.company5.split('_')[0]));
+
+                    break;
+                case 9:
+                    obj.name = '9月份';
+                    d.forEach((item,index)=>{
+                        if(item.company === '1'){
+                            obj.company1 = `${item.september || 0}_${item.company}`;
+                        }else if(item.company === '2'){
+                            obj.company2 = `${item.september || 0}_${item.company}`;
+                        }else if(item.company === '3'){
+                            obj.company3 = `${item.september || 0}_${item.company}`;
+                        }else if(item.company === '5') {
+                            obj.company5 = `${item.september || 0}_${item.company}`
+                        }
+                        obj.year = item.year;
+                    });
+                    obj.sum = (Number(obj.company1.split('_')[0])) + (Number(obj.company2.split('_')[0])) + (Number(obj.company3.split('_')[0])) + (Number(obj.company5.split('_')[0]));
+
+                    break;
+                case 10:
+                    obj.name = '10月份';
+                    d.forEach((item,index)=>{
+                        if(item.company === '1'){
+                            obj.company1 = `${item.october || 0}_${item.company}`;
+                        }else if(item.company === '2'){
+                            obj.company2 = `${item.october || 0}_${item.company}`;
+                        }else if(item.company === '3'){
+                            obj.company3 = `${item.october || 0}_${item.company}`;
+                        }else if(item.company === '5') {
+                            obj.company5 = `${item.october || 0}_${item.company}`
+                        }
+                        obj.year = item.year;
+                    });
+                    obj.sum = (Number(obj.company1.split('_')[0])) + (Number(obj.company2.split('_')[0])) + (Number(obj.company3.split('_')[0])) + (Number(obj.company5.split('_')[0]));
+
+                    break;
+                case 11:
+                    obj.name = '11月份';
+                    d.forEach((item,index)=>{
+                        if(item.company === '1'){
+                            obj.company1 = `${item.november || 0}_${item.company}`;
+                        }else if(item.company === '2'){
+                            obj.company2 = `${item.november || 0}_${item.company}`;
+                        }else if(item.company === '3'){
+                            obj.company3 = `${item.november || 0}_${item.company}`;
+                        }else if(item.company === '5') {
+                            obj.company5 = `${item.november || 0}_${item.company}`
+                        }
+                        obj.year = item.year;
+                    });
+                    obj.sum = (Number(obj.company1.split('_')[0])) + (Number(obj.company2.split('_')[0])) + (Number(obj.company3.split('_')[0])) + (Number(obj.company5.split('_')[0]));
+
+                    break;
+                case 12:
+                    obj.name = '12月份';
+                    d.forEach((item,index)=>{
+                        if(item.company === '1'){
+                            obj.company1 = `${item.december || 0}_${item.company}`;
+                        }else if(item.company === '2'){
+                            obj.company2 = `${item.december || 0}_${item.company}`;
+                        }else if(item.company === '3'){
+                            obj.company3 = `${item.december || 0}_${item.company}`;
+                        }else if(item.company === '5') {
+                            obj.company5 = `${item.december || 0}_${item.company}`
+                        }
+                        obj.year = item.year;
+                    });
+                    obj.sum = (Number(obj.company1.split('_')[0])) + (Number(obj.company2.split('_')[0])) + (Number(obj.company3.split('_')[0])) + (Number(obj.company5.split('_')[0]));
+                    break;
+                case 13 :
+                    obj.name = '总计';
+                    d.forEach((item,index)=>{
+                        if(item.company === '1'){
+                            obj.company1 = `${item.totalIncome || 0}_${item.company}`;
+                        }else if(item.company === '2'){
+                            obj.company2 = `${item.totalIncome || 0}_${item.company}`;
+                        }else if(item.company === '3'){
+                            obj.company3 = `${item.totalIncome || 0}_${item.company}`;
+                        }else if(item.company === '5') {
+                            obj.company5 = `${item.totalIncome || 0}_${item.company}`
+                        }
+                        obj.year = item.year;
+                    });
+
+                    obj.sum = d.reduce((v1, v2)=>{
+                        return v1 + ( v2.totalIncome || 0 );
+                    }, 0);
             }
-        });
+            obj.key = i;
+
+            res.push(obj);
+        }
+
+        console.log('res:', res);
+        return res;
+    }
+
+    /** 服务站收益表 构建table所需数据 **/
+    makeDataStation(){
+        const params={
+            stationArea:item.stationArea,
+        }
     }
 
     /** 查看详情模态框出现 **/
@@ -311,23 +672,20 @@ class Category extends React.Component {
         });
     }
 
-    /** 总部 - 上方列表 - 日期改变时触发 **/
-    onHQMainDateSearch(e) {
-        this.setState({
-            HQSearchDate: e,
-        });
-        setTimeout(() => {
-            this.onGetDataHQ(this.state.pageNumHQ,this.state.pageSizeHQ);
-            this.onGetDataHQMain();
-        });
-    }
-    /** 服务站收益 - 获取省级数据（上方查询服务站地区用） **/
+    /** 服务站收益 - 获取省级数据（上方查询服务站地区用）  获取所有的省 **/
     getAllCity0() {
-        this.props.actions.findAllProvince();
+        this.props.actions.findAllProvince({ pageNum: 0, pageSize: 9999 }).then((res) => {
+            if (res.returnCode === '0') {
+                this.setState({
+                    citys: res.messsageBody || [],
+                });
+            }
+        });
     }
 
     /** 服务站收益 - 获取某省下面的市（上方查询服务站地区用） **/
     getAllCitySon(selectedOptions) {
+        console.log('这是哪里：',selectedOptions);
         const targetOption = selectedOptions[selectedOptions.length - 1];
         targetOption.loading = true;
         this.props.actions.findCityOrCounty({ parentId: selectedOptions[selectedOptions.length - 1].id }).then((res) => {
@@ -343,85 +701,21 @@ class Category extends React.Component {
         });
     }
 
-    /** 总部 - 主表单页码改变 **/
-    onHQTablePageChange(page, pageSize) {
-        this.onGetDataHQ(page, pageSize);
-    }
-
-    /** 总部 - 构建上面表格字段 **/
-    makeColumnsTop(){
-        const columns = [
-            {
-                title: '结算主体',
-                dataIndex: 'incomeType',
-                key: 'incomeType',
-            },
-            {
-                title: '结算月份',
-                dataIndex: 'balanceMonth',
-                key: 'balanceMonth',
-            },
-            {
-                title: '总订单金额',
-                dataIndex: 'orderTotalFee',
-                key: 'orderTotalFee',
-            },
-            {
-                title: '总收益',
-                dataIndex: 'income',
-                key: 'income',
-            },
-        ];
-        return columns;
-    }
-    /** 总部 - 构建上面表格数据 **/
-    makeDataTop(data){
-        console.log('data是个啥：', data);
-        return data.map((item, index) => {
-            return {
-                key: index,
-                id: item.id,
-                income: item.income,                    // 金额
-                incomeType: item.incomeType,            // 收益类型
-                orderId: item.orderId,                  // 订单号
-                orderTotalFee: item.orderTotalFee,      // 订单总金额
-                productTypeName: item.productTypeName,  // 产品类型
-                distributionType: item.distributionType,// 分配类型
-                balanceMonth: item.balanceMonth,        // 结算月份
-            }
-        });
-    }
-
-    /** 工具 - 根据分配类型code返回其名称 **/
-    getNameByDisCode(code) {
-
-        const t = this.state.typesAllot.find((item) => {
-            return item.ruleCode === code;
-        });
-
-        return t ? t.ruleName : '';
-    }
 
     /** 服务站 - 主列表 - 获取数据 **/
     onGetDataSE(pageNum, pageSize) {
         const params = {
             pageNum,
             pageSize,
-            distributionType: Number(this.state.SESearchAllot),   // 服务站 - 搜索 - 分配类型
-            minIncome: this.state.SESearchMin,     // 服务站 - 搜索 - 最小金额
-            maxIncome: this.state.SESearchMax,     // 服务站 - 搜索 - 最大金额
-            incomeType: this.state.SESearchProfit,  // 服务站 - 搜索 - 收益类型
-            orderId: this.state.SESearchOrderNo,    // 服务站 - 搜搜 - 订单号
-            balanceMonth: this.state.SESearchDate ? tools.dateToStr(this.state.SESearchDate._d) : null,
             province: this.state.SESearchArea && this.state.SESearchArea[0],
             city: this.state.SESearchArea && this.state.SESearchArea[1],
             region: this.state.SESearchArea && this.state.SESearchArea[2],
         };
-        this.props.actions.getStationIncomeList(tools.clearNull(params)).then((res) => {
+        this.props.actions.getStationIncomeMain(tools.clearNull(params)).then((res) => {
             if(res.status === 200) {
                 console.log('到底是什么：', res.data.result);
                 this.setState({
-                    dataSE: res.data.result || [],
+                    dataSE: res.data || [],
                     pageNumSE: pageNum,
                     pageSizeSE: pageSize,
                     totalSE: res.data.total,
@@ -435,99 +729,6 @@ class Category extends React.Component {
     /** 服务站 - 主列表 - 点击搜索按钮 **/
     onSESearch() {
         this.onGetDataSE(this.state.pageNumSE, this.state.pageSizeSE);
-    }
-
-    /** 服务站 - 搜索相关 **/
-    onSESearchAllot(e) {     // 分配类型选择
-        this.setState({
-            SESearchAllot: e,
-        });
-    }
-    onSESearchMin(e) {      // 最小金额
-        this.setState({
-            SESearchMin: e,
-        });
-    }
-    onSESearchMax(e) {      // 最大金额
-        this.setState({
-            SESearchMax: e,
-        });
-    }
-    onSESearchProfit(e) {   // 收益类型
-        this.setState({
-            SESearchProfit: e,
-        });
-    }
-    onSESearchOrderNo(e) {  // 订单号
-        this.setState({
-            SESearchOrderNo: e.target.value,
-        });
-    }
-    onSESearchProduct(e) {  // 产品类型
-        this.setState({
-            SESearchProduct: e,
-        });
-    }
-
-    /** 服务站 - 上方 - 选择省市区 **/
-    onCascaderChange(v) {
-        this.setState({
-            SESearchArea: v,
-        });
-    }
-
-    /** 服务站 - 主表 - 页码改变时触发 **/
-    onSETablePageChange(page, pageSize) {
-        this.onGetDataSE(page, pageSize);
-    }
-
-    /** 服务站 - 上方部分 - 获取数据 **/
-    onSESearchMain() {
-        if (!this.state.SESearchDate) {
-            message.error('请选择结算月份', 1);
-            return;
-        } else if (!this.state.SESearchArea){
-            message.error('请选择服务站地区', 1);
-            return;
-        }
-        const params = {
-            balanceMonth: this.state.SESearchDate ? tools.dateToStr(this.state.SESearchDate._d) : null,
-            province: this.state.SESearchArea ? this.state.SESearchArea[0] : null,
-            city: this.state.SESearchArea ? this.state.SESearchArea[1] : null,
-            region: this.state.SESearchArea ? this.state.SESearchArea[2] : null,
-        };
-        this.props.actions.searchCompanyIncome(tools.clearNull(params)).then((res) => {
-            if (res.status === 200) {
-                this.setState({
-                    dataSEMain: res.data,
-                });
-            }
-        });
-        this.onSESearch();
-    }
-    /** 服务站 - 上方查询相关 **/
-    onSESearchDate(e) { // 年月改变时触发
-        this.setState({
-            SESearchDate: e,
-        });
-    }
-
-    /** 查所有的分配类型 **/
-    getAllAllotTypes() {
-        this.props.actions.findSaleRuleByWhere({ pageNum: 1, pageSize: 999 }).then((res) => {
-            if (res.returnCode === '0') {
-                this.setState({
-                    typesAllot: res.messsageBody.result,
-                });
-            }
-        })
-    }
-
-    /** 查所有的收益类型 目前写死的 **/
-    getProfitTypes() {
-        this.setState({
-            typesProfit: [{ label: '经营收益', value: '经营收益' }, { label: '服务收益', value: '服务收益' }],
-        });
     }
 
     /** 查所有的产品类型 **/
@@ -568,6 +769,7 @@ class Category extends React.Component {
         this.onExportData(1, 99999);
     }
 
+
     render() {
         const me = this;
         const { form } = me.props;
@@ -592,213 +794,105 @@ class Category extends React.Component {
                                 <Tabs type="card">
                                     <TabPane tab="总部收益" key="1">
                                         <div className="system-table" >
-                                            <ul className="search-func" style={{marginTop:'10px',marginBottom:'10px'}}>
-                                                <span style={{margin:'10px'}}>结算月份：</span>
-                                                <MonthPicker
-                                                    style={{ width: '130px' }}
-                                                    value={this.state.HQSearchDate}
-                                                    onChange={(e) => this.onHQMainDateSearch(e)}
-                                                    dateRender={(current) => {
-                                                        const style = {};
-                                                        if (current.date() === 1) {
-                                                            style.border = '1px solid #1890ff';
-                                                            style.borderRadius = '45%';
-                                                        }
-                                                        return (
-                                                            <div className="ant-calendar-date" style={style}>
-                                                                {current.date()}
-                                                            </div>
-                                                        );
-                                                    }}
-                                                    format="YYYY-MM"
-                                                    placeholder="选择月份"
-                                                />
-                                            </ul>
-                                            <Table
-                                                columns={this.makeColumnsTop()}
-                                                dataSource={this.makeDataTop(this.state.dataHQMain)}
-                                                pagination={{
-                                                    total: 0,
-                                                    defaultPageSize:1,
-                                                    pageSizeOptions:1,
-                                                    hideOnSinglePage:true,
-                                                }}
-                                            />
-                                        </div>
-                                        <div className="system-table" >
+                                            <div className="system-table" >
                                             <ul className="search-ul more-ul" style={{marginTop:'10px',marginBottom:'10px'}}>
-                                                {/*<li style={{marginLeft:'-14px'}}>*/}
-                                                    {/*<span>分配类型：</span>*/}
-                                                    {/*<Select placeholder="全部" allowClear style={{ width: '200px'}} onChange={(e) => this.onHQSearchAllot(e)} value={this.state.HQSearchAllot}>*/}
-                                                        {/*{*/}
-                                                            {/*this.state.typesAllot.map((item, index) => {*/}
-                                                                {/*return <Option key={index} value={String(item.id)}>{item.ruleName}</Option>*/}
-                                                            {/*})*/}
-                                                        {/*}*/}
-                                                    {/*</Select>*/}
-                                                {/*</li>*/}
                                                 <li>
-                                                    <span>收益金额：</span>
-                                                    <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最小价格" onChange={(e) => this.onHQSearchMin(e)} value={this.state.HQSearchMin}/>--
-                                                    <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最大价格" onChange={(e) => this.onHQSearchMax(e)} value={this.state.HQSearchMax}/>
-                                                </li>
-                                                <li>
-                                                    <span>收益类型：</span>
-                                                    <Select placeholder="全部" allowClear style={{ width: '150px'}} onChange={(e) => this.onHQSearchProfit(e)} value={this.state.HQSearchProfit}>
-                                                        {
-                                                            this.state.typesProfit.map((item, index) => {
-                                                                return <Option key={index} value={String(item.value)}>{item.label}</Option>
-                                                            })
-                                                        }
+                                                    <span>结算年份：</span>
+                                                    <Select
+                                                        mode="tags"
+                                                        style={{ width: '275px' }}
+                                                        placeholder="请选择年份"
+                                                        onChange={ (e) => this.onSearchYear(e)}
+                                                    >
+                                                        {children}
                                                     </Select>
                                                 </li>
                                                 <li>
-                                                    <span>订单号</span>
-                                                    <Input style={{ width: '150px' }} onChange={(e) => this.onHQSearchOrderNo(e)} value={this.state.HQSearchOrderNo}/>
+                                                    <span>结算月份：</span>
+                                                    <Select
+                                                        mode="tags"
+                                                        style={{ width: '735px' }}
+                                                        placeholder="请选择结算月份"
+                                                        onChange={MonthChange}
+                                                    >
+                                                        {children2}
+                                                    </Select>
                                                 </li>
-                                                {/*<li>*/}
-                                                {/*<span>产品类型: </span>*/}
-                                                {/*<Select placeholder="全部" allowClear style={{ width: '150px'}} onChange={(e) => this.onHQSearchProduct(e)} value={this.state.HQSearchProduct}>*/}
-                                                {/*{*/}
-                                                {/*this.state.typesProduct.map((item, index) => {*/}
-                                                {/*return <Option key={index} value={String(item.id)}>{item.name}</Option>*/}
-                                                {/*})*/}
-                                                {/*}*/}
-                                                {/*</Select>*/}
-                                                {/*</li>*/}
-                                                <li style={{marginLeft:'10px'}}>
+                                            </ul>
+                                            <ul style={{marginTop:'10px'}} className="search-ul more-ul">
+                                                <li style={{display:'flex',marginTop:'5px'}}>
+                                                    <span>产品公司：</span>
+                                                    <Checkbox.Group onChange={onChange}>
+                                                        <Row>
+                                                            <Col style={{width:'128px',float:'left'}}><Checkbox value="1">净水服务公司</Checkbox></Col>
+                                                            <Col style={{width:'128px',float:'left'}}><Checkbox value="2">健康食品公司</Checkbox></Col>
+                                                            <Col style={{width:'128px',float:'left'}}><Checkbox value="3">生物科技公司</Checkbox></Col>
+                                                            <Col style={{width:'128px',float:'left'}}><Checkbox value="5">健康评估公司</Checkbox></Col>
+                                                        </Row>
+                                                    </Checkbox.Group>
+                                                </li>
+                                                <li style={{marginLeft:'30px',}}>
                                                     <Button icon="search" type="primary" onClick={() => this.onHQSearch()}>搜索</Button>
                                                 </li>
                                                 <li style={{marginLeft:'10px'}}>
-                                                    <Button icon="download" type="primary" onClick={() => this.onHQDownload()}>导出</Button>
+                                                    <Button icon="download" style={{color: '#fff',backgroundColor:'#108ee9',borderColor: '#108ee9'}} onClick={warning}>导出</Button>
+                                                    {/*<Button icon="download" type="primary" onClick={() => this.onHQDownload()}>导出</Button>*/}
                                                 </li>
                                             </ul>
-                                            {/** 总部主表 **/}
-                                            <Table
-                                                columns={this.makeColumns()}
-                                                className="my-table"
-                                                dataSource={this.makeData(this.state.dataHQ)}
-                                                pagination={{
-                                                    total: this.state.totalHQ,
-                                                    current: this.state.pageNumHQ,
-                                                    pageSize: this.state.pageSizeHQ,
-                                                    showQuickJumper: true,
-                                                    showTotal: (total, range) => `共 ${total} 条数据`,
-                                                    onChange: (page, pageSize) => this.onHQTablePageChange(page, pageSize)
-                                                }}
-                                            />
+                                            {/** 总部收益主表 **/}
+                                                <Table
+                                                    columns={this.makeColumns()}
+                                                    style={{width:'1400px'}}
+                                                    className="my-table"
+                                                    dataSource={this.makeData(this.state.dataHQ)}
+                                                    bordered={true}
+                                                    pagination={false}
+                                                />
+                                            </div>
                                         </div>
                                     </TabPane>
                                     <TabPane tab="服务站收益" key="2">
                                         <div className="system-table" style={{width:'400px'}}>
                                             <ul className="more-ul" style={{margin:'10px'}}>
-                                                <li style={{marginBottom:'10px'}}>
-                                                    <span style={{margin:'10px',marginLeft:'13px'}}>结算月份：</span>
-                                                    <MonthPicker
-                                                        style={{ width: '170px' }}
-                                                        dateRender={(current) => {
-                                                            const style = {};
-                                                            if (current.date() === 1) {
-                                                                style.border = '1px solid #1890ff';
-                                                                style.borderRadius = '45%';
-                                                            }
-                                                            return (
-                                                                <div className="ant-calendar-date" style={style}>
-                                                                    {current.date()}
-                                                                </div>
-                                                            );
-                                                        }}
-                                                        format="YYYY-MM"
-                                                        placeholder="选择月份"
-                                                        value={this.state.SESearchDate}
-                                                        onChange={(e) => this.onSESearchDate(e)}
-                                                    />
+                                                <li>
+                                                    <span style={{marginRight:'21px'}}>结算年份：</span>
+                                                    <Select
+                                                        mode="tags"
+                                                        style={{ width: '185px',marginBottom:'10px' }}
+                                                        placeholder="请选择年份"
+                                                        // onChange={handleChange}
+                                                    >
+                                                        {children}
+                                                    </Select>
                                                 </li>
                                                 <li style={{marginBottom:'10px'}}>
                                                     <span style={{marginRight:'8px'}}>服务站地区：</span>
                                                     <Cascader
-                                                        style={{width:'170px'}}
+                                                        style={{width:'185px'}}
                                                         placeholder="请选择服务区域"
                                                         options={this.state.citys}
                                                         loadData={(e) => this.getAllCitySon(e)}
                                                         value={this.state.SESearchArea}
                                                         onChange={(v) => this.onCascaderChange(v)}
+                                                        // changeOnSelect
                                                     />
                                                 </li>
-                                                <li style={{marginBottom:'10px'}}>
-                                                    <span style={{marginRight:'10px'}}>服务站名称：<span style={{marginLeft:'16px'}}>{this.state.dataSEMain && this.state.dataSEMain.stationName}</span></span>
-                                                </li>
-                                                <li style={{marginBottom:'10px'}}>
-                                                    <span style={{marginRight:'8px',marginLeft:'28px'}}>总收入：<span style={{marginLeft:'13px'}}>{this.state.dataSEMain && `￥${this.state.dataSEMain.income}`}</span></span>
-                                                </li>
                                                 <li style={{marginLeft:'10px'}}>
-                                                    <Button icon="search" type="primary" onClick={() => this.onSESearchMain()}>搜索</Button>
+                                                    <Button icon="search" type="primary" onClick={() => this.onSESearch()} style={{marginRight:'20px'}}>搜索</Button>
+                                                    <Button icon="download" style={{color: '#fff',backgroundColor:'#108ee9',borderColor: '#108ee9'}} onClick={warning}>导出</Button>
+                                                    {/*<Button icon="download" type="primary" onClick={() => this.onSEDownload()}>导出</Button>*/}
                                                 </li>
                                             </ul>
                                         </div>
                                         <div className="system-table" >
-                                            <ul className="search-ul more-ul" style={{marginTop:'10px',marginBottom:'10px'}}>
-                                                <ul className="search-ul more-ul" style={{marginTop:'10px',marginBottom:'10px'}}>
-                                                    {/*<li style={{marginLeft:'-14px'}}>*/}
-                                                        {/*<span>分配类型：</span>*/}
-                                                        {/*<Select placeholder="全部" allowClear style={{ width: '200px'}} onChange={(e) => this.onSESearchAllot(e)} value={this.state.SESearchAllot}>*/}
-                                                            {/*{*/}
-                                                                {/*this.state.typesAllot.map((item, index) => {*/}
-                                                                    {/*return <Option key={index} value={String(item.id)}>{item.ruleName}</Option>*/}
-                                                                {/*})*/}
-                                                            {/*}*/}
-                                                        {/*</Select>*/}
-                                                    {/*</li>*/}
-                                                    <li>
-                                                        <span>收益金额：</span>
-                                                        <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最小价格" onChange={(e) => this.onSESearchMin(e)} value={this.state.SESearchMin}/>--
-                                                        <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最大价格" onChange={(e) => this.onSESearchMax(e)} value={this.state.SESearchMax}/>
-                                                    </li>
-                                                    <li>
-                                                        <span>收益类型：</span>
-                                                        <Select placeholder="全部" allowClear style={{ width: '150px'}} onChange={(e) => this.onSESearchProfit(e)} value={this.state.SESearchProfit}>
-                                                            {
-                                                                this.state.typesProfit.map((item, index) => {
-                                                                    return <Option key={index} value={String(item.value)}>{item.label}</Option>
-                                                                })
-                                                            }
-                                                        </Select>
-                                                    </li>
-                                                    <li>
-                                                        <span>订单号</span>
-                                                        <Input style={{ width: '150px' }} onChange={(e) => this.onSESearchOrderNo(e)} value={this.state.SESearchOrderNo}/>
-                                                    </li>
-                                                    {/*<li>*/}
-                                                    {/*<span>产品类型: </span>*/}
-                                                    {/*<Select placeholder="全部" allowClear style={{ width: '150px'}} onChange={(e) => this.onHQSearchProduct(e)} value={this.state.HQSearchProduct}>*/}
-                                                    {/*{*/}
-                                                    {/*this.state.typesProduct.map((item, index) => {*/}
-                                                    {/*return <Option key={index} value={String(item.id)}>{item.name}</Option>*/}
-                                                    {/*})*/}
-                                                    {/*}*/}
-                                                    {/*</Select>*/}
-                                                    {/*</li>*/}
-                                                    <li style={{marginLeft:'10px'}}>
-                                                        <Button icon="search" type="primary" onClick={() => this.onSESearch()}>搜索</Button>
-                                                    </li>
-                                                    <li style={{marginLeft:'10px'}}>
-                                                        <Button icon="download" type="primary" onClick={() => this.onSEDownload()}>导出</Button>
-                                                    </li>
-                                                </ul>
-                                            </ul>
                                             {/** 服务站主表 **/}
                                             <Table
-                                                columns={this.makeColumns()}
+                                                columns={this.DataStation()}
+                                                style={{width:'1400px'}}
                                                 className="my-table"
-                                                dataSource={this.makeData(this.state.dataSE)}
-                                                pagination={{
-                                                    total: this.state.totalSE,
-                                                    current: this.state.pageNumSE,
-                                                    pageSize: this.state.pageSizeSE,
-                                                    showQuickJumper: true,
-                                                    showTotal: (total, range) => `共 ${total} 条数据`,
-                                                    onChange: (page, pageSize) => this.onSETablePageChange(page, pageSize)
-                                                }}
+                                                dataSource={this.makeDataStation(this.state.dataSE)}
+                                                bordered={true}
+                                                pagination={false}
                                             />
                                         </div>
                                     </TabPane>
@@ -807,58 +901,6 @@ class Category extends React.Component {
                         </li>
                     </ul>
                 </div>
-                {/** 查看详情Modal **/}
-                <Modal
-                    title={'查看详情'}
-                    visible={this.state.queryModalShow}
-                    onOk={() => this.onQueryModalClose()}
-                    onCancel={() => this.onQueryModalClose()}
-                >
-                    <Form>
-                        <FormItem
-                            label="收益金额"
-                            {...formItemLayout}
-                        >
-                            {!!this.state.nowData ? this.state.nowData.income : ''}
-                        </FormItem>
-                        <FormItem
-                            label="收益类型"
-                            {...formItemLayout}
-                        >
-                            {!!this.state.nowData ? this.state.nowData.incomeType : ''}
-                        </FormItem>
-                        {/*<FormItem*/}
-                            {/*label="分配类型"*/}
-                            {/*{...formItemLayout}*/}
-                        {/*>*/}
-                            {/*{!!this.state.nowData ? this.state.nowData.distributionType : ''}*/}
-                        {/*</FormItem>*/}
-                        <FormItem
-                            label="订单号"
-                            {...formItemLayout}
-                        >
-                            {!!this.state.nowData ? this.state.nowData.orderId : ''}
-                        </FormItem>
-                        <FormItem
-                            label="产品类型"
-                            {...formItemLayout}
-                        >
-                            {!!this.state.nowData ? this.state.nowData.productTypeName : ''}
-                        </FormItem>
-                        <FormItem
-                            label="订单总金额"
-                            {...formItemLayout}
-                        >
-                            {!!this.state.nowData ? this.state.nowData.orderTotalFee : ''}
-                        </FormItem>
-                        <FormItem
-                            label="结算月份"
-                            {...formItemLayout}
-                        >
-                            {!!this.state.nowData ? this.state.nowData.balanceMonth : ''}
-                        </FormItem>
-                    </Form>
-                </Modal>
             </div>
         );
     }
@@ -885,6 +927,6 @@ export default connect(
         citys: state.sys.citys,
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ getSupplierIncomeList, findSaleRuleByWhere, getSupplierIncomeMain, getStationIncomeList, searchCompanyIncome,findProductTypeByWhere,findAllProvince,findStationByArea,findCityOrCounty }, dispatch),
+        actions: bindActionCreators({ getSupplierIncomeMain, findSaleRuleByWhere,getStationIncomeMain,findProductTypeByWhere,findAllProvince,findStationByArea,findCityOrCounty ,onChange,warning,saveTest}, dispatch),
     })
 )(WrappedHorizontalRole);

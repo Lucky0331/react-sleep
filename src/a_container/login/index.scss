@@ -1,10 +1,18 @@
 .page-login{
     height: calc(100vh - 75px);
     min-height: 250px;
+    .backImg{
+      img{
+         height:902px;
+         width:100%;
+      }
+    }
 	.login-box{
-      width: 400px;
-      padding: 20px;
-      border-radius: 4px;
+      width: 40%;
+      background: #fff;
+      margin: 0 auto;
+      min-height: 400px;
+      padding: 10px;
       position: absolute;
       top: 42%;
       left: 50%;
@@ -15,7 +23,8 @@
         opacity: 1;
       }
       .title{
-        padding-bottom: 10px;
+        padding-top: 30px;
+        padding-bottom: 20px;
         text-align: center;
         img{
           width: 260px;
@@ -28,7 +37,15 @@
       }
       .submit-btn{
         float: right;
-        width: 270px;
+        width: 255px;
+      }
+      .login{
+        background: #fff;
+        margin: 0 auto;
+        min-height: 400px;
+        padding: 10px;
+        //border: 2px solid #7397D1;
+        min-height: 400px;
       }
     }
   .login-back{

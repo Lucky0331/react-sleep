@@ -536,11 +536,6 @@ class Category extends React.Component {
                         </li>
                         <li>
                             <span>标题</span>
-                            {/*<Select allowClear placeholder="全部" style={{ width: '172px' }} onChange = {(e) =>this.searchTitleChange(e)}>*/}
-                                {/*{this.state.data.map((item, index) => {*/}
-                                    {/*return <Option key={index} value={item.id}>{ item.title }</Option>*/}
-                                {/*})}*/}
-                            {/*</Select>*/}
                             <Input style={{ width: '172px' }} onChange = {(e) =>this.searchTitleChange(e)}/>
                         </li>
                         <li>

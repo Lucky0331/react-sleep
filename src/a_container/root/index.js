@@ -19,7 +19,7 @@ import NewServiceStation from '../NewServiceStation'; // 服务站模块
 import NewMoney from '../NewMoney'    //资金管理模块
 import NewInvoice from '../NewInvoice'    //发票管理模块
 import NewContent from '../NewContent'    //内容管理模块
-
+import NewUser from '../NewUser'       //用户管理
 
 import NotFound from '../notfound'; // 404页
 
@@ -116,6 +116,7 @@ class RootContainer extends React.Component {
                       <Route path="/money" render={(props) => this.onEnter(NewMoney, props)} />
                       <Route path="/invoice" render={(props) => this.onEnter(NewInvoice, props)} />
                       <Route path="/content" render={(props) => this.onEnter(NewContent, props)} />
+                      <Route path="/usermanage" render={(props) => this.onEnter(NewUser, props)} />
                       <Route component={NotFound} />
                     </Switch>
                     <Footer key="footer"/>

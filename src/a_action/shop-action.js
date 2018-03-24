@@ -2,7 +2,7 @@
  * 商城管理模块actions
  * */
 import Fetchapi from '../util/fetch-api';
-import { message } from 'antd';
+import { message ,Modal} from 'antd';
 
 // 条件查询产品类型(查询所有)
 export function findProductTypeByWhere(params = {}) {
@@ -840,20 +840,22 @@ export function statementList(params = {}) {
     };
 }
 
-// // 购买权限管理列表
-// export function addbuylist(params = {}) {
-//     return (dispatch) => {
-//         return Fetchapi.newPost(
-//             '/manager/bp/list', params
-//         ).then(
-//             msg => {
-//                 return msg;
-//             }
-//         ).catch(() => {
-//             message.error('网络错误，请重试');
-//         });
-//     };
-// }
+
+
+// 订单退款管理列表
+export function refundList(params = {}) {
+    return (dispatch) => {
+        return Fetchapi.newPost(
+            '/manager/order/refundList', params
+        ).then(
+            msg => {
+                return msg;
+            }
+        ).catch(() => {
+            message.error('网络错误，请重试');
+        });
+    };
+}
 
 //计费方式的选择
 export function onChange3(feeType) {
@@ -873,6 +875,12 @@ export function onOk(value) {
     console.log('onOk: ', value);
 }
 
+export function warning() {
+    Modal.warning({
+        title: '提示',
+        content: '导出功能尚在开发 敬请期待',
+    });
+}
 
 
 

@@ -16,6 +16,8 @@ import './index.scss';
 // ==================
 
 import Banner from './container/Banner';
+import Cardlist from './container/Cardlist';
+
 
 // ==================
 // 本页面所需action
@@ -47,6 +49,7 @@ class TheContainer extends React.Component {
                 <Switch>
                     <Redirect exact from={`${this.props.match.path}`} to={`${this.props.match.path}/banner`} />
                     <Route exact path={`${this.props.match.path}/banner`} component={Banner} />
+                    <Route exact path={`${this.props.match.path}/cardlist`} component={Cardlist} />
                 </Switch>
             </div>
         );

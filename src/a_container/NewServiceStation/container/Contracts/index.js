@@ -25,7 +25,7 @@ import _ from 'lodash';
 // ==================
 
 import { findAllProvince,findStationByArea, findCityOrCounty} from '../../../../a_action/sys-action';
-import { findProductLine ,addProductLine,updateProductLine,updateContract,ContractList} from '../../../../a_action/shop-action';
+import { findProductLine ,addProductLine,updateProductLine,updateContract,ContractList,warning} from '../../../../a_action/shop-action';
 // ==================
 // Definition
 // ==================
@@ -400,8 +400,10 @@ class Category extends React.Component {
                                 <Option value={1}>已承包</Option>
                             </Select>
                         </li>
-                        <li style={{width: '80px',marginRight:'15px'}}><Button  type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
-                        <li style={{width: '80px',marginRight:'35px'}}><Button  type="primary" onClick={() => this.onExport()}>导出</Button></li>
+                        <li style={{width: '80px',marginRight:'15px'}}><Button  type="primary" icon="search" onClick={() => this.onSearch()}>搜索</Button></li>
+                        <li>
+                            <Button icon="download" style={{color: '#fff',backgroundColor:'#108ee9',borderColor: '#108ee9'}} onClick={warning}>导出</Button>
+                        </li>
                     </ul>
                 </div>
                 <div className="system-table" >
@@ -497,6 +499,6 @@ export default connect(
         citys: state.sys.citys,
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findAllProvince, findCityOrCounty,findStationByArea,updateProductLine, updateContract,ContractList,findProductLine,addProductLine}, dispatch),
+        actions: bindActionCreators({ findAllProvince, findCityOrCounty,findStationByArea,updateProductLine, updateContract,ContractList,findProductLine,addProductLine,warning}, dispatch),
     })
 )(WrappedHorizontalRole);

@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
 
-import './index.scss';
+//import './index.scss';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
 import { power } from '../../../../util/data';
@@ -343,8 +343,12 @@ class Manager extends React.Component {
             'addnewEmail',
             'addnewDescription',
             'addnewOrgCode',
-            'addCascader',
         ];
+
+        if([18].includes(this.state.code)){
+            checks.push('addCascader')
+        }
+
         if (form.getFieldValue('addnewOrgCode') === 18) {   // 有服务站的情况
             checks.push('addnewServiceStation');
         }
@@ -414,6 +418,7 @@ class Manager extends React.Component {
         switch(String(id)) {
             case '1' : return '翼猫总部';
             case '18': return '服务站';
+            case '19': return '总部财务';
             default: return '';
         }
     }
@@ -594,10 +599,11 @@ class Manager extends React.Component {
     }
 
     // 添加组织被改变
-    onAddOrgCodeChange(e) {
+    onAddOrgCodeChange(data) {
         const me = this;
         const { form } = me.props;
         form.resetFields(['addnewServiceStation']);
+        console.log('是什么组织: ',data.orgType)
     }
   render() {
       const me = this;
@@ -792,8 +798,10 @@ class Manager extends React.Component {
                           <Select placeholder="选择组织" onChange={(e) => this.onAddOrgCodeChange(e)}>
                               <Option value={1} >翼猫总部</Option>
                               <Option value={18} >服务站</Option>
+                              <Option value={19} >总部财务</Option>
                           </Select>
-                      )}
+                          )
+                      }
                   </FormItem>
                   <FormItem
                       label="服务站地区"
@@ -985,6 +993,7 @@ class Manager extends React.Component {
                           <Select placeholder="选择组织">
                               <Option value={1} >翼猫总部</Option>
                               <Option value={18} >服务站</Option>
+                              <Option value={19} >总部财务</Option>
                           </Select>
                       )}
                   </FormItem>

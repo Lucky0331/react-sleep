@@ -10,6 +10,7 @@ import { bindActionCreators } from 'redux';
 import P from 'prop-types';
 import { Form, Button, Icon, Input, Table, message, Modal, Tooltip, InputNumber, Select, Divider ,Cascader,DatePicker } from 'antd';
 import './index.scss';
+import moment from 'moment';
 import Config from '../../../../config/config';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
@@ -49,8 +50,9 @@ class Category extends React.Component {
             searchPayType:'', //搜索 - 支付类型
             searchmchOrderIdChange:'',// 流水号查询
             searchConditions:'', //搜索 - 订单状态
-            searchorderNo:'',    //搜索 - 订单号
-            searchUserName:'',   //搜索 - 用户id
+            searchorderNo :'',    //搜索 - 订单号
+            searchUserName :'',   //搜索 - 用户id
+            searchActivity : '',  //搜索 - 活动方式
             nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
             addnewModalShow: false, // 查看地区模态框是否显示
             upModalShow: false, // 修改模态框是否显示
@@ -81,22 +83,21 @@ class Category extends React.Component {
         const params = {
             pageNum,
             pageSize,
-            isPay: this.state.searchName,
+            id:this.state.searchId,
             payType: this.state.searchPayType,
             conditions:this.state.searchConditions,
-            id:this.state.searchId,
             userId:this.state.searchUserName,
-            ambassadorName:this.state.searchambassadorName,
             productType: this.state.searchProductType,
-            orderFrom:this.state.searchorderFrom,
             orderNo: this.state.searchorderNo,
             minPrice: this.state.searchMinPrice,
             maxPrice: this.state.searchMaxPrice,
             mchOrderId:this.state.searchmchOrderIdChange,
+            userType: this.state.searchType,
+            activityType: this.state.searchActivity,
             payBeginTime: this.state.searchBeginTime ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00` : '',
             payEndTime: this.state.searchEndTime ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`: '',
-            beginTime: this.state.searchTime ? `${tools.dateToStrT(this.state.searchTime._d)} 00:00:00` : '',
-            endTime: this.state.searchTime ?`${tools.dateToStrT(this.state.searchTime._d)} 23:59:59` :'',
+            beginTime: this.state.searchTime ? `${tools.dateToStrQ(this.state.searchTime._d)} 00:00:00` : '',
+            endTime: this.state.searchTime ?`${tools.dateToStrQ(this.state.searchTime._d)} 23:59:59` :'',
         };
         this.props.actions.statementList(tools.clearNull(params)).then((res) => {
             console.log('返回的什么：', res.messsageBody);
@@ -151,12 +152,31 @@ class Category extends React.Component {
         return t ? t.name : '';
     }
 
+    // 工具 - 根据ID获取用户类型
+    getUserType(id) {
+        switch(String(id)) {
+            case '0': return '经销商（体验版）';
+            case '1': return '经销商（微创版）';
+            case '2': return '经销商（个人版）';
+            case '3': return '分享用户';
+            case '4': return '普通用户';
+            case '5': return '企业版经销商';
+            case '6': return '企业版子账号';
+            case '7': return '分销商';
+            default: return '';
+        }
+    }
+
     // 工具 - 根据ID获取用户来源名字
     getListByModelId(id) {
-        switch(String(id)) {
-            case '2': return '待发货';
-            case '3': return '待收货';
-            case '4': return '已完成';
+        switch(id) {
+            case 0: return '待付款';
+            case 1: return '待审核';
+            case 2: return '待发货';
+            case 3: return '待收货';
+            case 4: return '已完成';
+            case -3: return '已取消';
+            case -4: return '已关闭';
             default: return '';
         }
     }
@@ -171,6 +191,16 @@ class Category extends React.Component {
         }
     }
 
+    //工具 - 根据活动类型id获取活动名称
+    getActivity(id){
+        switch(String(id)){
+            case '1' : return '普通产品';
+            case '2' : return '活动产品';
+            default: return '';
+        }
+
+    }
+
     //工具
     getCity(s,c,q,j){
         if (!s){
@@ -179,10 +209,20 @@ class Category extends React.Component {
         return `${s}/${c}/${q}/${j}`;
     }
 
+    //工具 - 用户具体收货地体
+    getAddress(s,c,q,x){
+        if (!s){
+            return '';
+        }
+        return `${s}${c}${q}${x}`;
+    }
+
     //搜索 - 对账时间的变化
     searchTime(v){
         this.setState({
             searchTime : v,
+            searchEndTime: undefined,
+            searchBeginTime: undefined,
         });
     }
 
@@ -245,8 +285,7 @@ class Category extends React.Component {
         });
     }
 
-
-    // 搜索 - 产品名称输入框值改变时触发
+    // 搜索 - 流水号输入框值改变时触发
     mchOrderIdChange(e) {
             this.setState({
                 searchmchOrderIdChange: e.target.value,
@@ -259,6 +298,20 @@ class Category extends React.Component {
         this.setState({
             searchProductType: v,
         });
+    }
+
+    //搜索 - 用户类型
+    onSearchType(v){
+        this.setState({
+            searchType:v
+        })
+    }
+
+    //搜索 - 活动类型
+    searchActivityType(v){
+        this.setState({
+            searchActivity:v
+        })
     }
 
     // 搜索 - 最小价格变化
@@ -280,13 +333,30 @@ class Category extends React.Component {
         console.log('是什么：', v);
         this.setState({
             searchBeginTime: v,
+            searchTime: undefined,
         });
     }
 
     // 搜索 - 结束时间变化
     searchEndTime(v) {
+        console.log('触发：', v);
+        let date = v;
+        const now = new Date();
+        if (v._d.getFullYear() === now.getFullYear() && v._d.getMonth() === now.getMonth() && v._d.getDate() === now.getDate()) {
+            date = moment();
+        }
         this.setState({
-            searchEndTime: v,
+            searchEndTime: date,
+            searchTime: undefined,
+        });
+    }
+
+    //Input中的删除按钮所删除的条件
+    emitEmpty(){
+        this.setState({
+            searchorderNo: '',
+            searchUserName:'',
+            searchmchOrderIdChange:'',
         });
     }
 
@@ -305,6 +375,20 @@ class Category extends React.Component {
         const params = {
             pageNum,
             pageSize,
+            // beginTime:this.state.searchTime ? `${tools.dateToStrQ(this.state.searchTime._d)} 00:00:00` : '',
+            // endTime:this.state.searchTime ? `${tools.dateToStrQ(this.state.searchTime._d)} 23:59:59` : '',
+            activityType:this.state.searchActivity ,
+            userType: this.state.searchType,
+            payType: this.state.searchPayType,
+            conditions:this.state.searchConditions,
+            userId:this.state.searchUserName,
+            productType: this.state.searchProductType,
+            orderNo: this.state.searchorderNo,
+            minPrice: this.state.searchMinPrice,
+            maxPrice: this.state.searchMaxPrice,
+            mchOrderId:this.state.searchmchOrderIdChange,
+            payBeginTime: this.state.searchBeginTime ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00` : '',
+            payEndTime: this.state.searchEndTime ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`: '',
         };
         let form = document.getElementById('download-form');
         if (!form) {
@@ -314,7 +398,108 @@ class Category extends React.Component {
         form.id = 'download-form';
         form.action = `${Config.baseURL}/manager/order/statementExport`;
         form.method = 'post';
-        console.log('FORM:', form);
+        console.log('FORM:',params );
+
+        const newElement = document.createElement("input");
+        newElement.setAttribute("name","pageNum");
+        newElement.setAttribute("type","hidden");
+        newElement.setAttribute("value",pageNum);
+        form.appendChild(newElement);
+
+        const newElement2 = document.createElement("input");
+        newElement2.setAttribute("name","pageSize");
+        newElement2.setAttribute("type","hidden");
+        newElement2.setAttribute("value",pageSize);
+        form.appendChild(newElement2);
+
+        const newElement3 = document.createElement("input");
+        if(params.activityType){
+            newElement3.setAttribute("name","activityType");
+            newElement3.setAttribute("type","hidden");
+            newElement3.setAttribute("value",params.activityType);
+            form.appendChild(newElement3);
+        }
+
+        const newElement4 = document.createElement("input");
+        if(params.userType){
+            newElement4.setAttribute("name","userType");
+            newElement4.setAttribute("type","hidden");
+            newElement4.setAttribute("value",params.userType);
+            form.appendChild(newElement4);
+        }
+
+        const newElement5 = document.createElement("input");
+        if(params.payBeginTime){
+            newElement5.setAttribute("name","payBeginTime");
+            newElement5.setAttribute("type","hidden");
+            newElement5.setAttribute("value",params.payBeginTime);
+            form.appendChild(newElement5);
+        }
+
+        const newElement6 = document.createElement("input");
+        if(params.payEndTime){
+            newElement6.setAttribute("name","payEndTime");
+            newElement6.setAttribute("type","hidden");
+            newElement6.setAttribute("value",params.payEndTime);
+            form.appendChild(newElement6);
+        }
+
+        const newElement7 = document.createElement("input");
+        if(params.conditions){
+            newElement7.setAttribute("name","conditions");
+            newElement7.setAttribute("type","hidden");
+            newElement7.setAttribute("value",params.conditions);
+            form.appendChild(newElement7);
+        }
+
+        const newElement8 = document.createElement("input");
+        if(params.payType){
+            newElement8.setAttribute("name","payType");
+            newElement8.setAttribute("type","hidden");
+            newElement8.setAttribute("value",params.payType);
+            form.appendChild(newElement8);
+        }
+
+        const newElement9 = document.createElement("input");
+        if(params.userId){
+            newElement9.setAttribute("name","userId");
+            newElement9.setAttribute("type","hidden");
+            newElement9.setAttribute("value",params.userId);
+            form.appendChild(newElement9);
+        }
+
+        const newElement10 = document.createElement("input");
+        if(params.productType){
+            newElement10.setAttribute("name","productType");
+            newElement10.setAttribute("type","hidden");
+            newElement10.setAttribute("value",params.productType);
+            form.appendChild(newElement10);
+        }
+
+        const newElement11 = document.createElement("input");
+        if(params.orderNo){
+            newElement11.setAttribute("name","orderNo");
+            newElement11.setAttribute("type","hidden");
+            newElement11.setAttribute("value",params.orderNo);
+            form.appendChild(newElement11);
+        }
+
+        const newElement12 = document.createElement("input");
+        if(params.minPrice){
+            newElement12.setAttribute("name","minPrice");
+            newElement12.setAttribute("type","hidden");
+            newElement12.setAttribute("value",params.minPrice);
+            form.appendChild(newElement12);
+        }
+
+        const newElement13 = document.createElement("input");
+        if(params.mchOrderId){
+            newElement13.setAttribute("name","mchOrderId");
+            newElement13.setAttribute("type","hidden");
+            newElement13.setAttribute("value",params.mchOrderId);
+            form.appendChild(newElement13);
+        }
+
         form.submit();
     }
 
@@ -329,13 +514,6 @@ class Category extends React.Component {
         console.log('typeId的数值是：',record.typeId)
     }
 
-    // //根据typeId值不同显示的字段不同
-    // codeType(record){
-    //     this.setState({
-    //         typeId:record.typeId
-    //     })
-    //     console.log('typeId的数值是：',typeId)
-    // }
 
     // 查看详情模态框关闭
     onQueryModalClose() {
@@ -373,6 +551,12 @@ class Category extends React.Component {
                 render: (text) => this.getListByModelId(text),
             },
             {
+                title:'用户类型',
+                dataIndex:'userType',
+                key:'userType',
+                render: (text)=>this.getUserType(text),
+            },
+            {
                 title: '用户id',
                 dataIndex: 'userId',
                 key: 'userId',
@@ -394,7 +578,13 @@ class Category extends React.Component {
                 key: 'count',
             },
             {
-                title: '订单金额',
+                title:'活动方式',
+                dataIndex:'activityType',
+                key:'activityType',
+                render : (text) => this.getActivity(text)
+            },
+            {
+                title: '订单总金额',
                 dataIndex: 'fee',
                 key: 'fee',
             },
@@ -452,7 +642,7 @@ class Category extends React.Component {
                 count: item.count,
                 fee: item.fee,
                 openAccountFee: item.openAccountFee,
-                payType: (item.payRecord) ? item.payRecord.payType :'',
+                payType: item.payType,
                 orderNo: item.id,
                 serial:(index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
                 createTime: item.createTime,
@@ -461,17 +651,22 @@ class Category extends React.Component {
                 typeId:(item.product)?item.product.typeId :'',
                 conditions: item.conditions,
                 userName: item.userId,
+                userType: (item.userInfo) ? item.userInfo.userType : '',
+                refer: item.refer,
                 orderFrom:item.orderFrom,
+                activityType: item.activityType,
                 realName:(item.distributor) ? item.distributor.realName : '',
                 ambassadorName:(item.distributor) ? item.distributor.mobile : '',
                 userId:item.userInfo.id,
                 modelType:item.modelType,
-                mchOrderId: item.payRecord.mchOrderId,
+                // mchOrderId: item.payRecord.mchOrderId,
                 mobile:(item.shopAddress) ? item.shopAddress.mobile : '',
                 province: (item.shopAddress) ? item.shopAddress.province :'' ,
                 city: (item.shopAddress) ? item.shopAddress.city : '',
                 region: (item.shopAddress) ? item.shopAddress.region : '',
                 street: (item.shopAddress) ? item.shopAddress.street :'',
+                customerName : (item.customer) ? item.customer.realName : '',
+                customerPhone : (item.customer) ? item.customer.phone :'',
             }
         });
     }
@@ -486,13 +681,21 @@ class Category extends React.Component {
         const formItemLayout = {
             labelCol: {
                 xs: { span: 24 },
-                sm: { span: 7 },
+                sm: { span: 9 },
             },
             wrapperCol: {
                 xs: { span: 24 },
-                sm: { span: 16 },
+                sm: { span: 15 },
             },
         };
+
+        const { searchorderNo } = this.state;
+        const { searchUserName } = this.state;
+        const { searchmchOrderIdChange } = this.state;
+        const suffix = searchorderNo ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
+        const suffix2 = searchUserName ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
+        const suffix3 = searchmchOrderIdChange ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
+
 
         return (
             <div>
@@ -500,7 +703,12 @@ class Category extends React.Component {
                   <ul className="search-ul more-ul">
                       <li>
                           <span>订单号查询</span>
-                          <Input style={{ width: '172px' }} onChange={(e) => this.searchOrderNoChange(e)}/>
+                          <Input
+                              style={{ width: '172px' }}
+                              suffix={ suffix }
+                              value={ searchorderNo }
+                              onChange={(e) => this.searchOrderNoChange(e)}
+                          />
                       </li>
                       <li>
                           <span>订单状态</span>
@@ -512,7 +720,25 @@ class Category extends React.Component {
                       </li>
                       <li>
                           <span>用户id</span>
-                          <Input style={{ width: '172px' }} onChange={(e) => this.searchUserNameChange(e)}/>
+                          <Input
+                              style={{ width: '172px' }}
+                              suffix={ suffix2 }
+                              value={ searchUserName }
+                              onChange={(e) => this.searchUserNameChange(e)}
+                          />
+                      </li>
+                      <li>
+                          <span>用户类型</span>
+                          <Select allowClear placeholder="全部" style={{  width: '172px'}} onChange={(e)=>this.onSearchType(e)}>
+                              <Option value={0}>经销商（体验版）</Option>
+                              <Option value={1}>经销商（微创版）</Option>
+                              <Option value={2}>经销商（个人版）</Option>
+                              <Option value={3}>分享用户</Option>
+                              <Option value={4}>普通用户</Option>
+                              <Option value={5}>企业版经销商</Option>
+                              <Option value={6}>企业版子账号</Option>
+                              <Option value={7}>分销商</Option>
+                          </Select>
                       </li>
                       <li>
                           <span>产品类型</span>
@@ -524,7 +750,12 @@ class Category extends React.Component {
                       </li>
                       <li>
                           <span>流水号查询</span>
-                          <Input style={{ width: '172px' }}  onChange={(e) => this.mchOrderIdChange(e)}/>
+                          <Input
+                              style={{ width: '172px' }}
+                              suffix={ suffix3 }
+                              value={ searchmchOrderIdChange }
+                              onChange={(e) => this.mchOrderIdChange(e)}
+                          />
                       </li>
                       <li>
                           <span>支付方式</span>
@@ -541,7 +772,7 @@ class Category extends React.Component {
                       <li>
                           <span style={{marginRight:'10px'}}>支付时间</span>
                           <DatePicker
-                              showTime
+                              showTime={{defaultValue:moment('00:00:00','HH:mm:ss')}}
                               format="YYYY-MM-DD HH:mm:ss"
                               placeholder="开始时间"
                               onChange={(e) =>this.searchBeginTime(e)}
@@ -549,18 +780,27 @@ class Category extends React.Component {
                           />
                           --
                           <DatePicker
-                              showTime
+                              showTime={{defaultValue:moment('23:59:59','HH:mm:ss')}}
                               format="YYYY-MM-DD HH:mm:ss"
                               placeholder="结束时间"
+                              value={this.state.searchEndTime}
                               onChange={(e) =>this.searchEndTime(e)}
                               onOk={onOk}
                           />
                       </li>
+                      {/*<li>*/}
+                          {/*<span style={{width:'50px'}}>对账日期</span>*/}
+                          {/*<DatePicker*/}
+                              {/*value={this.state.searchTime}*/}
+                              {/*onChange={(e) =>this.searchTime(e)}*/}
+                          {/*/>*/}
+                      {/*</li>*/}
                       <li>
-                          <span style={{width:'50px'}}>对账日期</span>
-                          <DatePicker
-                              onChange={(e) =>this.searchTime(e)}
-                          />
+                          <span>活动方式</span>
+                          <Select placeholder="全部" allowClear style={{ width: '172px' }} onChange={(e)=>this.searchActivityType(e)}>
+                              <Option value={1}>普通商品</Option>
+                              <Option value={2}>活动商品</Option>
+                          </Select>
                       </li>
                       <li style={{marginLeft:'40px'}}>
                           <Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button>
@@ -631,10 +871,22 @@ class Category extends React.Component {
                         {!!this.state.nowData ? this.state.nowData.orderNo : ''}
                     </FormItem>
                     <FormItem
+                        label="云平台工单号"
+                        {...formItemLayout}
+                    >
+                        {!!this.state.nowData ? this.state.nowData.refer : ''}
+                    </FormItem>
+                    <FormItem
                         label="订单状态"
                         {...formItemLayout}
                     >
                         {!!this.state.nowData ? this.getListByModelId(this.state.nowData.conditions) : ''}
+                    </FormItem>
+                    <FormItem
+                        label="订单来源"
+                        {...formItemLayout}
+                    >
+                        {/*{!!this.state.nowData ? this.getListByModelId(this.state.nowData.conditions) : ''}*/}
                     </FormItem>
                     <FormItem
                         label="产品类型"
@@ -655,22 +907,46 @@ class Category extends React.Component {
                         {!!this.state.nowData ? this.state.nowData.name : ''}
                     </FormItem>
                     <FormItem
-                        label="支付方式"
-                        {...formItemLayout}
-                    >
-                        {!!this.state.nowData ? this.AllpayType(this.state.nowData.payType) : ''}
-                    </FormItem>
-                    <FormItem
-                        label="用户账号"
+                        label="用户id"
                         {...formItemLayout}
                     >
                         {!!this.state.nowData ? this.state.nowData.userId : ''}
                     </FormItem>
                     <FormItem
-                        label="订单金额"
+                        label="活动方式"
+                        {...formItemLayout}
+                    >
+                        {!!this.state.nowData ? this.getActivity(this.state.nowData.activityType) : ''}
+                    </FormItem>
+                    <FormItem
+                        label="下单时间"
+                        {...formItemLayout}
+                    >
+                        {!!this.state.nowData ? this.state.nowData.createTime : ''}
+                    </FormItem>
+                    <FormItem
+                        label="数量"
+                        {...formItemLayout}
+                    >
+                        {/*{!!this.state.nowData ? `￥${this.state.nowData.fee}` : ''}*/}
+                    </FormItem>
+                    <FormItem
+                        label="订单总金额"
                         {...formItemLayout}
                     >
                         {!!this.state.nowData ? `￥${this.state.nowData.fee}` : ''}
+                    </FormItem>
+                    <FormItem
+                        label="用户类型"
+                        {...formItemLayout}
+                    >
+                        {!!this.state.nowData ? this.getUserType(this.state.nowData.userType) : ''}
+                    </FormItem>
+                    <FormItem
+                        label="活动方式"
+                        {...formItemLayout}
+                    >
+                        {/*{!!this.state.nowData ? this.state.nowData.mchOrderId : ''}*/}
                     </FormItem>
                     <FormItem
                         label="流水号"
@@ -679,38 +955,124 @@ class Category extends React.Component {
                         {!!this.state.nowData ? this.state.nowData.mchOrderId : ''}
                     </FormItem>
                     <FormItem
+                        label="支付方式"
+                        {...formItemLayout}
+                    >
+                        {!!this.state.nowData ? this.AllpayType(this.state.nowData.payType) : ''}
+                    </FormItem>
+                    <FormItem
+                        label="支付状态"
+                        {...formItemLayout}
+                    >
+                        {/*{!!this.state.nowData ? this.AllpayType(this.state.nowData.payType) : ''}*/}
+                    </FormItem>
+                    <FormItem
                         label="支付时间"
                         {...formItemLayout}
                     >
                         {!!this.state.nowData ? this.state.nowData.createTime : ''}
                     </FormItem>
                     <FormItem
+                        label="经销商id"
+                        {...formItemLayout}
+                    >
+                        {/*{!!this.state.nowData ? this.state.nowData.createTime : ''}*/}
+                    </FormItem>
+                    <FormItem
+                        label="经销商账户"
+                        {...formItemLayout}
+                    >
+                        {/*{!!this.state.nowData ? this.state.nowData.createTime : ''}*/}
+                    </FormItem>
+                    <FormItem
+                        label="经销商身份"
+                        {...formItemLayout}
+                    >
+                        {/*{!!this.state.nowData ? this.state.nowData.createTime : ''}*/}
+                    </FormItem>
+                    <FormItem
                         label="用户收货地址"
                         {...formItemLayout}
-                        className={(this.state.typeId == 4 || this.state.typeId== 5) ? 'hide' : ''}
+                        className={( this.state.typeId== 5) ? 'hide' : ''}
                     >
-                        {!!(this.state.nowData) ? this.getCity(this.state.nowData.province,this.state.nowData.city,this.state.nowData.region,this.state.nowData.street ): ''}
+                        {!!(this.state.nowData) ? this.getAddress(this.state.nowData.province,this.state.nowData.city,this.state.nowData.region,this.state.nowData.street ): ''}
                     </FormItem>
                     <FormItem
                         label="用户收货手机号"
                         {...formItemLayout}
-                        className={(this.state.typeId == 4 || this.state.typeId== 5) ? 'hide' : ''}
+                        className={( this.state.typeId== 5) ? 'hide' : ''}
                     >
                         {!!this.state.nowData ? this.state.nowData.mobile : ''}
+                    </FormItem>
+                    <FormItem
+                        label="推荐人姓名"
+                        {...formItemLayout}
+                        className={( this.state.typeId == 1 || this.state.typeId == 4 || this.state.typeId == 5) ? 'hide' : ''}
+                    >
+                        {/*{!!this.state.nowData ? this.state.nowData.createTime : ''}*/}
+                    </FormItem>
+                    <FormItem
+                        label="推荐人账户"
+                        {...formItemLayout}
+                        className={( this.state.typeId == 1 || this.state.typeId == 4 || this.state.typeId == 5) ? 'hide' : ''}
+                    >
+                        {/*{!!this.state.nowData ? this.state.nowData.createTime : ''}*/}
+                    </FormItem>
+                    <FormItem
+                        label="服务站地区（推荐人）"
+                        {...formItemLayout}
+                        className={(this.state.typeId == 1 || this.state.typeId == 4 || this.state.typeId == 5) ? 'hide' : ''}
+                    >
+                        {/*{!!this.state.nowData ? this.state.nowData.createTime : ''}*/}
+                    </FormItem>
+                    <FormItem
+                        label="服务站公司名称（推荐人）"
+                        {...formItemLayout}
+                        className={( this.state.typeId == 1 || this.state.typeId == 4 || this.state.typeId == 5) ? 'hide' : ''}
+                    >
+                        {/*{!!this.state.nowData ? this.state.nowData.createTime : ''}*/}
+                    </FormItem>
+                    <FormItem
+                        label="服务站地区（经销商）"
+                        {...formItemLayout}
+                        className={(this.state.typeId == 1 || this.state.typeId == 2 || this.state.typeId == 3  ) ? 'hide' : ''}
+                    >
+                        {/*{!!this.state.nowData ? this.state.nowData.createTime : ''}*/}
+                    </FormItem>
+                    <FormItem
+                        label="服务站公司名称（经销商）"
+                        {...formItemLayout}
+                        className={( this.state.typeId == 1 || this.state.typeId == 2 || this.state.typeId == 3  ) ? 'hide' : ''}
+                    >
+                        {/*{!!this.state.nowData ? this.state.nowData.createTime : ''}*/}
+                    </FormItem>
+                    <FormItem
+                        label="服务站地区（安装工）"
+                        {...formItemLayout}
+                        className={(this.state.typeId == 2 || this.state.typeId == 3 || this.state.typeId == 4 || this.state.typeId == 5) ? 'hide' : ''}
+                    >
+                        {/*{!!this.state.nowData ? this.state.nowData.createTime : ''}*/}
+                    </FormItem>
+                    <FormItem
+                        label="服务站公司名称（安装工）"
+                        {...formItemLayout}
+                        className={(this.state.typeId == 2 || this.state.typeId == 3 || this.state.typeId == 4 || this.state.typeId == 5) ? 'hide' : ''}
+                    >
+                        {/*{!!this.state.nowData ? this.state.nowData.createTime : ''}*/}
                     </FormItem>
                     <FormItem
                         label="安装工姓名"
                         {...formItemLayout}
                         className={(this.state.typeId == 2 || this.state.typeId == 3 || this.state.typeId == 4 || this.state.typeId == 5) ? 'hide' : ''}
                     >
-                        {/*{!!this.state.nowData ? this.state.nowData.mobile : ''}*/}
+                        {!!this.state.nowData ? this.state.nowData.customerName : ''}
                     </FormItem>
                     <FormItem
                         label="安装工电话"
                         {...formItemLayout}
                         className={(this.state.typeId == 2 || this.state.typeId == 3 || this.state.typeId == 4 || this.state.typeId == 5 ) ? 'hide' : ''}
                     >
-                        {/*{!!this.state.nowData ? this.state.nowData.mobile : ''}*/}
+                        {!!this.state.nowData ? this.state.nowData.customerPhone : ''}
                     </FormItem>
                 </Form>
               </Modal>
@@ -739,6 +1101,6 @@ export default connect(
         citys: state.sys.citys,
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findProductTypeByWhere,onChange,onOk,statementList }, dispatch),
+        actions: bindActionCreators({ findProductTypeByWhere,onChange,onOk,statementList}, dispatch),
     })
 )(WrappedHorizontalRole);

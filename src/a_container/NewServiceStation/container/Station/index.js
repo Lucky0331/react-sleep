@@ -25,7 +25,7 @@ import _ from 'lodash';
 // ==================
 
 import { findAllProvince,findStationByArea, findCityOrCounty, findProductTypeByWhere} from '../../../../a_action/sys-action';
-import { findProductLine ,addProductLine,updateProductLine,deleteStation,editProductLine} from '../../../../a_action/shop-action';
+import { findProductLine ,addProductLine,updateProductLine,deleteStation,editProductLine,warning} from '../../../../a_action/shop-action';
 // ==================
 // Definition
 // ==================
@@ -154,7 +154,7 @@ class Category extends React.Component {
     // 查询当前页面所需列表数据
     onGetData(pageNum, pageSize) {
         const params = {
-            pageNum:0,
+            pageNum,
             pageSize,
             online: this.state.searchName,
             province: this.state.searchAddress[0],
@@ -167,7 +167,7 @@ class Category extends React.Component {
         this.props.actions.findProductLine(tools.clearNull(params)).then((res) => {
             if(res.returnCode === "0") {
                 this.setState({
-                    data: res.messsageBody.soPage.result,
+                    data: res.messsageBody.soPage.result || [],
                     productTypes: res.messsageBody.ptList,
                     pageNum,
                     pageSize,
@@ -264,11 +264,17 @@ class Category extends React.Component {
 
     // 搜索
     onSearch() {
-        this.onGetData(this.state.pageNum, this.state.pageSize);
+        this.onGetData(1, this.state.pageSize);
     }
     // 导出
     onExport() {
         this.onGetData(this.state.pageNum, this.state.pageSize);
+    }
+
+    // 表单页码改变
+    onTablePageChange(page, pageSize) {
+        console.log('页码改变：', page, pageSize);
+        this.onGetData(page, pageSize);
     }
 
     // 查询某一条数据的详情
@@ -455,8 +461,7 @@ class Category extends React.Component {
                 dataIndex: 'station',
                 key: 'station',
                 render: (text, record) => {return `${record.province}/${record.city}/${record.region}`}
-
-    },
+            },
             {
                 title: '服务站名称',
                 dataIndex: 'stationName',
@@ -638,11 +643,14 @@ class Category extends React.Component {
                           <span style={{marginRight:'10px'}}>设备id</span>
                           <Input style={{  width: '140px',marginRight:'15px' }} placeholder="请输入设备id" onChange={(e)=>this.searchDeviceIdChange(e)}/>
                       </li>
-                      <li style={{width: '80px',marginRight:'15px'}}><Button  type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
-                      <li style={{width: '80px',marginRight:'15px'}}><Button  type="primary" onClick={() => this.onExport()}>导出</Button></li>
+                      <li style={{width: '80px',marginRight:'15px'}}><Button  icon="search"  type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
+                      <li>
+                          <Button icon="download" style={{color: '#fff',backgroundColor:'#108ee9',borderColor: '#108ee9'}} onClick={warning}>导出</Button>
+                      </li>
+
                   </ul>
                   <ul className="search-func">
-                      <li><Button type="primary" onClick={() => this.onAddNewShow()}>产品上线</Button></li>
+                      <li style={{marginLeft:'10px'}}><Button type="primary" onClick={() => this.onAddNewShow()}>产品上线</Button></li>
                   </ul>
               </div>
               <div className="system-table" >
@@ -652,7 +660,7 @@ class Category extends React.Component {
                     dataSource={this.makeData(this.state.data)}
                     pagination={{
                         total: this.state.total,
-                        page: this.state.pageNum,
+                        current: this.state.pageNum,
                         pageSize: this.state.pageSize,
                         showQuickJumper: true,
                         showTotal: (total, range) => `共 ${total} 条数据`,
@@ -856,6 +864,6 @@ export default connect(
         citys: state.sys.citys,
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findAllProvince, findCityOrCounty,findStationByArea,editProductLine,updateProductLine, deleteStation,findProductTypeByWhere,findProductLine,addProductLine}, dispatch),
+        actions: bindActionCreators({ findAllProvince, findCityOrCounty,findStationByArea,editProductLine,updateProductLine, deleteStation,findProductTypeByWhere,findProductLine,addProductLine,warning}, dispatch),
     })
 )(WrappedHorizontalRole);

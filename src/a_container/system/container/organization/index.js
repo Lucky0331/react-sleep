@@ -10,7 +10,7 @@ import { bindActionCreators } from 'redux';
 import { Tree, Button, Popconfirm, Form, Input, Radio, Select, message, Table, Tooltip, Icon, Modal, InputNumber } from 'antd';
 import P from 'prop-types';
 import _ from 'lodash';
-import './index.scss';
+// import './index.scss';
 import tools from '../../../../util/tools';
 import Power from '../../../../util/power'; // 权限
 import { power } from '../../../../util/data';

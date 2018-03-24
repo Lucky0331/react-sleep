@@ -8,6 +8,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
+import moment from 'moment';
 import { Form, Button, Icon, Input, Table, message, Modal, Tooltip, InputNumber, Select, Divider ,DatePicker } from 'antd';
 import './index.scss';
 import tools from '../../../../util/tools'; // 工具
@@ -22,7 +23,7 @@ import { power } from '../../../../util/data';
 // 本页面所需action
 // ==================
 
-import { findProductModelByWhere,onChange,onOk,cashRecord,onChange4} from '../../../../a_action/shop-action';
+import { findProductModelByWhere,onChange,onOk,cashRecord,onChange4,warning} from '../../../../a_action/shop-action';
 
 // ==================
 // Definition
@@ -89,8 +90,8 @@ class Category extends React.Component {
             userMallId:this.state.searchUserMallId,
             crediBeginTime: this.state.searchBeginTime ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00` : '',
             crediEndTime: this.state.searchEndTime ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`: '',
-            beginTime: this.state.searchTime ? `${tools.dateToStrT(this.state.searchTime._d)} 00:00:00` : '',
-            endTime: this.state.searchTime ?`${tools.dateToStrT(this.state.searchTime._d)} 23:59:59` :'',
+            beginTime: this.state.searchTime ? `${tools.dateToStrQ(this.state.searchTime._d)} 00:00:00` : '',
+            endTime: this.state.searchTime ?`${tools.dateToStrQ(this.state.searchTime._d)} 23:59:59` :'',
         };
         this.props.actions.cashRecord(tools.clearNull(params)).then((res) => {
             console.log('返回的什么：', res.messsageBody);
@@ -230,20 +231,31 @@ class Category extends React.Component {
         console.log('是什么：', v);
         this.setState({
             searchBeginTime: v,
+            searchTime:undefined,
         });
     }
 
     // 搜索 - 结束时间变化
     searchEndTime(v) {
+        console.log('触发：', v);
+        let date = v;
+        const now = new Date();
+        if (v._d.getFullYear() === now.getFullYear() && v._d.getMonth() === now.getMonth() && v._d.getDate() === now.getDate()) {
+            date = moment();
+        }
         this.setState({
-            searchEndTime: v,
+            searchEndTime: date,
+            searchTime:undefined,
         });
     }
+
 
     //搜索 - 对账时间的变化
     searchTime(v){
         this.setState({
             searchTime : v,
+            searchEndTime: undefined,
+            searchBeginTime: undefined,
         });
     }
 
@@ -303,7 +315,7 @@ class Category extends React.Component {
                 title: '提现方式',
                 dataIndex: 'destCash',
                 key: 'destCash',
-                // render: (text) => String(text) === '1' ? <span>微信零钱</span> : <span>支付宝零钱</span>
+                // render: (text) => String(text) === '1' ? <span>微信零钱</span> : <span>支付宝钱包</span>
             },
             {
                 title: '用户类型',
@@ -430,17 +442,19 @@ class Category extends React.Component {
                       <li>
                           <span style={{marginRight:'10px'}}>到账时间</span>
                           <DatePicker
-                              showTime
+                              showTime={{defaultValue:moment('00:00:00','HH:mm:ss')}}
                               format="YYYY-MM-DD HH:mm:ss"
                               placeholder="开始时间"
+                              value={this.state.searchBeginTime}
                               onChange={(e) =>this.searchBeginTime(e)}
                               onOk={onOk}
                           />
                           --
                           <DatePicker
-                              showTime
+                              showTime={{defaultValue:moment('23:59:59','HH:mm:ss')}}
                               format="YYYY-MM-DD HH:mm:ss"
                               placeholder="结束时间"
+                              value={this.state.searchEndTime}
                               onChange={(e) =>this.searchEndTime(e)}
                               onOk={onOk}
                           />
@@ -467,7 +481,7 @@ class Category extends React.Component {
                           <span>提现方式</span>
                           <Select placeholder="全部" allowClear style={{ width: '172px' }} onChange={(e) => this.searchCashTypeChange(e)}>
                               <Option value={1}>微信零钱</Option>
-                              <Option value={2}>支付宝零钱</Option>
+                              <Option value={2}>支付宝钱包</Option>
                           </Select>
                       </li>
                       <li>
@@ -486,6 +500,7 @@ class Category extends React.Component {
                       <li>
                           <span style={{width:'50px'}}>对账日期</span>
                           <DatePicker
+                              value={this.state.searchTime}
                               onChange={(e) =>this.searchTime(e)}
                           />
                       </li>
@@ -493,7 +508,7 @@ class Category extends React.Component {
                           <Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button>
                       </li>
                       <li>
-                          <Button icon="download" type="primary" onClick={() => this.onExport()}>导出</Button>
+                          <Button icon="download" style={{color: '#fff',backgroundColor:'#108ee9',borderColor: '#108ee9'}} onClick={warning}>导出</Button>
                       </li>
                    </ul>
               </div>
@@ -560,7 +575,7 @@ class Category extends React.Component {
                         {...formItemLayout}
                     >
                         {!!this.state.nowData ? this.state.nowData.destCash : ''}
-                        {/*{!!this.state.nowData ? (String(this.state.nowData.destCash) === '1' ? <span>微信零钱</span> : <span>支付宝零钱</span>) : ''}*/}
+                        {/*{!!this.state.nowData ? (String(this.state.nowData.destCash) === '1' ? <span>微信零钱</span> : <span>支付宝钱包</span>) : ''}*/}
                     </FormItem>
                     <FormItem
                         label="到账时间"
@@ -595,6 +610,6 @@ export default connect(
         citys: state.sys.citys,
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findProductModelByWhere,onChange,onOk ,cashRecord,onChange4}, dispatch),
+        actions: bindActionCreators({ findProductModelByWhere,onChange,onOk ,cashRecord,onChange4,warning}, dispatch),
     })
 )(WrappedHorizontalRole);

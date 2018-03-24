@@ -17,6 +17,7 @@ import './index.scss';
 // ==================
 
 import LogoImg from '../../assets/logo.png';
+// import BackImg from '../../assets/banner.jpg'
 
 // ==================
 // 本页面所需action
@@ -194,7 +195,8 @@ class LoginContainer extends React.Component {
   onVcodeChange(code) {
     const form = this.props.form;
     form.setFieldsValue({
-      vcode: code,  // 开发模式自动赋值验证码，正式环境，这里应该赋值''
+      // vcode: code,  // 测试环境开发模式自动赋值验证码
+      vcode: '',  // 正式环境，这里应该赋值''
     });
     this.setState({
       codeValue: code,
@@ -206,19 +208,24 @@ class LoginContainer extends React.Component {
     const { getFieldDecorator } = this.props.form;
     return (
       <div className="page-login">
-        <div className={this.state.show ? 'login-box all_trans500 show' : 'login-box all_trans500'}>
-          <Form>
-            <div className="title"><img src={LogoImg} alt="logo"/></div>
-            <div>
+          {/*<div className="backImg"><img src={BackImg} alt="back"/></div>*/}
+          <div className={this.state.show ? 'login-box all_trans500 show' : 'login-box all_trans500'}>
+          <Form className='login'>
+            <div className="title"><img src={LogoImg} alt="logo" /></div>
+            <div style={{width:'55%',display:'block',margin:'auto'}}>
               <FormItem>
                   {getFieldDecorator('username', {
-                      rules: [{max: 12, message: '最大长度为12位字符'}, {required: true, whitespace: true, message: '请输入用户名'}],
+                      rules: [
+                          {max: 12, message: '最大长度为12位字符'},
+                          {required: true, whitespace: true, message: '请输入用户名'},
+                      ],
                   })(
                       <Input
-                        prefix={<Icon type="user" style={{ fontSize: 13 }} />}
-                        placeholder="用户名"
+                        prefix={<Icon type="user" style={{ fontSize: 14 ,fontWeight:'800'}} />}
+                        placeholder="请输入用户名"
                         id='form_username'
                         onPressEnter={() => this.onSubmit()}
+                        style={{display:'block',margin: 'auto',marginTop:'20px',}}
                       />
                   )}
               </FormItem>
@@ -227,15 +234,16 @@ class LoginContainer extends React.Component {
                       rules: [{ required: true, message: '请输入密码' },{max: 18, message: '最大长度18个字符'}],
                   })(
                       <Input
-                        prefix={<Icon type="lock" style={{ fontSize: 13 }} />}
+                        prefix={<Icon type="lock" style={{ fontSize: 14 , fontWeight:'800'}} />}
                         type="password"
-                        placeholder="密码"
+                        placeholder="请输入密码"
                         id='form_password'
                         onPressEnter={() => this.onSubmit()}
+                        style={{display:'block',margin: 'auto',marginTop:'10px'}}
                       />
                   )}
               </FormItem>
-              <FormItem>
+              <FormItem style={{display:'block',margin:'auto',marginTop:'10px'}}>
               {getFieldDecorator('vcode', {
                   rules: [
                   { validator: (rule, value, callback) => {
@@ -264,6 +272,7 @@ class LoginContainer extends React.Component {
                 <Vcode
                   height={32}
                   width={150}
+                  lineCount={50}
                   onChange={(code) => this.onVcodeChange(code)}
                   className='vcode'
                   options={{
@@ -271,7 +280,7 @@ class LoginContainer extends React.Component {
                   }}
                 />
               </FormItem>
-              <div style={{ lineHeight: '28px' }}>
+              <div style={{ lineHeight: '28px',margin:'auto',marginTop:'40px',paddingBottom:'65px'}}>
                 <Checkbox checked={this.state.rememberPassword} onChange={(e) => this.onRemember(e)}>记住密码</Checkbox>
                 <Button className='submit-btn' type="primary" loading={this.state.loginLoading} onClick={() => this.onSubmit()}>{this.state.loginLoading ? '请稍后' : '登录'}</Button>
               </div>

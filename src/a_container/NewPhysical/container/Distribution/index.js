@@ -144,6 +144,17 @@ class Category extends React.Component {
         }
     }
 
+    //工具 - 根据状态返回禁用状态
+     Disable(id){
+        switch (String(id)){
+            case '1' : return '未使用';
+            case '2' : return '已使用';
+            case '3' : return '已禁用';
+            case '4' : return '已过期';
+            case '5' : return '已预约';
+        }
+    }
+
     //工具 - 根据服务站地区返回服务站名称id
     getStationId(id) {
         const t = this.state.data.find((item) => String(item.id) === String(id));
@@ -195,7 +206,7 @@ class Category extends React.Component {
     //搜索 - 剩余可用次数
     searchSurplusChange(e){
         this.setState({
-            searchSurplus: e,
+            searchSurplus: e.target.value,
         })
     }
 
@@ -255,6 +266,15 @@ class Category extends React.Component {
     // 搜索
     onSearch() {
         this.onGetData(this.state.pageNum, this.state.pageSize);
+    }
+
+    //Input中的删除按钮所删除的条件
+    emitEmpty(){
+        this.setState({
+            searchStationName:'',
+            searchSurplus:'',
+            searchTicketNo:'',
+        })
     }
 
     // 搜索 - 服务站地区输入框值改变时触发
@@ -438,8 +458,8 @@ class Category extends React.Component {
             },
             {
                 title:'体检卡型号',
-                dataIndex: 'name',
-                key: 'name',
+                dataIndex: 'ticketType',
+                key: 'ticketType',
             },
             {
                 title:'有效期',
@@ -456,7 +476,7 @@ class Category extends React.Component {
                 title:'是否到期',
                 dataIndex: 'hasExpire',
                 key: 'hasExpire',
-                render: (text) => String(text) === 'true' ? <span style={{color: 'red'}}>已到期</span> : <span style={{color: 'green'}}>未到期</span>
+                render: (text) => Boolean(text) === true ? <span style={{color: 'red'}}>已到期</span> : <span style={{color: 'green'}}>未到期</span>
             },
             {
                 title:'总可用次数',
@@ -472,7 +492,7 @@ class Category extends React.Component {
                 title:'是否禁用',
                 dataIndex: 'ticketStatus',
                 key: 'ticketStatus',
-                render: (text) => String(text) === '1' ? <span style={{color: 'green'}}>未禁用</span> : <span style={{color: 'red'}}>已禁用</span>
+                render: (text) => this.Disable(text),
             },
             {
                 title:'是否限制仅该服务站使用',
@@ -511,7 +531,7 @@ class Category extends React.Component {
                             </Tooltip>
                         </span>
                     );
-                    (record.ticketStatus === 1) &&controls.push(
+                    (record.ticketStatus === 2) &&controls.push(
                         <span key="2" className="control-btn red" onClick={() => this.onUpdateClick2(record)}>
                             <Tooltip placement="top" title="禁用">
                                 <Icon type="close-square-o" />
@@ -547,7 +567,7 @@ class Category extends React.Component {
                 height: item.height,
                 idCard: item.idCard,
                 mobile: item.mobile,
-                name: item.hraCard.productModel.name,
+                name: item.station.name,
                 reserveTime: item.reserveTime,
                 sex: item.sex,
                 ticketNo: item.ticketNo,
@@ -559,6 +579,7 @@ class Category extends React.Component {
                 userSource: item.userSource,
                 weight: item.weight,
                 isExpire: item.isExpire,
+                hasExpire:item.hasExpire,
                 validEndTime: item.validEndTime,
                 createTime: item.createTime,
                 timeLimitNum:item.hraCard.productModel.timeLimitNum,
@@ -571,6 +592,7 @@ class Category extends React.Component {
                 productModelId:item.productModelId,
                 cardCount:item.cardCount,
                 total:item.total,
+                ticketType:item.ticketType,
                 hraCard:item.hraCard,
                 ticketId:item.ticketId,
                 surplus:item.surplus,
@@ -594,6 +616,15 @@ class Category extends React.Component {
             },
         };
         console.log('是啥：', this.state.citys);
+
+        const { searchStationName } =this.state;
+        const { searchSurplus } = this.state;
+        const { searchTicketNo } = this.state;
+        const suffix = searchStationName ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
+        const suffix2 = searchSurplus ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
+        const suffix3 = searchTicketNo ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
+
+
         return (
             <div style={{ width: '100%' }}>
                 <div className="system-search">
@@ -610,7 +641,12 @@ class Category extends React.Component {
                         </li>
                         <li>
                             <span>服务站</span>
-                            <Input placeholder="请输入关键字" style={{width:'172px'}}  onChange={(e) => this.searchStationNameChange(e)}/>
+                            <Input placeholder="请输入关键字"
+                                   style={{width:'172px'}}
+                                   value={ searchStationName }
+                                   suffix={suffix}
+                                   onChange={(e) => this.searchStationNameChange(e)}
+                            />
                         </li>
                         <li>
                             <span>是否到期</span>
@@ -621,13 +657,21 @@ class Category extends React.Component {
                         </li>
                         <li>
                             <span>剩余可用次数</span>
-                            <InputNumber placeholder="请输入剩余可用次数" style={{width:'172px'}}  onChange={(e) => this.searchSurplusChange(e)} /*value={this.state.searchSurplus}*/ />
+                            <Input placeholder="请输入剩余可用次数"
+                                   style={{width:'172px'}}
+                                   value={ searchSurplus }
+                                   suffix={suffix2}
+                                   onChange={(e) => this.searchSurplusChange(e)}
+                            />
                         </li>
                         <li>
                             <span>是否禁用</span>
                             <Select placeholder="全部" allowClear style={{  width: '172px'}} onChange={(e) => this.searchTicketStatusChange(e)}>
-                                <Option value={1}>未禁用</Option>
+                                <Option value={1}>未使用</Option>
+                                <Option value={2}>已使用</Option>
                                 <Option value={3}>已禁用</Option>
+                                <Option value={4}>已过期</Option>
+                                <Option value={5}>已预约</Option>
                             </Select>
                         </li>
                         <li>
@@ -640,7 +684,12 @@ class Category extends React.Component {
                         </li>
                         <li>
                             <span>体检卡号</span>
-                            <Input placeholder="请输入体检卡号" style={{width:'172px'}}  onChange={(e) => this.searchTicketNo(e)}/>
+                            <Input placeholder="请输入体检卡号"
+                                   style={{width:'172px'}}
+                                   value={ searchTicketNo }
+                                   suffix={suffix3}
+                                   onChange={(e) => this.searchTicketNo(e)}
+                            />
                         </li>
                         <li>
                             <span>分配时间</span>
@@ -694,7 +743,7 @@ class Category extends React.Component {
                     <Table
                         columns={this.makeColumns()}
                         className="my-table"
-                        // scroll={{ x: 2400 }}
+                        scroll={{ x: 2000 }}
                         dataSource={this.makeData(this.state.data)}
                         pagination={{
                             total: this.state.total,
@@ -829,7 +878,7 @@ class Category extends React.Component {
                             label="服务站名称"
                             {...formItemLayout}
                         >
-                            {!!this.state.nowData ? this.state.nowData.station.name : ''}
+                            {!!this.state.nowData ? this.state.nowData.name : ''}
                         </FormItem>
                         <FormItem
                             label="体检卡号"
@@ -859,13 +908,13 @@ class Category extends React.Component {
                             label="是否到期"
                             {...formItemLayout}
                         >
-                            {!!this.state.nowData ? (String(this.state.nowData.hasExpire) === "true" ? <span style={{ color: 'red' }}>已到期</span> : <span style={{ color: 'green' }}>未到期</span>) : ''}
+                            {!!this.state.nowData ? (Boolean(this.state.nowData.hasExpire) === true ? <span style={{ color: 'red' }}>已到期</span> : <span style={{ color: 'green' }}>未到期</span>) : ''}
                         </FormItem>
                         <FormItem
                             label="是否禁用"
                             {...formItemLayout}
                         >
-                            {!!this.state.nowData ? (String(this.state.nowData.ticketStatus) === "1" ? <span style={{ color: 'green' }}>未禁用</span> : <span style={{ color: 'red' }}>已禁用</span>) : ''}
+                            {!!this.state.nowData ? this.Disable(this.state.nowData.ticketStatus) :''}
                         </FormItem>
                         <FormItem
                             label="是否限制仅该服务站使用"

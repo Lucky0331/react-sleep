@@ -21,6 +21,8 @@ import Role from './container/role';
 import Jurisdiction from './container/jurisdiction';
 import Menus from './container/menu';
 import BuyPower from './container/buypower';
+import MyUserInfo from './container/myuserinfo';
+
 import NotFound from '../../a_container/notfound';
 // ==================
 // 本页面所需action
@@ -69,7 +71,8 @@ class SystemContainer extends React.Component {
               <Route exact path={`/${this.state.baseURL}/role`} component={Role} />
               <Route exact path={`/${this.state.baseURL}/jurisdiction`} component={Jurisdiction} />
               <Route exact path={`/${this.state.baseURL}/menu`} component={Menus} />
-              <Route exact path={`/${this.state.baseURL}/organization`} component={Organization} />
+              <Route exact path={`/${this.state.baseURL}/myuserinfo`} component={MyUserInfo} />
+              <Route exact path={`/${this.state.baseURL}/organization`} component={Organization}/>
               <Route exact path={`/${this.state.baseURL}/buypower`} component={BuyPower} />
               <Route component={NotFound} />
           </Switch>
