@@ -73,7 +73,7 @@ class Category extends React.Component {
                     chargeTypes:res.messsageBody.chargeTypeList,
                     pageNum,
                     pageSize,
-                    total:res.messsageBody.total,
+                    total:res.messsageBody.modelList.total,
                 });
             } else {
                 message.error(res.returnMessaage || '获取数据失败，请重试');

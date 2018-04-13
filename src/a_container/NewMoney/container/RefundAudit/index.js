@@ -8,12 +8,13 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import P from 'prop-types';
-import { Form, Button, Icon, Input, Table, message, Modal, Tooltip, InputNumber, Select, Divider ,Cascader,DatePicker } from 'antd';
+import { Form, Button, Icon, Input, Table, message, Modal, Tooltip, Checkbox, Select, Divider ,Cascader,DatePicker,Popconfirm,Popover} from 'antd';
 import './index.scss';
 import moment from 'moment';
-import _ from 'lodash';
+const CheckboxGroup = Checkbox.Group;
 import Config from '../../../../config/config';
 import tools from '../../../../util/tools'; // 工具
+import _ from 'lodash';
 import Power from '../../../../util/power'; // 权限
 import { power } from '../../../../util/data';
 // ==================
@@ -25,7 +26,7 @@ import { power } from '../../../../util/data';
 // 本页面所需action
 // ==================
 
-import { findProductTypeByWhere,onChange,onOk,refundList,refundAuditEgis} from '../../../../a_action/shop-action';
+import { findProductTypeByWhere,onChange,onOk,refundList,refundAudit,refundAuditEgis,onChangeCheck,warning} from '../../../../a_action/shop-action';
 
 
 // ==================
@@ -33,6 +34,8 @@ import { findProductTypeByWhere,onChange,onOk,refundList,refundAuditEgis} from '
 // ==================
 const FormItem = Form.Item;
 const Option = Select.Option;
+const plainOptions =[];
+const { TextArea } = Input;
 class Category extends React.Component {
     constructor(props) {
         super(props);
@@ -46,25 +49,29 @@ class Category extends React.Component {
             searchMaxPrice: undefined,  // 搜索- 最大价格
             searchrefundBeginTime: '',  // 搜索 - 申请退款开始时间
             searchrefundEndTime: '',  // 搜索- 申请退款结束时间
-            searchTime:'' ,// 搜索 - 退款到账开始时间
-            searchTime2:'', //搜索 - 退款到账结束时间
             searchorderFrom:'',  //搜索 - 订单来源
             searchName: '', // 搜索 - 状态
             searchPayType:'', //搜索 - 支付类型
             searchmchOrderIdChange:'',// 流水号查询
             searchConditions:'', //搜索 - 退款状态
-            searchConditionsType:'' ,  //搜索 - 订单状态
             searchorderNo :'',    //搜索 - 订单号
             searchUserName :'',   //搜索 - 用户id
             searchActivity : '',  //搜索 - 活动方式
+            addnewModalShow: false, // 添加模态框是否显示
             nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
-            addnewModalShow: false, // 查看地区模态框是否显示
             upModalShow: false, // 修改模态框是否显示
             upLoading: false, // 是否正在修改用户中
             pageNum: 1, // 当前第几页
             pageSize: 10, // 每页多少条
             total: 0, // 数据库总共多少条数据
             citys: [],  // 符合Cascader组件的城市数据
+            indeterminate: true,
+            checkAll: false,    // 全选按钮是否被勾选
+            checkReturnAll:false, //反选按钮是否被勾选
+            selectedKeys: [],   // 被选中的项 列进数组
+            visible: false,    //控制悬浮层属性
+            AuditShow : false,    //控制右侧按钮悬浮层是否显示
+            refundDetail:"退款审核未通过，如有疑问，请联系客服：4001519999",
         };
     }
 
@@ -88,21 +95,20 @@ class Category extends React.Component {
             pageNum,
             pageSize,
             id:this.state.searchId,
-            conditions:this.state.searchConditions,  //退款状态
-            userId:this.state.searchUserName,
-            productType: this.state.searchProductType,
-            orderNo: this.state.searchorderNo,
+            payType: this.state.searchPayType,
+            activityStatus:this.state.searchConditions, // 退款状态
+            userId:this.state.searchUserName,  //用户id
+            productType: this.state.searchProductType,  //产品类型
+            orderNo: this.state.searchorderNo,  //订单号查询
             minPrice: this.state.searchMinPrice,
             maxPrice: this.state.searchMaxPrice,
             mchOrderId:this.state.searchmchOrderIdChange,
-            userType: this.state.searchType,
-            activityType: this.state.searchActivity,
+            userType: this.state.searchType,  //用户身份
+            activityType: this.state.searchActivity,   //活动方式
             refundBeginTime: this.state.searchrefundBeginTime ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)} ` : '',
             refundEndTime: this.state.searchrefundEndTime ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)} `: '',
-            beginTime: this.state.searchTime ? `${tools.dateToStr(this.state.searchTime.utc()._d)}` : '',
-            endTime: this.state.searchTime2 ?`${tools.dateToStr(this.state.searchTime2.utc()._d)} ` :'',
         };
-        this.props.actions.refundList(tools.clearNull(params)).then((res) => {
+        this.props.actions.refundAudit(tools.clearNull(params)).then((res) => {
             console.log('返回的什么：', res.messsageBody);
             if(res.returnCode === "0") {
                 this.setState({
@@ -115,6 +121,7 @@ class Category extends React.Component {
         });
     }
 
+
     // 工具 - 根据受理状态码查询对应的名字
     getConditionNameById(id) {
         switch(id) {
@@ -124,8 +131,6 @@ class Category extends React.Component {
             default: return '';
         }
     }
-
-
 
     // 获取所有的产品类型，当前页要用
     getAllProductType() {
@@ -145,6 +150,13 @@ class Category extends React.Component {
     }
 
 
+    //工具 - 根据ID拿到退款中的refundId
+    getRefundId(selectedKeys){
+        const t = this.state.data.filter((item, index) => selectedKeys.includes(index));
+        console.log('是个什么：', String(t.map((item) => item.id).join(',')));
+        return String(t.map((item) => item.id).join(','));
+    }
+
     // 工具 - 根据ID获取用户类型
     getUserType(id) {
         switch(String(id)) {
@@ -160,22 +172,41 @@ class Category extends React.Component {
         }
     }
 
-    // 工具 - 根据ID获取用户来源名字
+    // 工具 - 订单状态
     getListByModelId(id) {
         switch(String(id)) {
+            case '1': return '待审核';
+            case '2': return '待发货';
             case '3': return '退款中';
-            case '4': return '退款完成';
-            case '5': return '退款失败';
+            case '4': return '已退款';
             default: return '';
         }
     }
 
+    // 工具 - 退款状态
+    getListByRefund(id) {
+        switch(String(id)) {
+            case '1': return '待审核';
+            case '3': return '已拒绝';
+            default: return '';
+        }
+    }
+
+    // 工具 - 根据ID获取支付方式
+    getBypayType(id) {
+        switch(String(id)) {
+            case '1': return '微信支付';
+            case '2': return '支付宝支付';
+            case '3': return '银联支付';
+            default: return '';
+        }
+    }
 
     //工具 - 根据活动类型id获取活动名称
     getActivity(id){
         switch(String(id)){
-            case '1' : return '普通产品';
-            case '2' : return '活动产品';
+            case '1' : return '普通商品';
+            case '2' : return '活动商品';
             default: return '';
         }
 
@@ -190,20 +221,13 @@ class Category extends React.Component {
         return `${s}${c}${q}${x}`;
     }
 
-    //搜索 - 退款到账开始时间
-    searchTime(v){
+
+    //搜索 - 支付方式输入框值改变时触发
+    searchPayTypeChange(e) {
         this.setState({
-            searchTime : _.cloneDeep(v),
+            searchPayType:e,
         });
     }
-
-    //搜索 - 退款到账结束时间
-    searchTime2(v){
-        this.setState({
-            searchTime2 : _.cloneDeep(v),
-        });
-    }
-
 
     //搜索 - 退款状态改变时触发
     searchConditionsChange(e) {
@@ -227,26 +251,38 @@ class Category extends React.Component {
         });
     }
 
-    // 点击查看地区模态框出现
-   onAddNewShow() {
-        const me = this;
-        const { form } = me.props;
-        form.resetFields([
-            'addnewCitys',
-        ]);
+
+    //悬浮层显示框
+    hide(){
         this.setState({
-            addOrUp: 'add',
-            fileList: [],
-            fileListDetail: [],
-            addnewModalShow: true,
+            visible: false,
         });
     }
 
+    //右侧悬浮层显示框
+    hide2(){
+        this.setState({
+            AuditShow: false,
+        });
+    }
+
+    //悬浮层显示框
+    handleVisibleChange(){
+        this.setState({
+            visible:true,
+        });
+    }
+
+    handleVisibleChange2(){
+        this.setState({
+            AuditShow:true,
+        });
+    }
 
     // 关闭模态框
     onAddNewClose() {
         this.setState({
-            addnewModalShow: false,
+            AuditShow: false,
         });
     }
 
@@ -259,19 +295,6 @@ class Category extends React.Component {
             case '5' : return '上海翼猫智能科技有限公司';
         }
     }
-
-    // 工具 - 订单状态
-    getConditionNameById(id) {
-        switch(id) {
-            case 0: return '待付款';
-            case 1: return '待审核';
-            case 2: return '待发货';
-            case 3: return '待收货';
-            case 4: return '已完成';
-            default: return '';
-        }
-    }
-
 
     // 搜索 - 流水号输入框值改变时触发
     mchOrderIdChange(e) {
@@ -295,7 +318,6 @@ class Category extends React.Component {
         })
     }
 
-
     //搜索 - 活动类型
     searchActivityType(v){
         this.setState({
@@ -318,8 +340,8 @@ class Category extends React.Component {
     }
 
     // 搜索 - 申请退款开始时间
-    searchApplyBeginTime(v) {
-        console.log('是什么：', v);
+    searchApplyBeginTime(v,v1) {
+        console.log('是什么：', v,v1);
         this.setState({
             searchrefundBeginTime: _.cloneDeep(v),
         });
@@ -378,25 +400,24 @@ class Category extends React.Component {
         this.onExportData(this.state.pageNum, this.state.pageSize);
     }
 
+
     // 导出订单对账列表数据
     onExportData(pageNum, pageSize) {
         const params = {
             pageNum,
             pageSize,
-            id:this.state.searchId,
-            conditions:this.state.searchConditions,  //退款状态
+            activityType:this.state.searchActivity ,
+            userType: this.state.searchType,
+            payType: this.state.searchPayType,
+            activityStatus:this.state.searchConditions,
             userId:this.state.searchUserName,
             productType: this.state.searchProductType,
             orderNo: this.state.searchorderNo,
             minPrice: this.state.searchMinPrice,
             maxPrice: this.state.searchMaxPrice,
             mchOrderId:this.state.searchmchOrderIdChange,
-            userType: this.state.searchType,
-            activityType: this.state.searchActivity,
             refundBeginTime: this.state.searchrefundBeginTime ? `${tools.dateToStrD(this.state.searchrefundBeginTime._d)} 00:00:00` : '',
             refundEndTime: this.state.searchrefundEndTime ? `${tools.dateToStrD(this.state.searchrefundEndTime._d)} 23:59:59`: '',
-            beginTime: this.state.searchTime ? `${tools.dateToStrD(this.state.searchTime._d)} 00:00:00` : '',
-            endTime: this.state.searchTime2 ?`${tools.dateToStrD(this.state.searchTime2._d)} 23:59:59` :'',
         };
         let form = document.getElementById('download-form');
         if (!form) {
@@ -421,26 +442,26 @@ class Category extends React.Component {
         form.appendChild(newElement2);
 
         const newElement3 = document.createElement("input");
-        if(params.conditions){
-            newElement3.setAttribute("name","conditions");
+        if(params.activityType){
+            newElement3.setAttribute("name","activityType");
             newElement3.setAttribute("type","hidden");
-            newElement3.setAttribute("value",params.conditions);
+            newElement3.setAttribute("value",params.activityType);
             form.appendChild(newElement3);
         }
 
         const newElement4 = document.createElement("input");
-        if(params.userId){
-            newElement4.setAttribute("name","userId");
+        if(params.userType){
+            newElement4.setAttribute("name","userType");
             newElement4.setAttribute("type","hidden");
-            newElement4.setAttribute("value",params.userId);
+            newElement4.setAttribute("value",params.userType);
             form.appendChild(newElement4);
         }
 
         const newElement5 = document.createElement("input");
-        if(params.productType){
-            newElement5.setAttribute("name","productType");
+        if(params.refundBeginTime){
+            newElement5.setAttribute("name","refundBeginTime");
             newElement5.setAttribute("type","hidden");
-            newElement5.setAttribute("value",params.productType);
+            newElement5.setAttribute("value",params.refundBeginTime);
             form.appendChild(newElement5);
         }
 
@@ -453,58 +474,58 @@ class Category extends React.Component {
         }
 
         const newElement7 = document.createElement("input");
-        if(params.orderNo){
-            newElement7.setAttribute("name","orderNo");
+        if(params.activityStatus){
+            newElement7.setAttribute("name","activityStatus");
             newElement7.setAttribute("type","hidden");
-            newElement7.setAttribute("value",params.orderNo);
+            newElement7.setAttribute("value",params.activityStatus);
             form.appendChild(newElement7);
         }
 
         const newElement8 = document.createElement("input");
-        if(params.minPrice){
-            newElement8.setAttribute("name","minPrice");
+        if(params.payType){
+            newElement8.setAttribute("name","payType");
             newElement8.setAttribute("type","hidden");
-            newElement8.setAttribute("value",params.minPrice);
+            newElement8.setAttribute("value",params.payType);
             form.appendChild(newElement8);
         }
 
         const newElement9 = document.createElement("input");
-        if(params.maxPrice){
-            newElement9.setAttribute("name","maxPrice");
+        if(params.userId){
+            newElement9.setAttribute("name","userId");
             newElement9.setAttribute("type","hidden");
-            newElement9.setAttribute("value",params.maxPrice);
+            newElement9.setAttribute("value",params.userId);
             form.appendChild(newElement9);
         }
 
         const newElement10 = document.createElement("input");
-        if(params.mchOrderId){
-            newElement10.setAttribute("name","mchOrderId");
+        if(params.productType){
+            newElement10.setAttribute("name","productType");
             newElement10.setAttribute("type","hidden");
-            newElement10.setAttribute("value",params.mchOrderId);
+            newElement10.setAttribute("value",params.productType);
             form.appendChild(newElement10);
         }
 
         const newElement11 = document.createElement("input");
-        if(params.userType){
-            newElement11.setAttribute("name","userType");
+        if(params.orderNo){
+            newElement11.setAttribute("name","orderNo");
             newElement11.setAttribute("type","hidden");
-            newElement11.setAttribute("value",params.userType);
+            newElement11.setAttribute("value",params.orderNo);
             form.appendChild(newElement11);
         }
 
         const newElement12 = document.createElement("input");
-        if(params.activityType){
-            newElement12.setAttribute("name","activityType");
+        if(params.minPrice){
+            newElement12.setAttribute("name","minPrice");
             newElement12.setAttribute("type","hidden");
-            newElement12.setAttribute("value",params.activityType);
+            newElement12.setAttribute("value",params.minPrice);
             form.appendChild(newElement12);
         }
 
         const newElement13 = document.createElement("input");
-        if(params.refundBeginTime){
-            newElement13.setAttribute("name","refundBeginTime");
+        if(params.mchOrderId){
+            newElement13.setAttribute("name","mchOrderId");
             newElement13.setAttribute("type","hidden");
-            newElement13.setAttribute("value",params.refundBeginTime);
+            newElement13.setAttribute("value",params.mchOrderId);
             form.appendChild(newElement13);
         }
 
@@ -533,10 +554,12 @@ class Category extends React.Component {
         this.setState({
             nowData: record,
             queryModalShow: true,
-            activityStatus:record.activityStatus,
+            typeId:record.typeId,
+            refundId:record.refundId,
             refundStatus:record.refundStatus,
+            refundDetail:record.refundDetail,
         });
-        console.log('activityStatus的数值是：',record.activityStatus)
+        console.log('refundId的数值是：',record.refundId)
     }
 
 
@@ -544,6 +567,167 @@ class Category extends React.Component {
     onQueryModalClose() {
         this.setState({
             queryModalShow: false,
+        });
+    }
+
+    //操作全选按钮逻辑功能
+    onCheckAllChange(e){
+        this.setState({
+            checkAll: e.target.checked,
+        });
+        if(e.target.checked) { // 选中
+            this.setState({
+                selectedKeys: this.state.data.map((item, index) => index),
+            });
+        } else {
+            this.setState({
+                selectedKeys: [],
+            });
+        }
+    }
+
+    // 反选按钮逻辑
+    onCheckRuturnChange(e) {
+        const ed = this.state.selectedKeys;
+        const all = this.state.data.map((item, index) => index);
+        const res = all.filter((item, index) => {
+            return !ed.includes(item);
+        });
+        this.setState({
+            selectedKeys: res,
+            checkReturnAll: e.target.checked,
+        });
+        if (res.length === all.length) {
+            this.setState({
+                checkAll: true,
+                checkReturnAll:false,
+            });
+        } else {
+            this.setState({
+                checkAll: false,
+            });
+        }
+    }
+
+    // 表格的全选反选逻辑配置
+    initChose() {
+        const rowSelection = {
+            onChange: (selectedRowKeys, selectedRows) => {
+                console.log('选择了什么：', selectedRowKeys, selectedRows);
+                if (selectedRowKeys.length === this.state.data.length){
+                    this.setState({
+                        checkAll: true,
+                    });
+                } else {
+                    this.setState({
+                        checkAll: false,
+                    });
+                }
+                this.setState({
+                    selectedKeys: selectedRowKeys,
+                });
+            },
+            selectedRowKeys: this.state.selectedKeys,
+        };
+        return rowSelection;
+    }
+
+    //批量审核拒绝按钮配置
+    onAdoptNo(){
+            const params = {
+                refundId: String(this.getRefundId(this.state.selectedKeys)),
+                refundStatus:'2' ,
+                refundDetail:String(this.state.refundDetail || ''),
+            }
+            this.setState({
+                visible: false,
+                AuditShow:false,
+                checkAll: false,
+                selectedKeys: []
+
+            });
+            this.props.actions.refundAuditEgis(params).then((res) => {
+                if (res.returnCode === "0") {
+                    message.success('修改成功',1);
+                    this.onGetData(this.state.pageNum, this.state.pageSize);
+                } else {
+                    message.error('请选择正确的退款申请',1);
+                }
+            }).catch(() => {
+                message.error('修改失败');
+            });
+    }
+
+
+    //批量审核通过按钮配置
+    onAdopt(){
+        const params = {
+            refundId: this.getRefundId(this.state.selectedKeys),
+            refundStatus:'1' ,
+        }
+        this.setState({
+            visible: false,
+        });
+        this.props.actions.refundAuditEgis(params).then((res) => {
+            if (res.returnCode === "0") {
+                message.success('修改成功',1);
+                this.onGetData(this.state.pageNum, this.state.pageSize);
+            } else {
+                message.error('请选择正确的退款申请',1);
+            }
+        }).catch(() => {
+            message.error('修改失败');
+        });
+    }
+
+    //审核拒绝要传进来的值
+    RefundDetail(e){
+        this.setState({
+            refundDetail:e.target.value
+        })
+    }
+
+    //单独某条审核通过按钮配置
+    onAdoptAlone(record){
+        const params = {
+            refundId: record.refundId,
+            refundStatus:'1' ,
+        }
+        this.setState({
+            visible: false,
+        });
+        this.props.actions.refundAuditEgis(params).then((res) => {
+            if (res.returnCode === "0") {
+                message.success('修改成功',1);
+                this.onGetData(this.state.pageNum, this.state.pageSize);
+            } else {
+                message.error(res.returnMessaage || '修改失败，请重试');
+            }
+        }).catch(() => {
+            message.error('修改失败');
+        });
+    }
+
+    //单独某条审核拒绝按钮配置
+    onAdoptAloneNo(record){
+        const params = {
+            refundId: record.refundId,
+            refundStatus:'2' ,
+            refundDetail:this.state.refundDetail || '',
+        }
+        this.setState({
+            visible: false,
+            AuditShow:false,
+        });
+        this.props.actions.refundAuditEgis(params).then((res) => {
+            if (res.returnCode === "0") {
+                message.success('修改成功',1);
+                this.onGetData(this.state.pageNum, this.state.pageSize);
+            } else {
+                message.error(res.returnMessaage || '修改失败，请重试');
+            }
+        }).catch(() => {
+            message.error('修改失败');
         });
     }
 
@@ -569,6 +753,16 @@ class Category extends React.Component {
     onTablePageChange(page, pageSize) {
         console.log('页码改变：', page, pageSize);
         this.onGetData(page, pageSize);
+        this.setState({
+            checkAll: false,
+            selectedKeys: []
+        })
+    }
+
+    // 页码每页显示多少条展示
+    onShowSizeChange(current, pageSize) {
+        console.log('显示多少条:',current, pageSize);
+        this.onGetData(current, pageSize);
     }
 
 
@@ -576,16 +770,28 @@ class Category extends React.Component {
     makeColumns(){
         const columns = [
             {
-                title: '序号',
-                fixed:'left',
-                dataIndex: 'serial',
-                key: 'serial',
-                width: 50,
-            },
-            {
                 title: '订单号',
                 dataIndex: 'orderNo',
                 key: 'orderNo',
+                fixed:'left',
+                width:150
+            },
+            {
+                title:'退款状态',
+                dataIndex:'refundStatus',
+                key:'refundStatus',
+                render:(text) => this.getListByRefund(text)
+            },
+            {
+                title: '申请退款时间',
+                dataIndex: 'auditTime',
+                key: 'auditTime',
+            },
+            {
+                title: '订单状态',
+                dataIndex: 'activityStatus',
+                key: 'activityStatus',
+                render: (text) => this.getListByModelId(text),
             },
             {
                 title:'用户身份',
@@ -618,8 +824,8 @@ class Category extends React.Component {
             },
             {
                 title:'产品名称',
-                dataIndex:'name',
-                key:'name',
+                dataIndex:'detail',
+                key:'detail',
             },
             {
                 title: '产品型号',
@@ -637,43 +843,58 @@ class Category extends React.Component {
                 key: 'fee',
             },
             {
-                title: '退款状态',
-                dataIndex: 'activityStatus',
-                key: 'activityStatus',
-                render: (text) => this.getListByModelId(text),
-            },
-            {
-                title: '申请退款时间',
-                dataIndex: 'auditTime',
-                key: 'auditTime',
-            },
-            {
-                title:'流水号',
-                dataIndex:'mchOrderId',
-                key:'mchOrderId'
-            },
-            {
-                title: '退款到账时间',
-                dataIndex: 'theAccountTime',
-                key: 'theAccountTime',
-            },
-            {
                 title: '操作',
                 key: 'control',
                 fixed:'right',
+                width: 100,
                 render: (text, record) => {
                     const controls = [];
-                    (record.activityStatus === 5) && controls.push(
-                        <span key="1" className="control-btn red" onClick={() => this.onAdoptAloneRefuse(record)}>
+                    (record.refundStatus === 1) && controls.push(
+                        <Popconfirm placement="bottom" title="确定审核通过吗?" okText="确定" cancelText="取消" onConfirm={() =>this.onAdoptAlone(record)}>
+                            <span key="0" className="control-btn green">
+                                <Tooltip placement="top" title="审核通过">
+                                    <Icon type="check-circle-o" style={{color:'green'}}/>
+                                </Tooltip>
+                            </span>
+                        </Popconfirm>
+                    );
+                    (record.refundStatus === 1) && controls.push(
+                        <Popover
+                            content={
+                                <div>
+                                    <TextArea placeholder="请输入拒绝理由" autosize={{ minRows: 1, maxRows: 4 }}
+                                              value={ this.state.refundDetail }
+                                              defaultValue="退款审核未通过，如有疑问，请联系客服：4001519999"
+                                              onChange={(e)=>this.RefundDetail(e)}
+                                    />
+                                    <div style={{marginLeft:'125px'}}><a onClick={(e) => this.onAdoptAloneNo(record)}>确定</a></div>
+                                </div>
+                            }
+                            title="请输入拒绝理由"
+                            trigger="click"
+                            placement="bottom"
+                            // visible={this.state.AuditShow}
+                            onCancel={() => this.onAddNewClose()}
+                            onVisibleChange={(e)=>this.handleVisibleChange2(e)}
+                        >
+                            <span key="1" className="control-btn red">
+                                <Tooltip placement="top" title="审核拒绝">
+                                    <Icon type="cross-circle-o" style={{color:'red'}}/>
+                                </Tooltip>
+                            </span>
+                        </Popover>
+                    );
+                    (record.refundStatus === 3) && controls.push(
+                        <span key="2" className="control-btn red" onClick={() => this.onAdoptAloneRefuse(record)}>
                             <Tooltip placement="top" title="撤销审核">
                                 <Icon type="logout" style={{color:'red'}}/>
                             </Tooltip>
                         </span>
                     );
-                    controls.push(
-                        <span key="0" className="control-btn green" onClick={() => this.onQueryClick(record)}>
+                    (record.refundStatus === 3) && controls.push(
+                        <span key="3" className="control-btn green" onClick={() => this.onQueryClick(record)}>
                             <Tooltip placement="top" title="详情">
-                                <Icon type="eye" />
+                                <Icon type="eye" style={{color:'green'}}/>
                             </Tooltip>
                         </span>
                     );
@@ -698,50 +919,41 @@ class Category extends React.Component {
                 key: index,
                 addrId: item.addrId,
                 citys: (item.province && item.city && item.region) ? `${item.province}/${item.city}/${item.region}` : '',
-                count: item.count,
-                fee: item.fee,
                 payType: (item.payRecord) ? item.payRecord.payType :'',
-                orderNo: item.id,
+                orderNo: item.orderId,
                 serial:(index + 1) + ((this.state.pageNum - 1) * this.state.pageSize),
+                name: (item.product) ? item.product.name : '',
                 modelId:(item.product)?item.product.typeCode : '',
                 typeId:(item.product)?item.product.typeId :'',
-                activityStatus: item.activityStatus,
-                userName: item.userId,
-                userType: (item.userInfo) ? item.userInfo.userType : '',
-                refer: item.refer,
-                orderFrom:item.orderFrom,
-                activityType: item.activityType,
+                activityStatus: (item.orders) ? item.orders.activityStatus : '',
+                userId: (item.orders) ? item.orders.userInfo.id : '',
+                userType: (item.orders) ? item.orders.userInfo.userType : '',
+                activityType: (item.orders) ? item.orders.activityType : '',
+                count: (item.orders) ? item.orders.count : '',
+                fee: (item.orders) ? item.orders.fee : '',
                 realName:(item.distributor) ? item.distributor.realName : '',
                 ambassadorName:(item.distributor) ? item.distributor.mobile : '',
-                userId:item.userInfo.id,
-                modelType:item.modelType,
+                modelType:(item.orders) ? item.orders.modelType : '',
                 mchOrderId: (item.refundRecord)?item.refundRecord.tradeNo :'',
-                mobile:(item.shopAddress) ? item.shopAddress.mobile : '',
-                province: (item.shopAddress) ? item.shopAddress.province :'' ,
-                city: (item.shopAddress) ? item.shopAddress.city : '',
-                region: (item.shopAddress) ? item.shopAddress.region : '',
-                street: (item.shopAddress) ? item.shopAddress.street :'',
                 customerName : (item.customer) ? item.customer.realName : '',
                 customerPhone : (item.customer) ? item.customer.phone :'',
-                theAccountTime:(item.refundRecord) ?item.refundRecord.theAccountTime :'',
+                createTime:(item.refundRecord) ?item.refundRecord.createTime :'',
                 detail:(item.product.typeName) ? item.product.typeName.detail:'',
-                auditTime:item.auditTime,
+                auditTime:(item.orders) ? item.orders.auditTime : '',
                 company:(item.product)?item.product.typeId :'',
-                name:(item.product) ? item.product.name : '',
-                conditions:item.conditions,
-                refundId:(item.refundRecord) ?item.refundRecord.id : '',
-                refundDetail:(item.refundRecord) ?item.refundRecord.refundDetail : '',
+                refundStatus:item.refundStatus,
+                refundId:item.id,
+                selectedKeys:item.selectedKeys,
+                refundDetail:item.refundDetail || '',
             }
         });
     }
 
 
-
-
-    render() {
+    render(record) {
         const me = this;
         const { form } = me.props;
-        const { getFieldDecorator } = form;
+        // const { getFieldDecorator } = form;
         const formItemLayout = {
             labelCol: {
                 xs: { span: 24 },
@@ -755,17 +967,15 @@ class Category extends React.Component {
 
         const { searchorderNo } = this.state;
         const { searchUserName } = this.state;
-        const { searchmchOrderIdChange } = this.state;
         const { searchMinPrice } = this.state;
         const { searchMaxPrice } = this.state;
         const suffix = searchorderNo ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
         const suffix2 = searchUserName ? <Icon type="close-circle" onClick={()=>this.emitEmpty1()} /> : null;
-        const suffix3 = searchmchOrderIdChange ? <Icon type="close-circle" onClick={()=>this.emitEmpty2()} /> : null;
         const suffix8 = searchMinPrice ? <Icon type="close-circle" onClick={() => this.emitEmpty5()}/> : null;
         const suffix9 = searchMaxPrice ? <Icon type="close-circle" onClick={() => this.emitEmpty6()}/> : null;
 
         return (
-            <div>
+            <div className="page-refundaudit">
               <div className="system-search">
                   <ul className="search-ul more-ul">
                       <li>
@@ -833,20 +1043,12 @@ class Category extends React.Component {
                           />
                       </li>
                       <li>
-                          <span>退款状态</span>
-                          <Select placeholder="全部" allowClear style={{ width: '172px'}} onChange={(e) => this.searchConditionsChange(e)}>
-                              <Option value={3}>退款中</Option>
-                              <Option value={4}>退款完成</Option>
-                              <Option value={5}>退款失败</Option>
-                          </Select>
-                      </li>
-                      <li>
                           <span style={{marginRight:'10px'}}>申请退款时间</span>
                           <DatePicker
                               showTime={{defaultValue:moment('00:00:00','HH:mm:ss')}}
                               format="YYYY-MM-DD HH:mm:ss"
                               placeholder="开始时间"
-                              onChange={(e) =>this.searchApplyBeginTime(e)}
+                              onChange={(e, s) =>this.searchApplyBeginTime(e, s)}
                               onOk={onOk}
                           />
                           --
@@ -859,87 +1061,75 @@ class Category extends React.Component {
                               onOk={onOk}
                           />
                       </li>
-                      <li>
-                          <span>流水号查询</span>
-                          <Input
-                              style={{ width: '172px' }}
-                              suffix={ suffix3 }
-                              value={ searchmchOrderIdChange }
-                              onChange={(e) => this.mchOrderIdChange(e)}
-                          />
-                      </li>
-                      <li>
-                          <span style={{marginRight:'10px'}}>退款到账时间</span>
-                          <DatePicker
-                              showTime={{defaultValue:moment('00:00:00','HH:mm:ss')}}
-                              format="YYYY-MM-DD HH:mm:ss"
-                              placeholder="开始时间"
-                              onChange={(e) =>this.searchTime(e)}
-                              onOk={onOk}
-                          />
-                          --
-                          <DatePicker
-                              showTime={{defaultValue:moment('23:59:59','HH:mm:ss')}}
-                              format="YYYY-MM-DD HH:mm:ss"
-                              placeholder="结束时间"
-                              // value={this.state.searchEndTime}
-                              onChange={(e) =>this.searchTime2(e)}
-                              onOk={onOk}
-                          />
-                      </li>
                       <li style={{marginLeft:'40px'}}>
                           <Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button>
                       </li>
                       <li>
-                          <Button icon="download" type="primary" onClick={() => this.onExport()}>导出</Button>
+                          {/*<Button icon="download" type="primary" onClick={() => this.onExport()}>导出</Button>*/}
+                          <Button icon="download" type="primary" onClick={warning}>导出</Button>
                       </li>
                    </ul>
               </div>
-              <div className="system-table">
-                <Table
-                    columns={this.makeColumns()}
-                    dataSource={this.makeData(this.state.data)}
-                    scroll={{ x: 2000 }}
-                    pagination={{
-                        total: this.state.total,
-                        current: this.state.pageNum,
-                        pageSize: this.state.pageSize,
-                        showQuickJumper: true,
-                        showTotal: (total, range) => `共 ${total} 条数据`,
-                        onChange: (page, pageSize) => this.onTablePageChange(page, pageSize)
-                    }}
-                />
-              </div>
-                <Modal
-                    title='查看地区'
-                    visible={this.state.addnewModalShow}
-                    onOk={() => this.onAddNewOk()}
-                    onCancel={() => this.onAddNewClose()}
-                    confirmLoading={this.state.addnewLoading}
-                >
-                    <Form>
-                        <FormItem
-                            label="服务站地区"
-                            {...formItemLayout}
+                <div className="system-table">
+                    <div style={{marginTop:'10px',marginBottom:'10px'}}>
+                      <span style={{margin:'0 10px'}}>
+                          <Checkbox
+                              onChange={(e)=> this.onCheckAllChange(e)}
+                              checked={this.state.checkAll}
+                              style={{margin:'0 10px 0 0'}}
+                          />全选</span>
+                        <span style={{margin:'0 10px 0 0'}}>
+                          <Checkbox
+                              onChange={(e) => this.onCheckRuturnChange(e)}
+                              checked={this.state.checkReturnAll}
+                              style={{margin:'0 20px 0 0'}}
+                          />反选</span>
+                        <Popconfirm  title="确定批量审核通过吗?" placement="bottom" onConfirm={() => this.onAdopt(1)} okText="确定" cancelText="取消">
+                            <Button type="primary"
+                                    style={{height:'25px',marginRight:'10px'}}>批量审核通过</Button>
+                        </Popconfirm>
+                        <Popover
+                            content={
+                                <div>
+                                    <TextArea placeholder="请输入拒绝的理由" autosize={{ minRows: 1, maxRows: 4 }}
+                                              value={ this.state.refundDetail }
+                                              defaultValue="退款审核未通过，如有疑问，请联系客服：4001519999"
+                                              onChange={(e)=>this.RefundDetail(e)}/>
+                                    <ul style={{display: 'flex',justifyContent: 'space-between'}}>
+                                        <li style={{width:'40px'}}><a onClick={(e) => this.onAdoptNo()}>确定</a></li>
+                                        <li style={{width:'40px'}}><a onClick={(e) => this.hide()}>取消</a></li>
+                                    </ul>
+                                </div>
+                            }
+                                    title="请输入拒绝理由"
+                                    trigger="click"
+                                    placement="bottom"
+                                    visible={this.state.visible}
+                                    onVisibleChange={(e)=>this.handleVisibleChange(e)}
                         >
-                        <span style={{ color: '#888' }}>
-                            {(this.state.nowData && this.state.addOrUp === 'up' && this.state.nowData.province && this.state.nowData.city && this.state.nowData.region) ? `${this.state.nowData.province}/${this.state.nowData.city}/${this.state.nowData.region}` : null}
-                        </span>
-                            {getFieldDecorator('addnewCitys', {
-                                initialValue: undefined,
-                                rules: [
-                                    {required: true, message: '请选择区域'},
-                                ],
-                            })(
-                                <Cascader
-                                    placeholder="请选择服务区域"
-                                    options={this.state.citys}
-                                    loadData={(e) => this.getAllCitySon(e)}
-                                />
-                            )}
-                        </FormItem>
-                    </Form>
-                </Modal>
+                            <Button type="primary"
+                                    style={{height:'25px'}}>批量审核不通过</Button>
+                        </Popover>
+                    </div>
+                </div>
+                    <Table
+                        columns={this.makeColumns()}
+                        dataSource={this.makeData(this.state.data)}
+                        rowSelection={this.initChose()}
+                        scroll={{ x: 2000 }}
+                        pagination={{
+                            total: this.state.total,
+                            current: this.state.pageNum,
+                            pageSize: this.state.pageSize,
+                            showQuickJumper: true,
+                            showSizeChanger: true,
+                            defaultCurrent:3,
+                            pageSizeOptions:['10','30','50'],
+                            onShowSizeChange:(current, pageSize) => this.onShowSizeChange(current, pageSize),
+                            showTotal: (total, range) => `共 ${total} 条数据`,
+                            onChange: (page, pageSize) => this.onTablePageChange(page, pageSize)
+                        }}
+                    />
                 {/* 查看详情模态框 */}
               <Modal
                   title="查看详情"
@@ -1017,10 +1207,10 @@ class Category extends React.Component {
                         {!!this.state.nowData ? `￥${this.state.nowData.fee}` : ''}
                     </FormItem>
                     <FormItem
-                        label="流水号"
+                        label="退款状态"
                         {...formItemLayout}
                     >
-                        {!!this.state.nowData ? this.state.nowData.mchOrderId : ''}
+                        {!!this.state.nowData ? this.getListByRefund(this.state.nowData.refundStatus) : ''}
                     </FormItem>
                     <FormItem
                         label="申请退款时间"
@@ -1029,15 +1219,8 @@ class Category extends React.Component {
                         {!!this.state.nowData ? this.state.nowData.auditTime : ''}
                     </FormItem>
                     <FormItem
-                        label="退款到账时间"
+                        label="审核失败理由"
                         {...formItemLayout}
-                    >
-                        {!!this.state.nowData ? this.state.nowData.theAccountTime : ''}
-                    </FormItem>
-                    <FormItem
-                        label="退款失败理由"
-                        {...formItemLayout}
-                        className={(this.state.activityStatus == 4 || this.state.activityStatus == 3 ) ? 'hide' :''}
                     >
                         {!!this.state.nowData ? this.state.nowData.refundDetail : ''}
                     </FormItem>
@@ -1068,6 +1251,6 @@ export default connect(
         citys: state.sys.citys,
     }),
     (dispatch) => ({
-        actions: bindActionCreators({ findProductTypeByWhere,onChange,onOk,refundList,refundAuditEgis}, dispatch),
+        actions: bindActionCreators({ findProductTypeByWhere,onChange,onOk,refundList,refundAudit,refundAuditEgis,onChangeCheck,warning}, dispatch),
     })
 )(WrappedHorizontalRole);

@@ -266,6 +266,10 @@ class Category extends React.Component {
     emitEmpty(){
         this.setState({
             searchSurplus:'',
+        })
+    }
+    emitEmpty1(){
+        this.setState({
             searchTicketNo:'',
         })
     }
@@ -496,7 +500,7 @@ class Category extends React.Component {
         const { searchSurplus } = this.state;
         const { searchTicketNo } = this.state;
         const suffix2 = searchSurplus ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-        const suffix3 = searchTicketNo ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
+        const suffix3 = searchTicketNo ? <Icon type="close-circle" onClick={()=>this.emitEmpty1()} /> : null;
 
         return (
             <div style={{ width: '100%' }}>

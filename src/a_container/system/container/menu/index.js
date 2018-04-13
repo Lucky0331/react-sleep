@@ -560,8 +560,8 @@ class Menu extends React.Component {
                               { validator: (rule, value, callback) => {
                                   const v = value;
                                   if (v) {
-                                      if (v.length > 12) {
-                                          callback('最多输入12位字符');
+                                      if (v.length > 20) {
+                                          callback('最多输入20位字符');
                                       }else if (!tools.checkStr2(v)){
                                           callback('只能输入字母、数字及下划线');
                                       }
@@ -668,8 +668,8 @@ class Menu extends React.Component {
                               { validator: (rule, value, callback) => {
                                   const v = value;
                                   if (v) {
-                                      if (v.length > 12) {
-                                          callback('最多输入12位字符');
+                                      if (v.length > 20) {
+                                          callback('最多输入20位字符');
                                       }else if (!tools.checkStr2(v)){
                                           callback('只能输入字母、数字及下划线');
                                       }

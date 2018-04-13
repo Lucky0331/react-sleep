@@ -23,12 +23,13 @@ import Querydetail from './container/Querydetail';
 import ServiceIn from './container/ServiceIn';
 import Flow2 from './container/Flow2';
 import Withdrawals from './container/Withdrawals';
+import WithdrawalsAudit from './container/WithdrawalsAudit'
 import Bill from './container/Bill';
 import Biology from './container/Biology';
 import HealthFood from './container/HealthFood';
 import Waterpur from './container/Waterpur';
 import Refund  from './container/Refund';
-
+import RefundAudit from './container/RefundAudit';
 
 // ==================
 // 本页面所需action
@@ -59,20 +60,22 @@ class TheContainer extends React.Component {
             <div key='page' className="allpage page-shop">
                 <Switch>
                     <Redirect exact from={`${this.props.match.path}`} to={`${this.props.match.path}/query`} />
-                    <Route exact path={`${this.props.match.path}/manager`} component={Manage} />
+                    <Route exact path={`${this.props.match.path}/manager`} component={Manage}/>
                     <Route exact path={`${this.props.match.path}/set`} component={Set} />
                     <Route exact path={`${this.props.match.path}/management/health/flow`} component={Flow} />
                     <Route exact path={`${this.props.match.path}/management/health/serviceIn`} component={ServiceIn}/>
                     <Route exact path={`${this.props.match.path}/management/healthfood`} component={HealthFood}/>
                     <Route exact path={`${this.props.match.path}/management/biology`} component={Biology}/>
                     <Route exact path={`${this.props.match.path}/management/waterpur`} component={Waterpur}/>
-                    <Route exact path={`${this.props.match.path}/account/withdrawals`} component={Withdrawals} />
+                    <Route exact path={`${this.props.match.path}/account/present/withdrawals`} component={Withdrawals}/>
+                    <Route exact path={`${this.props.match.path}/account/present/withdrawalsaudit`} component={WithdrawalsAudit}/>
                     <Route exact path={`${this.props.match.path}/account/bill`} component={Bill}/>
                     <Route exact path={`${this.props.match.path}/flow2`} component={Flow2} />
-                    <Route exact path={`${this.props.match.path}/serviceIn2`} component={ServiceIn} />
+                    <Route exact path={`${this.props.match.path}/serviceIn2`} component={ServiceIn}/>
                     <Route exact path={`${this.props.match.path}/query`} component={Query}/>
                     <Route exact path={`${this.props.match.path}/querydetail`} component={Querydetail}/>
-                    <Route exact path={`${this.props.match.path}/account/refund`} component={Refund}/>
+                    <Route exact path={`${this.props.match.path}/account/refundment/refund`} component={Refund}/>
+                    <Route exact path={`${this.props.match.path}/account/refundment/refundaudit`} component={RefundAudit}/>
                 </Switch>
             </div>
         );

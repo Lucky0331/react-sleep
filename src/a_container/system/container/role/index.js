@@ -591,17 +591,6 @@ class Role extends React.Component {
                 </FormItem>
                 </Form>
               </Modal>
-                {/* 菜单树 多选 */}
-                {/*<MenuTree*/}
-                    {/*title={this.state.nowData ? `分配菜单：${this.state.nowData.roleName}` : '分配菜单'}*/}
-                    {/*menuData={this.state.roleTreeData}*/}
-                    {/*defaultChecked={this.state.menuDefault}*/}
-                    {/*initloading={this.state.treeLoading} // 菜单树是否处于正在加载中状态*/}
-                    {/*loading={this.state.treeOnOkLoading}*/}
-                    {/*modalShow={this.state.menuTreeShow}*/}
-                    {/*onOk={(arr) => this.onMenuTreeOk(arr)}*/}
-                    {/*onClose={() => this.onMenuTreeClose()}*/}
-                {/*/>*/}
                 <TreeTable
                     title={this.state.nowData ? `分配菜单：${this.state.nowData.roleName}` : '分配菜单'}
                     menuData={this.state.roleTreeData}

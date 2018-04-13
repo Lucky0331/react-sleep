@@ -66,11 +66,15 @@ class Manager extends React.Component {
       searchUserName:'',//搜索 - 经销商账户
       searchBeginTime: '',  // 搜索 - 开始时间
       searchEndTime: '',  // 搜索- 结束时间
+      searchBindingBeginTime:'' , //搜索 - 开始绑定时间
+      searchBindingEndTime:'',  //搜搜 - 结束绑定时间
       searchAmbassadorUserType:'',  //搜索 - 健康大使身份类型
       searchAmbassadorNickName:'' ,//搜索 - 健康大使昵称
       searchAmbassadorRealName:'',//搜索 - 健康大使真实姓名
       searchId: '' ,   //搜索- 健康大使id
       searchAmbassadorMobile:'' , //搜索 - 健康大使手机号
+      searchAddress: [], // 搜索 - 服务站地区地址
+
     };
   }
 
@@ -155,6 +159,9 @@ class Manager extends React.Component {
             userName: this.state.searchUserName,
             conditions: this.state.searchConditions,
             userType: this.state.searchType,
+            province: this.state.searchAddress[0],
+            city: this.state.searchAddress[1],
+            region: this.state.searchAddress[2],
             mobile:this.state.searchMobile ? this.state.searchMobile : '',
             realName:this.state.searchName ? this.state.searchName : '',  // 搜索 - 用户姓名
             nickName:this.state.searchNickName ? this.state.searchNickName : '',  //搜索 - 用户昵称
@@ -167,6 +174,8 @@ class Manager extends React.Component {
             ambassadorMobile:this.state.searchAmbassadorMobile ?this.state.searchAmbassadorMobile:'',// 搜索 - 健康大使手机号
             beginTime: this.state.searchBeginTime ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00` : '',
             endTime: this.state.searchEndTime ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59 ` : '',
+            bindBeginTime: this.state.searchBindingBeginTime ? `${tools.dateToStrD(this.state.searchBindingBeginTime._d)} 00:00:00` : '',
+            bindEndTime: this.state.searchBindingEndTime ? `${tools.dateToStrD(this.state.searchBindingEndTime._d)} 23:59:59` : '',
         };
 
         this.props.actions.findUserInfo(tools.clearNull(params)).then((res) => {
@@ -193,14 +202,53 @@ class Manager extends React.Component {
     emitEmpty(){
         this.setState({
             searchEId:'',
+        })
+    }
+
+    emitEmpty1(){
+        this.setState({
             searchNickName:'',
+        })
+    }
+
+    emitEmpty2(){
+        this.setState({
             searchName:'',
+        })
+    }
+
+    emitEmpty3(){
+        this.setState({
             searchMobile:'',
+        })
+    }
+
+    emitEmpty4(){
+        this.setState({
             searchId:'',
+        })
+    }
+
+    emitEmpty5(){
+        this.setState({
             searchAmbassadorNickName:'',
-            searchAmbassadorMobile:'',
+        })
+    }
+
+    emitEmpty6(){
+        this.setState({
             searchAmbassadorRealName:'',
-            searchDistributorId:'',
+        })
+    }
+
+    emitEmpty7(){
+        this.setState({
+            searchAmbassadorMobile:'',
+        })
+    }
+
+    emitEmpty8(){
+        this.setState({
             searchUserName:''
         })
     }
@@ -312,6 +360,21 @@ class Manager extends React.Component {
         });
     }
 
+    //搜索 - 开始绑定时间
+    searchBindingBeginTimeChange(v){
+        this.setState({
+            searchBindingBeginTime:v,
+        })
+        console.log('这是什么：',v)
+    }
+
+    //搜索 - 结束绑定时间
+    searchBindingEndTimeChange(v){
+        this.setState({
+            searchBindingEndTime:v
+        })
+    }
+
     //搜索 - 经销商账户
     onSearchUserName(e){
         this.setState({
@@ -399,6 +462,11 @@ class Manager extends React.Component {
                 title:'创建时间',
                 dataIndex:'createTime',
                 key:'createTime'
+            },
+            {
+                title:'绑定时间',
+                dataIndex:'bindTime',
+                key:'bindTime'
             },
             {
                 title:'健康大使id',
@@ -490,6 +558,7 @@ class Manager extends React.Component {
                 userType2: item.userType,
                 userName2:item.userName,
                 mid2:item.id,
+                bindTime:item.bindTime,
                 province2: (item.distributorAccount) ? item.distributorAccount.province : '',
                 city2: (item.distributorAccount) ? item.distributorAccount.city : '',
                 region2: (item.distributorAccount) ? item.distributorAccount.region : '',
@@ -553,14 +622,14 @@ class Manager extends React.Component {
       const { searchAmbassadorMobile } = this.state;
       const { searchUserName } = this.state;
       const suffix = searchEId ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-      const suffix1 = searchNickName ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-      const suffix2 = searchName ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-      const suffix3 = searchMobile ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-      const suffix4 = searchId ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-      const suffix5 = searchAmbassadorNickName ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-      const suffix6 = searchAmbassadorRealName ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-      const suffix7 = searchAmbassadorMobile ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-      const suffix8 = searchUserName ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
+      const suffix1 = searchNickName ? <Icon type="close-circle" onClick={()=>this.emitEmpty1()} /> : null;
+      const suffix2 = searchName ? <Icon type="close-circle" onClick={()=>this.emitEmpty2()} /> : null;
+      const suffix3 = searchMobile ? <Icon type="close-circle" onClick={()=>this.emitEmpty3()} /> : null;
+      const suffix4 = searchId ? <Icon type="close-circle" onClick={()=>this.emitEmpty4()} /> : null;
+      const suffix5 = searchAmbassadorNickName ? <Icon type="close-circle" onClick={()=>this.emitEmpty5()} /> : null;
+      const suffix6 = searchAmbassadorRealName ? <Icon type="close-circle" onClick={()=>this.emitEmpty6()} /> : null;
+      const suffix7 = searchAmbassadorMobile ? <Icon type="close-circle" onClick={()=>this.emitEmpty7()} /> : null;
+      const suffix8 = searchUserName ? <Icon type="close-circle" onClick={()=>this.emitEmpty8()} /> : null;
 
     return (
       <div>
@@ -603,7 +672,7 @@ class Manager extends React.Component {
                       />
                   </li>
                   <li>
-                      <span style={{marginRight:'4px',marginLeft:'17px'}}>经销商账户</span>
+                      <span style={{marginRight:'4px',marginLeft:'22px'}}>经销商账户</span>
                       <Input
                           style={{width:'172px'}}
                           suffix={suffix8}
@@ -623,18 +692,19 @@ class Manager extends React.Component {
                   </li>
               </ul>
               <ul className="search-ul">
-                  {/*<li>*/}
-                      {/*<span style={{marginRight: '4px',marginLeft:'14px'}}>服务站地区</span>*/}
-                      {/*<Cascader*/}
-                          {/*style={{  width: '172px'}}*/}
-                          {/*placeholder="请选择服务区域"*/}
-                          {/*onChange={(v) => this.onSearchAddress(v)}*/}
-                          {/*options={this.state.citys}*/}
-                          {/*loadData={(e) => this.getAllCitySon(e)}*/}
-                      {/*/>*/}
-                  {/*</li>*/}
                   <li>
-                      <span style={{marginRight:'4px'}}>健康大使id</span>
+                      <span style={{marginRight: '6px',marginLeft:'-2px'}}>服务站地区</span>
+                      <Cascader
+                          style={{  width: '172px'}}
+                          placeholder="请选择服务区域"
+                          onChange={(v) => this.onSearchAddress(v)}
+                          options={this.state.citys}
+                          loadData={(e) => this.getAllCitySon(e)}
+                          changeOnSelect
+                      />
+                  </li>
+                  <li>
+                      <span style={{marginRight:'4px',marginLeft:'13px'}}>健康大使id</span>
                       <Input
                           style={{width:'172px'}}
                           suffix={suffix4}
@@ -652,7 +722,7 @@ class Manager extends React.Component {
                       />
                   </li>
                   <li>
-                      <span style={{marginRight:'4px'}}>健康大使姓名</span>
+                      <span style={{marginRight:'4px',marginLeft:'12px'}}>健康大使姓名</span>
                       <Input
                           style={{width:'172px'}}
                           suffix={suffix6}
@@ -661,7 +731,7 @@ class Manager extends React.Component {
                       />
                   </li>
                   <li>
-                      <span style={{marginRight:'4px'}}>健康大使手机号</span>
+                      <span style={{marginRight:'4px',marginLeft:'-5px'}}>健康大使手机号</span>
                       <Input
                           style={{width:'172px'}}
                           suffix={ suffix7 }
@@ -703,6 +773,24 @@ class Manager extends React.Component {
                           onOk={onOk}
                       />
                   </li>
+                  <li>
+                      <span style={{marginRight:'10px',marginLeft:'7px'}}>绑定时间</span>
+                      <DatePicker
+                          showTime={{defaultValue:moment('00:00:00','HH:mm:ss')}}
+                          format="YYYY-MM-DD HH:mm:ss"
+                          placeholder="开始时间"
+                          onChange={(e) =>this.searchBindingBeginTimeChange(e)}
+                          onOk={onOk}
+                      />
+                      --
+                      <DatePicker
+                          showTime={{defaultValue:moment('23:59:59','HH:mm:ss')}}
+                          format="YYYY-MM-DD HH:mm:ss"
+                          placeholder="结束时间"
+                          onChange={(e) =>this.searchBindingEndTimeChange(e)}
+                          onOk={onOk}
+                      />
+                  </li>
                   <li style={{marginLeft:'5px'}}><Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button></li>
               </ul>
           </div>
@@ -711,7 +799,7 @@ class Manager extends React.Component {
             <Table
               columns={this.makeColumns()}
               dataSource={this.makeData(this.state.data)}
-              scroll={{ x:2000 }}
+              scroll={{ x:2500 }}
               pagination={{
                   total: this.state.total,
                   current: this.state.pageNum,
@@ -777,6 +865,12 @@ class Manager extends React.Component {
                       {...formItemLayout}
                   >
                       {!!this.state.nowData ? this.state.nowData.createTime : ''}
+                  </FormItem>
+                  <FormItem
+                     label="绑定时间"
+                     {...formItemLayout}
+                  >
+                     {!!this.state.nowData ? this.state.nowData.bindTime : ''}
                   </FormItem>
                   <FormItem
                       label="健康大使id"

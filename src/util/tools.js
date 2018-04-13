@@ -22,13 +22,13 @@ const tools = {
      * 标准日期转字符串年月日，时分秒
      * */
     dateToStr(date) {
-      if (!date) { return '' }
-      const m = `${date.getMonth() + 1}`.padStart(2,'0');
-      const d = date.getDate().toString().padStart(2,'0');
-      const h = date.getHours().toString().padStart(2,'0');
-      const min = date.getMinutes().toString().padStart(2,'0');
-      const s = date.getSeconds().toString().padStart(2,'0');
-      return `${date.getFullYear()}-${m}-${d} ${h}:${min}:${s}`;
+        if (!date) { return '' }
+        const m = `${date.getMonth() + 1}`.padStart(2,'0');
+        const d = date.getDate().toString().padStart(2,'0');
+        const h = date.getHours().toString().padStart(2,'0');
+        const min = date.getMinutes().toString().padStart(2,'0');
+        const s = date.getSeconds().toString().padStart(2,'0');
+        return `${date.getFullYear()}-${m}-${d} ${h}:${min}:${s}`;
     },
 
     /**
@@ -67,9 +67,6 @@ const tools = {
         if (!date) { return ''; }
         const m = `${date.getMonth() + 1}`.padStart(2,'0');
         const d = date.getDate().toString().padStart(2,'0');
-        const h = date.getHours().toString().padStart(2,'0');
-        const min = date.getMinutes().toString().padStart(2,'0');
-        const s = date.getSeconds().toString().padStart(2,'0');
         return `${date.getFullYear()}-${m}-${d}`;
     },
 

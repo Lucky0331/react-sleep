@@ -272,7 +272,17 @@ class Category extends React.Component {
     emitEmpty(){
         this.setState({
             searchStationName:'',
+        })
+    }
+
+    emitEmpty1(){
+        this.setState({
             searchSurplus:'',
+        })
+    }
+
+    emitEmpty2(){
+        this.setState({
             searchTicketNo:'',
         })
     }
@@ -335,6 +345,7 @@ class Category extends React.Component {
             'addnewTypeCode',
             'addnewSaleMode',
             'addnewDisabled',
+            'addnewPhone',
             'addnewSelfStation',
             'addnewIsExpire',
             'addnewStationId',
@@ -362,6 +373,7 @@ class Category extends React.Component {
             'addnewSex',
             'addnewHeight',
             'addnewWeight',
+            'addnewPhone',
             'addnewDisabled',
             'addnewSelfStation',
             'addnewIsExpire',
@@ -381,6 +393,7 @@ class Category extends React.Component {
                 idCard: values.addnewIdCard,
                 mobile: values.addnewMobile,
                 sex: values.addnewSex,
+                phone: values.addnewPhone || '',
                 height: values.addnewHeight,
                 weight: values.addnewWeight,
                 disabled: values.addnewDisabled,
@@ -621,9 +634,8 @@ class Category extends React.Component {
         const { searchSurplus } = this.state;
         const { searchTicketNo } = this.state;
         const suffix = searchStationName ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-        const suffix2 = searchSurplus ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-        const suffix3 = searchTicketNo ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-
+        const suffix2 = searchSurplus ? <Icon type="close-circle" onClick={()=>this.emitEmpty1()} /> : null;
+        const suffix3 = searchTicketNo ? <Icon type="close-circle" onClick={()=>this.emitEmpty2()} /> : null;
 
         return (
             <div style={{ width: '100%' }}>
@@ -862,6 +874,25 @@ class Category extends React.Component {
                                     <Option value={1}>是</Option>
                                     <Option value={0}>否</Option>
                                 </Select>
+                            )}
+                        </FormItem>
+                        <FormItem
+                            label="短信通知手机号"
+                            {...formItemLayout}
+                        >
+                            {getFieldDecorator('addnewPhone', {
+                                initialValue: undefined,
+                                rules: [{ validator: (rule, value, callback) => {
+                                    const v = value;
+                                    if (v) {
+                                        if (!tools.checkPhone(v)) {
+                                            callback('请输入有效的手机号码');
+                                        }
+                                    }
+                                    callback();
+                                }}],
+                            })(
+                                <Input placeholder="请输入手机号码" />
                             )}
                         </FormItem>
                     </Form>

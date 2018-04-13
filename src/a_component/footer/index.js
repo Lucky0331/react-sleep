@@ -12,7 +12,7 @@ class Footer extends React.Component {
     render() {
         return (
             <div className="footer">
-                © 2017 <a href="http://yimaokeji.com" target="_blank" rel="noopener noreferrer">yimaokeji.com</a> Yimao Technology Development (Shanghai) Co,.Ltd.
+                © 2018 <a href="http://yimaokeji.com" target="_blank" rel="noopener noreferrer">yimaokeji.com</a> Yimao Technology Development (Shanghai) Co,.Ltd.
             </div>
         );
     }

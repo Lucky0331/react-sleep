@@ -360,7 +360,7 @@ export function findAllMenuByRoleId(params = {}) {
 export function findAdminUserByKeys(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/user/findAdminUserByKeys', params
+            '/manager/user/findAdminUserByKeys', params,
         ).then(
             msg => {
                 return msg;

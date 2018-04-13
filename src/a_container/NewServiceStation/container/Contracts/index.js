@@ -274,6 +274,11 @@ class Category extends React.Component {
                 key: 'createTime',
             },
             {
+                title: '承包时间',
+                dataIndex: 'contractTime',
+                key: 'contractTime',
+            },
+            {
                 title: '状态',
                 dataIndex: 'contract',
                 key: 'contract',
@@ -351,6 +356,7 @@ class Category extends React.Component {
                 state: item.state,
                 contract:item.contract,
                 deviceStatus:item.deviceStatus,
+                contractTime:item.contractTime,
                 createTime:item.createTime,
                 productType:item.productType,
             }
@@ -464,6 +470,12 @@ class Category extends React.Component {
                             {...formItemLayout}
                         >
                             {!!this.state.nowData ? this.state.nowData.createTime : '' }
+                        </FormItem>
+                        <FormItem
+                            label="承包时间"
+                            {...formItemLayout}
+                        >
+                            {!!this.state.nowData ? this.state.nowData.contractTime : '' }
                         </FormItem>
                         <FormItem
                             label="状态"

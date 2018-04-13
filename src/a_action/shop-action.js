@@ -814,7 +814,7 @@ export function buyPower(params = {}) {
 export function cashRecord(params = {}) {
     return (dispatch) => {
         return Fetchapi.newPost(
-            '/manager/cashRecord/list', params
+            '/manager/cashRecord/list/record', params
         ).then(
             msg => {
                 return msg;
@@ -857,6 +857,96 @@ export function refundList(params = {}) {
     };
 }
 
+//退款审核列表
+export function  refundAudit(params ={}) {
+    return (dispatch) =>{
+        return Fetchapi.newPost(
+            '/manager/refund/list',params
+        ).then(
+            msg =>{
+                return msg;
+            }
+        ).catch(() =>{
+            message.error('请求出现网络错误，请重试');
+        })
+    }
+}
+
+//退款审核通过、审核不通过
+export function  refundAuditEgis(params ={}) {
+    return (dispatch) =>{
+        return Fetchapi.newPost(
+            '/manager/refund/recallRefund',params,
+        ).then(
+            msg =>{
+                return msg;
+            }
+        ).catch(() =>{
+            message.error('请求出现网络错误，请重试');
+        })
+    }
+}
+
+//提现审核列表
+export function  WithdrawalsAudit(params ={}) {
+    return (dispatch) =>{
+        return Fetchapi.newPost(
+            '/manager/cashRecord/list/review',params
+        ).then(
+            msg =>{
+                return msg;
+            }
+        ).catch(() =>{
+            message.error('请求出现网络错误，请重试');
+        })
+    }
+}
+
+//提现明细列表
+export function  RecordDetail(params ={}) {
+    return (dispatch) =>{
+        return Fetchapi.newPost(
+            '/manager/cashRecord/list/record/detail',params,
+        ).then(
+            msg =>{
+                return msg;
+            }
+        ).catch(() =>{
+            message.error('请求出现网络错误，请重试');
+        })
+    }
+}
+
+//提现审核通过、审核不通过
+export function  WithdrawalsAuditEgis(params ={}) {
+    return (dispatch) =>{
+        return Fetchapi.newPost(
+            '/manager/cashRecord/cash/audit',params
+        ).then(
+            msg =>{
+                return msg;
+            }
+        ).catch(() =>{
+            message.error('请求出现网络错误，请重试');
+        })
+    }
+}
+
+//提现审核撤回
+export function  WithdrawalsRevoke(params ={}) {
+    return (dispatch) =>{
+        return Fetchapi.newPost(
+            '/manager/cashRecord/cash/revoke',params
+        ).then(
+            msg =>{
+                return msg;
+            }
+        ).catch(() =>{
+            message.error('请求出现网络错误，请重试');
+        })
+    }
+}
+
 //计费方式的选择
 export function onChange3(feeType) {
     console.log('checked = ', feeType);
@@ -874,13 +964,17 @@ export function onChange4(date, dateString) {
 export function onOk(value) {
     console.log('onOk: ', value);
 }
-
-export function warning() {
-    Modal.warning({
-        title: '提示',
-        content: '导出功能尚在开发 敬请期待',
-    });
+//多选框 - 单选框
+export function onChangeCheck(e) {
+    console.log(`checked = ${e.target.checked}`);
 }
+
+// export function warning() {
+//     Modal.warning({
+//         title: '提示',
+//         content: '导出功能尚在开发 敬请期待',
+//     });
+// }
 
 
 

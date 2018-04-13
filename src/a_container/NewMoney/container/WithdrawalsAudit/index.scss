@@ -1,0 +1,11 @@
+.ant-table-thead > tr > th, .ant-table-tbody > tr > td{
+  padding: 16px 10px;
+}
+
+.page-refundaudit{
+  .ant-table-thead{
+    .ant-table-selection{
+      display: none;
+    }
+  }
+}

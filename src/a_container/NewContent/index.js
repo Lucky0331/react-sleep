@@ -17,6 +17,8 @@ import './index.scss';
 
 import Banner from './container/Banner';
 import Cardlist from './container/Cardlist';
+import Column from './container/Column';
+import Release from './container/Release';
 
 
 // ==================
@@ -50,6 +52,8 @@ class TheContainer extends React.Component {
                     <Redirect exact from={`${this.props.match.path}`} to={`${this.props.match.path}/banner`} />
                     <Route exact path={`${this.props.match.path}/banner`} component={Banner} />
                     <Route exact path={`${this.props.match.path}/cardlist`} component={Cardlist} />
+                    <Route exact path={`${this.props.match.path}/consulting/Column`} component={Column}/>
+                    <Route exact path={`${this.props.match.path}/consulting/Release`} component={Release}/>
                 </Switch>
             </div>
         );

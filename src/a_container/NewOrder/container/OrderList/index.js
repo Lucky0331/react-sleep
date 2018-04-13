@@ -10,6 +10,7 @@ import { bindActionCreators } from 'redux';
 import P from 'prop-types';
 import { Form, Button, Icon, Input, Table, message, Modal, Tooltip, InputNumber, Select, Divider ,Cascader,DatePicker } from 'antd';
 import './index.scss';
+import Config from '../../../../config/config';
 import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
 import { power } from '../../../../util/data';
@@ -227,10 +228,10 @@ class Category extends React.Component {
     //产品类型所对应的公司
     Productcompany(id){
         switch (String(id)){
-            case '1' : return '净水服务公司';
-            case '2' : return '健康食品公司';
-            case '3' : return '生物科技公司';
-            case '5' : return '健康评估公司';
+            case '1' : return '翼猫科技发展（上海）有限公司';
+            case '2' : return '上海养未来健康食品有限公司';
+            case '3' : return '上海翼猫生物科技有限公司';
+            case '5' : return '上海翼猫智能科技有限公司';
         }
     }
 
@@ -318,10 +319,42 @@ class Category extends React.Component {
     emitEmpty(){
         this.setState({
             searchorderNo: '',
+        });
+    }
+
+    emitEmpty1(){
+        this.setState({
             searchRefer: '',
+        });
+    }
+
+    emitEmpty2(){
+        this.setState({
             searchUserName: '',
+        });
+    }
+
+    emitEmpty3(){
+        this.setState({
             searchAmbassadorId: '',
+        });
+    }
+
+    emitEmpty4(){
+        this.setState({
             searchDistributorId:'',
+        });
+    }
+
+    emitEmpty5(){
+        this.setState({
+            searchMinPrice:'',
+        });
+    }
+
+    emitEmpty6(){
+        this.setState({
+            searchMaxPrice:'',
         });
     }
 
@@ -371,19 +404,6 @@ class Category extends React.Component {
         });
     }
 
-    // 搜索 - 产品名称输入框值改变时触发
-    searchProductNameChange(e) {
-            this.setState({
-                searchProductName: e.target.value,
-            });
-    }
-
-    // 搜索 - 产品型号输入框值改变时触发
-    searchModelIdChange(e) {
-        this.setState({
-            searchModelId: e,
-        });
-    }
 
     // 搜索 - 产品类型输入框值改变时触发
     searchProductTypesChange(e){
@@ -416,14 +436,14 @@ class Category extends React.Component {
     // 搜索 - 最小价格变化
     searchMinPriceChange(v) {
         this.setState({
-            searchMinPrice: v,
+            searchMinPrice: v.target.value,
         });
     }
 
     // 搜索 - 最大价格变化
-    searchMaxPriceChange(v) {
+    searchMaxPriceChange(e) {
         this.setState({
-            searchMaxPrice: v,
+            searchMaxPrice: e.target.value,
         });
     }
 
@@ -490,7 +510,38 @@ class Category extends React.Component {
     }
     //导出
     onExport(){
-        this.onGetData(this.state.pageNum, this.state.pageSize);
+        this.onExportData(this.state.pageNum, this.state.pageSize);
+    }
+
+    //导出的数据字段
+    onExportData(pageNum, pageSize){
+        const params = {
+            pageNum,
+            pageSize,
+        };
+        let form = document.getElementById('download-form');
+        if (!form) {
+            form = document.createElement('form');
+            document.body.appendChild(form);
+        };
+        form.id = 'download-form';
+        form.action = `${Config.baseURL}/manager/order/listExport`;
+        form.method = 'post';
+        console.log('FORM:',params );
+
+        const newElement = document.createElement("input");
+        newElement.setAttribute("name","pageNum");
+        newElement.setAttribute("type","hidden");
+        newElement.setAttribute("value",pageNum);
+        form.appendChild(newElement);
+
+        const newElement2 = document.createElement("input");
+        newElement2.setAttribute("name","pageSize");
+        newElement2.setAttribute("type","hidden");
+        newElement2.setAttribute("value",pageSize);
+        form.appendChild(newElement2);
+
+        form.submit();
     }
 
     // 查询某一条数据的详情
@@ -583,11 +634,6 @@ class Category extends React.Component {
                 key: 'company',
                 render: (text) => this.Productcompany(text),
             },
-            // {
-            //     title:'产品公司',
-            //     dataIndex:'companyName',
-            //     key:'companyName'
-            // },
             {
                 title: '产品名称',
                 dataIndex: 'name',
@@ -625,6 +671,12 @@ class Category extends React.Component {
                 dataIndex: 'payType',
                 key: 'payType',
                 render: (text) => this.getBypayType(text),
+            },
+            {
+                title:'分销商是否有收益',
+                dataIndex:'userSaleFlag',
+                key:'userSaleFlag',
+                render:(text) => Boolean(text) === true ? <span>有</span> : <span>无</span>
             },
             {
                 title: '分销商id',
@@ -686,7 +738,6 @@ class Category extends React.Component {
                 companyName:(item.station) ? item.station.companyName : '',
                 name: (item.product) ? item.product.name : '',
                 modelId:(item.product)?item.product.typeCode : '',
-                typeId:(item.product)?item.product.typeId :'',
                 conditions: item.conditions,
                 remark: item.remark,
                 mobile:(item.shopAddress) ? item.shopAddress.mobile :'',
@@ -710,8 +761,10 @@ class Category extends React.Component {
                 mchOrderId:(item.payRecord)? item.payRecord.mchOrderId :'',
                 id:(item.distributor) ? item.distributor.id : '',
                 station: item.station,
+                typeId:(item.product)?item.product.typeId :'',
                 company:(item.product)?item.product.typeId :'',
                 distributorId:(item.ambassador) ? item.ambassador.id : '',
+                userSaleFlag: item.userSaleFlag,
             }
         });
     }
@@ -736,11 +789,15 @@ class Category extends React.Component {
         const { searchUserName } = this.state;
         const { searchAmbassadorId } = this.state;
         const { searchDistributorId } =this.state;
+        const { searchMinPrice } = this.state;
+        const { searchMaxPrice } = this.state;
         const suffix = searchorderNo ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-        const suffix2 = searchRefer ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-        const suffix3 = searchUserName ? <Icon type="close-circle" onClick={()=>this.emitEmpty()}/> : null;
-        const suffix5 = searchAmbassadorId ? <Icon type="close-circle" onClick={()=>this.emitEmpty()}/> : null;
-        const suffix6 = searchDistributorId ? <Icon type="close-circle" onClick={() => this.emitEmpty()}/> : null;
+        const suffix2 = searchRefer ? <Icon type="close-circle" onClick={()=>this.emitEmpty1()} /> : null;
+        const suffix3 = searchUserName ? <Icon type="close-circle" onClick={()=>this.emitEmpty2()}/> : null;
+        const suffix5 = searchAmbassadorId ? <Icon type="close-circle" onClick={()=>this.emitEmpty3()}/> : null;
+        const suffix6 = searchDistributorId ? <Icon type="close-circle" onClick={() => this.emitEmpty4()}/> : null;
+        const suffix8 = searchMinPrice ? <Icon type="close-circle" onClick={() => this.emitEmpty5()}/> : null;
+        const suffix9 = searchMaxPrice ? <Icon type="close-circle" onClick={() => this.emitEmpty6()}/> : null;
 
         return (
             <div>
@@ -832,8 +889,21 @@ class Category extends React.Component {
                       </li>
                       <li>
                           <span>订单总金额</span>
-                          <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最小价格" onChange={(e) => this.searchMinPriceChange(e)} value={this.state.searchMinPrice}/>--
-                          <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最大价格" onChange={(e) => this.searchMaxPriceChange(e)} value={this.state.searchMaxPrice}/>
+                          <Input
+                              style={{ width: '80px' }}
+                              min={0} max={999999} placeholder="最小价格"
+                              onChange={(v) => this.searchMinPriceChange(v)}
+                              value={searchMinPrice}
+                              suffix={ suffix8 }
+                          />
+                          --
+                          <Input
+                              style={{ width: '80px' }}
+                              min={0} max={999999} placeholder="最大价格"
+                              onChange={(e) => this.searchMaxPriceChange(e)}
+                              value={searchMaxPrice}
+                              suffix={ suffix9 }
+                          />
                       </li>
                       <li>
                           <span>支付状态</span>
@@ -911,7 +981,7 @@ class Category extends React.Component {
                           <Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button>
                       </li>
                       <li>
-                          <Button icon="download" style={{color: '#fff',backgroundColor:'#108ee9',borderColor: '#108ee9'}} onClick={warning}>导出</Button>
+                          <Button icon="download" onClick={() => this.onExport()} style={{color: '#fff',backgroundColor:'#108ee9',borderColor: '#108ee9'}}>导出</Button>
                       </li>
                    </ul>
               </div>
@@ -1038,12 +1108,6 @@ class Category extends React.Component {
                     >
                         {!!this.state.nowData ? this.findProductNameById(this.state.nowData.typeId) : ''}
                     </FormItem>
-                    {/*<FormItem*/}
-                        {/*label="产品公司"*/}
-                        {/*{...formItemLayout}*/}
-                    {/*>*/}
-                        {/*{!!this.state.nowData ? this.state.nowData.companyName : ''}*/}
-                    {/*</FormItem>*/}
                     <FormItem
                         label="产品公司"
                         {...formItemLayout}
@@ -1096,7 +1160,7 @@ class Category extends React.Component {
                         label="支付时间"
                         {...formItemLayout}
                     >
-                        {!!this.state.nowData ? this.state.nowData.createTime : ''}
+                        {!!this.state.nowData ? this.state.nowData.payTime : ''}
                     </FormItem>
                     <FormItem
                         label="流水号"
@@ -1105,10 +1169,16 @@ class Category extends React.Component {
                         {!!this.state.nowData ? this.state.nowData.mchOrderId : ''}
                     </FormItem>
                     <FormItem
+                        label="分销商是否有收益"
+                        {...formItemLayout}
+                    >
+                        {!!this.state.nowData ? (Boolean(this.state.nowData.userSaleFlag) === true ? <span>有</span> : <span>无</span>) : ''}
+                    </FormItem>
+                    <FormItem
                         label="分销商id"
                         {...formItemLayout}
                     >
-                        {/*{!!this.state.nowData ? this.state.nowData.realName : ''}*/}
+                        {!!this.state.nowData ? this.state.nowData.distributorId : ''}
                     </FormItem>
                     <FormItem
                         label="经销商id"

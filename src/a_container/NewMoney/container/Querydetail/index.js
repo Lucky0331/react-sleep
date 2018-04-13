@@ -333,12 +333,6 @@ class Category extends React.Component {
         });
         this.onSESearch();
     }
-    /** 服务站 - 上方查询相关 **/
-    onSESearchDate(e) { // 年月改变时触发
-        this.setState({
-            SESearchDate: e,
-        });
-    }
 
     /** 查所有的分配类型 **/
     getAllAllotTypes() {
@@ -389,10 +383,6 @@ class Category extends React.Component {
 
     /** 总部 - 导出按钮被点击 **/
     onHQDownload() {
-        this.onExportData(1, 99999);
-    }
-    /** 服务站 - 导出按钮被点击 **/
-    onSEDownload() {
         this.onExportData(1, 99999);
     }
 
@@ -476,7 +466,7 @@ class Category extends React.Component {
                             {!!this.state.nowData ? this.state.nowData.income : ''}
                         </FormItem>
                         <FormItem
-                            label="订单号"name
+                            label="订单号"
                             {...formItemLayout}
                         >
                             {!!this.state.nowData ? this.state.nowData.orderId : ''}

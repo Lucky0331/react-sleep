@@ -20,6 +20,7 @@
       "moduleName": "babel-runtime"
     }],
     "transform-decorators-legacy",
+    "transform-class-properties",
     [
       "import",
       {

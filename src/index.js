@@ -10,7 +10,9 @@ import store from './store';
 // 所有的CSS全部引入到入口文件即可
 import './css/css.css';
 import './css/scss.scss';
-
+import moment from 'moment';
+import 'moment/locale/zh-cn';
+moment.locale('zh-cn');
 const rootDom = document.getElementById('app-root');
 
 ReactDOM.render(

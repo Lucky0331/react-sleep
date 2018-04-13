@@ -80,7 +80,7 @@ class HomePageContainer extends React.Component {
             </div>
             <div className="title">HRA健康风险评估管理系统</div>
           </div>
-          <div className={this.state.show ? 'info show' : 'info'}>版本号: 1.0.0</div>
+          {/*<div className={this.state.show ? 'info show' : 'info'}>版本号: 1.0.0</div>*/}
         </div>
       </div>
     );

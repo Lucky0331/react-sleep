@@ -15,6 +15,8 @@ import tools from '../../../../util/tools'; // 工具
 import Power from '../../../../util/power'; // 权限
 import { power } from '../../../../util/data';
 import _ from 'lodash';
+import moment from 'moment';
+
 // ==================
 // 所需的所有组件
 // ==================
@@ -57,11 +59,16 @@ class Category extends React.Component {
             searchDistributorId:'',// 搜索 -经销商id
             searchMinPayTime:'' , //搜索 - 最小支付时间
             searchMaxPayTime:'' , //搜索 - 最大支付时间
-            searchPayMonth:'' , //搜索 - 结算月份
+            searchPayMonth:moment((()=>{
+                const d = new Date();
+                d.setMonth(d.getMonth()+1);
+                return d;
+            })()) , //搜索 - 结算月份
             searchMinOrderFee:'' , //搜索 - 最小金额
             searchMaxOrderFee:'' , //搜索 - 最大金额
             searchAddress: [], // 搜索 - 地址
             searchActivity : '',  //搜索 - 活动方式
+            searchRefer:'',   //搜索 - 云平台工单号
             addOrUp: 'add',     // 当前操作是新增还是修改
             nowData: null, // 当前选中用户的信息，用于查看详情、修改、分配菜单
             queryModalShow: false, // 查看详情模态框是否显示
@@ -120,6 +127,7 @@ class Category extends React.Component {
             city: this.state.searchAddress[1],
             region: this.state.searchAddress[2],
             distributionType:this.state.searchDistributionType,
+            refer: this.state.searchRefer,
         };
         this.props.actions.fBIncome(tools.clearNull(params)).then((res) => {
             if(res.status === 200) {
@@ -356,6 +364,13 @@ class Category extends React.Component {
         });
     }
 
+    //搜索 - 云平台工单号
+    searchReferChange(e){
+        this.setState({
+            searchRefer:e.target.value,
+        });
+    }
+
     //搜索 - 用户id查询
     searchUserIdChange(v) {
         this.setState({
@@ -394,14 +409,14 @@ class Category extends React.Component {
     // 搜索 - 最小金额
     searchMinOrderFeeChange(id){
         this.setState({
-            searchMinOrderFee: id,
+            searchMinOrderFee: id.target.value,
         });
     }
 
     // 搜索 - 最大金额
     searchMaxOrderFeeChange(id){
         this.setState({
-            searchMaxOrderFee: id,
+            searchMaxOrderFee: id.target.value,
         });
     }
 
@@ -462,11 +477,54 @@ class Category extends React.Component {
     emitEmpty(){
         this.setState({
             searchOrderId:'',
+        })
+    }
+
+    emitEmpty1(){
+        this.setState({
             searchUserId:'',
+        })
+    }
+
+    emitEmpty2(){
+        this.setState({
             searchSerialNumber:'',
+        })
+    }
+
+    emitEmpty3(){
+        this.setState({
             searchDistributorName:'',
+        })
+    }
+
+    emitEmpty4(){
+        this.setState({
             searchDistributorAccount:'',
+        })
+    }
+
+    emitEmpty5(){
+        this.setState({
             searchDistributorId:'',
+        })
+    }
+
+    emitEmpty6(){
+        this.setState({
+            searchRefer:'',
+        })
+    }
+
+    emitEmpty8(){
+        this.setState({
+            searchMinOrderFee:'',
+        })
+    }
+
+    emitEmpty9(){
+        this.setState({
+            searchMaxOrderFee:'',
         })
     }
 
@@ -650,6 +708,11 @@ class Category extends React.Component {
                 title: '订单号',
                 dataIndex: 'orderId',
                 key: 'orderId',
+            },
+            {
+                title:'云平台工单号',
+                dataIndex:'refer',
+                key:'refer'
             },
             {
                 title: '产品类型',
@@ -878,6 +941,8 @@ class Category extends React.Component {
                 orderCompleteTime: item.orderCompleteTime,
                 count: item.count,
                 productTypeName: item.productTypeName,
+                productName:item.productName,
+                productModel:item.productModel,
                 distributionType: item.distributionType,
                 orderId: item.orderId,
                 serialNumber: item.serialNumber,
@@ -899,41 +964,27 @@ class Category extends React.Component {
                 orderTotalFee: item.orderTotalFee,
                 orderFrom:item.orderFrom,
                 userId:item.userId,
+                refer:item.refer,
+                distributorType:item.distributorType,
+                orderCreateTime:item.orderCreateTime,
                 orderPayType:item.orderPayType,
                 orderStatus:item.orderStatus,
                 userType:item.userType,
                 saleMode: item.saleMode,
                 updateTime: item.updateTime,
                 updater: item.updater,
+                userSaleMoney:item.userSaleMoney,
+                userSaleName:item.userSaleName,
+                userSaleId:item.userSaleId,
+                userSaleNickName:item.userSaleNickName,
                 control: item.id,
                 orderProductCount:item.orderProductCount,
                 citys: (item.province && item.city && item.region) ? `${item.province}/${item.city}/${item.region}` : '',
-                userSaleMoney:item.userSaleMoney,
                 supplierMoney:item.supplierMoney,
             }
         });
     }
 
-    // 构建table所需数据
-    makeData2(dataDetail) {
-        console.log('dataDetail是：', dataDetail);
-        return dataDetail.map((item, index) => {
-            return {
-                key: index,
-                id: item.id,
-                name: item.name,
-                typeCode: item.typeCode,
-                orderCompleteTime: item.orderCompleteTime,
-                count: item.count,
-                productTypeName: item.productTypeName,
-                distributionType: item.distributionType,
-                orderId: item.orderId,
-                serialNumber: item.serialNumber,
-                undistributedFee: item.undistributedFee,
-                headquartersIncome: item.headquartersIncome,
-            }
-        });
-    }
 
     render() {
         const me = this;
@@ -960,12 +1011,18 @@ class Category extends React.Component {
         const { searchDistributorName } = this.state;
         const { searchDistributorAccount } = this.state;
         const { searchDistributorId } = this.state;
+        const { searchRefer } = this.state;
+        const { searchMinOrderFee } = this.state;
+        const { searchMaxOrderFee } = this.state;
         const suffix = searchOrderId ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-        const suffix2 = searchUserId ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-        const suffix3 = searchSerialNumber ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-        const suffix4 = searchDistributorName ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-        const suffix5 = searchDistributorAccount ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
-        const suffix6 = searchDistributorId ? <Icon type="close-circle" onClick={()=>this.emitEmpty()} /> : null;
+        const suffix2 = searchUserId ? <Icon type="close-circle" onClick={()=>this.emitEmpty1()} /> : null;
+        const suffix3 = searchSerialNumber ? <Icon type="close-circle" onClick={()=>this.emitEmpty2()} /> : null;
+        const suffix4 = searchDistributorName ? <Icon type="close-circle" onClick={()=>this.emitEmpty3()} /> : null;
+        const suffix5 = searchDistributorAccount ? <Icon type="close-circle" onClick={()=>this.emitEmpty4()} /> : null;
+        const suffix6 = searchDistributorId ? <Icon type="close-circle" onClick={()=>this.emitEmpty5()} /> : null;
+        const suffix7 = searchRefer ? <Icon type="close-circle" onClick={()=>this.emitEmpty6()} /> : null;
+        const suffix8 = searchMinOrderFee ? <Icon type="close-circle" onClick={() => this.emitEmpty8()}/> : null;
+        const suffix9 = searchMaxOrderFee ? <Icon type="close-circle" onClick={() => this.emitEmpty9()}/> : null;
 
         return (
             <div>
@@ -978,6 +1035,15 @@ class Category extends React.Component {
                                     suffix={ suffix }
                                     value={ searchOrderId }
                                     onChange={(e) => this.searchOrderIdChange(e)}
+                                />
+                            </li>
+                            <li>
+                                <span>云平台工单号</span>
+                                <Input
+                                    style={{ width: '172px',marginLeft:'6px' }}
+                                    suffix={ suffix7 }
+                                    value={ searchRefer }
+                                    onChange={(e) => this.searchReferChange(e)}
                                 />
                             </li>
                             <li>
@@ -1008,7 +1074,7 @@ class Category extends React.Component {
                             </li>
                             <li>
                                 <span style={{marginLeft:'8px'}}>结算月份</span>
-                                <MonthPicker onChange={(e) => this.searchPayMonthChange(e)} style={{ width: '172px', }} placeholder="选择月份" />
+                                <MonthPicker onChange={(e) => this.searchPayMonthChange(e)} style={{ width: '172px', }} placeholder="选择月份" value={this.state.searchPayMonth} />
                             </li>
                              <li>
                                  <span>服务站地区</span>
@@ -1022,8 +1088,21 @@ class Category extends React.Component {
                              </li>
                             <li>
                                 <span>订单总金额</span>
-                                <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最小价格" onChange={(e) => this.searchMinOrderFeeChange(e)} value={this.state.searchMinOrderFee}/>--
-                                <InputNumber style={{ width: '80px' }} min={0} max={999999} placeholder="最大价格" onChange={(e) => this.searchMaxOrderFeeChange(e)} value={this.state.searchMaxOrderFee}/>
+                                <Input
+                                    style={{ width: '80px' }}
+                                    min={0} max={999999} placeholder="最小价格"
+                                    onChange={(v) => this.searchMinOrderFeeChange(v)}
+                                    value={searchMinOrderFee}
+                                    suffix={ suffix8 }
+                                />
+                                --
+                                <Input
+                                    style={{ width: '80px' }}
+                                    min={0} max={999999} placeholder="最大价格"
+                                    onChange={(e) => this.searchMaxOrderFeeChange(e)}
+                                    value={searchMaxOrderFee}
+                                    suffix={ suffix9 }
+                                />
                             </li>
                             <li>
                                 <span>用户类型</span>
@@ -1124,7 +1203,7 @@ class Category extends React.Component {
                             <Table
                                 columns={this.makeColumns()}
                                 className="my-table"
-                                scroll={{ x: 2400 }}
+                                scroll={{ x: 3000 }}
                                 dataSource={this.makeData(this.state.data2)}
                                 pagination={{
                                     total: this.state.total,
@@ -1153,10 +1232,22 @@ class Category extends React.Component {
                             {!!this.state.nowData ? this.state.nowData.orderId : ''}
                         </FormItem>
                         <FormItem
+                            label="云平台工单号"
+                            {...formItemLayout}
+                        >
+                            {!!this.state.nowData ? this.state.nowData.refer : ''}
+                        </FormItem>
+                        <FormItem
                             label="订单来源"
                             {...formItemLayout}
                         >
                             {!!this.state.nowData ? this.getListByModelId(this.state.nowData.orderFrom) : ''}
+                        </FormItem>
+                        <FormItem
+                            label="产品名称"
+                            {...formItemLayout}
+                        >
+                            {!!this.state.nowData ? this.state.nowData.productName : ''}
                         </FormItem>
                         <FormItem
                             label="产品类型"
@@ -1165,16 +1256,10 @@ class Category extends React.Component {
                             {!!this.state.nowData ? this.state.nowData.productTypeName : ''}
                         </FormItem>
                         <FormItem
-                            label="产品名称"
-                            {...formItemLayout}
-                        >
-                            {/*{!!this.state.nowData ? this.state.nowData.productTypeName : ''}*/}
-                        </FormItem>
-                        <FormItem
                             label="产品型号"
                             {...formItemLayout}
                         >
-                            {/*{!!this.state.nowData ? this.state.nowData.productTypeName : ''}*/}
+                            {!!this.state.nowData ? this.state.nowData.productModel : ''}
                         </FormItem>
                         <FormItem
                             label="用户类型"
@@ -1188,12 +1273,6 @@ class Category extends React.Component {
                         >
                             {!!this.state.nowData ? this.state.nowData.userId : ''}
                         </FormItem>
-                        {/*<FormItem*/}
-                            {/*label="分配类型"*/}
-                            {/*{...formItemLayout}*/}
-                        {/*>*/}
-                            {/*{!!this.state.nowData ? this.state.nowData.distributionType : ''}*/}
-                        {/*</FormItem>*/}
                         <FormItem
                             label="数量"
                             {...formItemLayout}
@@ -1222,7 +1301,7 @@ class Category extends React.Component {
                             label="支付方式"
                             {...formItemLayout}
                         >
-                            {/*{!!this.state.nowData ? this.state.nowData.orderCompleteTime : ''}*/}
+                            {!!this.state.nowData ? this.getBypayType(this.state.nowData.orderPayType) : ''}
                         </FormItem>
                         <FormItem
                             label="流水号"
@@ -1234,7 +1313,7 @@ class Category extends React.Component {
                             label="下单时间"
                             {...formItemLayout}
                         >
-                            {/*{!!this.state.nowData ? this.state.nowData.orderCompleteTime : ''}*/}
+                            {!!this.state.nowData ? this.state.nowData.orderCreateTime : ''}
                         </FormItem>
                         <FormItem
                             label="经销商姓名"
@@ -1243,16 +1322,16 @@ class Category extends React.Component {
                             {!!this.state.nowData ? this.state.nowData.distributorName : ''}
                         </FormItem>
                         <FormItem
-                            label="经销商身份"
-                            {...formItemLayout}
-                        >
-                            {/*{!!this.state.nowData ? this.state.nowData.distributorName : ''}*/}
-                        </FormItem>
-                        <FormItem
                             label="经销商id"
                             {...formItemLayout}
                         >
-                            {/*{!!this.state.nowData ? this.state.nowData.distributorName : ''}*/}
+                            {!!this.state.nowData ? this.state.nowData.distributorId : ''}
+                        </FormItem>
+                        <FormItem
+                            label="经销商身份"
+                            {...formItemLayout}
+                        >
+                            {!!this.state.nowData ? this.getUserType(this.state.nowData.distributorType) : ''}
                         </FormItem>
                         <FormItem
                             label="经销商账户"
@@ -1288,19 +1367,19 @@ class Category extends React.Component {
                             label="分销商id"
                             {...formItemLayout}
                         >
-                            {/*{!!this.state.nowData ? this.state.nowData.balanceMonth : ''}*/}
+                            {!!this.state.nowData ? this.state.nowData.userSaleId : ''}
                         </FormItem>
                         <FormItem
                             label="分销商昵称"
                             {...formItemLayout}
                         >
-                            {/*{!!this.state.nowData ? this.state.nowData.balanceMonth : ''}*/}
+                            {!!this.state.nowData ? this.state.nowData.userSaleNickName : ''}
                         </FormItem>
                         <FormItem
                             label="分销商姓名"
                             {...formItemLayout}
                         >
-                            {/*{!!this.state.nowData ? this.state.nowData.balanceMonth : ''}*/}
+                            {!!this.state.nowData ? this.state.nowData.userSaleName : ''}
                         </FormItem>
                         <FormItem
                             className={this.state.userType == null || this.state.userType == 1 || this.state.userType == 2 || this.state.userType == 3 || this.state.userType == 4 || this.state.userType == 5 || this.state.userType == 7 || this.state.userType == 8? 'show': ''}
@@ -1348,8 +1427,8 @@ class Category extends React.Component {
                                 </tr>
                                 <tr>
                                     <td style={{textAlign:'center'}}>分销商</td>
-                                    {/*<td>{!!this.state.nowData ? this.state.nowData.distributorName : ''}</td>*/}
-                                    {/*<td>{!!this.state.nowData ? this.state.nowData.distributorMoney : ''}</td>*/}
+                                    <td style={{textAlign:'center'}}>{!!this.state.nowData ? this.state.nowData.userSaleName : ''}</td>
+                                    <td style={{textAlign:'center'}}>{!!this.state.nowData ? this.state.nowData.userSaleMoney : ''}</td>
                                 </tr>
                             </div>
                         </FormItem>

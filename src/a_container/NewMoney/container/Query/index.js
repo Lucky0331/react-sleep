@@ -80,6 +80,7 @@ class Category extends React.Component {
             queryModalShow: false,      // 查看详情模态框是否显示 两个表格共用，因为字段相同
 
             citys: [],                  // 符合Cascader组件的城市数据
+            searchAddress: [],          // 搜索 - 地址
             stations: [],               // 当前省市区下面的服务站
 
             years: [],                //年份的数组
@@ -98,6 +99,13 @@ class Category extends React.Component {
         this.props.actions.saveTest(d);
         this.props.history.push('../NewMoney/Querydetail');
         console.log('跳转页面的record带了哪些参数：',d)
+    }
+
+    // 搜索 - 服务站地区输入框值改变时触发
+    onSearchAddress(c) {
+        this.setState({
+            searchAddress: c,
+        });
     }
 
 
@@ -180,7 +188,7 @@ class Category extends React.Component {
                 render: (text,record) => {
                     return {
                         children: (() => {
-                            if(record.name == '月份\\年份'){
+                            if(record.name == '月份/年份'){
                                 return <span>{text.split('_')[0]}</span>
                             }else{
                                 return <span onClick={() => this.onQueryClick2(text, record)}><a href="#/money/querydetail">{text.split('_')[0]}</a></span>
@@ -199,7 +207,7 @@ class Category extends React.Component {
                 render: (text,record) => {
                     return {
                         children: (() =>{
-                            if(record.name == '月份\\年份'){
+                            if(record.name == '月份/年份'){
                                 return <span>{text.split('_')[0]}</span>
                             }else{
                                 return <span onClick={() => this.onQueryClick2(text, record)}><a href="#/money/querydetail">{text.split('_')[0]}</a></span>
@@ -219,7 +227,7 @@ class Category extends React.Component {
                 render: (text,record) => {
                     return {
                         children: (() => {
-                            if(record.name == '月份\\年份'){
+                            if(record.name == '月份/年份'){
                                 return <span>{text.split('_')[0]}</span>
                             }else{
                                 return <span onClick={() => this.onQueryClick2(text, record)}><a href="#/money/querydetail">{text.split('_')[0]}</a></span>
@@ -238,7 +246,7 @@ class Category extends React.Component {
                 render: (text,record) => {
                     return {
                         children: (() => {
-                            if(record.name == '月份\\年份'){
+                            if(record.name == '月份/年份'){
                                 return <span>{text.split('_')[0]}</span>
                             }else{
                                 return <span onClick={() => this.onQueryClick2(text, record)}><a href="#/money/querydetail">{text.split('_')[0]}</a></span>
@@ -278,22 +286,22 @@ class Category extends React.Component {
                 title: '服务站地区',
                 dataIndex: 'stationArea',
                 key:'stationArea',
-                render: (text) => {
-                    return {
-                        children: <a href="#/money/querydetail">{text}</a>,
-                        props: {
-                            colSpan: 1,
-                        },
-                    };
-                },
             },
             {
                 title: '服务站公司名称',
                 dataIndex: 'stationCompanyName',
                 key:'stationCompanyName',
-                render: (text) => {
+            },
+            {
+                title: '2017',
+            },
+            {
+                title:'2018',
+                dataIndex:'stationTotalIncome',
+                key:'stationTotalIncome',
+                render: (text,record) => {
                     return {
-                        children: <a href="#/money/querydetail">{text}</a>,
+                        children: <span onClick={() => this.onQueryClick2(text, record)}><a href="#/money/querydetail">{text}</a></span>,
                         props: {
                             colSpan: 1,
                         },
@@ -301,16 +309,19 @@ class Category extends React.Component {
                 },
             },
             {
-                title: '2017',
-            },
-            {
-                title:'2018'
-            },
-            {
                 title: '总计',
                 dataIndex: 'sum',
+                render: (text) => {
+                    return {
+                        children:<span>{text}</span>,
+                        props: {
+                            colSpan: 1,
+                        },
+                    };
+                }
             }
         ];
+
         return columns;
     }
 
@@ -419,21 +430,20 @@ class Category extends React.Component {
                     obj.sum = null;
                     break;
                 case 1:
-                    obj.name = '1月份';
-                    d.forEach((item, index) => {
-                        if(item.company === '1'){
-                            obj.company1 = `${item.janurary || 0}_${item.company}`;
-                        } else if (item.company === '2') {
-                            obj.company2 = `${item.janurary || 0}_${item.company}`;
-                        } else if (item.company === '3') {
-                            obj.company3 = `${item.janurary || 0}_${item.company}`;
-                        } else if (item.company === '5') {
-                            obj.company5 = `${item.janurary || 0}_${item.company}`;
-                        }
-                        obj.year = item.year;
-                    });
-                    obj.sum = (Number(obj.company1.split('_')[0])) + (Number(obj.company2.split('_')[0])) + (Number(obj.company3.split('_')[0])) + (Number(obj.company5.split('_')[0]));
-
+                        obj.name = '1月份';
+                        d.forEach((item, index) => {
+                            if(item.company === '1'){
+                                obj.company1 = `${item.janurary || 0}_${item.company}`;
+                            } else if (item.company === '2') {
+                                obj.company2 = `${item.janurary || 0}_${item.company}`;
+                            } else if (item.company === '3') {
+                                obj.company3 = `${item.janurary || 0}_${item.company}`;
+                            } else if (item.company === '5') {
+                                obj.company5 = `${item.janurary || 0}_${item.company}`;
+                            }
+                            obj.year = item.year;
+                        });
+                        obj.sum = (Number(obj.company1.split('_')[0])) + (Number(obj.company2.split('_')[0])) + (Number(obj.company3.split('_')[0])) + (Number(obj.company5.split('_')[0]));
                     break;
                 case 2:
                     obj.name = '2月份';
@@ -643,7 +653,11 @@ class Category extends React.Component {
             }
             obj.key = i;
 
-            res.push(obj);
+            if(obj.sum == 0){
+
+            }else{
+                res.push(obj);
+            }
         }
 
         console.log('res:', res);
@@ -651,10 +665,16 @@ class Category extends React.Component {
     }
 
     /** 服务站收益表 构建table所需数据 **/
-    makeDataStation(){
-        const params={
-            stationArea:item.stationArea,
-        }
+    makeDataStation(data){
+        return data.map((item, index) => {
+            return{
+                stationArea:item.stationArea,
+                serial:(index + 1),
+                stationTotalIncome:item.stationTotalIncome,
+                sum:item.stationTotalIncome
+            };
+        })
+
     }
 
     /** 查看详情模态框出现 **/
@@ -702,14 +722,17 @@ class Category extends React.Component {
     }
 
 
-    /** 服务站 - 主列表 - 获取数据 **/
+    /** 服务站收益列表查询 **/
     onGetDataSE(pageNum, pageSize) {
         const params = {
             pageNum,
             pageSize,
-            province: this.state.SESearchArea && this.state.SESearchArea[0],
-            city: this.state.SESearchArea && this.state.SESearchArea[1],
-            region: this.state.SESearchArea && this.state.SESearchArea[2],
+            // province: this.state.SESearchArea && this.state.SESearchArea[0],
+            // city: this.state.SESearchArea && this.state.SESearchArea[1],
+            // region: this.state.SESearchArea && this.state.SESearchArea[2],
+            province: this.state.searchAddress[0],
+            city: this.state.searchAddress[1],
+            region: this.state.searchAddress[2],
         };
         this.props.actions.getStationIncomeMain(tools.clearNull(params)).then((res) => {
             if(res.status === 200) {
@@ -794,7 +817,7 @@ class Category extends React.Component {
                                 <Tabs type="card">
                                     <TabPane tab="总部收益" key="1">
                                         <div className="system-table" >
-                                            <div className="system-table" >
+                                          <div className="system-table" >
                                             <ul className="search-ul more-ul" style={{marginTop:'10px',marginBottom:'10px'}}>
                                                 <li>
                                                     <span>结算年份：</span>
@@ -868,13 +891,12 @@ class Category extends React.Component {
                                                 <li style={{marginBottom:'10px'}}>
                                                     <span style={{marginRight:'8px'}}>服务站地区：</span>
                                                     <Cascader
-                                                        style={{width:'185px'}}
+                                                        style={{width :' 185px '}}
                                                         placeholder="请选择服务区域"
+                                                        onChange={(v) => this.onSearchAddress(v)}
                                                         options={this.state.citys}
                                                         loadData={(e) => this.getAllCitySon(e)}
-                                                        value={this.state.SESearchArea}
-                                                        onChange={(v) => this.onCascaderChange(v)}
-                                                        // changeOnSelect
+                                                        changeOnSelect
                                                     />
                                                 </li>
                                                 <li style={{marginLeft:'10px'}}>
@@ -892,7 +914,14 @@ class Category extends React.Component {
                                                 className="my-table"
                                                 dataSource={this.makeDataStation(this.state.dataSE)}
                                                 bordered={true}
-                                                pagination={false}
+                                                pagination={{
+                                                    total: this.state.total,
+                                                    current: this.state.pageNum,
+                                                    pageSize: this.state.pageSize,
+                                                    showQuickJumper: true,
+                                                    showTotal: (total, range) => `共 ${total} 条数据`,
+                                                    onChange: (page, pageSize) => this.onTablePageChange(page, pageSize)
+                                                }}
                                             />
                                         </div>
                                     </TabPane>
