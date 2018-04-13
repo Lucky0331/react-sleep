@@ -1,36 +1,36 @@
-.com-header{
+.com-header {
   position: fixed;
   width: 100%;
   min-width: 1200px;
-  z-index:999;
-  top:0;
+  z-index: 999;
+  top: 0;
   height: 46px;
   line-height: 46px;
   box-sizing: border-box;
-  padding:0 5px;
+  padding: 0 5px;
   color: #fefefe;
   background-color: #001529;
   font-size: 13px;
   display: flex;
-  .menu-box{
+  .menu-box {
     flex: 1;
   }
-  .header-menu{
-    flex:none;
-    li{
+  .header-menu {
+    flex: none;
+    li {
       display: inline-block;
-      .logo{
+      .logo {
         color: #fefefe;
         text-decoration: none;
         padding-left: 0;
-        img{
+        img {
           height: 20px;
           vertical-align: middle;
           margin-top: -3px;
           margin-right: 8px;
         }
       }
-      .active{
+      .active {
         color: #fff;
         background-color: #666;
       }
@@ -42,26 +42,26 @@
         padding: 0 12px;
         text-decoration: none;
         transition: all 200ms;
-        &:hover{
+        &:hover {
           color: #fff;
         }
       }
     }
   }
-  .header-userinfo{
+  .header-userinfo {
     flex: none;
     color: #fefefe;
     font-size: 12px;
     width: auto;
-    .logout{
+    .logout {
       background-color: transparent;
       color: #fefefe;
       border: none;
-      &:hover{
+      &:hover {
         color: #00ff00;
       }
     }
-    li{
+    li {
       display: inline-block;
       margin-left: 10px;
       a {
@@ -70,7 +70,7 @@
     }
   }
 }
-.header-station{
+.header-station {
   width: 100%;
   height: 46px;
 }

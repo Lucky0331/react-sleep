@@ -4,10 +4,10 @@
 // 所需的各种插件
 // ==================
 
-import React from 'react';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import P from 'prop-types';
+import React from "react";
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import P from "prop-types";
 
 // ==================
 // 所需的所有组件
@@ -23,18 +23,13 @@ import P from 'prop-types';
 class AdRate extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-    };
+    this.state = {};
   }
 
-  componentDidMount() {
-
-  }
+  componentDidMount() {}
 
   render() {
-    return (
-      <div>6</div>
-    );
+    return <div>6</div>;
   }
 }
 
@@ -44,7 +39,7 @@ class AdRate extends React.Component {
 
 AdRate.propTypes = {
   location: P.any,
-  history: P.any,
+  history: P.any
 };
 
 // ==================
@@ -52,10 +47,8 @@ AdRate.propTypes = {
 // ==================
 
 export default connect(
-  (state) => ({
-
-  }), 
-  (dispatch) => ({
-    actions: bindActionCreators({}, dispatch),
+  state => ({}),
+  dispatch => ({
+    actions: bindActionCreators({}, dispatch)
   })
 )(AdRate);

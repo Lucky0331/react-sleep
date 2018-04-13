@@ -1,26 +1,14 @@
 {
   "presets": [
-    "babel-preset-react",
-    [
-      "babel-preset-env",
-      {
-        "modules": false,
-        "targets": {
-         "ie9": true
-        },
-        "uglify": true
-      }
-    ]
+    "babel-preset-env",
+    "babel-preset-react"
   ],
   "plugins": [
-    ["transform-runtime", {
-      "helpers": false,
-      "polyfill": false,
-      "regenerator": true,
-      "moduleName": "babel-runtime"
-    }],
+	"transform-runtime",
     "transform-decorators-legacy",
     "transform-class-properties",
+    "syntax-dynamic-import",
+    "react-loadable/babel",
     [
       "import",
       {

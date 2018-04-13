@@ -4,10 +4,10 @@
 // 所需的各种插件
 // ==================
 
-import React from 'react';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import P from 'prop-types';
+import React from "react";
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import P from "prop-types";
 
 // ==================
 // 所需的所有组件
@@ -23,18 +23,13 @@ import P from 'prop-types';
 class TypeCom extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-    };
+    this.state = {};
   }
 
-  componentDidMount() {
-
-  }
+  componentDidMount() {}
 
   render() {
-    return (
-      <div>1</div>
-    );
+    return <div>1</div>;
   }
 }
 
@@ -44,7 +39,7 @@ class TypeCom extends React.Component {
 
 TypeCom.propTypes = {
   location: P.any,
-  history: P.any,
+  history: P.any
 };
 
 // ==================
@@ -52,11 +47,11 @@ TypeCom.propTypes = {
 // ==================
 
 export default connect(
-  (state) => ({
+  state => ({
     testvalue: state.app.inputvalue,
-    fetchValue: state.app.fetchvalue,
-  }), 
-  (dispatch) => ({
-    actions: bindActionCreators({}, dispatch),
+    fetchValue: state.app.fetchvalue
+  }),
+  dispatch => ({
+    actions: bindActionCreators({}, dispatch)
   })
 )(TypeCom);
