@@ -7,7 +7,9 @@ const initState = {
   allRoles: [], // 所有的角色
   allOrganizer: [], // 所有的组织机构
   citys: [], // 保存省市区，cascader有用
-  test: {}
+  test: {},
+  detail:{},
+  detail2:{},
 };
 
 // ============================================
@@ -52,6 +54,23 @@ const saveTest = (state, action) => {
   });
 };
 
+const detailRecord = (state, action) => {
+    const { payload } = action;
+    console.log("跳转到详情传的是什么：", payload);
+    return Object.assign({}, state, {
+      detail: payload
+    });
+};
+
+
+const userinfoRecord = (state, action) => {
+    const { payload } = action;
+    console.log("跳转到详情传的是什么：", payload);
+    return Object.assign({}, state, {
+        detail2: payload
+    });
+};
+
 // ============================================
 // reducer function
 
@@ -65,8 +84,12 @@ const reducerFn = (state = initState, action) => {
       return findAllOrganizer(state, action);
     case "SYS::findAllProvince": // 保存所有的省市区
       return findAllProvince(state, action);
-    case "TEST::saveTest":
+    case "TEST::saveTest":          //结算详情 页面跳转传参
       return saveTest(state, action);
+    case "Detail::detailRecord":    //经销商信息 页面跳转查看详情
+      return detailRecord(state, action);
+    case "Detail2::userinfoRecord":    //用户信息 页面跳转查看详情
+      return userinfoRecord(state, action);
     default:
       return actDefault(state, action);
   }

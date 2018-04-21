@@ -1479,6 +1479,9 @@ class Category extends React.Component {
                 ? this.getUserType(this.state.nowData.distributorType)
                 : ""}
             </FormItem>
+            <FormItem label="经销商账户" {...formItemLayout}>
+                {!!this.state.nowData? this.state.nowData.distributorAccount: ""}
+            </FormItem>
             <FormItem label="经销商所在服务站名称" {...formItemLayout}>
               {!!this.state.nowData
                 ? this.state.nowData.stationCompanyName

@@ -153,22 +153,6 @@ class Header extends React.Component {
             </Link>
           </li>
         </ul>
-        {/*<Menu*/}
-        {/*theme="dark"*/}
-        {/*mode="horizontal"*/}
-        {/*defaultSelectedKeys={['2']}*/}
-        {/*style={{ lineHeight: '45px',float:'left' ,fontSize:'16px',boxSizing: 'border-box'}}*/}
-        {/*>*/}
-        {/*<Menu.Item key="/product/list" style={{marginLeft:'16px'}}><Link to="/product/list" onClick={() => this.menuChange("sub1")}>产品管理</Link></Menu.Item>*/}
-        {/*<Menu.Item key="/order/orderlist" style={{marginLeft:'16px'}}><Link to="/order/orderlist" onClick={() => this.menuChange("sub2")}>订单管理</Link></Menu.Item>*/}
-        {/*<Menu.Item key="/service/station" style={{marginLeft:'16px'}} ><Link to="/service/station" onClick={() => this.menuChange("sub3")}>服务站管理</Link></Menu.Item>*/}
-        {/*<Menu.Item key="/physical/list" style={{marginLeft:'16px'}}><Link to="/physical/list" onClick={() => this.menuChange("sub4")}>体检管理</Link></Menu.Item>*/}
-        {/*<Menu.Item key="/money/manage" style={{marginLeft:'16px'}} ><Link to="/money/manage" onClick={() => this.menuChange("sub5")}>资金管理</Link></Menu.Item>*/}
-        {/*<Menu.Item key="/invoice/pending" style={{marginLeft:'16px'}} ><Link to="/invoice/pending" onClick={() => this.menuChange("sub6")}>发票管理</Link></Menu.Item>*/}
-        {/*<Menu.Item key="/content/banner" style={{marginLeft:'16px'}} ><Link to="/content/banner" onClick={() => this.menuChange("sub7")}>內容管理</Link></Menu.Item>*/}
-        {/*<Menu.Item key="/system/manager" style={{marginLeft:'16px'}} ><Link to="/system/manager" onClick={() => this.menuChange("sub0")}>系统管理</Link></Menu.Item>*/}
-
-        {/*</Menu>*/}
         <div className="menu-box">
           <Menu
             key="1"

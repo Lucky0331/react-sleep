@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Menu, Icon } from "antd";
+import { Menu,Popover,} from "antd";
 import P from "prop-types";
 import "./menu.scss";
 
@@ -13,6 +13,7 @@ class Menus extends React.Component {
       sourceData: [], // 层级结构的原始数据
       sessionData: null, // sessionStorage中保存的Menu数据
       treeDom: [], // 生成的菜单结构
+      nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
       show: false, // 是否显示
       chosedKey: [], // 当前选中
       openKeys: [], // 需要被打开的项
@@ -117,7 +118,8 @@ class Menus extends React.Component {
       // console.log('key都是什么：', newKey);
       if (item.children) {
         return (
-          <SubMenu key={newKey} title={<span>{item.menuName}</span>}>
+          <SubMenu key={newKey}
+               title={[<img className="small-img" src={item.iconImg} key='0' style={{ marginLeft:'-10px',marginRight:'10px' }}/>,<span key='1'>{item.menuName}</span>]}>
             {this.makeTreeDom(item.children, newKey)}
           </SubMenu>
         );

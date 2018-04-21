@@ -13,19 +13,19 @@ module.exports = {
   output: {
     path: "/", // 将打包好的文件放在此路径下，dev模式中，只会在内存中存在，不会真正的打包到此路径
     publicPath: "/", // 文件解析路径，index.html中引用的路径会被设置为相对于此路径
-    filename: "bundle.js" //编译后的文件名字
+    filename: "bundle.js", //编译后的文件名字
   },
   devtool: "inline-source-map", // 报错的时候在控制台输出哪一行报错
   context: __dirname, // entry 和 module.rules.loader 选项相对于此目录开始解析
   module: {
     rules: [
-      {
-        // 编译前通过eslint检查代码 (注释掉即可取消eslint检测)
-        test: /\.js?$/,
-        enforce: "pre",
-        use: ["eslint-loader"],
-        include: path.resolve(__dirname, "src")
-      },
+      // {
+      //   // 编译前通过eslint检查代码 (注释掉即可取消eslint检测)
+      //   test: /\.js?$/,
+      //   enforce: "pre",
+      //   use: ["eslint-loader"],
+      //   include: path.resolve(__dirname, "src")
+      // },
       {
         // .js .jsx用babel解析
         test: /\.js?$/,
@@ -94,6 +94,14 @@ module.exports = {
     ]
   },
   plugins: [
+      new webpack.DllReferencePlugin({
+          context: path.resolve(__dirname, "dll"),
+          /**
+           下面这个地址对应webpack.dll.config.js中生成的那个json文件的路径
+           这样webpack打包时，就先直接去这个json文件中把那些预编译的资源弄进来
+           **/
+          manifest: require('./dll/vendor-manifest.json')
+      }),
     new HtmlWebpackPlugin({
       //根据模板插入css/js等生成最终HTML
       filename: "index.html", //生成的html存放路径，相对于 output.path

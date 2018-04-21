@@ -112,9 +112,9 @@ class Category extends React.Component {
     }
   }
 
-  // const warning2 = () =>{
-  //     message.warning('导出功能尚在开发 敬请期待');
-  // };
+  warning2 = () =>{
+      message.warning('导出功能尚在开发 敬请期待');
+  };
 
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
@@ -313,8 +313,6 @@ class Category extends React.Component {
     switch (String(id)) {
       case "1":
         return "微信零钱";
-      case "2":
-        return "支付宝钱包";
     }
   }
 
@@ -744,46 +742,30 @@ class Category extends React.Component {
             );
           record.withdrawStatus === 3 &&
             controls.push(
-              <Popover
-                content={
-                  <div>
-                    <Form>
-                      <TextArea
+              <Popconfirm
+                  title={
+                    <div style={{height:'65px'}}>
+                    <TextArea
                         placeholder="请输入拒绝理由"
                         autosize={{ minRows: 1, maxRows: 4 }}
                         value={this.state.reason}
-                        defaultValue="提现审核未通过，如有疑问，请联系客服：4001519999"
+                        defaultValue="退款审核未通过，如有疑问，请联系客服：4001519999"
                         onChange={e => this.Reason(e)}
-                      />
-                    </Form>
-                    {/*<ul style={{display: 'flex',justifyContent: 'space-between'}}>*/}
-                    {/*<li style={{width:'40px'}}><a onClick={(e) => this.onAdoptNoAlone(record)}>确定</a></li>*/}
-                    {/*<li style={{width:'40px'}}><a onClick={(e) => this.hide()}>取消</a></li>*/}
-                    {/*</ul>*/}
-                    <div style={{ marginLeft: "125px" }}>
-                      <a onClick={e => this.onAdoptNoAlone(record)}>确定</a>
+                    />
                     </div>
-                  </div>
-                }
-                title="请输入拒绝理由"
-                trigger="click"
-                placement="bottom"
-                onVisibleChange={e => this.handleVisibleChange2(e)}
+                  }
+                  trigger="click"
+                  placement="bottom"
+                  onCancel={() => this.onAddNewClose()}
+                  onConfirm={() => this.onAdoptNoAlone(record)}
               >
                 <span key="1" className="control-btn red">
                   <Tooltip placement="top" title="审核不通过">
                     <Icon type="cross-circle-o" />
                   </Tooltip>
                 </span>
-              </Popover>
+              </Popconfirm>
             );
-          // controls.push(
-          //     <span key="2" className="control-btn green" onClick={() => this.onQueryClick(record)}>
-          //         <Tooltip placement="top" title="详情">
-          //             <Icon type="eye" />
-          //         </Tooltip>
-          //     </span>
-          // );
           const result = [];
           controls.forEach((item, index) => {
             if (index) {
@@ -940,7 +922,6 @@ class Category extends React.Component {
                 onChange={e => this.searchCashTypeChange(e)}
               >
                 <Option value={1}>微信零钱</Option>
-                <Option value={2}>支付宝钱包</Option>
               </Select>
             </li>
             <li>
@@ -1014,7 +995,7 @@ class Category extends React.Component {
                   backgroundColor: "#108ee9",
                   borderColor: "#108ee9"
                 }}
-                onClick={warning2}
+                onClick={this.warning2}
               >
                 导出
               </Button>

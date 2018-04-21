@@ -116,6 +116,10 @@ class Category extends React.Component {
     }
   }
 
+    warning2 = () =>{
+        message.warning('导出功能尚在开发 敬请期待');
+    };
+
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
     const params = {
@@ -132,10 +136,10 @@ class Category extends React.Component {
       mchOrderId: this.state.searchmchOrderIdChange,
       userType: this.state.searchType, //用户身份
       activityType: this.state.searchActivity, //活动方式
-      refundBeginTime: this.state.searchrefundBeginTime
+      beginTime: this.state.searchrefundBeginTime
         ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)} `
         : "",
-      refundEndTime: this.state.searchrefundEndTime
+      endTime: this.state.searchrefundEndTime
         ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)} `
         : ""
     };
@@ -944,9 +948,9 @@ class Category extends React.Component {
             );
           record.refundStatus === 1 &&
             controls.push(
-              <Popover
-                content={
-                  <div>
+              <Popconfirm
+                 title={
+                  <div style={{height:'65px'}}>
                     <TextArea
                       placeholder="请输入拒绝理由"
                       autosize={{ minRows: 1, maxRows: 4 }}
@@ -954,24 +958,19 @@ class Category extends React.Component {
                       defaultValue="退款审核未通过，如有疑问，请联系客服：4001519999"
                       onChange={e => this.RefundDetail(e)}
                     />
-                    <div style={{ marginLeft: "125px" }}>
-                      <a onClick={e => this.onAdoptAloneNo(record)}>确定</a>
-                    </div>
                   </div>
                 }
-                title="请输入拒绝理由"
                 trigger="click"
                 placement="bottom"
-                // visible={this.state.AuditShow}
                 onCancel={() => this.onAddNewClose()}
-                onVisibleChange={e => this.handleVisibleChange2(e)}
+                onConfirm={() => this.onAdoptAloneNo(record)}
               >
                 <span key="1" className="control-btn red">
                   <Tooltip placement="top" title="审核拒绝">
                     <Icon type="cross-circle-o" style={{ color: "red" }} />
                   </Tooltip>
                 </span>
-              </Popover>
+              </Popconfirm>
             );
           record.refundStatus === 3 &&
             controls.push(
@@ -1204,7 +1203,7 @@ class Category extends React.Component {
             </li>
             <li>
               {/*<Button icon="download" type="primary" onClick={() => this.onExport()}>导出</Button>*/}
-              <Button icon="download" type="primary" onClick={warning}>
+              <Button icon="download" type="primary" onClick={this.warning2}>
                 导出
               </Button>
             </li>

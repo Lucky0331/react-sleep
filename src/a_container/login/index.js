@@ -328,7 +328,8 @@ class LoginContainer extends React.Component {
                   onChange={code => this.onVcodeChange(code)}
                   className="vcode"
                   options={{
-                    lines: 16
+                    lines: 16,
+                    codes:[1,2,3,4,5,6,7,8,9,0]
                   }}
                 />
               </FormItem>

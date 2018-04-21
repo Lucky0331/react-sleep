@@ -1449,9 +1449,7 @@ class Category extends React.Component {
                 : ""}
             </FormItem>
             <FormItem label="经销商账户" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.state.nowData.distributorAccount
-                : ""}
+              {!!this.state.nowData? this.state.nowData.distributorAccount: ""}
             </FormItem>
             <FormItem label="服务站地区（经销商）" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.stationArea : ""}

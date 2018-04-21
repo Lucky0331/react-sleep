@@ -88,22 +88,9 @@ class Manager extends React.Component {
       addOrUp: "add", // 当前操作是新增还是修改
       citys: [], // 所有的省
       stations: [], // 当前服务站地区所对应的服务站
-      searchType: "", //搜索 - 经销商类型
-      searchNickName: "", //搜索 - 经销商昵称
-      searchMobile: "", // 搜索 - 经销商手机号
-      searchName: "", //搜索 - 经销商真实姓名
-      searchEId: "", // 搜索 - 经销商e家号
-      searchUserName: "", //搜索 - 经销商账户
-      searchBeginTime: "", // 搜索 - 开始时间
-      searchEndTime: "", // 搜索- 结束时间
       searchBindingBeginTime: "", //搜索 - 开始绑定时间
       searchBindingEndTime: "", //搜搜 - 结束绑定时间
       searchAmbassadorUserType: "", //搜索 - 健康大使身份类型
-      searchAmbassadorNickName: "", //搜索 - 健康大使昵称
-      searchAmbassadorRealName: "", //搜索 - 健康大使真实姓名
-      searchId: "", //搜索- 健康大使id
-      searchAmbassadorMobile: "", //搜索 - 健康大使手机号
-      searchAddress: [] // 搜索 - 服务站地区地址
     };
   }
 
@@ -219,27 +206,6 @@ class Manager extends React.Component {
       userName: this.state.searchUserName,
       conditions: this.state.searchConditions,
       userType: this.state.searchType,
-      province: this.state.searchAddress[0],
-      city: this.state.searchAddress[1],
-      region: this.state.searchAddress[2],
-      mobile: this.state.searchMobile ? this.state.searchMobile : "",
-      realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 用户姓名
-      nickName: this.state.searchNickName ? this.state.searchNickName : "", //搜索 - 用户昵称
-      userId: this.state.searchEId ? this.state.searchEId : "",
-      ambassadorUserType: this.state.searchAmbassadorUserType,
-      ambassadorId: this.state.searchId ? this.state.searchId : "", //搜索 - 健康大使id
-      distributorId: this.state.searchDistributorId
-        ? this.state.searchDistributorId
-        : "", //搜索 - 经销商id
-      ambassadorNickName: this.state.searchAmbassadorNickName
-        ? this.state.searchAmbassadorNickName
-        : "", //搜索 - 健康大使昵称
-      ambassadorRealName: this.state.searchAmbassadorRealName
-        ? this.state.searchAmbassadorRealName
-        : "", //搜索 - 健康大使真实姓名
-      ambassadorMobile: this.state.searchAmbassadorMobile
-        ? this.state.searchAmbassadorMobile
-        : "", // 搜索 - 健康大使手机号
       beginTime: this.state.searchBeginTime
         ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
         : "",
@@ -254,18 +220,18 @@ class Manager extends React.Component {
         : ""
     };
 
-    this.props.actions.findUserInfo(tools.clearNull(params)).then(res => {
-      if (res.status === 200) {
-        this.setState({
-          data: res.data.result || [],
-          pageNum,
-          pageSize,
-          total: res.data.total
-        });
-      } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
-      }
-    });
+    // this.props.actions.findUserInfo(tools.clearNull(params)).then(res => {
+    //   if (res.status === 200) {
+    //     this.setState({
+    //       data: res.data.result || [],
+    //       pageNum,
+    //       pageSize,
+    //       total: res.data.total
+    //     });
+    //   } else {
+    //     message.error(res.returnMessaage || "获取数据失败，请重试");
+    //   }
+    // });
   }
 
   // 搜索
@@ -316,112 +282,12 @@ class Manager extends React.Component {
     });
   }
 
-  emitEmpty7() {
-    this.setState({
-      searchAmbassadorMobile: ""
-    });
-  }
-
-  emitEmpty8() {
-    this.setState({
-      searchUserName: ""
-    });
-  }
-
-  // 查询某一条数据的详情
-  onQueryClick(record) {
-    const d = _.cloneDeep(record);
-    this.setState({
-      nowData: d,
-      // queryModalShow: true
-    });
-    this.props.actions.detailRecord(d);
-    this.props.history.push("../NewUser/dealerinfoDetail");
-    console.log("跳转页面的record带了哪些参数：", d);
-  }
 
 
   // 查看详情模态框关闭
   onQueryModalClose() {
     this.setState({
       queryModalShow: false
-    });
-  }
-
-  //搜索 - 经销商身份类型
-  onSearchType(v) {
-    this.setState({
-      searchType: v
-    });
-  }
-
-  //搜索 - 经销商昵称
-  onSearchNickName(e) {
-    this.setState({
-      searchNickName: e.target.value
-    });
-  }
-
-  //搜索 - 用户手机号
-  onSearchMobile(e) {
-    this.setState({
-      searchMobile: e.target.value || []
-    });
-  }
-
-  //搜索 - 用户真实姓名
-  onSearchName(c) {
-    this.setState({
-      searchName: c.target.value
-    });
-  }
-
-  //搜索 - e家号
-  onSearchEId(e) {
-    this.setState({
-      searchEId: e.target.value
-    });
-  }
-
-  //搜索 - 健康大使身份类型
-  onAmbassadorUserType(e) {
-    this.setState({
-      searchAmbassadorUserType: e
-    });
-  }
-
-  //搜索 - 健康大使昵称
-  onSearchAmbassadorNickName(e) {
-    this.setState({
-      searchAmbassadorNickName: e.target.value
-    });
-  }
-
-  //搜索 - 健康大使手机号
-  onSearchAmbassadorMobile(e) {
-    this.setState({
-      searchAmbassadorMobile: e.target.value
-    });
-  }
-
-  //搜索 - 健康大使真实姓名
-  onSearchAmbassadorRealName(e) {
-    this.setState({
-      searchAmbassadorRealName: e.target.value
-    });
-  }
-
-  //搜索 - 健康大使Id
-  onSearchId(e) {
-    this.setState({
-      searchId: e.target.value
-    });
-  }
-
-  // 搜索 - 服务站地区输入框值改变时触发
-  onSearchAddress(c) {
-    this.setState({
-      searchAddress: c
     });
   }
 
@@ -509,90 +375,23 @@ class Manager extends React.Component {
         key: "serial"
       },
       {
-        title: "经销商id",
-        dataIndex: "mid2",
-        key: "mid2"
+        title: "优惠卡卡号",
       },
       {
-        title: "经销商昵称",
-        dataIndex: "nickName2",
-        key: "nickName2"
+        title: "领取人id",
       },
       {
-        title: "经销商姓名",
-        dataIndex: "realName2",
-        key: "realName2"
+        title: "领取人姓名",
       },
       {
-        title: "经销商手机号",
-        dataIndex: "mobile2",
-        key: "mobile2"
+        title: "领取人昵称",
       },
       {
-        title: "经销商账户",
-        dataIndex: "userName2",
-        key: "userName2"
+        title: "领取人手机号",
       },
       {
-        title: "经销商身份",
-        dataIndex: "userType2",
-        key: "userType2",
-        render: text => this.getListByModelId(text)
+        title: "领取时间",
       },
-      {
-        title: "服务站地区（经销商）",
-        dataIndex: "station",
-        key: "station",
-        render: (text, record) => {
-          return `${record.province}${record.city}${record.region}`
-            ? `${record.province}${record.city}${record.region}`
-            : "";
-        }
-      },
-      {
-        title: "绑定时间",
-        dataIndex: "bindTime",
-        key: "bindTime"
-      },
-      {
-        title: "操作",
-        key: "control",
-        fixed: "right",
-        width: 80,
-        render: (text, record) => {
-          let controls = [];
-          controls.push(
-            <span
-              key="0"
-              className="control-btn green"
-              onClick={() => this.onQueryClick(record)}
-            >
-              <a href="#/usermanage/dealerinfoDetail"><Tooltip placement="top" title="查看">
-                <Icon type="eye" />
-              </Tooltip></a>
-            </span>
-          );
-          controls.push(
-            <span
-                key="1"
-                className="control-btn blue"
-                onClick={() => this.onCardlist(record)}
-            >
-              <a href="#/usermanage/CouponCard"><Tooltip placement="top" title="查看优惠卡详情">
-                <Icon type="idcard"/>
-              </Tooltip></a>
-            </span>
-          );
-          const result = [];
-          controls.forEach((item, index) => {
-            if (index) {
-              result.push(<Divider key={`line${index}`} type="vertical" />);
-            }
-            result.push(item);
-          });
-          return result;
-        }
-      }
     ];
     return columns;
   }
@@ -689,12 +488,6 @@ class Manager extends React.Component {
       });
   }
 
-  // 添加组织被改变
-  onAddOrgCodeChange(e) {
-    const me = this;
-    const { form } = me.props;
-    form.resetFields(["addnewServiceStation"]);
-  }
   render() {
     const me = this;
     const { form } = me.props;
@@ -709,116 +502,52 @@ class Manager extends React.Component {
         sm: { span: 16 }
       }
     };
-    const addOrgCodeShow = getFieldValue("addnewOrgCode") === 18;
-    const upOrgCodeShow = getFieldValue("upOrgCode") === 18;
     // console.log('code是什么：', addOrgCodeShow);
 
     const { searchEId } = this.state;
-    const { searchNickName } = this.state;
-    const { searchName } = this.state;
-    const { searchMobile } = this.state;
-    const { searchId } = this.state;
-    const { searchAmbassadorNickName } = this.state;
-    const { searchAmbassadorRealName } = this.state;
-    const { searchAmbassadorMobile } = this.state;
-    const { searchUserName } = this.state;
     const suffix = searchEId ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty()} />
-    ) : null;
-    const suffix1 = searchNickName ? (
-      <Icon type="close-circle" onClick={() => this.emitEmpty1()} />
-    ) : null;
-    const suffix2 = searchName ? (
-      <Icon type="close-circle" onClick={() => this.emitEmpty2()} />
-    ) : null;
-    const suffix3 = searchMobile ? (
-      <Icon type="close-circle" onClick={() => this.emitEmpty3()} />
-    ) : null;
-    const suffix4 = searchId ? (
-      <Icon type="close-circle" onClick={() => this.emitEmpty4()} />
-    ) : null;
-    const suffix5 = searchAmbassadorNickName ? (
-      <Icon type="close-circle" onClick={() => this.emitEmpty5()} />
-    ) : null;
-    const suffix6 = searchAmbassadorRealName ? (
-      <Icon type="close-circle" onClick={() => this.emitEmpty6()} />
-    ) : null;
-    const suffix7 = searchAmbassadorMobile ? (
-      <Icon type="close-circle" onClick={() => this.emitEmpty7()} />
-    ) : null;
-    const suffix8 = searchUserName ? (
-      <Icon type="close-circle" onClick={() => this.emitEmpty8()} />
     ) : null;
 
     return (
       <div>
-        <div className="system-search">
+        <div className="top">
+          <span style={{marginLeft:'20px',fontSize:'20px'}}>优惠卡统计</span>
+          <Tooltip>
+            <Icon
+                type="left"
+                style={{
+                    color: "black",
+                    marginTop: "5px",
+                    marginLeft: "3px",
+                    fontSize: "17px"
+                }}
+            />
+          </Tooltip>
+          <a href="#/usermanage/dealerinfo" style={{fontSize:'20px',color:'#798AE0',marginLeft:'5px',borderBottom:'2px solid #798AE0'}} >经销商信息管理</a>
+        </div>
+        <div className="system-search" style={{marginTop:'10px'}}>
           <ul className="search-ul" style={{ marginBottom: "10px" }}>
             <li>
               <span style={{ marginRight: "4px", marginLeft: "13px" }}>
-                经销商id
+                领取人id
               </span>
               <Input
                 style={{ width: "172px" }}
                 suffix={suffix}
-                value={searchEId}
-                onChange={e => this.onSearchEId(e)}
+                // value={searchEId}
+                // onChange={e => this.onSearchEId(e)}
               />
             </li>
-            <li>
-              <span style={{ marginRight: "4px", marginLeft: "13px" }}>
-                经销商姓名
-              </span>
-              <Input
-                style={{ width: "172px" }}
-                suffix={suffix2}
-                value={searchName}
-                onChange={e => this.onSearchName(e)}
-              />
-            </li>
-            <li>
-              <span style={{ marginRight: "4px", marginLeft: "15px" }}>
-                经销商身份
-              </span>
-              <Select
-                allowClear
-                placeholder="全部"
-                style={{ width: "172px" }}
-                onChange={e => this.onSearchType(e)}
-              >
-                <Option value={0}>经销商（体验版）</Option>
-                <Option value={1}>经销商（微创版）</Option>
-                <Option value={2}>经销商（个人版）</Option>
-                <Option value={5}>企业版经销商</Option>
-                <Option value={6}>企业版子账号</Option>
-              </Select>
-            </li>
-          </ul>
-          <ul className="search-ul">
-            <li>
-              <span style={{ marginRight: "6px", marginLeft: "-2px" }}>
-                服务站地区（经销商）
-              </span>
-              <Cascader
-                style={{ width: "172px" }}
-                placeholder="请选择服务区域"
-                onChange={v => this.onSearchAddress(v)}
-                options={this.state.citys}
-                loadData={e => this.getAllCitySon(e)}
-                changeOnSelect
-              />
-            </li>
-          </ul>
-          <ul className="search-ul" style={{ marginTop: "10px" }}>
             <li>
               <span style={{ marginRight: "10px", marginLeft: "7px" }}>
-                绑定时间
+                领取时间
               </span>
               <DatePicker
                   showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
                   format="YYYY-MM-DD HH:mm:ss"
                   placeholder="开始时间"
-                  onChange={e => this.searchBindingBeginTimeChange(e)}
+                  // onChange={e => this.searchBindingBeginTimeChange(e)}
                   onOk={onOk}
               />
               --
@@ -826,7 +555,7 @@ class Manager extends React.Component {
                   showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
                   format="YYYY-MM-DD HH:mm:ss"
                   placeholder="结束时间"
-                  onChange={e => this.searchBindingEndTimeChange(e)}
+                  // onChange={e => this.searchBindingEndTimeChange(e)}
                   onOk={onOk}
               />
             </li>
@@ -839,31 +568,12 @@ class Manager extends React.Component {
                 搜索
               </Button>
             </li>
-            <li>
-              <Button
-                  icon="download"
-                  style={{
-                      color: "#fff",
-                      backgroundColor: "#108ee9",
-                      borderColor: "#108ee9"
-                  }}
-                  onClick={this.warning2}
-              >
-                导出
-              </Button>
-            </li>
           </ul>
         </div>
-        <Alert
-          showIcon={true}
-          message="提示 : 经销商用户的健康大使为该经销商的推荐人（企业版子账户的健康大使为其企业版主账户），分销商/分享用户/普通用户的健康大使为该用户的直接上级"
-          banner
-        />
         <div className="system-table" style={{ marginTop: "2px" }}>
           <Table
             columns={this.makeColumns()}
             dataSource={this.makeData(this.state.data)}
-            scroll={{ x: 2000 }}
             pagination={{
               total: this.state.total,
               current: this.state.pageNum,
@@ -875,80 +585,6 @@ class Manager extends React.Component {
             }}
           />
         </div>
-        {/* 查看用户详情模态框 */}
-        <Modal
-          title="用户信息详情"
-          visible={this.state.queryModalShow}
-          onOk={() => this.onQueryModalClose()}
-          onCancel={() => this.onQueryModalClose()}
-        >
-          <Form>
-            <FormItem label="经销商id" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.mid2 : ""}
-            </FormItem>
-            <FormItem label="经销商昵称" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.nickName2 : ""}
-            </FormItem>
-            <FormItem label="经销商姓名" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.realName2 : ""}
-            </FormItem>
-            <FormItem label="经销商手机号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.mobile2 : ""}
-            </FormItem>
-            <FormItem label="经销商账户" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.userName2 : ""}
-            </FormItem>
-            <FormItem label="经销商身份" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getListByModelId(this.state.nowData.userType2)
-                : ""}
-            </FormItem>
-            <FormItem label="服务站地区（经销商）" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getCity(
-                    this.state.nowData.province,
-                    this.state.nowData.city,
-                    this.state.nowData.region
-                  )
-                : ""}
-            </FormItem>
-            <FormItem label="创建时间" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.createTime : ""}
-            </FormItem>
-            <FormItem label="绑定时间" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.bindTime : ""}
-            </FormItem>
-            <FormItem label="健康大使id" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.mid : ""}
-            </FormItem>
-            <FormItem label="健康大使昵称" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.nickName : ""}
-            </FormItem>
-            <FormItem label="健康大使姓名" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.realName : ""}
-            </FormItem>
-            <FormItem label="健康大使手机号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.mobile : ""}
-            </FormItem>
-            <FormItem label="健康大使身份" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getListByModelId(this.state.nowData.userType)
-                : ""}
-            </FormItem>
-            <FormItem label="推荐人账户" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.userName : ""}
-            </FormItem>
-            <FormItem label="服务站地区（推荐人）" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getCity(
-                    this.state.nowData.province2,
-                    this.state.nowData.city2,
-                    this.state.nowData.region2
-                  )
-                : ""}
-            </FormItem>
-          </Form>
-        </Modal>
       </div>
     );
   }

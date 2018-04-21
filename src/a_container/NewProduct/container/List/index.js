@@ -29,8 +29,11 @@ import {
   Divider
 } from "antd";
 import "./index.scss";
+import BraftEditor from "braft-editor";
+import "braft-editor/dist/braft.css";
 import tools from "../../../../util/tools"; // 工具
 import Power from "../../../../util/power"; // 权限
+
 import { power } from "../../../../util/data";
 import _ from "lodash";
 // ==================
@@ -85,8 +88,9 @@ class Category extends React.Component {
       fileList: [], // 产品图片已上传的列表
       fileListDetail: [], // 详细图片已上传的列表
       fileLoading: false, // 产品图片正在上传
-      fileDetailLoading: false // 详细图片正在上传
+      fileDetailLoading: false, // 详细图片正在上传
     };
+      this.onChange = (editorState) => this.setState({editorState})
   }
 
   componentDidMount() {
@@ -842,6 +846,14 @@ class Category extends React.Component {
     });
   }
 
+    handleChange = (content) => {
+        console.log(content)
+    }
+
+    handleRawChange = (rawContent) => {
+        console.log(rawContent)
+    }
+
   render() {
     const me = this;
     const { form } = me.props;
@@ -868,6 +880,54 @@ class Category extends React.Component {
     const modelId = form.getFieldValue("addnewTypeCode");
     const obj = this.onSelectModels(modelId);
     console.log("OBJ是什么：", obj);
+      // const editorProps = {
+      //     placeholder: 'Hello World!',
+      //     initialContent: '',
+      //     onHTMLChange: this.handleHTMLChange,
+      //     viewWrapper: '.demo',
+      //     // 增加自定义预览按钮
+      //     extendControls: [
+      //         {
+      //             type: 'split',
+      //         },
+      //         {
+      //             type: 'button',
+      //             text: '预览',
+      //             className: 'preview-button',
+      //             onClick: () => {
+      //                 window.open().document.write(this.state.htmlContent)
+      //             }
+      //         }, {
+      //             type: 'dropdown',
+      //             text: <span>下拉菜单</span>,
+      //             component: <h1 style={{width: 200, color: '#ffffff', padding: 10, margin: 0}}>Hello World!</h1>
+      //         }, {
+      //             type: 'modal',
+      //             text: <span style={{paddingRight: 10,paddingLeft: 10}}>弹出菜单</span>,
+      //             className: 'modal-button',
+      //             modal: {
+      //                 title: '这是一个弹出框',
+      //                 showClose: true,
+      //                 showCancel: true,
+      //                 showConfirm: true,
+      //                 confirmable: true,
+      //                 onConfirm: () => console.log(1),
+      //                 onCancel: () => console.log(2),
+      //                 onClose: () => console.log(3),
+      //                 children: (
+      //                     <div style={{width: 480, height: 320, padding: 30}}>
+      //                         <span>Hello World！</span>
+      //                     </div>
+      //                 )
+      //             }
+      //         }
+      //     ]
+      // }
+      const editorProps = {
+          height: 500,
+          contentFormat: 'html',
+          initialContent: '<p>Hello World!</p>',
+      }
     return (
       <div style={{ width: "100%" }}>
         <div className="system-search">
@@ -944,6 +1004,7 @@ class Category extends React.Component {
           onOk={() => this.onAddNewOk()}
           onCancel={() => this.onAddNewClose()}
           wrapClassName={"codNum"}
+          width="800px"
           confirmLoading={this.state.addnewLoading}
         >
           <Form>
@@ -1122,6 +1183,12 @@ class Category extends React.Component {
                   </div>
                 )}
               </Upload>
+            </FormItem>
+            <FormItem label="产品详情" {...formItemLayout}>
+              <div className="demo">
+                <BraftEditor {...editorProps} />
+
+              </div>
             </FormItem>
           </Form>
         </Modal>

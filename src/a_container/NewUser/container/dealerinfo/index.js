@@ -9,6 +9,7 @@ import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import P from "prop-types";
 import moment from "moment";
+import _ from "lodash";
 
 import "./index.scss";
 import tools from "../../../../util/tools"; // 工具
@@ -55,7 +56,7 @@ import {
   findCityOrCounty,
   findStationByArea
 } from "../../../../a_action/sys-action";
-import { findUserInfo, myCustomers } from "../../../../a_action/info-action";
+import { findUserInfo, detailRecord } from "../../../../a_action/info-action";
 import { onOk } from "../../../../a_action/shop-action";
 // ==================
 // Definition
@@ -205,6 +206,10 @@ class Manager extends React.Component {
     return `${s}${c}${q}`;
   }
 
+    warning2 = () =>{
+        message.warning('导出功能尚在开发 敬请期待');
+    };
+
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
     const params = {
@@ -325,12 +330,16 @@ class Manager extends React.Component {
 
   // 查询某一条数据的详情
   onQueryClick(record) {
+    const d = _.cloneDeep(record);
     this.setState({
-      nowData: record,
-      queryModalShow: true
+      nowData: d,
+      // queryModalShow: true
     });
-    console.log("record是：", record);
+    this.props.actions.detailRecord(d);
+    this.props.history.push("../NewUser/dealerinfoDetail");
+    console.log("跳转页面的record带了哪些参数：", d);
   }
+
 
   // 查看详情模态框关闭
   onQueryModalClose() {
@@ -541,40 +550,9 @@ class Manager extends React.Component {
         }
       },
       {
-        title: "创建时间",
-        dataIndex: "createTime",
-        key: "createTime"
-      },
-      {
         title: "绑定时间",
         dataIndex: "bindTime",
         key: "bindTime"
-      },
-      {
-        title: "健康大使id",
-        dataIndex: "mid",
-        key: "mid"
-      },
-      {
-        title: "健康大使昵称",
-        dataIndex: "nickName",
-        key: "nickName"
-      },
-      {
-        title: "健康大使姓名",
-        dataIndex: "realName",
-        key: "realName"
-      },
-      {
-        title: "健康大使手机号",
-        dataIndex: "mobile",
-        key: "mobile"
-      },
-      {
-        title: "健康大使身份",
-        dataIndex: "userType",
-        key: "userType",
-        render: text => this.getListByModelId(text)
       },
       {
         title: "操作",
@@ -589,9 +567,19 @@ class Manager extends React.Component {
               className="control-btn green"
               onClick={() => this.onQueryClick(record)}
             >
-              <Tooltip placement="top" title="查看">
+              <a href="#/usermanage/dealerinfoDetail"><Tooltip placement="top" title="查看">
                 <Icon type="eye" />
-              </Tooltip>
+              </Tooltip></a>
+            </span>
+          );
+          controls.push(
+            <span
+                key="1"
+                className="control-btn blue"
+            >
+              <a href="#/usermanage/CouponCard"><Tooltip placement="top" title="查看优惠卡详情">
+                <Icon type="idcard"/>
+              </Tooltip></a>
             </span>
           );
           const result = [];
@@ -778,17 +766,6 @@ class Manager extends React.Component {
             </li>
             <li>
               <span style={{ marginRight: "4px", marginLeft: "13px" }}>
-                经销商昵称
-              </span>
-              <Input
-                style={{ width: "172px" }}
-                suffix={suffix1}
-                value={searchNickName}
-                onChange={e => this.onSearchNickName(e)}
-              />
-            </li>
-            <li>
-              <span style={{ marginRight: "4px", marginLeft: "13px" }}>
                 经销商姓名
               </span>
               <Input
@@ -796,28 +773,6 @@ class Manager extends React.Component {
                 suffix={suffix2}
                 value={searchName}
                 onChange={e => this.onSearchName(e)}
-              />
-            </li>
-            <li>
-              <span style={{ marginRight: "4px", marginLeft: "13px" }}>
-                经销商手机号
-              </span>
-              <Input
-                suffix={suffix3}
-                value={searchMobile}
-                style={{ width: "172px" }}
-                onChange={e => this.onSearchMobile(e)}
-              />
-            </li>
-            <li>
-              <span style={{ marginRight: "4px", marginLeft: "22px" }}>
-                经销商账户
-              </span>
-              <Input
-                style={{ width: "172px" }}
-                suffix={suffix8}
-                value={searchUserName}
-                onChange={e => this.onSearchUserName(e)}
               />
             </li>
             <li>
@@ -841,7 +796,7 @@ class Manager extends React.Component {
           <ul className="search-ul">
             <li>
               <span style={{ marginRight: "6px", marginLeft: "-2px" }}>
-                服务站地区
+                服务站地区（经销商）
               </span>
               <Cascader
                 style={{ width: "172px" }}
@@ -852,107 +807,26 @@ class Manager extends React.Component {
                 changeOnSelect
               />
             </li>
-            <li>
-              <span style={{ marginRight: "4px", marginLeft: "13px" }}>
-                健康大使id
-              </span>
-              <Input
-                style={{ width: "172px" }}
-                suffix={suffix4}
-                value={searchId}
-                onChange={e => this.onSearchId(e)}
-              />
-            </li>
-            <li>
-              <span style={{ marginRight: "4px" }}>健康大使昵称</span>
-              <Input
-                style={{ width: "172px" }}
-                suffix={suffix5}
-                value={searchAmbassadorNickName}
-                onChange={e => this.onSearchAmbassadorNickName(e)}
-              />
-            </li>
-            <li>
-              <span style={{ marginRight: "4px", marginLeft: "12px" }}>
-                健康大使姓名
-              </span>
-              <Input
-                style={{ width: "172px" }}
-                suffix={suffix6}
-                value={searchAmbassadorRealName}
-                onChange={e => this.onSearchAmbassadorRealName(e)}
-              />
-            </li>
-            <li>
-              <span style={{ marginRight: "4px", marginLeft: "-5px" }}>
-                健康大使手机号
-              </span>
-              <Input
-                style={{ width: "172px" }}
-                suffix={suffix7}
-                value={searchAmbassadorMobile}
-                onChange={e => this.onSearchAmbassadorMobile(e)}
-              />
-            </li>
-            <li>
-              <span style={{ marginRight: "4px" }}>健康大使身份</span>
-              <Select
-                allowClear
-                placeholder="全部"
-                style={{ width: "172px" }}
-                onChange={e => this.onAmbassadorUserType(e)}
-              >
-                <Option value={0}>经销商（体验版）</Option>
-                <Option value={1}>经销商（微创版）</Option>
-                <Option value={2}>经销商（个人版）</Option>
-                <Option value={3}>分享用户</Option>
-                <Option value={4}>普通用户</Option>
-                <Option value={5}>企业版经销商</Option>
-                <Option value={6}>企业版子账号</Option>
-                <Option value={7}>分销商</Option>
-              </Select>
-            </li>
           </ul>
           <ul className="search-ul" style={{ marginTop: "10px" }}>
-            <li>
-              <span style={{ marginRight: "10px", marginLeft: "7px" }}>
-                创建时间
-              </span>
-              <DatePicker
-                showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
-                format="YYYY-MM-DD HH:mm:ss"
-                placeholder="开始时间"
-                onChange={e => this.searchBeginTime(e)}
-                onOk={onOk}
-              />
-              --
-              <DatePicker
-                showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
-                format="YYYY-MM-DD HH:mm:ss"
-                placeholder="结束时间"
-                value={this.state.searchEndTime}
-                onChange={e => this.searchEndTime(e)}
-                onOk={onOk}
-              />
-            </li>
             <li>
               <span style={{ marginRight: "10px", marginLeft: "7px" }}>
                 绑定时间
               </span>
               <DatePicker
-                showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
-                format="YYYY-MM-DD HH:mm:ss"
-                placeholder="开始时间"
-                onChange={e => this.searchBindingBeginTimeChange(e)}
-                onOk={onOk}
+                  showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                  format="YYYY-MM-DD HH:mm:ss"
+                  placeholder="开始时间"
+                  onChange={e => this.searchBindingBeginTimeChange(e)}
+                  onOk={onOk}
               />
               --
               <DatePicker
-                showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
-                format="YYYY-MM-DD HH:mm:ss"
-                placeholder="结束时间"
-                onChange={e => this.searchBindingEndTimeChange(e)}
-                onOk={onOk}
+                  showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                  format="YYYY-MM-DD HH:mm:ss"
+                  placeholder="结束时间"
+                  onChange={e => this.searchBindingEndTimeChange(e)}
+                  onOk={onOk}
               />
             </li>
             <li style={{ marginLeft: "5px" }}>
@@ -962,6 +836,19 @@ class Manager extends React.Component {
                 onClick={() => this.onSearch()}
               >
                 搜索
+              </Button>
+            </li>
+            <li>
+              <Button
+                  icon="download"
+                  style={{
+                      color: "#fff",
+                      backgroundColor: "#108ee9",
+                      borderColor: "#108ee9"
+                  }}
+                  onClick={this.warning2}
+              >
+                导出
               </Button>
             </li>
           </ul>
@@ -975,7 +862,7 @@ class Manager extends React.Component {
           <Table
             columns={this.makeColumns()}
             dataSource={this.makeData(this.state.data)}
-            scroll={{ x: 2500 }}
+            scroll={{ x: 2000 }}
             pagination={{
               total: this.state.total,
               current: this.state.pageNum,
@@ -1104,8 +991,8 @@ export default connect(
         findCityOrCounty,
         findStationByArea,
         findUserInfo,
-        myCustomers,
-        onOk
+        onOk,
+        detailRecord,
       },
       dispatch
     )

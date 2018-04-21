@@ -61,6 +61,7 @@ class Category extends React.Component {
     this.state = {
       data: [], // 当前页面全部数据
       data2: [], //提现明细全部数据
+      data3: [], //操作日志全部数据
       productModels: [], // 所有的产品型号
       productTypes: [], // 所有的产品类型
       searchProductName: "", // 搜索 - 产品名称
@@ -87,8 +88,9 @@ class Category extends React.Component {
       upLoading: false, // 是否正在修改用户中
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
-      total: 0, // 数据库总共多少条数据
-      total2: 0, // 数据库总共多少条数据
+      total: 0, // 提现记录数据库总共多少条数据
+      total2: 0, // 提现明细数据库总共多少条数据
+      total3: 0  , // 操作日志数据库总共多少条数据
       citys: [] // 符合Cascader组件的城市数据
     };
   }
@@ -96,6 +98,7 @@ class Category extends React.Component {
   componentDidMount() {
     this.onGetData(this.state.pageNum, this.state.pageSize);
     this.onGetDataDetail(this.state.pageNum, this.state.pageSize);
+    this.onGetDataJournal(this.state.pageNum, this.state.pageSize)
     this.getAllProductType(); // 获取所有的产品类型
   }
 
@@ -111,6 +114,10 @@ class Category extends React.Component {
       });
     }
   }
+
+    warning2 = () =>{
+        message.warning('导出功能尚在开发 敬请期待');
+    };
 
   // 查询当前页面 - 提现记录 - 所需列表数据
   onGetData(pageNum, pageSize) {
@@ -200,7 +207,7 @@ class Category extends React.Component {
           data2: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.data.total
+          total2: res.data.total
         });
       } else if (res.status === 400) {
         this.setState({
@@ -210,6 +217,46 @@ class Category extends React.Component {
       }
     });
   }
+
+    // 查询当前页面 - 操作日志 - 所需列表数据
+    onGetDataJournal(pageNum, pageSize) {
+        const params = {
+            pageNum,
+            pageSize,
+            userType: this.state.searchUserType,
+            withdrawType: this.state.searchWithdrawType,
+            id: this.state.searchId,
+            userId: this.state.searchUserMallId,
+            partnerTradeNo: this.state.searchPartnerTradeNo,
+            minApplyTime: this.state.searchApplyBeginTime
+                ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
+                : "",
+            maxApplyTime: this.state.searchApplyEndTime
+                ? `${tools.dateToStr(this.state.searchApplyEndTime.utc()._d)} `
+                : "",
+            minPaymentTime: this.state.searchBeginTime
+                ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)} `
+                : "",
+            maxPaymentTime: this.state.searchEndTime
+                ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
+                : ""
+        };
+        // this.props.actions.RecordDetail(tools.clearNull(params)).then(res => {
+        //     if (res.status === 200) {
+        //         this.setState({
+        //             data2: res.data.result || [],
+        //             pageNum,
+        //             pageSize,
+        //             total3: res.data.total
+        //         });
+        //     } else if (res.status === 400) {
+        //         this.setState({
+        //             data2: []
+        //         });
+        //         message.error(res.message || "查询失败，请重试");
+        //     }
+        // });
+    }
 
   // 工具 - 根据受理状态码查询对应的名字
   getConditionNameById(id) {
@@ -362,8 +409,6 @@ class Category extends React.Component {
     switch (String(id)) {
       case "1":
         return "微信零钱";
-      case "2":
-        return "支付宝钱包";
     }
   }
 
@@ -530,6 +575,11 @@ class Category extends React.Component {
     this.onGetDataDetail(1, this.state.pageSize);
   }
 
+  //搜索 - 操作日志
+  onSearchJournal(){
+      this.onGetDataJournal(1, this.state.pageSize);
+  }
+
   //导出
   onExport() {
     this.onGetData(this.state.pageNum, this.state.pageSize);
@@ -596,6 +646,13 @@ class Category extends React.Component {
     console.log("页码改变：", page, pageSize);
     this.onGetDataDetail(page, pageSize);
   }
+
+    // 操作日志--表单页码改变
+    onTablePageChangeJournal(page, pageSize) {
+        console.log("页码改变：", page, pageSize);
+        this.onGetDataJournal(page, pageSize);
+    }
+
 
   // 构建字段  -- 提现纪录
   makeColumns() {
@@ -831,6 +888,30 @@ class Category extends React.Component {
     return columns;
   }
 
+  //构建字段 - 操作日志所对应列表
+    makeColumnsJournal(){
+        const columns = [
+            {
+                title: "提现单号",
+                dataIndex: "partnerTradeNo",
+                key: "partnerTradeNo"
+            },
+            {
+                title:'操作',
+            },
+            {
+                title:'操作人',
+            },
+            {
+                title:'操作时间'
+            },
+            {
+              title:'审核不通过理由'
+            },
+        ]
+        return columns;
+    }
+
   // 构建table所需数据
   makeData(data) {
     return data.map((item, index) => {
@@ -866,7 +947,9 @@ class Category extends React.Component {
         amount: item.amount,
         nickName: item.nickName,
         userType: item.userType,
-        orderId: item.orderId
+        orderId: item.orderId,
+        reason: item.reason,
+        auditTime:item.auditTime
       };
     });
   }
@@ -907,10 +990,27 @@ class Category extends React.Component {
         nickName: item.nickName,
         userType: item.userType,
         orderId: item.orderId,
-        reason: item.reason
+        reason: item.reason,
+        auditTime:item.auditTime,
       };
     });
   }
+
+    //操作日志 - table所需数据
+    makeDataJournal(data3) {
+        return data3.map((item, index) => {
+            return {
+                key: index,
+                addrId: item.addrId,
+                company: item.productType,
+                conditions: item.conditions,
+                username: item.username,
+                orderId: item.orderId,
+                reason: item.reason,
+                auditTime:item.auditTime,
+            };
+        });
+    }
 
   render() {
     const me = this;
@@ -1046,7 +1146,6 @@ class Category extends React.Component {
                         onChange={e => this.searchCashTypeChange(e)}
                       >
                         <Option value={1}>微信零钱</Option>
-                        <Option value={2}>支付宝钱包</Option>
                       </Select>
                     </li>
                     <li>
@@ -1151,7 +1250,7 @@ class Category extends React.Component {
                           backgroundColor: "#108ee9",
                           borderColor: "#108ee9"
                         }}
-                        onClick={warning}
+                        onClick={this.warning2}
                       >
                         导出
                       </Button>
@@ -1229,18 +1328,26 @@ class Category extends React.Component {
                     {!!this.state.nowData ? this.state.nowData.phone : ""}
                   </FormItem>
                   <FormItem
+                      label="审核时间"
+                      {...formItemLayout}
+                      className={this.state.flag == 2 ? "hide" : ""}
+                  >
+                      {!!this.state.nowData ? this.state.nowData.auditTime : ""}
+                  </FormItem>
+                  <FormItem
+                      label="审核时间"
+                      {...formItemLayout}
+                      className={this.state.flag == 1 ? "hide" : ""}
+                  >
+                      {!!this.state.nowData ? this.state.nowData.auditTime : ""}
+                  </FormItem>
+                  <FormItem
                     label="提现失败理由"
                     {...formItemLayout}
                     className={this.state.flag == 1 ? "hide" : ""}
                   >
                     {!!this.state.nowData ? this.state.nowData.reason : ""}
                   </FormItem>
-                  {/*<FormItem*/}
-                  {/*label="结算主体"*/}
-                  {/*{...formItemLayout}*/}
-                  {/*>*/}
-                  {/*/!*{!!this.state.nowData ? this.state.nowData.amount : ''}*!/*/}
-                  {/*</FormItem>*/}
                 </Form>
               </Modal>
             </TabPane>
@@ -1331,7 +1438,6 @@ class Category extends React.Component {
                         onChange={e => this.searchCashTypeChange(e)}
                       >
                         <Option value={1}>微信零钱</Option>
-                        <Option value={2}>支付宝钱包</Option>
                       </Select>
                     </li>
                     <li>
@@ -1450,7 +1556,7 @@ class Category extends React.Component {
                           backgroundColor: "#108ee9",
                           borderColor: "#108ee9"
                         }}
-                        onClick={warning}
+                        onClick={this.warning2}
                       >
                         导出
                       </Button>
@@ -1541,20 +1647,103 @@ class Category extends React.Component {
                     {!!this.state.nowData ? this.state.nowData.phone : ""}
                   </FormItem>
                   <FormItem
+                      label="审核时间"
+                      {...formItemLayout}
+                      className={this.state.flag == 2 ? "hide" : ""}
+                  >
+                      {!!this.state.nowData ? this.state.nowData.auditTime : ""}
+                  </FormItem>
+                  <FormItem
+                      label="审核时间"
+                      {...formItemLayout}
+                      className={this.state.flag == 1 ? "hide" : ""}
+                  >
+                      {!!this.state.nowData ? this.state.nowData.auditTime : ""}
+                  </FormItem>
+                  <FormItem
                     label="提现失败理由"
                     {...formItemLayout}
                     className={this.state.flag == 1 ? "hide" : ""}
                   >
                     {!!this.state.nowData ? this.state.nowData.reason : ""}
                   </FormItem>
-                  {/*<FormItem*/}
-                  {/*label="结算主体"*/}
-                  {/*{...formItemLayout}*/}
-                  {/*>*/}
-                  {/*/!*{!!this.state.nowData ? this.state.nowData.amount : ''}*!/*/}
-                  {/*</FormItem>*/}
                 </Form>
               </Modal>
+            </TabPane>
+            <TabPane tab="操作日志" key="3">
+              <div className="system-table">
+                <div className="system-table">
+                  <ul className="search-ul more-ul">
+                    <li>
+                      <span>提现单号查询</span>
+                      <Input
+                          style={{ width: "172px" }}
+                          onChange={v => this.searchPartnerTradeNoChange(v)}
+                          value={searchPartnerTradeNo}
+                          suffix={suffix6}
+                      />
+                    </li>
+                    <li>
+                      <span>操作</span>
+                      <Select
+                          placeholder="全部"
+                          allowClear
+                          style={{ width: "172px" }}
+                          onChange={e => this.searchFlagChange(e)}
+                      >
+                        <Option value={1}>审核通过</Option>
+                        <Option value={2}>审核不通过</Option>
+                      </Select>
+                    </li>
+                    <li>
+                      <span style={{ marginRight: "10px" }}>操作时间</span>
+                      <DatePicker
+                          showTime={{
+                              defaultValue: moment("00:00:00", "HH:mm:ss")
+                          }}
+                          format="YYYY-MM-DD HH:mm:ss"
+                          placeholder="开始时间"
+                          // onChange={e => this.searchBeginTime(e)}
+                          onOk={onOk}
+                      />
+                      --
+                      <DatePicker
+                          showTime={{
+                              defaultValue: moment("23:59:59", "HH:mm:ss")
+                          }}
+                          format="YYYY-MM-DD HH:mm:ss"
+                          placeholder="结束时间"
+                          // onChange={e => this.searchEndTime(e)}
+                          onOk={onOk}
+                      />
+                    </li>
+                    <li style={{ marginLeft: "40px" }}>
+                      <Button
+                          icon="search"
+                          type="primary"
+                          onClick={() => this.onSearchJournal()}
+                      >
+                        搜索
+                      </Button>
+                    </li>
+                  </ul>
+                </div>
+                <div className="system-table">
+                  <Table
+                      columns={this.makeColumnsJournal()}
+                      dataSource={this.makeDataJournal(this.state.data3)}
+                      pagination={{
+                          total: this.state.total3,
+                          current: this.state.pageNum,
+                          pageSize: this.state.pageSize,
+                          showQuickJumper: true,
+                          showTotal: (total, range) => `共 ${total} 条数据`,
+                          onChange: (page, pageSize) =>
+                              this.onTablePageChangeJournal(page, pageSize)
+                      }}
+                  />
+                </div>
+              </div>
             </TabPane>
           </Tabs>
         </div>

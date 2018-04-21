@@ -95,7 +95,7 @@ class Manager extends React.Component {
     // if((!this.props.allOrganizer) || (!this.props.allOrganizer.length)) {
     //     this.getAllOrganizer();
     // }
-    console.log("这是我要查看详情所带的参数：", this.props.detail);
+    console.log("这是我要查看详情所带的参数：", this.props.detail2);
     if (!this.props.citys.length) {
       // 获取所有省，全局缓存
       this.getAllCity0();
@@ -112,19 +112,26 @@ class Manager extends React.Component {
     this.onGetData(
      this.state.pageNum,
      this.state.pageSize,
-     this.props.detail.mid2,
-     this.props.detail.realName2,
-     this.props.detail.userName2,
-     this.props.detail.province,
-     this.props.detail.region,
-     this.props.detail.bindTime,
-     this.props.detail.mid,
-     this.props.detail.realName,
-     this.props.detail.mobile,
-     this.props.detail.city2,
-     this.props.detail.mobile2,
-     this.props.detail.nickName2,
-     this.props.detail.userType2
+     this.props.detail2.eId,
+     this.props.detail2.id,
+     this.props.detail2.id2,
+     this.props.detail2.realName2,
+     this.props.detail2.realName3,
+     this.props.detail2.userName2,
+     this.props.detail2.userName3,
+     this.props.detail2.bindTime,
+     this.props.detail2.mid,
+     this.props.detail2.mobile,
+     this.props.detail2.nickName,
+     this.props.detail2.mobile2,
+     this.props.detail2.mobile3,
+     this.props.detail2.nickName2,
+     this.props.detail2.nickName3,
+     this.props.detail2.userType,
+     this.props.detail2.userType3,
+     this.props.detail2.province,
+     this.props.detail2.city,
+     this.props.detail2.region,
     );
   }
 
@@ -215,7 +222,7 @@ class Manager extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      category: 1,
+      category: 2,
     };
 
     this.props.actions.findUserInfo(tools.clearNull(params)).then(res => {
@@ -299,27 +306,29 @@ class Manager extends React.Component {
       return [];
     }
     return data.map((item, index) => {
-      return {
-        key: index,
-        province:this.props.detail.province,
-        city: this.props.detail.city,
-        region: this.props.detail.region,
-        nickName2: this.props.detail.nickName2,
-        realName2: this.props.detail.realName2,
-        mobile2: this.props.detail.mobile2,
-        userType2: this.props.detail.userType2,
-        userName2: this.props.detail.userName,
-        mid2: this.props.detail.mid2,
-        bindTime: this.props.detail.bindTime,
-        province2: this.props.detail.province2,
-        city2: this.props.detail.city2,
-        region2: this.props.detail.region2,
-        mid: this.props.detail.mid,
-        nickName: this.props.detail.nickName,
-        realName: this.props.detail.realName,
-        mobile: this.props.detail.mobile,
-        userName: this.props.detail.userName,
-      };
+        return {
+            key: index,
+            adminIp: item.adminIp,
+            password: item.password,
+            id: this.props.detail2.id,
+            id2: this.props.detail2.id2,
+            mobile: this.props.detail2.mobile,
+            eId: this.props.detail2.eId,
+            nickName: this.props.detail2.nickName,
+            userType: this.props.detail2.userType,
+            realName: this.props.detail2.realName,
+            province: this.props.detail2.province,
+            city: this.props.detail2.city,
+            region: this.props.detail2.region,
+            nickName2: this.props.detail2.nickName2,
+            realName2: this.props.detail2.realName2,
+            mobile2: this.props.detail2.mobile2,
+            nickName3: this.props.detail2.nickName3,
+            realName3: this.props.detail2.realName3,
+            mobile3: this.props.detail2.mobile3,
+            userType3: this.getListByModelId(this.props.detail2.userType3),
+            userName3: this.props.detail2.userName3
+        };
     });
   }
 
@@ -354,69 +363,101 @@ class Manager extends React.Component {
                 }}
             />
           </Tooltip>
-          <a href="#/usermanage/dealerinfo" style={{fontSize:'20px',color:'#798AE0',marginLeft:'5px',borderBottom:'2px solid #798AE0'}} >经销商信息管理</a>
+          <a href="#/usermanage/userinfo" style={{fontSize:'20px',color:'#798AE0',marginLeft:'5px',borderBottom:'2px solid #798AE0'}} >用户信息管理</a>
         </div>
         <div className="system-table" style={{ display: 'inline-flex',borderColor:'#798AE0',padding:'10px 0px 10px 70px',marginLeft:'390px'}}>
-          <Form style={{float:'left',width:'350px'}}>
-            <FormItem label="经销商id" {...formItemLayout} style={{paddingLeft:'29px'}}>
-              <span style={{marginLeft:'-13px'}}>{ this.props.detail.mid2} </span>
+          <Form style={{float:'left',width:'350px'}} className={"FormList"}>
+            <FormItem label="用户id" {...formItemLayout} style={{paddingLeft:'29px'}}>
+              <span style={{marginLeft:'-13px'}}>{ this.props.detail2.eId} </span>
             </FormItem>
-            <FormItem label="经销商姓名" {...formItemLayout} style={{paddingLeft:'14px'}}>
-              <span>{ this.props.detail.realName2}</span>
+            <FormItem label="用户姓名" {...formItemLayout} style={{paddingLeft:'14px'}}>
+              <span>{ this.props.detail2.realName}</span>
             </FormItem>
-            <FormItem label="经销商账户" {...formItemLayout} style={{paddingLeft:'14px'}}>
-              <span>{ this.props.detail.userName2}</span>
+            <FormItem label="用户身份" {...formItemLayout} style={{paddingLeft:'14px'}}>
+              <span>{ this.getListByModelId(this.props.detail2.userType)}</span>
             </FormItem>
-            <FormItem label="经销商所在省" {...formItemLayout}>
-              <span style={{marginLeft:'7px'}}>{ this.props.detail.province }</span>
+            <FormItem label="绑定时间" {...formItemLayout} style={{paddingLeft:'14px'}}>
+              <span>{ this.props.detail2.bindTime }</span>
             </FormItem>
-            <FormItem label="经销商所在区" {...formItemLayout}>
-              <span style={{marginLeft:'7px'}}>{ this.props.detail.region }</span>
+            <FormItem label="健康大使id" {...formItemLayout} style={{paddingLeft:'4px'}}>
+              <span style={{marginLeft:'5px'}}>{ this.props.detail2.id} </span>
             </FormItem>
-            <FormItem label="绑定时间" {...formItemLayout} style={{paddingLeft:'29px'}}>
-              <span style={{marginLeft:'-13px'}}>{ this.props.detail.bindTime }</span>
+            <FormItem label="健康大使姓名" {...formItemLayout} style={{marginLeft:'-12px'}}>
+              <span style={{marginLeft:'16px'}}>{ this.props.detail2.realName2} </span>
             </FormItem>
-            <FormItem label="健康大使id" {...formItemLayout} style={{paddingLeft:'17px'}}>
-              <span>{ this.props.detail.mid} </span>
+            <FormItem label="经销商id" {...formItemLayout} style={{paddingLeft:'19px'}}
+              className={
+                  this.props.detail2.userType == 4 ? "hide" : ""
+                }>
+               <span style={{marginLeft:'-5px'}}>{ this.props.detail2.id2} </span>
             </FormItem>
-            <FormItem label="健康大使姓名" {...formItemLayout}>
-              <span style={{marginLeft:'8px'}}>{ this.props.detail.realName} </span>
+            <FormItem label="经销商姓名" {...formItemLayout} style={{paddingLeft:'4px'}}
+               className={
+                  this.props.detail2.userType == 4 ? "hide" : ""
+                }>
+               <span style={{marginLeft:'5px'}}>{ this.props.detail2.realName3} </span>
             </FormItem>
-            <FormItem label="健康大使手机号" {...formItemLayout} style={{marginLeft:'-13px'}}>
-              <span style={{marginLeft:'13px'}}>{ this.props.detail.mobile} </span>
+            <FormItem label="经销商身份" {...formItemLayout} style={{paddingLeft:'4px'}}
+               className={
+                   this.props.detail2.userType == 4 ? "hide" : ""
+               }>
+                  <span style={{marginLeft:'5px'}}>{this.getListByModelId(this.props.detail2.userType3)} </span>
+              </FormItem>
+            <FormItem label="经销商所在省" {...formItemLayout} style={{marginLeft:'-12px'}}
+               className={
+                  this.props.detail2.userType == 4 ? "hide" : ""
+               }>
+               <span style={{marginLeft:'16px'}}>{ this.props.detail2.province} </span>
             </FormItem>
-            <FormItem label="推荐人所在市" {...formItemLayout} >
-              <span style={{marginLeft:'6px'}}>{ this.props.detail.city2} </span>
+            <FormItem label="经销商所在区" {...formItemLayout} style={{marginLeft:'-12px'}}
+               className={
+                  this.props.detail2.userType == 4 ? "hide" : ""
+               }>
+               <span style={{marginLeft:'16px'}}>{ this.props.detail2.region} </span>
             </FormItem>
           </Form>
-          <Form style={{float:'right',width:'350px'}}>
-            <FormItem label="经销商昵称" {...formItemLayout} style={{paddingLeft:'12px'}}>
-              <span style={{marginLeft:'-7px'}}>{ this.props.detail.nickName2 } </span>
+          <Form style={{float:'right',width:'350px'}} className={"FormList"}>
+            <FormItem label="用户昵称" {...formItemLayout} style={{paddingLeft:'27px'}}>
+              <span style={{marginLeft:'-18px'}}>{ this.props.detail2.nickName } </span>
             </FormItem>
-            <FormItem label="经销商手机号" {...formItemLayout}>
-              <span>{ this.props.detail.mobile2 } </span>
-            </FormItem>
-            <FormItem label="经销商身份" {...formItemLayout} style={{paddingLeft:'12px'}}>
-              <span style={{marginLeft:'-7px'}}>{this.getListByModelId(this.props.detail.userType2)}</span>
-            </FormItem>
-            <FormItem label="经销商所在市" {...formItemLayout}>
-              <span>{ this.props.detail.city }</span>
+            <FormItem label="用户手机号" {...formItemLayout} style={{paddingLeft:'15px'}}>
+              <span style={{marginLeft:'-12px'}}>{ this.props.detail2.mobile } </span>
             </FormItem>
             <FormItem label="创建时间" {...formItemLayout} style={{paddingLeft:'28px'}}>
-              <span style={{marginLeft:'-19px'}}>{ this.props.detail.createTime }</span>
+              <span style={{marginLeft:'-19px'}}>{ this.props.detail2.createTime }</span>
+            </FormItem>
+            <FormItem  {...formItemLayout} style={{height:'40px'}}>
             </FormItem>
             <FormItem label="健康大使昵称" {...formItemLayout}>
-              <span>{ this.props.detail.nickName }</span>
+              <span>{ this.props.detail2.nickName2 }</span>
             </FormItem>
-            <FormItem label="推荐人账户" {...formItemLayout} style={{paddingLeft:'12px'}}>
-              <span style={{marginLeft:'-7px'}}>{ this.props.detail.userName }</span>
+            <FormItem label="健康大使手机号" {...formItemLayout} style={{marginLeft:'-12px'}}>
+              <span style={{marginLeft:'6px'}}>{ this.props.detail2.mobile2 } </span>
             </FormItem>
-            <FormItem label="推荐人所在省" {...formItemLayout}>
-              <span>{ this.props.detail.province2 }</span>
-            </FormItem>
-            <FormItem label="推荐人所在区" {...formItemLayout}>
-              <span>{ this.props.detail.region2 }</span>
-            </FormItem>
+              <FormItem label="经销商昵称" {...formItemLayout} style={{paddingLeft:'15px'}}
+                        className={
+                            this.props.detail2.userType == 4 ? "hide" : ""
+                        }>
+                  <span style={{marginLeft:'-12px'}}>{ this.props.detail2.nickName3 } </span>
+              </FormItem>
+              <FormItem label="经销商手机号" {...formItemLayout}
+                        className={
+                              this.props.detail2.userType == 4 ? "hide" : ""
+                          }>
+                  <span>{ this.props.detail2.mobile3 }</span>
+              </FormItem>
+              <FormItem label="经销商账户" {...formItemLayout} style={{paddingLeft:'15px'}}
+                        className={
+                            this.props.detail2.userType == 4 ? "hide" : ""
+                        }>
+                  <span style={{marginLeft:'-12px'}}>{ this.props.detail2.userName3 } </span>
+              </FormItem>
+              <FormItem label="经销商所在市" {...formItemLayout}
+                        className={
+                            this.props.detail2.userType == 4 ? "hide" : ""
+                        }>
+                  <span>{ this.props.detail2.city }</span>
+              </FormItem>
           </Form>
         </div>
       </div>
@@ -435,7 +476,7 @@ Manager.propTypes = {
   allRoles: P.any,
   allOrganizer: P.any,
   citys: P.array,
-  detail: P.any
+  detail2: P.any
 };
 
 // ==================
@@ -447,7 +488,7 @@ export default connect(
     allRoles: state.sys.allRoles,
     allOrganizer: state.sys.allOrganizer,
     citys: state.sys.citys,
-    detail: state.sys.detail
+    detail2: state.sys.detail2
   }),
   dispatch => ({
     actions: bindActionCreators(

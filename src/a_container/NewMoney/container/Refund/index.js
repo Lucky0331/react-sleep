@@ -17,7 +17,7 @@ import {
   message,
   Modal,
   Tooltip,
-  InputNumber,
+  Tabs,
   Select,
   Divider,
   Cascader,
@@ -51,12 +51,14 @@ import {
 // ==================
 const FormItem = Form.Item;
 const Option = Select.Option;
+const TabPane = Tabs.TabPane;
 class Category extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       data: [], // 当前页面全部数据
-      productTypes: [], //所有的产品类型
+      data2: [], // 操作日志全部数据
+        productTypes: [], //所有的产品类型
       productModels: [], // 所有的产品型号
       searchProductName: "", // 搜索 - 产品名称
       searchProductType: "", // 搜索 - 产品类型
@@ -82,12 +84,14 @@ class Category extends React.Component {
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
+      total2: 0, // 操作日志总共多少条数据
       citys: [] // 符合Cascader组件的城市数据
     };
   }
 
   componentDidMount() {
     this.getAllProductType(); // 获取所有的产品类型
+    this.onGetDataJournal(this.state.pageNum, this.state.pageSize);
     this.onGetData(this.state.pageNum, this.state.pageSize);
   }
 
@@ -103,6 +107,10 @@ class Category extends React.Component {
       });
     }
   }
+
+    warning2 = () =>{
+        message.warning('导出功能尚在开发 敬请期待');
+    };
 
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
@@ -144,6 +152,46 @@ class Category extends React.Component {
       }
     });
   }
+
+    // 查询当前页面 - 操作日志 - 所需列表数据
+    onGetDataJournal(pageNum, pageSize) {
+        const params = {
+            pageNum,
+            pageSize,
+            userType: this.state.searchUserType,
+            withdrawType: this.state.searchWithdrawType,
+            id: this.state.searchId,
+            userId: this.state.searchUserMallId,
+            partnerTradeNo: this.state.searchPartnerTradeNo,
+            minApplyTime: this.state.searchApplyBeginTime
+                ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
+                : "",
+            maxApplyTime: this.state.searchApplyEndTime
+                ? `${tools.dateToStr(this.state.searchApplyEndTime.utc()._d)} `
+                : "",
+            minPaymentTime: this.state.searchBeginTime
+                ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)} `
+                : "",
+            maxPaymentTime: this.state.searchEndTime
+                ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
+                : ""
+        };
+        // this.props.actions.RecordDetail(tools.clearNull(params)).then(res => {
+        //     if (res.status === 200) {
+        //         this.setState({
+        //             data2: res.data.result || [],
+        //             pageNum,
+        //             pageSize,
+        //             total: res.data.total
+        //         });
+        //     } else if (res.status === 400) {
+        //         this.setState({
+        //             data2: []
+        //         });
+        //         message.error(res.message || "查询失败，请重试");
+        //     }
+        // });
+    }
 
   // 工具 - 根据受理状态码查询对应的名字
   getConditionNameById(id) {
@@ -424,6 +472,12 @@ class Category extends React.Component {
   onSearch() {
     this.onGetData(1, this.state.pageSize);
   }
+
+    //搜索 - 操作日志
+    onSearchJournal(){
+        this.onGetDataJournal(1, this.state.pageSize);
+    }
+
   //导出
   onExport() {
     this.onExportData(this.state.pageNum, this.state.pageSize);
@@ -632,6 +686,12 @@ class Category extends React.Component {
     this.onGetData(page, pageSize);
   }
 
+    // 操作日志--表单页码改变
+    onTablePageChangeJournal(page, pageSize) {
+        console.log("页码改变：", page, pageSize);
+        this.onGetDataJournal(page, pageSize);
+    }
+
   // 构建字段
   makeColumns() {
     const columns = [
@@ -760,6 +820,28 @@ class Category extends React.Component {
     return columns;
   }
 
+    //构建字段 - 操作日志所对应列表
+    makeColumnsJournal(){
+        const columns = [
+            {
+                title: "订单号",
+            },
+            {
+                title:'操作',
+            },
+            {
+                title:'操作人',
+            },
+            {
+                title:'操作时间'
+            },
+            {
+                title:'审核不通过理由'
+            },
+        ]
+        return columns;
+    }
+
   // 构建table所需数据
   makeData(data) {
     return data.map((item, index) => {
@@ -788,6 +870,7 @@ class Category extends React.Component {
         userId: item.userInfo.id,
         modelType: item.modelType,
         mchOrderId: item.refundRecord ? item.refundRecord.tradeNo : "",
+        refundPassTime:item.refundRecord ? item.refundRecord.refundPassTime:'',
         mobile: item.shopAddress ? item.shopAddress.mobile : "",
         province: item.shopAddress ? item.shopAddress.province : "",
         city: item.shopAddress ? item.shopAddress.city : "",
@@ -808,6 +891,22 @@ class Category extends React.Component {
       };
     });
   }
+
+    //操作日志 - table所需数据
+    makeDataJournal(data3) {
+        return data3.map((item, index) => {
+            return {
+                key: index,
+                addrId: item.addrId,
+                company: item.productType,
+                conditions: item.conditions,
+                username: item.username,
+                orderId: item.orderId,
+                reason: item.reason,
+                auditTime:item.auditTime,
+            };
+        });
+    }
 
   render() {
     const me = this;
@@ -846,301 +945,357 @@ class Category extends React.Component {
     ) : null;
 
     return (
-      <div>
-        <div className="system-search">
-          <ul className="search-ul more-ul">
-            <li>
-              <span>订单号查询</span>
-              <Input
-                style={{ width: "172px" }}
-                onChange={e => this.searchOrderNoChange(e)}
-                suffix={suffix}
-                value={searchorderNo}
-              />
-            </li>
-            <li>
-              <span>用户身份</span>
-              <Select
-                allowClear
-                placeholder="全部"
-                style={{ width: "172px" }}
-                onChange={e => this.onSearchType(e)}
-              >
-                <Option value={0}>经销商（体验版）</Option>
-                <Option value={1}>经销商（微创版）</Option>
-                <Option value={2}>经销商（个人版）</Option>
-                <Option value={3}>分享用户</Option>
-                <Option value={4}>普通用户</Option>
-                <Option value={5}>企业版经销商</Option>
-                <Option value={6}>企业版子账号</Option>
-                <Option value={7}>分销商</Option>
-              </Select>
-            </li>
-            <li>
-              <span>用户id</span>
-              <Input
-                style={{ width: "172px" }}
-                suffix={suffix2}
-                value={searchUserName}
-                onChange={e => this.searchUserNameChange(e)}
-              />
-            </li>
-            <li>
-              <span>活动方式</span>
-              <Select
-                placeholder="全部"
-                allowClear
-                style={{ width: "172px" }}
-                onChange={e => this.searchActivityType(e)}
-              >
-                <Option value={1}>普通商品</Option>
-                <Option value={2}>活动商品</Option>
-              </Select>
-            </li>
-            <li>
-              <span>产品类型</span>
-              <Select
-                allowClear
-                placeholder="全部"
-                style={{ width: "172px" }}
-                onChange={e => this.searchProductType(e)}
-              >
-                {this.state.productTypes.map((item, index) => {
-                  return (
-                    <Option key={index} value={item.id}>
-                      {item.name}
-                    </Option>
-                  );
-                })}
-              </Select>
-            </li>
-            <li>
-              <span>订单总金额</span>
-              <Input
-                style={{ width: "80px" }}
-                min={0}
-                max={999999}
-                placeholder="最小价格"
-                onChange={v => this.searchMinPriceChange(v)}
-                value={searchMinPrice}
-                suffix={suffix8}
-              />
-              --
-              <Input
-                style={{ width: "80px" }}
-                min={0}
-                max={999999}
-                placeholder="最大价格"
-                onChange={e => this.searchMaxPriceChange(e)}
-                value={searchMaxPrice}
-                suffix={suffix9}
-              />
-            </li>
-            <li>
-              <span>退款状态</span>
-              <Select
-                placeholder="全部"
-                allowClear
-                style={{ width: "172px" }}
-                onChange={e => this.searchConditionsChange(e)}
-              >
-                <Option value={3}>退款中</Option>
-                <Option value={4}>退款完成</Option>
-                <Option value={5}>退款失败</Option>
-              </Select>
-            </li>
-            <li>
-              <span style={{ marginRight: "10px" }}>申请退款时间</span>
-              <DatePicker
-                showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
-                format="YYYY-MM-DD HH:mm:ss"
-                placeholder="开始时间"
-                onChange={e => this.searchApplyBeginTime(e)}
-                onOk={onOk}
-              />
-              --
-              <DatePicker
-                showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
-                format="YYYY-MM-DD HH:mm:ss"
-                placeholder="结束时间"
-                // value={this.state.searchEndTime}
-                onChange={e => this.searchApplyEndTime(e)}
-                onOk={onOk}
-              />
-            </li>
-            <li>
-              <span>流水号查询</span>
-              <Input
-                style={{ width: "172px" }}
-                suffix={suffix3}
-                value={searchmchOrderIdChange}
-                onChange={e => this.mchOrderIdChange(e)}
-              />
-            </li>
-            <li>
-              <span style={{ marginRight: "10px" }}>退款到账时间</span>
-              <DatePicker
-                showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
-                format="YYYY-MM-DD HH:mm:ss"
-                placeholder="开始时间"
-                onChange={e => this.searchTime(e)}
-                onOk={onOk}
-              />
-              --
-              <DatePicker
-                showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
-                format="YYYY-MM-DD HH:mm:ss"
-                placeholder="结束时间"
-                // value={this.state.searchEndTime}
-                onChange={e => this.searchTime2(e)}
-                onOk={onOk}
-              />
-            </li>
-            <li style={{ marginLeft: "40px" }}>
-              <Button
-                icon="search"
-                type="primary"
-                onClick={() => this.onSearch()}
-              >
-                搜索
-              </Button>
-            </li>
-            <li>
-              <Button
-                icon="download"
-                type="primary"
-                onClick={() => this.onExport()}
-              >
-                导出
-              </Button>
-            </li>
-          </ul>
+        <div>
+          <div className="system-search">
+            <Tabs type="card">
+              <TabPane tab="退款记录" key="1">
+                <div className="system-table">
+                  <div className="system-table">
+                    <ul className="search-ul more-ul">
+                      <li>
+                        <span>订单号查询</span>
+                        <Input
+                            style={{ width: "172px" }}
+                            onChange={e => this.searchOrderNoChange(e)}
+                            suffix={suffix}
+                            value={searchorderNo}
+                        />
+                      </li>
+                      <li>
+                        <span>用户身份</span>
+                        <Select
+                            allowClear
+                            placeholder="全部"
+                            style={{ width: "172px" }}
+                            onChange={e => this.onSearchType(e)}
+                        >
+                          <Option value={0}>经销商（体验版）</Option>
+                          <Option value={1}>经销商（微创版）</Option>
+                          <Option value={2}>经销商（个人版）</Option>
+                          <Option value={3}>分享用户</Option>
+                          <Option value={4}>普通用户</Option>
+                          <Option value={5}>企业版经销商</Option>
+                          <Option value={6}>企业版子账号</Option>
+                          <Option value={7}>分销商</Option>
+                        </Select>
+                      </li>
+                      <li>
+                        <span>用户id</span>
+                        <Input
+                            style={{ width: "172px" }}
+                            suffix={suffix2}
+                            value={searchUserName}
+                            onChange={e => this.searchUserNameChange(e)}
+                        />
+                      </li>
+                      <li>
+                        <span>活动方式</span>
+                        <Select
+                            placeholder="全部"
+                            allowClear
+                            style={{ width: "172px" }}
+                            onChange={e => this.searchActivityType(e)}
+                        >
+                          <Option value={1}>普通商品</Option>
+                          <Option value={2}>活动商品</Option>
+                        </Select>
+                      </li>
+                      <li>
+                        <span>产品类型</span>
+                        <Select
+                            allowClear
+                            placeholder="全部"
+                            style={{ width: "172px" }}
+                            onChange={e => this.searchProductType(e)}
+                        >
+                            {this.state.productTypes.map((item, index) => {
+                                return (
+                                    <Option key={index} value={item.id}>
+                                        {item.name}
+                                    </Option>
+                                );
+                            })}
+                        </Select>
+                      </li>
+                      <li>
+                        <span>订单总金额</span>
+                        <Input
+                            style={{ width: "80px" }}
+                            min={0}
+                            max={999999}
+                            placeholder="最小价格"
+                            onChange={v => this.searchMinPriceChange(v)}
+                            value={searchMinPrice}
+                            suffix={suffix8}
+                        />
+                        --
+                        <Input
+                            style={{ width: "80px" }}
+                            min={0}
+                            max={999999}
+                            placeholder="最大价格"
+                            onChange={e => this.searchMaxPriceChange(e)}
+                            value={searchMaxPrice}
+                            suffix={suffix9}
+                        />
+                      </li>
+                      <li>
+                        <span>退款状态</span>
+                        <Select
+                            placeholder="全部"
+                            allowClear
+                            style={{ width: "172px" }}
+                            onChange={e => this.searchConditionsChange(e)}
+                        >
+                          <Option value={3}>退款中</Option>
+                          <Option value={4}>退款完成</Option>
+                          <Option value={5}>退款失败</Option>
+                        </Select>
+                      </li>
+                      <li>
+                        <span style={{ marginRight: "10px" }}>申请退款时间</span>
+                        <DatePicker
+                            showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                            format="YYYY-MM-DD HH:mm:ss"
+                            placeholder="开始时间"
+                            onChange={e => this.searchApplyBeginTime(e)}
+                            onOk={onOk}
+                        />
+                        --
+                        <DatePicker
+                            showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                            format="YYYY-MM-DD HH:mm:ss"
+                            placeholder="结束时间"
+                            // value={this.state.searchEndTime}
+                            onChange={e => this.searchApplyEndTime(e)}
+                            onOk={onOk}
+                        />
+                      </li>
+                      <li>
+                        <span>流水号查询</span>
+                        <Input
+                            style={{ width: "172px" }}
+                            suffix={suffix3}
+                            value={searchmchOrderIdChange}
+                            onChange={e => this.mchOrderIdChange(e)}
+                        />
+                      </li>
+                      <li>
+                        <span style={{ marginRight: "10px" }}>退款到账时间</span>
+                        <DatePicker
+                            showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                            format="YYYY-MM-DD HH:mm:ss"
+                            placeholder="开始时间"
+                            onChange={e => this.searchTime(e)}
+                            onOk={onOk}
+                        />
+                        --
+                        <DatePicker
+                            showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                            format="YYYY-MM-DD HH:mm:ss"
+                            placeholder="结束时间"
+                            // value={this.state.searchEndTime}
+                            onChange={e => this.searchTime2(e)}
+                            onOk={onOk}
+                        />
+                      </li>
+                      <li style={{ marginLeft: "40px" }}>
+                        <Button
+                            icon="search"
+                            type="primary"
+                            onClick={() => this.onSearch()}
+                        >
+                          搜索
+                        </Button>
+                      </li>
+                      <Button icon="download" type="primary" onClick={this.warning2}>
+                        导出
+                      </Button>
+                    </ul>
+                  </div>
+                  <div className="system-table">
+                    <Table
+                        columns={this.makeColumns()}
+                        dataSource={this.makeData(this.state.data)}
+                        scroll={{ x: 2000 }}
+                        pagination={{
+                            total: this.state.total,
+                            current: this.state.pageNum,
+                            pageSize: this.state.pageSize,
+                            showQuickJumper: true,
+                            showTotal: (total, range) => `共 ${total} 条数据`,
+                            onChange: (page, pageSize) =>
+                                this.onTablePageChange(page, pageSize)
+                        }}
+                    />
+                  </div>
+                </div>
+                  {/* 查看详情模态框 */}
+                <Modal
+                    title="查看详情"
+                    visible={this.state.queryModalShow}
+                    onOk={() => this.onQueryModalClose()}
+                    onCancel={() => this.onQueryModalClose()}
+                    onChange={() => this.onQueryClick()}
+                    wrapClassName={"list"}
+                >
+                  <Form>
+                    <FormItem label="订单号" {...formItemLayout}>
+                        {!!this.state.nowData ? this.state.nowData.orderNo : ""}
+                    </FormItem>
+                    <FormItem label="退款状态" {...formItemLayout}>
+                        {!!this.state.nowData
+                            ? this.getListByModelId(this.state.nowData.activityStatus)
+                            : ""}
+                    </FormItem>
+                    <FormItem label="用户身份" {...formItemLayout}>
+                        {!!this.state.nowData
+                            ? this.getUserType(this.state.nowData.userType)
+                            : ""}
+                    </FormItem>
+                    <FormItem label="用户id" {...formItemLayout}>
+                        {!!this.state.nowData ? this.state.nowData.userId : ""}
+                    </FormItem>
+                    <FormItem label="活动方式" {...formItemLayout}>
+                        {!!this.state.nowData
+                            ? this.getActivity(this.state.nowData.activityType)
+                            : ""}
+                    </FormItem>
+                    <FormItem label="产品类型" {...formItemLayout}>
+                        {!!this.state.nowData
+                            ? this.findProductNameById(this.state.nowData.typeId)
+                            : ""}
+                    </FormItem>
+                    <FormItem label="产品公司" {...formItemLayout}>
+                        {!!this.state.nowData
+                            ? this.Productcompany(this.state.nowData.company)
+                            : ""}
+                    </FormItem>
+                    <FormItem label="产品型号" {...formItemLayout}>
+                        {!!this.state.nowData ? this.state.nowData.modelType : ""}
+                    </FormItem>
+                    <FormItem label="产品名称" {...formItemLayout}>
+                        {!!this.state.nowData ? this.state.nowData.name : ""}
+                    </FormItem>
+                    <FormItem label="数量" {...formItemLayout}>
+                        {!!this.state.nowData ? this.state.nowData.count : ""}
+                    </FormItem>
+                    <FormItem label="订单总金额" {...formItemLayout}>
+                        {!!this.state.nowData ? `￥${this.state.nowData.fee}` : ""}
+                    </FormItem>
+                    <FormItem label="流水号" {...formItemLayout}>
+                        {!!this.state.nowData ? this.state.nowData.mchOrderId : ""}
+                    </FormItem>
+                    <FormItem label="申请退款时间" {...formItemLayout}>
+                        {!!this.state.nowData ? this.state.nowData.auditTime : ""}
+                    </FormItem>
+                    <FormItem label="退款到账时间" {...formItemLayout}>
+                        {!!this.state.nowData ? this.state.nowData.theAccountTime : ""}
+                    </FormItem>
+                    <FormItem
+                        label="审核时间"
+                        {...formItemLayout}
+                        className={this.state.activityStatus == 5 ? "hide" : ""}
+                    >
+                        {!!this.state.nowData ? this.state.nowData.refundPassTime : ""}
+                    </FormItem>
+                    <FormItem
+                        label="审核时间"
+                        {...formItemLayout}
+                        className={this.state.activityStatus == 4 || this.state.activityStatus == 3 ? "hide" : ""}
+                    >
+                        {!!this.state.nowData ? this.state.nowData.refundPassTime : ""}
+                    </FormItem>
+                    <FormItem
+                        label="退款失败理由"
+                        {...formItemLayout}
+                        className={
+                            this.state.activityStatus == 4 || this.state.activityStatus == 3
+                                ? "hide"
+                                : ""
+                        }
+                    >
+                        {!!this.state.nowData ? this.state.nowData.refundDetail : ""}
+                    </FormItem>
+                  </Form>
+                </Modal>
+              </TabPane>
+              <TabPane tab="操作日志" key="2">
+                <div className="system-table">
+                  <div className="system-table">
+                    <ul className="search-ul more-ul">
+                      <li>
+                        <span>订单号查询</span>
+                        <Input
+                            style={{ width: "172px" }}
+                            onChange={v => this.searchPartnerTradeNoChange(v)}
+                        />
+                      </li>
+                      <li>
+                        <span>操作</span>
+                        <Select
+                            placeholder="全部"
+                            allowClear
+                            style={{ width: "172px" }}
+                            onChange={e => this.searchFlagChange(e)}
+                        >
+                          <Option value={1}>审核通过</Option>
+                          <Option value={2}>审核不通过</Option>
+                        </Select>
+                      </li>
+                      <li>
+                        <span style={{ marginRight: "10px" }}>操作时间</span>
+                        <DatePicker
+                            showTime={{
+                                defaultValue: moment("00:00:00", "HH:mm:ss")
+                            }}
+                            format="YYYY-MM-DD HH:mm:ss"
+                            placeholder="开始时间"
+                            // onChange={e => this.searchBeginTime(e)}
+                            onOk={onOk}
+                        />
+                        --
+                        <DatePicker
+                            showTime={{
+                                defaultValue: moment("23:59:59", "HH:mm:ss")
+                            }}
+                            format="YYYY-MM-DD HH:mm:ss"
+                            placeholder="结束时间"
+                            // onChange={e => this.searchEndTime(e)}
+                            onOk={onOk}
+                        />
+                      </li>
+                      <li style={{ marginLeft: "40px" }}>
+                        <Button
+                            icon="search"
+                            type="primary"
+                            onClick={() => this.onSearchJournal()}
+                        >
+                          搜索
+                        </Button>
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="system-table">
+                    <Table
+                        columns={this.makeColumnsJournal()}
+                        dataSource={this.makeDataJournal(this.state.data2)}
+                        pagination={{
+                            total: this.state.total2,
+                            current: this.state.pageNum,
+                            pageSize: this.state.pageSize,
+                            showQuickJumper: true,
+                            showTotal: (total, range) => `共 ${total} 条数据`,
+                            onChange: (page, pageSize) =>
+                                this.onTablePageChangeJournal(page, pageSize)
+                        }}
+                    />
+                  </div>
+                </div>
+              </TabPane>
+            </Tabs>
+          </div>
         </div>
-        <div className="system-table">
-          <Table
-            columns={this.makeColumns()}
-            dataSource={this.makeData(this.state.data)}
-            scroll={{ x: 2000 }}
-            pagination={{
-              total: this.state.total,
-              current: this.state.pageNum,
-              pageSize: this.state.pageSize,
-              showQuickJumper: true,
-              showTotal: (total, range) => `共 ${total} 条数据`,
-              onChange: (page, pageSize) =>
-                this.onTablePageChange(page, pageSize)
-            }}
-          />
-        </div>
-        <Modal
-          title="查看地区"
-          visible={this.state.addnewModalShow}
-          onOk={() => this.onAddNewOk()}
-          onCancel={() => this.onAddNewClose()}
-          confirmLoading={this.state.addnewLoading}
-        >
-          <Form>
-            <FormItem label="服务站地区" {...formItemLayout}>
-              <span style={{ color: "#888" }}>
-                {this.state.nowData &&
-                this.state.addOrUp === "up" &&
-                this.state.nowData.province &&
-                this.state.nowData.city &&
-                this.state.nowData.region
-                  ? `${this.state.nowData.province}/${
-                      this.state.nowData.city
-                    }/${this.state.nowData.region}`
-                  : null}
-              </span>
-              {getFieldDecorator("addnewCitys", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请选择区域" }]
-              })(
-                <Cascader
-                  placeholder="请选择服务区域"
-                  options={this.state.citys}
-                  loadData={e => this.getAllCitySon(e)}
-                />
-              )}
-            </FormItem>
-          </Form>
-        </Modal>
-        {/* 查看详情模态框 */}
-        <Modal
-          title="查看详情"
-          visible={this.state.queryModalShow}
-          onOk={() => this.onQueryModalClose()}
-          onCancel={() => this.onQueryModalClose()}
-          onChange={() => this.onQueryClick()}
-          wrapClassName={"list"}
-        >
-          <Form>
-            <FormItem label="订单号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.orderNo : ""}
-            </FormItem>
-            <FormItem label="退款状态" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getListByModelId(this.state.nowData.activityStatus)
-                : ""}
-            </FormItem>
-            <FormItem label="用户身份" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getUserType(this.state.nowData.userType)
-                : ""}
-            </FormItem>
-            <FormItem label="用户id" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.userId : ""}
-            </FormItem>
-            <FormItem label="活动方式" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getActivity(this.state.nowData.activityType)
-                : ""}
-            </FormItem>
-            <FormItem label="产品类型" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.findProductNameById(this.state.nowData.typeId)
-                : ""}
-            </FormItem>
-            <FormItem label="产品公司" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.Productcompany(this.state.nowData.company)
-                : ""}
-            </FormItem>
-            <FormItem label="产品型号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.modelType : ""}
-            </FormItem>
-            <FormItem label="产品名称" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.name : ""}
-            </FormItem>
-            <FormItem label="数量" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.count : ""}
-            </FormItem>
-            <FormItem label="订单总金额" {...formItemLayout}>
-              {!!this.state.nowData ? `￥${this.state.nowData.fee}` : ""}
-            </FormItem>
-            <FormItem label="流水号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.mchOrderId : ""}
-            </FormItem>
-            <FormItem label="申请退款时间" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.auditTime : ""}
-            </FormItem>
-            <FormItem label="退款到账时间" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.theAccountTime : ""}
-            </FormItem>
-            <FormItem
-              label="退款失败理由"
-              {...formItemLayout}
-              className={
-                this.state.activityStatus == 4 || this.state.activityStatus == 3
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.refundDetail : ""}
-            </FormItem>
-          </Form>
-        </Modal>
-      </div>
     );
   }
 }

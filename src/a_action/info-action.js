@@ -25,3 +25,19 @@ export function myCustomers(params = {}) {
       });
   };
 }
+
+//经销商信息管理详情跳转页面所带参数
+export function detailRecord(v) {
+    return {
+        type:"Detail::detailRecord",
+        payload:v
+    };
+}
+
+//用户信息管理详情跳转页面所带参数
+export function userinfoRecord(v) {
+    return {
+        type:"Detail2::userinfoRecord",
+        payload:v
+    };
+}

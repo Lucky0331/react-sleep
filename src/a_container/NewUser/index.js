@@ -17,6 +17,9 @@ import "./index.scss";
 
 import UserInfo from "./container/UserInfo";
 import DealerInfo from "./container/DealerInfo";
+import DealerInfoDetail from "./container/DealerInfoDetail"
+import CouponCard from "./container/CouponCard"
+import UserInfoRecord from "./container/UserInfoRecord"
 
 // ==================
 // 本页面所需action
@@ -58,6 +61,21 @@ class TheContainer extends React.Component {
             exact
             path={`${this.props.match.path}/dealerinfo`}
             component={DealerInfo}
+          />
+          <Route
+              exact
+              path={`${this.props.match.path}/dealerinfoDetail`}
+              component={DealerInfoDetail}
+          />
+          <Route
+              exact
+              path={`${this.props.match.path}/couponCard`}
+              component={CouponCard}
+          />
+          <Route
+              exact
+              path={`${this.props.match.path}/userinfoRecord`}
+              component={UserInfoRecord}
           />
         </Switch>
       </div>

@@ -20,11 +20,14 @@ import {
   Tooltip,
   Icon,
   Modal,
-  InputNumber
+  Popover,
+  InputNumber,
+  Upload
 } from "antd";
 import P from "prop-types";
 import _ from "lodash";
 import "./index.scss";
+import Config from "../../../../config/config";
 import tools from "../../../../util/tools";
 import Power from "../../../../util/power"; // 权限
 import { power } from "../../../../util/data";
@@ -44,7 +47,7 @@ import {
   deleteMenuInfo,
   updateMenuInfo,
   findMenusByKeys,
-  findMenuByMainMenu
+  findMenuByMainMenu,
 } from "../../../../a_action/sys-action";
 
 // ==================
@@ -72,6 +75,8 @@ class Menu extends React.Component {
       addModalShow: false, // 添加 - 模态框 是否出现
       searchMenuName: "", // 查询 - 菜单名
       searchConditions: undefined, // 查询 - 状态
+      fileList: [], // 缩略图已上传的列表
+      fileLoading: false, // 缩略图片正在上传
       total: 0, // 总数 直接全部查询，前端分页
       pageNum: 1, // 第几页 - 这里是前端分页，只是为了构建序号，由TABLE返回
       pageSize: 10 // 每页多少条 - 这里是前端分页，只是为了构建序号，由TABLE返回
@@ -173,6 +178,7 @@ class Menu extends React.Component {
         return (
           <TreeNode
             title={item.menuName}
+            img={item.iconImg}
             key={k}
             id={item.id}
             p={item.parentId}
@@ -185,6 +191,7 @@ class Menu extends React.Component {
         return (
           <TreeNode
             title={item.menuName}
+            img={item.iconImg}
             key={k}
             id={item.id}
             p={item.parentId}
@@ -195,6 +202,7 @@ class Menu extends React.Component {
       }
     });
   }
+
 
   // 添加子菜单提交
   onAddOk() {
@@ -268,7 +276,7 @@ class Menu extends React.Component {
     const { form } = me.props;
     console.log("nowData是个啥：", me.state.nowData);
     form.validateFields(
-      ["upMenuName", "upMenuUrl", "upConditions", "upSorts", "upMenuDesc"],
+      ["upMenuName", "upMenuUrl", "upConditions", "upSorts", "upMenuDesc","upIconImg"],
       (err, values) => {
         if (err) {
           return;
@@ -309,7 +317,7 @@ class Menu extends React.Component {
   onUpdateClick(record) {
     const me = this;
     const { form } = me.props;
-    console.log("当前修改的：", record);
+    console.log("当前修改的：", record, form);
     form.setFieldsValue({
       upMenuName: record.menuName,
       upMenuUrl: record.menuUrl,
@@ -429,6 +437,27 @@ class Menu extends React.Component {
         key: "menuName"
       },
       {
+        title:'菜单图标',
+        dataIndex:'iconImg',
+        key:'iconImg',
+        width: 200,
+        render: (text, index) => {
+         if (text) {
+          const img = text.split(",");
+          return (
+              <Popover
+                key={index}
+                placement="right"
+                content={<img className="table-img-big" src={img[0]} />}
+              >
+                <img className="table-img" src={img[0]} />
+              </Popover>
+           );
+          }
+          return "";
+        }
+      },
+      {
         title: "菜单URL",
         dataIndex: "menuUrl",
         key: "menuUrl",
@@ -534,6 +563,7 @@ class Menu extends React.Component {
         menuDesc: item.menuDesc,
         sorts: item.sorts,
         conditions: item.conditions,
+        iconImg:item.iconImg,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize
       };
     });
@@ -546,11 +576,11 @@ class Menu extends React.Component {
     const formItemLayout = {
       labelCol: {
         xs: { span: 24 },
-        sm: { span: 4 }
+        sm: { span: 6 }
       },
       wrapperCol: {
         xs: { span: 24 },
-        sm: { span: 19 }
+        sm: { span: 18 }
       }
     };
 
@@ -677,6 +707,25 @@ class Menu extends React.Component {
                 />
               )}
             </FormItem>
+            {/*<FormItem label="添加菜单图" {...formItemLayout}>*/}
+             {/*<Upload*/}
+               {/*name="pImg"*/}
+               {/*action={`${Config.baseURL}/manager/product/uploadImage`}*/}
+               {/*listType="picture-card"*/}
+               {/*withCredentials={true}*/}
+               {/*fileList={this.state.fileList}*/}
+               {/*beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}*/}
+               {/*onChange={f => this.onUpLoadChange(f)}*/}
+               {/*onRemove={f => this.onUpLoadRemove(f)}*/}
+              {/*>*/}
+                  {/*{this.state.fileList.length >= 1 ? null : (*/}
+                      {/*<div>*/}
+                        {/*<Icon type="plus" />*/}
+                        {/*<div className="ant-upload-text">选择文件</div>*/}
+                      {/*</div>*/}
+                  {/*)}*/}
+              {/*</Upload>*/}
+            {/*</FormItem>*/}
             <FormItem label="排序" {...formItemLayout}>
               {getFieldDecorator("addSorts", {
                 initialValue: 0,
@@ -696,7 +745,6 @@ class Menu extends React.Component {
             </FormItem>
           </Form>
         </Modal>
-
         {/* 修改用户模态框 */}
         <Modal
           title="修改菜单"
@@ -780,6 +828,29 @@ class Menu extends React.Component {
                 />
               )}
             </FormItem>
+            {/*<FormItem label="修改菜单图标" {...formItemLayout}>*/}
+                {/*{getFieldDecorator("upIconImg", {*/}
+                    {/*rules: [{ required: true }]*/}
+                {/*})(*/}
+                    {/*<Upload*/}
+                        {/*name="pImg"*/}
+                        {/*action={`${Config.baseURL}/manager/product/uploadImage`}*/}
+                        {/*listType="picture-card"*/}
+                        {/*withCredentials={true}*/}
+                        {/*fileList={this.state.fileList}*/}
+                        {/*beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}*/}
+                        {/*onChange={f => this.onUpLoadChange(f)}*/}
+                        {/*onRemove={f => this.onUpLoadRemove(f)}*/}
+                    {/*>*/}
+                        {/*{this.state.fileList.length >= 1 ? null : (*/}
+                            {/*<div>*/}
+                              {/*<Icon type="plus" />*/}
+                              {/*<div className="ant-upload-text">选择文件</div>*/}
+                            {/*</div>*/}
+                        {/*)}*/}
+                    {/*</Upload>*/}
+                {/*)}*/}
+            {/*</FormItem>*/}
             <FormItem label="排序" {...formItemLayout}>
               {getFieldDecorator("upSorts", {
                 initialValue: 0,
