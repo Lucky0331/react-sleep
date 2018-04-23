@@ -865,8 +865,8 @@ class Category extends React.Component {
       },
       {
         title: "申请退款时间",
-        dataIndex: "auditTime",
-        key: "auditTime"
+        dataIndex: "createTime",
+        key: "createTime"
       },
       {
         title: "订单状态",
@@ -1038,7 +1038,7 @@ class Category extends React.Component {
         mchOrderId: item.refundRecord ? item.refundRecord.tradeNo : "",
         customerName: item.customer ? item.customer.realName : "",
         customerPhone: item.customer ? item.customer.phone : "",
-        createTime: item.refundRecord ? item.refundRecord.createTime : "",
+        createTime: item.createTime,
         detail: item.product.typeName ? item.product.typeName.detail : "",
         auditTime: item.orders ? item.orders.auditTime : "",
         company: item.product ? item.product.typeId : "",

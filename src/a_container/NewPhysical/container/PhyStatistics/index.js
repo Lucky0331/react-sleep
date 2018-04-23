@@ -40,7 +40,7 @@ import _ from "lodash";
 // ==================
 
 import {
-  findReserveList,
+  StatisticsList,
   addProduct,
   upReserveList,
   deleteProduct,
@@ -73,9 +73,31 @@ class Category extends React.Component {
     // setTimeout是因为初次加载时，CSS可能还没加载完毕，导致图表样式有问题
     setTimeout(() => {
       const dom = Echarts.init(document.getElementById("echarts-1"));
-      dom.setOption(me.makeOption(), true);
+      this.echartsDom = dom;
+      dom.setOption(me.makeOption(this.state.data), true);
       window.onresize = dom.resize;
+        this.onGetData(this.state.pageNum,this.state.pageSize)
     }, 16);
+
+  }
+
+  componentWillUpdate(nextP, nextS) {
+    console.log(nextS, nextP);
+    if(nextS.data !== this.state.data) {
+        this.echartsDom.setOption(this.makeOption(nextS.data), true);
+    }
+
+  }
+
+  // 表单页码改变
+  onTablePageChange(page, pageSize) {
+    this.onGetData(page, pageSize);
+  }
+
+  // 页码每页显示多少条展示
+  onShowSizeChange(current, pageSize) {
+    console.log("显示多少条:", current, pageSize);
+    this.onGetData(current, pageSize);
   }
 
   // 查询当前页面所需列表数据
@@ -86,12 +108,15 @@ class Category extends React.Component {
       mobile: this.state.searchMobile,
       code: this.state.searchCode
     };
-    this.props.actions.findReserveList(tools.clearNull(params)).then(res => {
+    this.props.actions.StatisticsList(tools.clearNull(params)).then(res => {
+      console.log("what hell:", res.messsageBody.data);
       if (res.returnCode === "0") {
+
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.messsageBody.data || [],
           pageNum,
-          pageSize
+          pageSize,
+          total:res.messsageBody.size,
         });
       } else {
         message.error(res.returnMessaage || "获取数据失败，请重试");
@@ -100,25 +125,15 @@ class Category extends React.Component {
   }
 
   // 处理图表数据
-  makeOption(data = null) {
+  makeOption(data) {
+    console.log('参数data:', data);
     const option = {
-      title: {
-        text: "体检用户",
-        left: "center"
-      },
       tooltip: {
         trigger: "item",
         formatter: "{a} <br/>{b} : {c}"
       },
       legend: {
-        left: "left",
-        data: ["2的指数", "3的指数"]
-      },
-      xAxis: {
-        type: "category",
-        name: "x",
-        splitLine: { show: false },
-        data: ["一", "二", "三", "四", "五", "六", "七", "八", "九"]
+        data:['体检用户','公众号预约用户']
       },
       grid: {
         left: "3%",
@@ -126,25 +141,32 @@ class Category extends React.Component {
         bottom: "3%",
         containLabel: true
       },
+      xAxis: {
+        type: "category",
+        name: "x",
+        splitLine: { show: false },
+        data: [
+            data.map((item)=> item.date)
+        ]
+      },
       yAxis: {
         type: "log",
         name: "y"
       },
-      series: [
+      series:[
         {
-          name: "1111",
+          name: "体检用户",
           type: "line",
-          data: [41, 23, 59, 27, 81, 247, 43, 234, 69]
+          data:[
+              data.map((item)=> item.usedCount)
+          ],
         },
         {
-          name: "2222",
+          name: "公众号预约用户",
           type: "line",
-          data: [17, 25, 42, 48, 156, 32, 64, 128, 126]
-        },
-        {
-          name: "3333",
-          type: "line",
-          data: [12, 345, 43, 23, 5, 4, 65, 34, 54]
+          data: [
+              data.map((item)=> item.reverseCount)
+            ]
         }
       ]
     };
@@ -167,56 +189,25 @@ class Category extends React.Component {
         width: 80
       },
       {
-        title: "预约体检日期",
-        dataIndex: "reserveTime",
-        key: "reserveTime",
-        width: 200
+        title: "日期",
+        dataIndex: "date",
+        key: "date",
       },
       {
-        title: "实际体检日期",
-        dataIndex: "arriveTime",
-        key: "arriveTime",
-        width: 200
+        title: "体检用户",
+        dataIndex: "usedCount",
+        key: "usedCount",
       },
       {
-        title: "体检卡状态 ",
-        dataIndex: "conditions",
-        key: "conditions",
-        width: 200,
-        render: text => this.getNameByType(text)
+        title: "公众号预约用户 ",
+        dataIndex: "reverseCount",
+        key: "reverseCount",
       },
       {
-        title: "操作时间",
-        dataIndex: "updateTime",
-        key: "updateTime",
-        width: 200
+        title: "公众号预约用户占比",
+        dataIndex: "ratio",
+        key: "ratio",
       },
-      {
-        title: "操作",
-        key: "control",
-        render: (text, record) => {
-          const controls = [];
-          controls.push(
-            <span
-              key="0"
-              className="control-btn green"
-              onClick={() => this.onQueryClick(record)}
-            >
-              <Tooltip placement="top" title="查看">
-                <Icon type="eye" />
-              </Tooltip>
-            </span>
-          );
-          const result = [];
-          controls.forEach((item, index) => {
-            if (index) {
-              result.push(<Divider type="vertical" />);
-            }
-            result.push(item);
-          });
-          return result;
-        }
-      }
     ];
     return columns;
   }
@@ -229,23 +220,10 @@ class Category extends React.Component {
         key: index,
         id: item.id,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
-        arriveTime: item.arriveTime,
-        code: item.code,
-        conditions: item.conditions,
-        createTime: item.createTime,
-        creator: item.creator,
-        height: item.height,
-        idCard: item.idCard,
-        mobile: item.mobile,
-        name: item.name,
-        reserveTime: item.reserveTime,
-        sex: item.sex,
-        stationId: item.stationId,
-        stationName: item.stationName,
-        updateTime: item.updateTime,
-        updater: item.updater,
-        userSource: item.userSource,
-        weight: item.weight
+        date: item.date,
+        usedCount: item.usedCount,
+        reverseCount: item.reverseCount,
+        ratio:(item.usedCount && item.reverseCount) ? (item.reverseCount)/(item.usedCount) : '',
       };
     });
   }
@@ -352,9 +330,14 @@ class Category extends React.Component {
               current: this.state.pageNum,
               pageSize: this.state.pageSize,
               showQuickJumper: true,
+              showSizeChanger: true,
+              defaultCurrent: 3,
+              pageSizeOptions: ["10", "30", "50"],
+              onShowSizeChange: (current, pageSize) =>
+                this.onShowSizeChange(current, pageSize),
               showTotal: (total, range) => `共 ${total} 条数据`,
               onChange: (page, pageSize) =>
-                this.onTablePageChange(page, pageSize)
+              this.onTablePageChange(page, pageSize)
             }}
           />
         </div>
@@ -383,7 +366,7 @@ export default connect(
   dispatch => ({
     actions: bindActionCreators(
       {
-        findReserveList,
+        StatisticsList,
         addProduct,
         upReserveList,
         deleteProduct,

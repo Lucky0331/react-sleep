@@ -115,14 +115,22 @@ class Menus extends React.Component {
   makeTreeDom(data, key) {
     return data.map((item, index) => {
       const newKey = `${key}/${item.menuUrl.replace(/\//, "")}`;
-      // console.log('key都是什么：', newKey);
+      console.log('key都是什么：', newKey);
       if (item.children) {
-        return (
-          <SubMenu key={newKey}
-               title={[<img className="small-img" src={item.iconImg} key='0' style={{ marginLeft:'-10px',marginRight:'10px' }}/>,<span key='1'>{item.menuName}</span>]}>
-            {this.makeTreeDom(item.children, newKey)}
-          </SubMenu>
-        );
+        if(item.parentId === 0){
+              return (
+                  <SubMenu key={newKey}
+                           title={[<img className="small-img" src={item.iconImg} key='0' style={{ marginLeft:'-10px',marginRight:'10px' }}/>,<span key='1'>{item.menuName}</span>]}>
+                      {this.makeTreeDom(item.children, newKey)}
+                  </SubMenu>
+              );
+          }else {
+            return(
+            <SubMenu key={newKey} title={<span key='1'>{item.menuName}</span>}>
+              {this.makeTreeDom(item.children, newKey)}
+            </SubMenu>
+            )
+          }
       } else {
         return (
           <MenuItem key={newKey}>

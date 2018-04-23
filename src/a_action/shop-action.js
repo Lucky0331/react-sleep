@@ -128,6 +128,19 @@ export function updateTicketStatus(params = {}) {
   };
 }
 
+//体检统计列表
+export function StatisticsList (params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/examination/count", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
 // 添加新产品型号
 export function addProductModel(params = {}) {
   return dispatch => {
