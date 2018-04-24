@@ -1,0 +1,75 @@
+.userinfocount-page{
+  position: relative;
+.ant-table-thead{
+  th{
+    text-align: center !important;
+  }
+}
+  .head-tabs{
+    position: relative;
+    padding: 12px 8px;
+    box-sizing: border-box;
+    &>ul{
+      position: relative;
+      display: flex;
+      width: 100%;
+      min-height: 40px;
+      align-items: center;
+      &>li{
+        &.check{
+          color: #1890FF;
+        }
+        transition: all 200ms;
+        display: block;
+        flex: 1;
+        text-align: center;
+        &>div:nth-child(2){
+          font-size: 20px;
+          font-weight: bold;
+        }
+        cursor:pointer;
+      }
+    }
+    .line{
+      position: absolute;
+      bottom:0;
+      left:0;
+      width: 20%;
+      height: 2px;
+      transition: all 200ms;
+      background-color: #1890FF;
+    }
+  }
+
+  .charts-one{
+    background-color: #efefef;
+    padding: 20px 8px;
+    .title{
+      border-left: solid 3px #1890FF;
+      padding-left: 8px;
+    }
+    .charts-box{
+      height: 400px;
+      display: flex;
+      &>div{
+        flex: 1;
+      }
+      .charts-data{
+        background-color: #fff;
+        border-radius: 4px;
+      }
+    }
+  }
+  .tooltip{
+    color: #222;
+    &>div:first-child{
+      border-bottom: solid 1px #ccc;
+      padding-bottom: 8px;
+      font-weight: 600;
+    }
+    &>div:nth-child(2){
+      padding-top: 8px;
+      color: #888;
+    }
+  }
+}

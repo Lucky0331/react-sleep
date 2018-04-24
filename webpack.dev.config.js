@@ -8,6 +8,7 @@ module.exports = {
   mode: "development",
   entry: [
     "webpack-hot-middleware/client?reload=true&path=/__webpack_hmr", // webpack热更新插件，就这么写
+    "babel-polyfill",
     "./src/index.js" // 项目入口
   ],
   output: {
@@ -94,14 +95,6 @@ module.exports = {
     ]
   },
   plugins: [
-      new webpack.DllReferencePlugin({
-          context: path.resolve(__dirname, "dll"),
-          /**
-           下面这个地址对应webpack.dll.config.js中生成的那个json文件的路径
-           这样webpack打包时，就先直接去这个json文件中把那些预编译的资源弄进来
-           **/
-          manifest: require('./dll/vendor-manifest.json')
-      }),
     new HtmlWebpackPlugin({
       //根据模板插入css/js等生成最终HTML
       filename: "index.html", //生成的html存放路径，相对于 output.path

@@ -6,7 +6,7 @@ const PreloadWebpackPlugin = require("preload-webpack-plugin"); // 预加载所�
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin; // 打包分析插件，打包后会自动弹出tree图
 module.exports = {
   mode: "production",
-  entry: path.resolve(__dirname, "src", "index"),
+  entry: ["babel-polyfill", path.resolve(__dirname, "src", "index")],
   output: {
     path: path.resolve(__dirname, "build/dist"), // 将文件打包到此目录下
     publicPath: "/dist/", // 在生成的html中，文件的引入路径会相对于此地址，生成的css中，以及各类图片的URL都会相对于此地址

@@ -860,6 +860,18 @@ export function WithdrawalsRevoke(params = {}) {
       });
   };
 }
+// 用户数据统计页面获取数据
+export function findUserInfoCount(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/userInfo/userStatistics", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("请求出现网络错误，请重试");
+      });
+  };
+}
 
 //计费方式的选择
 export function onChange3(feeType) {

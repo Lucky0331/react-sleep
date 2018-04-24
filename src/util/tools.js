@@ -22,6 +22,7 @@ const tools = {
    * 标准日期转字符串年月日，时分秒
    * */
   dateToStr(date) {
+      console.log('穿进来：', `${date.getMonth() + 1}`);
     if (!date) {
       return "";
     }
