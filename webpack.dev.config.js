@@ -95,9 +95,17 @@ module.exports = {
     ]
   },
   plugins: [
+      new webpack.DllReferencePlugin({
+          context: path.resolve(__dirname, "dll"),
+          /**
+           下面这个地址对应webpack.dll.config.js中生成的那个json文件的路径
+           这样webpack打包时，就先直接去这个json文件中把那些预编译的资源弄进来
+           **/
+          manifest: require('./dll/vendor-manifest.json')
+      }),
     new HtmlWebpackPlugin({
       //根据模板插入css/js等生成最终HTML
-      filename: "index.html", //生成的html存放路径，相对于 output.path
+      filename: "./index.html", //生成的html存放路径，相对于 output.path
       favicon: "./favicon.ico", // 自动把根目录下的favicon.ico图片加入html
       template: "./index.html", //html模板路径
       inject: true // 是否将js放在body的末尾

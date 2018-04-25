@@ -9,6 +9,7 @@ import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import P from "prop-types";
 import moment from "moment";
+import _ from 'lodash';
 import { Motion, spring } from "react-motion";
 import "./index.scss";
 import tools from "../../../../util/tools"; // 工具
@@ -43,7 +44,14 @@ class Manager extends React.Component {
     super(props);
     this.state = {
       data: {}, // 当前页面全部数据
-        barType: 0, // 下方分类选的哪一个
+      dataCookie: [
+          {list: [], list2:[], all: 0, title: '经销商绑定总数'},   // 经销商绑定总数
+          {list: [], list2:[], all: 0, title: '分销用户发展总数'},   // 分销用户发展总数
+          {list: [], list2:[], all: 0, title: '分享用户发展总数'},   // 分享用户发展总数
+          {list: [], list2:[], all: 0, title: '经销商优惠卡持有总数'},   // 经销商优惠卡持有总数
+          {list: [], list2:[], all: 0, title: '经销商优惠卡增出总数'},   // 经销商优惠卡增出总数
+      ], // 缓存的分类数据
+      barType: 0, // 下方分类选的哪一个
       searchType: "", //搜索 - 用户类型
         searchRadio: 0, // 当前radio选择的哪一个
         searchBeginTime: undefined, // 开始日期
@@ -60,14 +68,14 @@ class Manager extends React.Component {
           const dom2 = Echarts.init(document.getElementById("echarts-2"));
           this.echartsDom1 = dom1;
           this.echartsDom2 = dom2;
-          dom1.setOption(this.makeOption1(this.state.data, this.state.barType), true);
-          dom2.setOption(this.makeOption2(this.state.data), true);
+          dom1.setOption(this.makeOption1(this.state.dataCookie, this.state.barType), true);
+          dom2.setOption(this.makeOption2(this.state.dataCookie, this.state.barType), true);
           window.onresize = () => {
               dom1.resize();
               dom2.resize();
           };
-          this.onGetData();
-      }, 16);
+          this.onGetData(this.state.barType);
+      });
   }
 
   componentWillReceiveProps(nextP) {
@@ -75,14 +83,21 @@ class Manager extends React.Component {
   }
 
     componentWillUpdate(nextP, nextS) {
-      if(nextS.data !== this.state.data || nextS.barType !== this.state.barType) {
+      if(nextS.dataCookie !== this.state.dataCookie || nextS.barType !== this.state.barType) {
+          console.log('UUUUUUUUUU:',this.echartsDom1);
           if(this.echartsDom1) {
-              this.echartsDom1.setOption(this.makeOption1(nextS.data,  nextS.barType), true);
+              this.echartsDom1.setOption(this.makeOption1(nextS.dataCookie, nextS.barType), true);
           }
           if (this.echartsDom2) {
-              this.echartsDom2.setOption(this.makeOption2(nextS.data), true);
+              this.echartsDom2.setOption(this.makeOption2(nextS.dataCookie, nextS.barType), true);
           }
       }
+    }
+
+    componentWillUnmount() {
+    this.echartsDom1 = null; // Echarts实例
+    this.echartsDom2 = null; // Echarts实例
+      window.onresize = null;
     }
 
   // bar选择
@@ -90,49 +105,19 @@ class Manager extends React.Component {
       this.setState({
           barType:  id,
       });
+      this.onGetData(id);
     }
 
   /** echarts1 构建 **/
-    makeOption1(data, barType) {
+    makeOption1(dataCookie, barType) {
         // 处理当前选中哪一个
-        let visualMap_max = 200;    // 地图空间（多，少）的最大值，留点余量
-        let seriesData = [];
-        let titleText;
-        let allnum = 0;
-        switch(barType){
-            case 0:
-                visualMap_max = data.distributorCount;
-                seriesData = data.bdbyCount;
-                titleText = '经销商绑定分布情况';
-                allnum = data.distributorCount;
-                break;
-            case 1:
-                visualMap_max = data.userSaleCount;
-                seriesData = data.bdbyCount;
-                titleText = '分销用户发展分布情况';
-                allnum = data.userSaleCount;
-                break;
-            case 2:
-                visualMap_max = data.shareCount;
-                seriesData = data.bdbyCount;
-                titleText = '分享用户发展分布情况';
-                allnum = data.shareCount;
-                break;
-            case 3:
-                visualMap_max = data.holderCount;
-                seriesData = data.bdbyCount;
-                titleText = '经销商优惠卡持有分布情况';
-                allnum = data.holderCount;
-                break;
-            case 4:
-                visualMap_max = data.giveCount;
-                seriesData = data.bdbyCount;
-                titleText = '经销商优惠卡增出分布情况';
-                allnum = data.giveCount;
-                break;
-        }
-        visualMap_max = visualMap_max || 200;
-      seriesData = seriesData || [];
+        const d = dataCookie[barType];
+        console.log('DDDDDDDD:', d);
+        let visualMap_max = Math.max(d.all+100, 200);    // 地图空间（多，少）的最大值，留点余量
+        let seriesData = d.list;
+        let titleText = d.title.replace('总数', '分布情况');
+        let allnum = d.all;
+
         const option = {
             title : {
                 text: titleText,
@@ -142,7 +127,7 @@ class Manager extends React.Component {
             visualMap: {
                 left: 'left',
                 min: 0,
-                max: Math.max(visualMap_max+100, 200),
+                max: visualMap_max,
                 inRange: {
                     color: ['#EAEFFF','#E2EAFF', '#D1DCFF', '#C0D1FF', '#B3C7FF', '#A5BDFF', '#97B2FF','#81A3FF','#7A9EFF', '#5F89FF', '#4A7AFF']
                 },
@@ -155,7 +140,6 @@ class Manager extends React.Component {
                 backgroundColor: 'rgb(255,255,255)',
                 extraCssText: 'box-shadow: 0 0 3px rgba(0,0,0,.3)',
                 formatter: (params) => {
-                    console.log(params);
                     if(!params.name) {
                         return null;
                     }
@@ -188,13 +172,16 @@ class Manager extends React.Component {
     }
 
     /** 第2个图表处理 **/
-    makeOption2(data) {
-        const d = data.bindDistributorCount || [];
-        const seriesData = d.map((item, index) => {
-            return {
-                name: item.disBindTime,
-                value: [item.disBindTime.replace(/-/g,'/'), item.disBindCount]
-            };
+    makeOption2(dataCookie, dataType) {
+        const d = dataCookie[dataType].list2;
+        const seriesData = [];
+        d.map((item, index) => {    // 问我为什么要这样处理？因为数据中disBindTime有可能是null!
+            if (item.disBindTime) {
+                seriesData.push({
+                    name: item.disBindTime,
+                    value: [item.disBindTime.replace(/-/g,'/'), item.disBindCount]
+                });
+            }
         });
         const option = {
             title: {
@@ -208,7 +195,6 @@ class Manager extends React.Component {
                 backgroundColor: 'rgb(255,255,255)',
                 extraCssText: 'box-shadow: 0 0 3px rgba(0,0,0,.3)',
                 formatter: (params) => {
-                    console.log('是什么：', params);
                     return `<div class='tooltip'><div>${params.value[0]}</div><div>增长数量：${params.value[1]}</div></div>`;
                 }
             },
@@ -231,8 +217,17 @@ class Manager extends React.Component {
         return option;
     }
 
-  // 查询当前页面所需列表数据
-  onGetData() {
+  /**
+   *  查询当前页面所需列表数据
+   *  barType: 选择哪一种
+   *  must: 强制请求，无视缓存
+   * */
+  onGetData(barType, must) {
+
+        if (!must && this.state.dataCookie[barType].list.length) { // 已经有缓存
+            return;
+        }
+
       // 处理查询条件
       let beginTime = null;
       let endTime = null;
@@ -252,12 +247,33 @@ class Manager extends React.Component {
     const params = {
         beginTime,
         endTime,
+        category: barType + 1,
     };
 
     this.props.actions.findUserInfoCount(tools.clearNull(params)).then(res => {
       if (res.status === 200) {
+          let cookie;
+          if (must) {
+              cookie = [
+                  {list: [], list2:[], all: 0, title: '经销商绑定总数'},   // 经销商绑定总数
+                  {list: [], list2:[], all: 0, title: '分销用户发展总数'},   // 分销用户发展总数
+                  {list: [], list2:[], all: 0, title: '分享用户发展总数'},   // 分享用户发展总数
+                  {list: [], list2:[], all: 0, title: '经销商优惠卡持有总数'},   // 经销商优惠卡持有总数
+                  {list: [], list2:[], all: 0, title: '经销商优惠卡增出总数'},   // 经销商优惠卡增出总数
+              ]
+          } else {
+              cookie = _.cloneDeep(this.state.dataCookie);
+          }
+
+          cookie[barType].list = res.data.bdbyCount;
+          cookie[barType].list2 = res.data.bindDistributorCount;
+          cookie[barType].all = res.data.bdbyCount.reduce((res, item) => {
+              return Number(item.disBindProvinceCount) + res;
+          },0);
+          console.log('这不多啊：', cookie[barType].all);
         this.setState({
           data: res.data || {},
+          dataCookie: cookie,
         });
       } else {
         message.error(res.message || "获取数据失败，请重试");
@@ -267,7 +283,7 @@ class Manager extends React.Component {
 
   // 搜索
   onSearch() {
-    this.onGetData();
+    this.onGetData(this.state.barType, true);
   }
 
   // 工具 - 根据bar选择的得到对应的名字
@@ -304,16 +320,9 @@ class Manager extends React.Component {
   render() {
     const me = this;
     const d = this.state.data;
-    let list = [];  // 当前分类的数据
-    let list2 = d.bindDistributorCount || [];
-    let allnum = 1; // 当前分类的总数
-    switch(this.state.barType){
-        case 0: list = d.bdbyCount || [];allnum=d.distributorCount;break;
-        case 1: list = d.bdbyCount || [];allnum=d.userSaleCount;break;
-        case 2: list = d.bdbyCount || [];allnum=d.shareCount;break;
-        case 3: list = d.bdbyCount || [];allnum=d.holderCount;break;
-        case 4: list = d.bdbyCount || [];allnum=d.giveCount;break;
-    }
+    let list = this.state.dataCookie[this.state.barType].list;  // 当前分类的数据
+    let list2 = this.state.dataCookie[this.state.barType].list2;
+    let allnum = this.state.dataCookie[this.state.barType].all; // 当前分类总数
 
     return (
       <div className="userinfocount-page">

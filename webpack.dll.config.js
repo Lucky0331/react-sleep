@@ -1,32 +1,9 @@
 var path    = require('path');
-var webpack = require('webpack');
-
+var webpack = require("webpack");
+var packageJson = require("./package.json");
 module.exports = {
     entry: {
-        vendor: [
-            /** 这下面配置项目中用到的NPM依赖 **/
-    "antd",
-    "axios",
-    "braft-editor",
-    "classnames",
-    "echarts",
-    "history",
-    "immutable",
-    "lodash",
-    "moment",
-    "prop-types",
-    "react",
-    "react-dom",
-    "react-loadable",
-    "react-redux",
-    "react-router-dom",
-    "react-router-redux",
-    "react-vcode",
-    "redux",
-    "redux-logger",
-    "redux-thunk",
-    "reqwest"
-        ]
+        vendor: Object.keys(packageJson.dependencies),
     },
     output: {
         path: path.join(__dirname, 'dll'), // 生成的dll.js路径，我是存在/build/dev中
