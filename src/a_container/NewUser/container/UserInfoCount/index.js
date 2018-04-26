@@ -447,7 +447,7 @@ class Manager extends React.Component {
                         dataSource={
                             (() => {
                                 return list.map((item, index) => {
-                                    return { key: index, source: index, sf: item.disBindProvince, num: item.disBindProvinceCount, p: allnum === 0 ? '0%' : ((item.disBindProvinceCount / allnum * 100).toFixed(2) + '%') };
+                                    return { key: index, source: index + 1, sf: item.disBindProvince, num: item.disBindProvinceCount, p: allnum === 0 ? '0%' : ((item.disBindProvinceCount / allnum * 100).toFixed(2) + '%') };
                                 });
                             })()}
                       />
