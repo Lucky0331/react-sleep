@@ -11,6 +11,7 @@ import P from "prop-types";
 import moment from "moment";
 import "./index.scss";
 import _ from "lodash";
+import Config from "../../../../config/config";
 import tools from "../../../../util/tools"; // 工具
 import Power from "../../../../util/power"; // 权限
 import { power } from "../../../../util/data";
@@ -229,41 +230,20 @@ class Manager extends React.Component {
       pageNum,
       pageSize,
       category: 2,
-      conditions: this.state.searchConditions,
       userType: this.state.searchType,
-      ambassadorUserType: this.state.searchAmbassadorUserType,
       mobile: this.state.searchMobile ? this.state.searchMobile : "",
       realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 用户姓名
-      nickName: this.state.searchNickName ? this.state.searchNickName : "", //搜索 - 用户昵称
       userId: this.state.searchEId ? this.state.searchEId : "",
-      ambassadorId: this.state.searchId ? this.state.searchId : "", //搜索 - 健康大使id
+      ambassadorId:this.state.searchId,     //搜索 - 健康大使id
       distributorId: this.state.searchDistributorId
         ? this.state.searchDistributorId
         : "", //搜索 - 经销商id
-      ambassadorNickName: this.state.searchAmbassadorNickName
-        ? this.state.searchAmbassadorNickName
-        : "", //搜索 - 健康大使昵称
-      ambassadorRealName: this.state.searchAmbassadorRealName
-        ? this.state.searchAmbassadorRealName
-        : "", //搜索 - 健康大使真实姓名
-      ambassadorMobile: this.state.searchAmbassadorMobile
-        ? this.state.searchAmbassadorMobile
-        : "", // 搜索 - 健康大使手机号
-      beginTime: this.state.searchBeginTime
-        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
-        : "",
-      endTime: this.state.searchEndTime
-        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59 `
-        : "",
       bindBeginTime: this.state.searchBindingBeginTime
         ? `${tools.dateToStrD(this.state.searchBindingBeginTime._d)} 00:00:00`
         : "",
       bindEndTime: this.state.searchBindingEndTime
         ? `${tools.dateToStrD(this.state.searchBindingEndTime._d)} 23:59:59`
         : "",
-      province: this.state.searchAddress[0],
-      city: this.state.searchAddress[1],
-      region: this.state.searchAddress[2]
     };
 
     this.props.actions.findUserInfo(tools.clearNull(params)).then(res => {
@@ -283,6 +263,118 @@ class Manager extends React.Component {
   // 搜索
   onSearch() {
     this.onGetData(1, this.state.pageSize);
+  }
+
+  //导出
+  onExport() {
+    this.onExportData(this.state.pageNum, this.state.pageSize);
+  }
+
+  // 导出订单对账列表数据
+  onExportData(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      category: 2,
+      userType: this.state.searchType,
+      mobile: this.state.searchMobile ? this.state.searchMobile : "",
+      realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 用户姓名
+      userId: this.state.searchEId ? this.state.searchEId : "",
+      distributorId: this.state.searchDistributorId
+        ? this.state.searchDistributorId
+        : "", //搜索 - 经销商id
+      bindBeginTime: this.state.searchBindingBeginTime
+        ? `${tools.dateToStrD(this.state.searchBindingBeginTime._d)} 00:00:00`
+        : "",
+      bindEndTime: this.state.searchBindingEndTime
+        ? `${tools.dateToStrD(this.state.searchBindingEndTime._d)} 23:59:59`
+        : "",
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/userInfo/listExport`;
+    form.method = "post";
+    console.log("FORM:", params);
+
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+
+    const newElement10 = document.createElement("input");
+    newElement10.setAttribute("name", "category");
+    newElement10.setAttribute("type", "hidden");
+    newElement10.setAttribute("value",'2');
+    form.appendChild(newElement10);
+
+    const newElement3 = document.createElement("input");
+    if (params.userType) {
+      newElement3.setAttribute("name", "userType");
+      newElement3.setAttribute("type", "hidden");
+      newElement3.setAttribute("value", params.userType);
+      form.appendChild(newElement3);
+    }
+
+    const newElement4 = document.createElement("input");
+    if (params.mobile) {
+      newElement4.setAttribute("name", "mobile");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.mobile);
+      form.appendChild(newElement4);
+    }
+
+    const newElement5 = document.createElement("input");
+    if (params.realName) {
+      newElement5.setAttribute("name", "realName");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.realName);
+      form.appendChild(newElement5);
+    }
+
+    const newElement6 = document.createElement("input");
+    if (params.userId) {
+      newElement6.setAttribute("name", "userId");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.userId);
+      form.appendChild(newElement6);
+    }
+
+    const newElement7 = document.createElement("input");
+    if (params.mobile) {
+      newElement7.setAttribute("name", "mobile");
+      newElement7.setAttribute("type", "hidden");
+      newElement7.setAttribute("value", params.mobile);
+      form.appendChild(newElement7);
+    }
+
+    const newElement8 = document.createElement("input");
+    if (params.bindBeginTime) {
+      newElement8.setAttribute("name", "bindBeginTime");
+      newElement8.setAttribute("type", "hidden");
+      newElement8.setAttribute("value", params.bindBeginTime);
+      form.appendChild(newElement8);
+    }
+
+    const newElement9 = document.createElement("input");
+    if (params.bindEndTime) {
+      newElement9.setAttribute("name", "bindEndTime");
+      newElement9.setAttribute("type", "hidden");
+      newElement9.setAttribute("value", params.bindEndTime);
+      form.appendChild(newElement9);
+    }
+
+    form.submit();
   }
 
   //Input中的删除按钮所删除的条件
@@ -371,13 +463,6 @@ class Manager extends React.Component {
   onSearchType(v) {
     this.setState({
       searchType: v
-    });
-  }
-
-  //搜索 - 健康大使身份类型
-  onAmbassadorUserType(e) {
-    this.setState({
-      searchAmbassadorUserType: e
     });
   }
 
@@ -749,7 +834,7 @@ class Manager extends React.Component {
     return (
       <div>
         <div className="system-search">
-          <ul className="search-ul" style={{ marginBottom: "10px" }}>
+          <ul className="search-ul more-ul">
             <li>
               <span style={{ marginRight: "4px", marginLeft: "28px" }}>
                 用户id
@@ -803,25 +888,34 @@ class Manager extends React.Component {
                 绑定时间
               </span>
               <DatePicker
-                  showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
-                  format="YYYY-MM-DD HH:mm:ss"
-                  placeholder="开始时间"
-                  onChange={e => this.searchBindingBeginTimeChange(e)}
-                  onOk={onOk}
+                showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
+                placeholder="开始时间"
+                onChange={e => this.searchBindingBeginTimeChange(e)}
+                onOk={onOk}
               />
               --
               <DatePicker
-                  showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
-                  format="YYYY-MM-DD HH:mm:ss"
-                  placeholder="结束时间"
-                  onChange={e => this.searchBindingEndTimeChange(e)}
-                  onOk={onOk}
+                showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
+                placeholder="结束时间"
+                onChange={e => this.searchBindingEndTimeChange(e)}
+                onOk={onOk}
               />
             </li>
-          </ul>
-          <ul className="search-ul" style={{ marginTop: "5px" }}>
             <li>
-              <span style={{ marginRight: "4px", marginLeft: "14px" }}>
+              <span style={{ marginRight: "4px" }}>
+                健康大使id
+              </span>
+              <Input
+                style={{ width: "172px" }}
+                suffix={suffix4}
+                value={searchId}
+                onChange={e => this.onSearchId(e)}
+              />
+            </li>
+            <li>
+              <span style={{ marginRight: "4px", marginLeft: "29px" }}>
                 经销商id
               </span>
               <Input
@@ -842,13 +936,14 @@ class Manager extends React.Component {
             </li>
             <li>
               <Button
-                  icon="download"
-                  style={{
-                      color: "#fff",
-                      backgroundColor: "#108ee9",
-                      borderColor: "#108ee9"
-                  }}
-                  onClick={this.warning2}
+                icon="download"
+                type="primary"
+                style={{
+                  color: "#fff",
+                  backgroundColor: "#108ee9",
+                  borderColor: "#108ee9"
+                }}
+                onClick={()=>this.onExport()}
               >
                 导出
               </Button>

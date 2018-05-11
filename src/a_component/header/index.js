@@ -168,11 +168,19 @@ class Header extends React.Component {
           {this.state.adminUser ? (
             [
               <li key="0">
+                <a href={"http://hra.emall.online/cms/index"}><Button
+                  className="logout"
+                  icon="global"
+              >
+                cms系统
+                </Button></a>
+              </li> ,
+              <li key="1">
                 <Icon type="smile" style={{ marginRight: ".5em" }} />欢迎，{
                   this.state.adminUser.userName
                 }
               </li>,
-              <li key="1">
+              <li key="2">
                 <Button
                   className="logout"
                   icon="poweroff"

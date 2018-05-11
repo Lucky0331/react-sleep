@@ -17,6 +17,9 @@ import {
   message,
   Modal,
   Tooltip,
+  Tabs,
+  Spin,
+  Alert,
   InputNumber,
   Select,
   Divider,
@@ -49,15 +52,22 @@ import {
 // ==================
 const FormItem = Form.Item;
 const Option = Select.Option;
+const TabPane = Tabs.TabPane;
 class Category extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       data: [], // 当前页面全部数据
+      data2:[],//净水服务全部数据
+      data3:[],//健康食品全部数据
+      data4:[],//生物理疗全部数据
+      data5:[],//优惠卡全部数据
+      data6:[],//健康评估全部数据
       productTypes: [], //所有的产品类型
       productModels: [], // 所有的产品型号
       searchProductName: "", // 搜索 - 产品名称
       searchProductType: "", // 搜索 - 产品类型
+      searchType:"", //搜索 - 产品型号
       searchMinPrice: undefined, // 搜索 - 最小价格
       searchMaxPrice: undefined, // 搜索- 最大价格
       searchBeginTime: "", // 搜索 - 开始时间
@@ -66,6 +76,7 @@ class Category extends React.Component {
       searchorderFrom: "", //搜索 - 订单来源
       searchName: "", // 搜索 - 状态
       searchPayType: "", //搜索 - 支付类型
+      searchTicketNo:'',//搜索 - 体检卡号
       searchmchOrderIdChange: "", // 流水号查询
       searchConditions: "", //搜索 - 订单状态
       searchorderNo: "", //搜索 - 订单号
@@ -78,14 +89,19 @@ class Category extends React.Component {
       upLoading: false, // 是否正在修改用户中
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
-      total: 0, // 数据库总共多少条数据
+      total: 0, // 数据库总共数据
+      total2: 0, // 净水服务总共数据
+      total3:0,//健康食品总共数据
+      total4:0,//生物理疗总共数据
+      total5:0,//优惠卡总共数据
+      total6:0,//健康评估总共数据
       citys: [] // 符合Cascader组件的城市数据
     };
   }
 
   componentDidMount() {
     this.getAllProductType(); // 获取所有的产品类型
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(this.state.pageNum, this.state.pageSize);  //汇总对账
   }
 
   componentWillReceiveProps(nextP) {
@@ -101,35 +117,26 @@ class Category extends React.Component {
     }
   }
 
-  // 查询当前页面所需列表数据
+  // 查询当前页面所需列表数据 - 汇总对账
   onGetData(pageNum, pageSize) {
     const params = {
       pageNum,
       pageSize,
       id: this.state.searchId,
       payType: this.state.searchPayType,
-      conditions: this.state.searchConditions,
-      userId: this.state.searchUserName,
-      productType: this.state.searchProductType,
-      orderNo: this.state.searchorderNo,
-      minPrice: this.state.searchMinPrice,
-      maxPrice: this.state.searchMaxPrice,
-      mchOrderId: this.state.searchmchOrderIdChange,
-      userType: this.state.searchType,
-      refer: this.state.searchRefer,
+      orderStatus: this.state.searchConditions, //订单状态
+      userId: this.state.searchUserName, //用户id
+      modelType: this.state.searchProductType, //产品类型
+      orderId: this.state.searchorderNo,  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange, //流水号
+      refer: this.state.searchRefer, //云平台工单号
       activityType: this.state.searchActivity,
-      payBeginTime: this.state.searchBeginTime
+      minTime: this.state.searchBeginTime
         ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
         : "",
-      payEndTime: this.state.searchEndTime
+      maxTime: this.state.searchEndTime
         ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
         : "",
-      beginTime: this.state.searchTime
-        ? `${tools.dateToStrQ(this.state.searchTime._d)} 00:00:00`
-        : "",
-      endTime: this.state.searchTime
-        ? `${tools.dateToStrQ(this.state.searchTime._d)} 23:59:59`
-        : ""
     };
     this.props.actions.statementList(tools.clearNull(params)).then(res => {
       console.log("返回的什么：", res.messsageBody);
@@ -139,6 +146,192 @@ class Category extends React.Component {
           pageNum,
           pageSize,
           total: res.messsageBody.total
+        });
+      } else {
+        message.error(res.returnMessaage || "获取数据失败，请重试");
+      }
+    });
+  }
+  
+  // 查询当前页面所需列表数据 - 净水服务
+  onGetData2(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      orderType:1,
+      id: this.state.searchId,
+      payType: this.state.searchPayType,
+      orderStatus: this.state.searchConditions, //订单状态
+      userId: this.state.searchUserName, //用户id
+      modelType:this.state.searchType,//产品型号
+      orderId: this.state.searchorderNo,  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange, //流水号
+      refer: this.state.searchRefer, //云平台工单号
+      activityType: this.state.searchActivity,
+      minTime: this.state.searchBeginTime
+          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+          : "",
+      maxTime: this.state.searchEndTime
+          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+          : "",
+    };
+    this.props.actions.statementList(tools.clearNull(params)).then(res => {
+      console.log("返回的什么：", res.messsageBody);
+      if (res.returnCode === "0") {
+        this.setState({
+          data2: res.messsageBody.result || [],
+          pageNum,
+          pageSize,
+          total2: res.messsageBody.total
+        });
+      } else {
+        message.error(res.returnMessaage || "获取数据失败，请重试");
+      }
+    });
+  }
+  
+  // 查询当前页面所需列表数据 - 健康食品
+  onGetData3(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      orderType:2,
+      id: this.state.searchId,
+      payType: this.state.searchPayType,
+      orderStatus: this.state.searchConditions, //订单状态
+      userId: this.state.searchUserName, //用户id
+      modelType:this.state.searchType,//产品型号
+      orderId: this.state.searchorderNo,  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange, //流水号
+      refer: this.state.searchRefer, //云平台工单号
+      activityType: this.state.searchActivity,
+      minTime: this.state.searchBeginTime
+          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+          : "",
+      maxTime: this.state.searchEndTime
+          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+          : "",
+    };
+    this.props.actions.statementList(tools.clearNull(params)).then(res => {
+      console.log("返回的什么：", res.messsageBody);
+      if (res.returnCode === "0") {
+        this.setState({
+          data3: res.messsageBody.result || [],
+          pageNum,
+          pageSize,
+          total3: res.messsageBody.total
+        });
+      } else {
+        message.error(res.returnMessaage || "获取数据失败，请重试");
+      }
+    });
+  }
+  
+  // 查询当前页面所需列表数据 - 生物理疗
+  onGetData4(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      orderType:3,
+      id: this.state.searchId,
+      payType: this.state.searchPayType,
+      orderStatus: this.state.searchConditions, //订单状态
+      userId: this.state.searchUserName, //用户id
+      modelType:this.state.searchType,//产品型号
+      orderId: this.state.searchorderNo,  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange, //流水号
+      refer: this.state.searchRefer, //云平台工单号
+      activityType: this.state.searchActivity,
+      minTime: this.state.searchBeginTime
+          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+          : "",
+      maxTime: this.state.searchEndTime
+          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+          : "",
+    };
+    this.props.actions.statementList(tools.clearNull(params)).then(res => {
+      console.log("返回的什么：", res.messsageBody);
+      if (res.returnCode === "0") {
+        this.setState({
+          data4: res.messsageBody.result || [],
+          pageNum,
+          pageSize,
+          total4: res.messsageBody.total
+        });
+      } else {
+        message.error(res.returnMessaage || "获取数据失败，请重试");
+      }
+    });
+  }
+  
+  // 查询当前页面所需列表数据 - 优惠卡
+  onGetData5(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      orderType:5,
+      modelType:'M',
+      id: this.state.searchId,
+      payType: this.state.searchPayType,
+      orderStatus: this.state.searchConditions, //订单状态
+      userId: this.state.searchUserName, //用户id
+      ticketNo: this.state.searchTicketNo, //体检卡号
+      orderId: this.state.searchorderNo,  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange, //流水号
+      refer: this.state.searchRefer, //云平台工单号
+      activityType: this.state.searchActivity,
+      minTime: this.state.searchBeginTime
+          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+          : "",
+      maxTime: this.state.searchEndTime
+          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+          : "",
+    };
+    this.props.actions.statementList(tools.clearNull(params)).then(res => {
+      console.log("返回的什么：", res.messsageBody);
+      if (res.returnCode === "0") {
+        this.setState({
+          data5: res.messsageBody.result || [],
+          pageNum,
+          pageSize,
+          total5: res.messsageBody.total
+        });
+      } else {
+        message.error(res.returnMessaage || "获取数据失败，请重试");
+      }
+    });
+  }
+  
+  // 查询当前页面所需列表数据 - 健康评估
+  onGetData6(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      orderType:5,
+      id: this.state.searchId,
+      payType: this.state.searchPayType,
+      orderStatus: this.state.searchConditions, //订单状态
+      userId: this.state.searchUserName, //用户id
+      modelType:this.state.searchType,//产品型号
+      orderId: this.state.searchorderNo,  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange, //流水号
+      refer: this.state.searchRefer, //云平台工单号
+      activityType: this.state.searchActivity,
+      minTime: this.state.searchBeginTime
+          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+          : "",
+      maxTime: this.state.searchEndTime
+          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+          : "",
+    };
+    this.props.actions.statementList(tools.clearNull(params)).then(res => {
+      console.log("返回的什么：", res.messsageBody);
+      if (res.returnCode === "0") {
+        this.setState({
+          data6: res.messsageBody.result || [],
+          pageNum,
+          pageSize,
+          total6: res.messsageBody.total
         });
       } else {
         message.error(res.returnMessaage || "获取数据失败，请重试");
@@ -340,13 +533,7 @@ class Category extends React.Component {
       searchName: e
     });
   }
-
-  //搜索 - 支付方式输入框值改变时触发
-  searchPayTypeChange(e) {
-    this.setState({
-      searchPayType: e
-    });
-  }
+  
 
   //搜索 - 订单状态改变时触发
   searchConditionsChange(e) {
@@ -367,19 +554,6 @@ class Category extends React.Component {
   searchUserNameChange(e) {
     this.setState({
       searchUserName: e.target.value
-    });
-  }
-
-  // 点击查看地区模态框出现
-  onAddNewShow() {
-    const me = this;
-    const { form } = me.props;
-    form.resetFields(["addnewCitys"]);
-    this.setState({
-      addOrUp: "add",
-      fileList: [],
-      fileListDetail: [],
-      addnewModalShow: true
     });
   }
 
@@ -404,47 +578,20 @@ class Category extends React.Component {
     });
   }
 
-  //搜索 - 用户类型
-  onSearchType(v) {
-    this.setState({
-      searchType: v
-    });
-  }
-
-  //搜索 - 活动类型
-  searchActivityType(v) {
-    this.setState({
-      searchActivity: v
-    });
-  }
-
-  // 搜索 - 最小价格变化
-  searchMinPriceChange(v) {
-    this.setState({
-      searchMinPrice: v.target.value
-    });
-  }
-
-  // 搜索 - 最大价格变化
-  searchMaxPriceChange(v) {
-    this.setState({
-      searchMaxPrice: v.target.value
-    });
-  }
-
   //搜索 - 云平台工单号
   searchReferChange(v) {
     this.setState({
       searchRefer: v.target.value
     });
   }
-
-  //搜索 - 活动类型
-  searchActivityType(v) {
+  
+  //搜索 - 产品型号
+  searchTypeChange(e){
     this.setState({
-      searchActivity: v
+      searchType: e
     });
   }
+  
 
   // 搜索 - 开始时间变化
   searchBeginTime(v) {
@@ -514,32 +661,76 @@ class Category extends React.Component {
   onSearch() {
     this.onGetData(1, this.state.pageSize);
   }
+  
+  // 搜索 - 净水服务
+  onSearch2() {
+    this.onGetData2(1, this.state.pageSize);
+  }
+  
+  // 搜索 - 健康食品
+  onSearch3() {
+    this.onGetData3(1, this.state.pageSize);
+  }
+  
+  // 搜索 - 生物理疗
+  onSearch4() {
+    this.onGetData4(1, this.state.pageSize);
+  }
+  
+  // 搜索 - 优惠卡
+  onSearch5() {
+    this.onGetData5(1, this.state.pageSize);
+  }
+  
+  // 搜索 - 健康评估
+  onSearch6() {
+    this.onGetData6(1, this.state.pageSize);
+  }
+  
+  //汇总对账 tab操作
+  onSearchJump(e){
+    console.log('e是什么：',e)
+    if(e==1){
+      this.onGetData(1, this.state.pageSize);
+    }else if(e==2){
+      this.onGetData2(1, this.state.pageSize);
+    }else if(e==3){
+      this.onGetData3(1, this.state.pageSize);
+    }else if(e==4){
+      this.onGetData4(1, this.state.pageSize);
+    }else if(e==5){
+      this.onGetData5(1, this.state.pageSize);
+    }else if(e==6){
+      this.onGetData6(1, this.state.pageSize);
+    }
+    
+  }
+  
   //导出
   onExport() {
     this.onExportData(this.state.pageNum, this.state.pageSize);
   }
 
-  // 导出订单对账列表数据
+  // 导出订单对账列表数据 - 汇总对账
   onExportData(pageNum, pageSize) {
     const params = {
       pageNum,
       pageSize,
-      activityType: this.state.searchActivity,
-      userType: this.state.searchType,
+      id: this.state.searchId,
       payType: this.state.searchPayType,
-      conditions: this.state.searchConditions,
-      userId: this.state.searchUserName,
-      productType: this.state.searchProductType,
-      orderNo: this.state.searchorderNo,
-      minPrice: this.state.searchMinPrice,
-      maxPrice: this.state.searchMaxPrice,
-      mchOrderId: this.state.searchmchOrderIdChange,
-      payBeginTime: this.state.searchBeginTime
-        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
-        : "",
-      payEndTime: this.state.searchEndTime
-        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
-        : ""
+      orderStatus: this.state.searchConditions, //订单状态
+      userId: this.state.searchUserName, //用户id
+      modelType: this.state.searchProductType, //产品类型
+      orderId: this.state.searchorderNo,  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange, //流水号
+      refer: this.state.searchRefer, //云平台工单号
+      activityType: this.state.searchActivity,
+      minTime: this.state.searchBeginTime
+          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+          : "",
+      maxTime: this.state.searchEndTime
+          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+          : "",
     };
     let form = document.getElementById("download-form");
     if (!form) {
@@ -547,7 +738,7 @@ class Category extends React.Component {
       document.body.appendChild(form);
     }
     form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/order/statementExport`;
+    form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
     form.method = "post";
     console.log("FORM:", params);
 
@@ -564,10 +755,10 @@ class Category extends React.Component {
     form.appendChild(newElement2);
 
     const newElement3 = document.createElement("input");
-    if (params.activityType) {
-      newElement3.setAttribute("name", "activityType");
+    if (params.orderStatus) {
+      newElement3.setAttribute("name", "orderStatus");
       newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.activityType);
+      newElement3.setAttribute("value", params.orderStatus);
       form.appendChild(newElement3);
     }
 
@@ -580,18 +771,18 @@ class Category extends React.Component {
     }
 
     const newElement5 = document.createElement("input");
-    if (params.payBeginTime) {
-      newElement5.setAttribute("name", "payBeginTime");
+    if (params.minTime) {
+      newElement5.setAttribute("name", "minTime");
       newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.payBeginTime);
+      newElement5.setAttribute("value", params.minTime);
       form.appendChild(newElement5);
     }
 
     const newElement6 = document.createElement("input");
-    if (params.payEndTime) {
-      newElement6.setAttribute("name", "payEndTime");
+    if (params.maxTime) {
+      newElement6.setAttribute("name", "maxTime");
       newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.payEndTime);
+      newElement6.setAttribute("value", params.maxTime);
       form.appendChild(newElement6);
     }
 
@@ -628,30 +819,731 @@ class Category extends React.Component {
     }
 
     const newElement11 = document.createElement("input");
-    if (params.orderNo) {
-      newElement11.setAttribute("name", "orderNo");
+    if (params.orderId) {
+      newElement11.setAttribute("name", "orderId");
       newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.orderNo);
+      newElement11.setAttribute("value", params.orderId);
       form.appendChild(newElement11);
     }
-
-    const newElement12 = document.createElement("input");
-    if (params.minPrice) {
-      newElement12.setAttribute("name", "minPrice");
-      newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", params.minPrice);
-      form.appendChild(newElement12);
-    }
+    
 
     const newElement13 = document.createElement("input");
-    if (params.mchOrderId) {
-      newElement13.setAttribute("name", "mchOrderId");
+    if (params.paymentNo) {
+      newElement13.setAttribute("name", "paymentNo");
       newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.mchOrderId);
+      newElement13.setAttribute("value", params.paymentNo);
       form.appendChild(newElement13);
     }
 
     form.submit();
+  }
+  
+  //导出 - 净水服务
+  onExport2() {
+    this.onExportData2(this.state.pageNum, this.state.pageSize);
+  }
+  
+  // 导出订单对账列表数据 - 净水服务
+  onExportData2(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      orderType:1,
+      id: this.state.searchId,
+      payType: this.state.searchPayType,
+      orderStatus: this.state.searchConditions, //订单状态
+      userId: this.state.searchUserName, //用户id
+      modelType:this.state.searchType,//产品型号
+      orderId: this.state.searchorderNo,  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange, //流水号
+      refer: this.state.searchRefer, //云平台工单号
+      activityType: this.state.searchActivity,
+      minTime: this.state.searchBeginTime
+          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+          : "",
+      maxTime: this.state.searchEndTime
+          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+          : "",
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
+    form.method = "post";
+    console.log("FORM:", params);
+    
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+    
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+    
+    const newElement3 = document.createElement("input");
+    if (params.orderStatus) {
+      newElement3.setAttribute("name", "orderStatus");
+      newElement3.setAttribute("type", "hidden");
+      newElement3.setAttribute("value", params.orderStatus);
+      form.appendChild(newElement3);
+    }
+    
+    const newElement4 = document.createElement("input");
+    if (params.userType) {
+      newElement4.setAttribute("name", "userType");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.userType);
+      form.appendChild(newElement4);
+    }
+    
+    const newElement5 = document.createElement("input");
+    if (params.minTime) {
+      newElement5.setAttribute("name", "minTime");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.minTime);
+      form.appendChild(newElement5);
+    }
+    
+    const newElement6 = document.createElement("input");
+    if (params.maxTime) {
+      newElement6.setAttribute("name", "maxTime");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.maxTime);
+      form.appendChild(newElement6);
+    }
+    
+    const newElement7 = document.createElement("input");
+    if (params.conditions) {
+      newElement7.setAttribute("name", "conditions");
+      newElement7.setAttribute("type", "hidden");
+      newElement7.setAttribute("value", params.conditions);
+      form.appendChild(newElement7);
+    }
+    
+    const newElement8 = document.createElement("input");
+    if (params.payType) {
+      newElement8.setAttribute("name", "payType");
+      newElement8.setAttribute("type", "hidden");
+      newElement8.setAttribute("value", params.payType);
+      form.appendChild(newElement8);
+    }
+    
+    const newElement9 = document.createElement("input");
+    if (params.userId) {
+      newElement9.setAttribute("name", "userId");
+      newElement9.setAttribute("type", "hidden");
+      newElement9.setAttribute("value", params.userId);
+      form.appendChild(newElement9);
+    }
+    
+    const newElement10 = document.createElement("input");
+    if (params.productType) {
+      newElement10.setAttribute("name", "productType");
+      newElement10.setAttribute("type", "hidden");
+      newElement10.setAttribute("value", params.productType);
+      form.appendChild(newElement10);
+    }
+    
+    const newElement11 = document.createElement("input");
+    if (params.orderId) {
+      newElement11.setAttribute("name", "orderId");
+      newElement11.setAttribute("type", "hidden");
+      newElement11.setAttribute("value", params.orderId);
+      form.appendChild(newElement11);
+    }
+  
+    const newElement12 = document.createElement("input");
+    if (params.orderType) {
+      newElement12.setAttribute("name", "orderType");
+      newElement12.setAttribute("type", "hidden");
+      newElement12.setAttribute("value", "1");
+      form.appendChild(newElement12);
+    }
+    
+    const newElement13 = document.createElement("input");
+    if (params.paymentNo) {
+      newElement13.setAttribute("name", "paymentNo");
+      newElement13.setAttribute("type", "hidden");
+      newElement13.setAttribute("value", params.paymentNo);
+      form.appendChild(newElement13);
+    }
+    
+    form.submit();
+  }
+  
+  //导出 - 健康食品
+  onExport3() {
+    this.onExportData3(this.state.pageNum, this.state.pageSize);
+  }
+  
+  // 导出订单对账列表数据 - 健康食品
+  onExportData3(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      orderType:2,
+      id: this.state.searchId,
+      payType: this.state.searchPayType,
+      orderStatus: this.state.searchConditions, //订单状态
+      userId: this.state.searchUserName, //用户id
+      modelType:this.state.searchType,//产品型号
+      orderId: this.state.searchorderNo,  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange, //流水号
+      refer: this.state.searchRefer, //云平台工单号
+      activityType: this.state.searchActivity,
+      minTime: this.state.searchBeginTime
+          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+          : "",
+      maxTime: this.state.searchEndTime
+          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+          : "",
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
+    form.method = "post";
+    console.log("FORM:", params);
+    
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+    
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+    
+    const newElement3 = document.createElement("input");
+    if (params.orderStatus) {
+      newElement3.setAttribute("name", "orderStatus");
+      newElement3.setAttribute("type", "hidden");
+      newElement3.setAttribute("value", params.orderStatus);
+      form.appendChild(newElement3);
+    }
+    
+    const newElement4 = document.createElement("input");
+    if (params.userType) {
+      newElement4.setAttribute("name", "userType");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.userType);
+      form.appendChild(newElement4);
+    }
+    
+    const newElement5 = document.createElement("input");
+    if (params.minTime) {
+      newElement5.setAttribute("name", "minTime");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.minTime);
+      form.appendChild(newElement5);
+    }
+    
+    const newElement6 = document.createElement("input");
+    if (params.maxTime) {
+      newElement6.setAttribute("name", "maxTime");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.maxTime);
+      form.appendChild(newElement6);
+    }
+    
+    const newElement7 = document.createElement("input");
+    if (params.conditions) {
+      newElement7.setAttribute("name", "conditions");
+      newElement7.setAttribute("type", "hidden");
+      newElement7.setAttribute("value", params.conditions);
+      form.appendChild(newElement7);
+    }
+    
+    const newElement8 = document.createElement("input");
+    if (params.payType) {
+      newElement8.setAttribute("name", "payType");
+      newElement8.setAttribute("type", "hidden");
+      newElement8.setAttribute("value", params.payType);
+      form.appendChild(newElement8);
+    }
+    
+    const newElement9 = document.createElement("input");
+    if (params.userId) {
+      newElement9.setAttribute("name", "userId");
+      newElement9.setAttribute("type", "hidden");
+      newElement9.setAttribute("value", params.userId);
+      form.appendChild(newElement9);
+    }
+    
+    const newElement10 = document.createElement("input");
+    if (params.productType) {
+      newElement10.setAttribute("name", "productType");
+      newElement10.setAttribute("type", "hidden");
+      newElement10.setAttribute("value", params.productType);
+      form.appendChild(newElement10);
+    }
+    
+    const newElement11 = document.createElement("input");
+    if (params.orderId) {
+      newElement11.setAttribute("name", "orderId");
+      newElement11.setAttribute("type", "hidden");
+      newElement11.setAttribute("value", params.orderId);
+      form.appendChild(newElement11);
+    }
+    
+    const newElement12 = document.createElement("input");
+    if (params.orderType) {
+      newElement12.setAttribute("name", "orderType");
+      newElement12.setAttribute("type", "hidden");
+      newElement12.setAttribute("value", "2");
+      form.appendChild(newElement12);
+    }
+    
+    const newElement13 = document.createElement("input");
+    if (params.paymentNo) {
+      newElement13.setAttribute("name", "paymentNo");
+      newElement13.setAttribute("type", "hidden");
+      newElement13.setAttribute("value", params.paymentNo);
+      form.appendChild(newElement13);
+    }
+    
+    form.submit();
+  }
+  
+  //导出 - 生物理疗
+  onExport4() {
+    this.onExportData4(this.state.pageNum, this.state.pageSize);
+  }
+  
+  // 导出订单对账列表数据 - 生物理疗
+  onExportData4(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      orderType:3,
+      id: this.state.searchId,
+      payType: this.state.searchPayType,
+      orderStatus: this.state.searchConditions, //订单状态
+      userId: this.state.searchUserName, //用户id
+      modelType:this.state.searchType,//产品型号
+      orderId: this.state.searchorderNo,  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange, //流水号
+      refer: this.state.searchRefer, //云平台工单号
+      activityType: this.state.searchActivity,
+      minTime: this.state.searchBeginTime
+          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+          : "",
+      maxTime: this.state.searchEndTime
+          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+          : "",
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
+    form.method = "post";
+    console.log("FORM:", params);
+    
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+    
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+    
+    const newElement3 = document.createElement("input");
+    if (params.orderStatus) {
+      newElement3.setAttribute("name", "orderStatus");
+      newElement3.setAttribute("type", "hidden");
+      newElement3.setAttribute("value", params.orderStatus);
+      form.appendChild(newElement3);
+    }
+    
+    const newElement4 = document.createElement("input");
+    if (params.userType) {
+      newElement4.setAttribute("name", "userType");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.userType);
+      form.appendChild(newElement4);
+    }
+    
+    const newElement5 = document.createElement("input");
+    if (params.minTime) {
+      newElement5.setAttribute("name", "minTime");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.minTime);
+      form.appendChild(newElement5);
+    }
+    
+    const newElement6 = document.createElement("input");
+    if (params.maxTime) {
+      newElement6.setAttribute("name", "maxTime");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.maxTime);
+      form.appendChild(newElement6);
+    }
+    
+    const newElement7 = document.createElement("input");
+    if (params.conditions) {
+      newElement7.setAttribute("name", "conditions");
+      newElement7.setAttribute("type", "hidden");
+      newElement7.setAttribute("value", params.conditions);
+      form.appendChild(newElement7);
+    }
+    
+    const newElement8 = document.createElement("input");
+    if (params.payType) {
+      newElement8.setAttribute("name", "payType");
+      newElement8.setAttribute("type", "hidden");
+      newElement8.setAttribute("value", params.payType);
+      form.appendChild(newElement8);
+    }
+    
+    const newElement9 = document.createElement("input");
+    if (params.userId) {
+      newElement9.setAttribute("name", "userId");
+      newElement9.setAttribute("type", "hidden");
+      newElement9.setAttribute("value", params.userId);
+      form.appendChild(newElement9);
+    }
+    
+    const newElement10 = document.createElement("input");
+    if (params.productType) {
+      newElement10.setAttribute("name", "productType");
+      newElement10.setAttribute("type", "hidden");
+      newElement10.setAttribute("value", params.productType);
+      form.appendChild(newElement10);
+    }
+    
+    const newElement11 = document.createElement("input");
+    if (params.orderId) {
+      newElement11.setAttribute("name", "orderId");
+      newElement11.setAttribute("type", "hidden");
+      newElement11.setAttribute("value", params.orderId);
+      form.appendChild(newElement11);
+    }
+    
+    const newElement12 = document.createElement("input");
+    if (params.orderType) {
+      newElement12.setAttribute("name", "orderType");
+      newElement12.setAttribute("type", "hidden");
+      newElement12.setAttribute("value", "3");
+      form.appendChild(newElement12);
+    }
+    
+    const newElement13 = document.createElement("input");
+    if (params.paymentNo) {
+      newElement13.setAttribute("name", "paymentNo");
+      newElement13.setAttribute("type", "hidden");
+      newElement13.setAttribute("value", params.paymentNo);
+      form.appendChild(newElement13);
+    }
+    
+    form.submit();
+  }
+  
+  //导出 - 优惠卡
+  onExport5() {
+    this.onExportData5(this.state.pageNum, this.state.pageSize);
+  }
+  
+  // 导出订单对账列表数据 - 优惠卡
+  onExportData5(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      orderType:5,
+      modelType:'M',
+      id: this.state.searchId,
+      payType: this.state.searchPayType,
+      orderStatus: this.state.searchConditions, //订单状态
+      userId: this.state.searchUserName, //用户id
+      modelType:this.state.searchType,//产品型号
+      orderId: this.state.searchorderNo,  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange, //流水号
+      refer: this.state.searchRefer, //云平台工单号
+      activityType: this.state.searchActivity,
+      minTime: this.state.searchBeginTime
+          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+          : "",
+      maxTime: this.state.searchEndTime
+          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+          : "",
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
+    form.method = "post";
+    console.log("FORM:", params);
+    
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+    
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+    
+    const newElement3 = document.createElement("input");
+    if (params.orderStatus) {
+      newElement3.setAttribute("name", "orderStatus");
+      newElement3.setAttribute("type", "hidden");
+      newElement3.setAttribute("value", params.orderStatus);
+      form.appendChild(newElement3);
+    }
+    
+    const newElement4 = document.createElement("input");
+    if (params.userType) {
+      newElement4.setAttribute("name", "userType");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.userType);
+      form.appendChild(newElement4);
+    }
+    
+    const newElement5 = document.createElement("input");
+    if (params.minTime) {
+      newElement5.setAttribute("name", "minTime");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.minTime);
+      form.appendChild(newElement5);
+    }
+    
+    const newElement6 = document.createElement("input");
+    if (params.maxTime) {
+      newElement6.setAttribute("name", "maxTime");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.maxTime);
+      form.appendChild(newElement6);
+    }
+    
+    const newElement7 = document.createElement("input");
+    if (params.conditions) {
+      newElement7.setAttribute("name", "conditions");
+      newElement7.setAttribute("type", "hidden");
+      newElement7.setAttribute("value", params.conditions);
+      form.appendChild(newElement7);
+    }
+    
+    const newElement8 = document.createElement("input");
+    if (params.payType) {
+      newElement8.setAttribute("name", "payType");
+      newElement8.setAttribute("type", "hidden");
+      newElement8.setAttribute("value", params.payType);
+      form.appendChild(newElement8);
+    }
+    
+    const newElement9 = document.createElement("input");
+    if (params.userId) {
+      newElement9.setAttribute("name", "userId");
+      newElement9.setAttribute("type", "hidden");
+      newElement9.setAttribute("value", params.userId);
+      form.appendChild(newElement9);
+    }
+    
+    const newElement10 = document.createElement("input");
+    if (params.productType) {
+      newElement10.setAttribute("name", "productType");
+      newElement10.setAttribute("type", "hidden");
+      newElement10.setAttribute("value", params.productType);
+      form.appendChild(newElement10);
+    }
+    
+    const newElement11 = document.createElement("input");
+    if (params.orderId) {
+      newElement11.setAttribute("name", "orderId");
+      newElement11.setAttribute("type", "hidden");
+      newElement11.setAttribute("value", params.orderId);
+      form.appendChild(newElement11);
+    }
+    
+    const newElement12 = document.createElement("input");
+    if (params.orderType) {
+      newElement12.setAttribute("name", "orderType");
+      newElement12.setAttribute("type", "hidden");
+      newElement12.setAttribute("value", "5");
+      form.appendChild(newElement12);
+    }
+    
+    const newElement13 = document.createElement("input");
+    if (params.paymentNo) {
+      newElement13.setAttribute("name", "paymentNo");
+      newElement13.setAttribute("type", "hidden");
+      newElement13.setAttribute("value", params.paymentNo);
+      form.appendChild(newElement13);
+    }
+  
+    const newElement14 = document.createElement("input");
+    if (params.modelType) {
+      newElement14.setAttribute("name", "modelType");
+      newElement14.setAttribute("type", "hidden");
+      newElement14.setAttribute("value", "M");
+      form.appendChild(newElement14);
+    }
+    
+    form.submit();
+  }
+  
+  //导出 - 健康评估
+  onExport6() {
+    this.onExportData6(this.state.pageNum, this.state.pageSize);
+  }
+  
+  // 导出订单对账列表数据 - 健康评估
+  onExportData6(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      orderType:5,
+      id: this.state.searchId,
+      payType: this.state.searchPayType,
+      orderStatus: this.state.searchConditions, //订单状态
+      userId: this.state.searchUserName, //用户id
+      modelType:this.state.searchType,//产品型号
+      orderId: this.state.searchorderNo,  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange, //流水号
+      refer: this.state.searchRefer, //云平台工单号
+      activityType: this.state.searchActivity,
+      minTime: this.state.searchBeginTime
+          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+          : "",
+      maxTime: this.state.searchEndTime
+          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+          : "",
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
+    form.method = "post";
+    console.log("FORM:", params);
+    
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+    
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+    
+    const newElement3 = document.createElement("input");
+    if (params.orderStatus) {
+      newElement3.setAttribute("name", "orderStatus");
+      newElement3.setAttribute("type", "hidden");
+      newElement3.setAttribute("value", params.orderStatus);
+      form.appendChild(newElement3);
+    }
+    
+    const newElement4 = document.createElement("input");
+    if (params.userType) {
+      newElement4.setAttribute("name", "userType");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.userType);
+      form.appendChild(newElement4);
+    }
+    
+    const newElement5 = document.createElement("input");
+    if (params.minTime) {
+      newElement5.setAttribute("name", "minTime");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.minTime);
+      form.appendChild(newElement5);
+    }
+    
+    const newElement6 = document.createElement("input");
+    if (params.maxTime) {
+      newElement6.setAttribute("name", "maxTime");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.maxTime);
+      form.appendChild(newElement6);
+    }
+    
+    const newElement7 = document.createElement("input");
+    if (params.conditions) {
+      newElement7.setAttribute("name", "conditions");
+      newElement7.setAttribute("type", "hidden");
+      newElement7.setAttribute("value", params.conditions);
+      form.appendChild(newElement7);
+    }
+    
+    const newElement8 = document.createElement("input");
+    if (params.payType) {
+      newElement8.setAttribute("name", "payType");
+      newElement8.setAttribute("type", "hidden");
+      newElement8.setAttribute("value", params.payType);
+      form.appendChild(newElement8);
+    }
+    
+    const newElement9 = document.createElement("input");
+    if (params.userId) {
+      newElement9.setAttribute("name", "userId");
+      newElement9.setAttribute("type", "hidden");
+      newElement9.setAttribute("value", params.userId);
+      form.appendChild(newElement9);
+    }
+    
+    const newElement10 = document.createElement("input");
+    if (params.productType) {
+      newElement10.setAttribute("name", "productType");
+      newElement10.setAttribute("type", "hidden");
+      newElement10.setAttribute("value", params.productType);
+      form.appendChild(newElement10);
+    }
+    
+    const newElement11 = document.createElement("input");
+    if (params.orderId) {
+      newElement11.setAttribute("name", "orderId");
+      newElement11.setAttribute("type", "hidden");
+      newElement11.setAttribute("value", params.orderId);
+      form.appendChild(newElement11);
+    }
+    
+    const newElement12 = document.createElement("input");
+    if (params.orderType) {
+      newElement12.setAttribute("name", "orderType");
+      newElement12.setAttribute("type", "hidden");
+      newElement12.setAttribute("value", "5");
+      form.appendChild(newElement12);
+    }
+    
+    const newElement13 = document.createElement("input");
+    if (params.paymentNo) {
+      newElement13.setAttribute("name", "paymentNo");
+      newElement13.setAttribute("type", "hidden");
+      newElement13.setAttribute("value", params.paymentNo);
+      form.appendChild(newElement13);
+    }
+      form.submit();
   }
 
   // 查询某一条数据的详情
@@ -672,13 +1564,43 @@ class Category extends React.Component {
     });
   }
 
-  // 表单页码改变
+  // 表单页码改变 - 汇总对账
   onTablePageChange(page, pageSize) {
     console.log("页码改变：", page, pageSize);
     this.onGetData(page, pageSize);
   }
+  
+  // 表单页码改变 - 净水服务
+  onTablePageChange2(page, pageSize) {
+    console.log("页码改变：", page, pageSize);
+    this.onGetData2(page, pageSize);
+  }
+  
+  // 表单页码改变 - 健康食品
+  onTablePageChange3(page, pageSize) {
+    console.log("页码改变：", page, pageSize);
+    this.onGetData3(page, pageSize);
+  }
+  
+  // 表单页码改变 - 生物理疗
+  onTablePageChange4(page, pageSize) {
+    console.log("页码改变：", page, pageSize);
+    this.onGetData4(page, pageSize);
+  }
+  
+  // 表单页码改变 - 优惠卡
+  onTablePageChange5(page, pageSize) {
+    console.log("页码改变：", page, pageSize);
+    this.onGetData5(page, pageSize);
+  }
+  
+  // 表单页码改变 - 健康评估
+  onTablePageChange6(page, pageSize) {
+    console.log("页码改变：", page, pageSize);
+    this.onGetData6(page, pageSize);
+  }
 
-  // 构建字段
+  // 构建字段 - 汇总对账
   makeColumns() {
     const columns = [
       {
@@ -702,30 +1624,16 @@ class Category extends React.Component {
         title: "订单状态",
         dataIndex: "conditions",
         key: "conditions",
-        render: text => this.getListByModelId(text)
-      },
-      {
-        title: "用户类型",
-        dataIndex: "userType",
-        key: "userType",
-        render: text => this.getUserType(text)
-      },
-      {
-        title: "用户id",
-        dataIndex: "userId",
-        key: "userId"
       },
       {
         title: "产品类型",
         dataIndex: "typeId",
         key: "typeId",
-        render: text => this.findProductNameById(text)
       },
       {
         title: "产品公司",
         dataIndex: "company",
         key: "company",
-        render: text => this.Productcompany(text)
       },
       {
         title: "产品型号",
@@ -733,25 +1641,14 @@ class Category extends React.Component {
         key: "modelType"
       },
       {
-        title: "数量",
+        title: "产品数量",
         dataIndex: "count",
         key: "count"
       },
       {
-        title: "活动方式",
-        dataIndex: "activityType",
-        key: "activityType",
-        render: text => this.getActivity(text)
-      },
-      {
-        title: "订单总金额",
+        title: "订单金额",
         dataIndex: "fee",
         key: "fee"
-      },
-      {
-        title: "流水号",
-        dataIndex: "mchOrderId",
-        key: "mchOrderId"
       },
       {
         title: "支付时间",
@@ -759,10 +1656,14 @@ class Category extends React.Component {
         key: "createTime"
       },
       {
-        title: "支付方式",
-        dataIndex: "payType",
-        key: "payType",
-        render: text => this.AllpayType(text)
+        title: "流水号",
+        dataIndex: "mchOrderId",
+        key: "mchOrderId"
+      },
+      {
+        title: "用户id",
+        dataIndex: "userId",
+        key: "userId"
       },
       {
         title: "操作",
@@ -795,6 +1696,349 @@ class Category extends React.Component {
     ];
     return columns;
   }
+  
+  // 构建字段 - 净水服务
+  makeColumns2() {
+    const columns = [
+      {
+        title: "序号",
+        fixed: "left",
+        dataIndex: "serial",
+        key: "serial",
+        width: 50
+      },
+      {
+        title: "订单号",
+        dataIndex: "orderNo",
+        key: "orderNo"
+      },
+      {
+        title: "云平台工单号",
+        dataIndex: "refer",
+        key: "refer"
+      },
+      {
+        title: "订单状态",
+        dataIndex: "conditions",
+        key: "conditions",
+      },
+      {
+        title: "产品型号",
+        dataIndex: "modelType",
+        key: "modelType"
+      },
+      {
+        title: "订单金额",
+        dataIndex: "fee",
+        key: "fee"
+      },
+      {
+        title: "支付时间",
+        dataIndex: "createTime",
+        key: "createTime"
+      },
+      {
+        title: "流水号",
+        dataIndex: "mchOrderId",
+        key: "mchOrderId"
+      },
+      {
+        title: "用户id",
+        dataIndex: "userId",
+        key: "userId"
+      },
+      {
+        title: "操作",
+        key: "control",
+        fixed: "right",
+        width: 50,
+        render: (text, record) => {
+          const controls = [];
+          controls.push(
+            <span
+              key="0"
+              className="control-btn green"
+              onClick={() => this.onQueryClick(record)}
+            >
+            <Tooltip placement="top" title="详情">
+              <Icon type="eye" />
+            </Tooltip>
+            </span>
+          );
+          const result = [];
+          controls.forEach((item, index) => {
+            if (index) {
+              result.push(<Divider key={`line${index}`} type="vertical" />);
+            }
+            result.push(item);
+          });
+          return result;
+        }
+      }
+    ];
+    return columns;
+  }
+  
+  //构建字段 - 优惠卡
+  makeColumns3() {
+    const columns = [
+      {
+        title: "序号",
+        fixed: "left",
+        dataIndex: "serial",
+        key: "serial",
+        width: 50
+      },
+      {
+        title: "订单号",
+        dataIndex: "orderNo",
+        key: "orderNo"
+      },
+      {
+        title: "体检卡号",
+        dataIndex: "refer",
+        key: "refer"
+      },
+      {
+        title: "订单状态",
+        dataIndex: "conditions",
+        key: "conditions",
+      },
+      {
+        title: "产品型号",
+        dataIndex: "modelType",
+        key: "modelType"
+      },
+      {
+        title: "产品数量",
+        dataIndex: "count",
+        key: "count"
+      },
+      {
+        title: "订单金额",
+        dataIndex: "fee",
+        key: "fee"
+      },
+      {
+        title: "支付时间",
+        dataIndex: "createTime",
+        key: "createTime"
+      },
+      {
+        title: "流水号",
+        dataIndex: "mchOrderId",
+        key: "mchOrderId"
+      },
+      {
+        title: "用户id",
+        dataIndex: "userId",
+        key: "userId"
+      },
+      {
+        title: "操作",
+        key: "control",
+        fixed: "right",
+        width: 50,
+        render: (text, record) => {
+          const controls = [];
+          controls.push(
+            <span
+              key="0"
+              className="control-btn green"
+              onClick={() => this.onQueryClick(record)}
+            >
+            <Tooltip placement="top" title="详情">
+              <Icon type="eye" />
+            </Tooltip>
+            </span>
+          );
+          const result = [];
+          controls.forEach((item, index) => {
+            if (index) {
+              result.push(<Divider key={`line${index}`} type="vertical" />);
+            }
+            result.push(item);
+          });
+          return result;
+        }
+      }
+    ];
+    return columns;
+  }
+  
+  //构建字段 - 健康评估
+  makeColumns4() {
+    const columns = [
+      {
+        title: "序号",
+        fixed: "left",
+        dataIndex: "serial",
+        key: "serial",
+        width: 50
+      },
+      {
+        title: "订单号",
+        dataIndex: "orderNo",
+        key: "orderNo"
+      },
+      {
+        title: "下单时间",
+        dataIndex: "createTime",
+        key: "createTime"
+      },
+      {
+        title: "订单状态",
+        dataIndex: "conditions",
+        key: "conditions",
+      },
+      {
+        title: "产品型号",
+        dataIndex: "modelType",
+        key: "modelType"
+      },
+      {
+        title: "产品数量",
+        dataIndex: "count",
+        key: "count"
+      },
+      {
+        title: "订单金额",
+        dataIndex: "fee",
+        key: "fee"
+      },
+      {
+        title: "支付时间",
+        dataIndex: "createTime",
+        key: "createTime"
+      },
+      {
+        title: "流水号",
+        dataIndex: "mchOrderId",
+        key: "mchOrderId"
+      },
+      {
+        title: "用户id",
+        dataIndex: "userId",
+        key: "userId"
+      },
+      {
+        title: "操作",
+        key: "control",
+        fixed: "right",
+        width: 50,
+        render: (text, record) => {
+          const controls = [];
+          controls.push(
+              <span
+                  key="0"
+                  className="control-btn green"
+                  onClick={() => this.onQueryClick(record)}
+              >
+            <Tooltip placement="top" title="详情">
+              <Icon type="eye" />
+            </Tooltip>
+            </span>
+          );
+          const result = [];
+          controls.forEach((item, index) => {
+            if (index) {
+              result.push(<Divider key={`line${index}`} type="vertical" />);
+            }
+            result.push(item);
+          });
+          return result;
+        }
+      }
+    ];
+    return columns;
+  }
+  
+  // 构建字段 - 健康食品、生物理疗
+  makeColumns5() {
+    const columns = [
+      {
+        title: "序号",
+        fixed: "left",
+        dataIndex: "serial",
+        key: "serial",
+        width: 50
+      },
+      {
+        title: "订单号",
+        dataIndex: "orderNo",
+        key: "orderNo"
+      },
+      {
+        title: "云平台工单号",
+        dataIndex: "refer",
+        key: "refer"
+      },
+      {
+        title: "订单状态",
+        dataIndex: "conditions",
+        key: "conditions",
+      },
+      {
+        title: "产品型号",
+        dataIndex: "modelType",
+        key: "modelType"
+      },
+      {
+        title: "产品数量",
+        dataIndex: "count",
+        key: "count"
+      },
+      {
+        title: "订单金额",
+        dataIndex: "fee",
+        key: "fee"
+      },
+      {
+        title: "支付时间",
+        dataIndex: "createTime",
+        key: "createTime"
+      },
+      {
+        title: "流水号",
+        dataIndex: "mchOrderId",
+        key: "mchOrderId"
+      },
+      {
+        title: "用户id",
+        dataIndex: "userId",
+        key: "userId"
+      },
+      {
+        title: "操作",
+        key: "control",
+        fixed: "right",
+        width: 50,
+        render: (text, record) => {
+          const controls = [];
+          controls.push(
+              <span
+                  key="0"
+                  className="control-btn green"
+                  onClick={() => this.onQueryClick(record)}
+              >
+            <Tooltip placement="top" title="详情">
+              <Icon type="eye" />
+            </Tooltip>
+            </span>
+          );
+          const result = [];
+          controls.forEach((item, index) => {
+            if (index) {
+              result.push(<Divider key={`line${index}`} type="vertical" />);
+            }
+            result.push(item);
+          });
+          return result;
+        }
+      }
+    ];
+    return columns;
+  }
 
   // 构建table所需数据
   makeData(data) {
@@ -806,35 +2050,32 @@ class Category extends React.Component {
           item.province && item.city && item.region
             ? `${item.province}/${item.city}/${item.region}`
             : "",
-        count: item.count,
-        fee: item.fee,
+        count: item.productCount,
+        fee: item.orderFee,
         openAccountFee: item.openAccountFee,
         payType: item.payType,
-        orderNo: item.id,
+        orderNo: item.orderId,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
-        createTime: item.payRecord ? item.payRecord.createTime : "",
+        createTime: item.payTime, //支付时间
         name: item.product ? item.product.name : "",
         modelId: item.product ? item.product.typeCode : "",
-        typeId: item.product ? item.product.typeId : "",
-        company: item.product ? item.product.typeId : "",
-        conditions: item.conditions,
+        typeId: item.productType,
+        company: item.company,
+        conditions: item.orderStatus,
         userName: item.userId,
-        userType: item.userInfo ? item.userInfo.userType : "",
-        userType2: item.distributor ? item.distributor.userType : "",
+        userType: item.userIdentity,
         refer: item.refer,
         pay: item.pay,
-        payTime: item.payTime,
+        payTime: item.payTime,  //支付时间
         orderFrom: item.orderFrom,
         activityType: item.activityType,
         realName: item.distributor ? item.distributor.realName : "",
         company3: item.distributor ? item.distributor.company : "",
-        distributorAccount: item.distributor
-          ? item.distributor.distributorAccount
-          : "",
-        id: item.distributor ? item.distributor.id : "",
-        userId: item.userInfo.id,
+        distributorAccount: item.distributorAccount,  //经销商账户
+        id: item.distributorId,  //经销商id
+        userId: item.userId,
         modelType: item.modelType,
-        mchOrderId: item.payRecord ? item.payRecord.mchOrderId : "",
+        mchOrderId: item.paymentNo,
         mobile: item.shopAddress ? item.shopAddress.mobile : "",
         province: item.shopAddress ? item.shopAddress.province : "",
         city: item.shopAddress ? item.shopAddress.city : "",
@@ -851,12 +2092,22 @@ class Category extends React.Component {
         province4: item.distributor ? item.distributor.province : "",
         street: item.shopAddress ? item.shopAddress.street : "",
         customerName: item.customer ? item.customer.realName : "",
-        customerPhone: item.customer ? item.customer.phone : "",
-        ambassadorAccount: item.ambassador
-          ? item.ambassador.ambassadorAccount
-          : "",
-        userName2: item.ambassador ? item.ambassador.userName : "",
-        companyName: item.customer ? item.customer.site.companyName : ""
+        settlementSubjectArea: item.settlementSubjectArea, //销售主体地区
+        settlementSubjectCompany:item.settlementSubjectCompany, //销售主体公司
+        paymentInstructions:item.paymentInstructions,//付款说明
+        recommendAccount: item.recommendAccount, //推荐人账户
+        recommendName: item.recommendName, //推荐人姓名
+        recommendProvince:item.recommendProvince, //推荐人省
+        recommendCity:item.recommendCity,//推荐人市
+        recommendRegion:item.recommendRegion,//推荐人区
+        feeType: item.feeType, //计费方式
+        distributorIdentity:item.distributorIdentity,//经销商身份
+        distributorName:item.distributorName,//经销商姓名
+        distributorProvince:item.distributorProvince, //经销商省
+        distributorCity:item.distributorCity,//经销商所在市
+        distributorRegion:item.distributorRegion,//经销商区
+        isSonAccount:item.isSonAccount,//是否有子账号
+        sonAccountId:item.sonAccountId ,//子账户id
       };
     });
   }
@@ -879,8 +2130,6 @@ class Category extends React.Component {
     const { searchorderNo } = this.state;
     const { searchUserName } = this.state;
     const { searchmchOrderIdChange } = this.state;
-    const { searchMinPrice } = this.state;
-    const { searchMaxPrice } = this.state;
     const { searchRefer } = this.state;
     const suffix = searchorderNo ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty()} />
@@ -894,529 +2143,1255 @@ class Category extends React.Component {
     const suffix4 = searchRefer ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty3()} />
     ) : null;
-    const suffix8 = searchMinPrice ? (
-      <Icon type="close-circle" onClick={() => this.emitEmpty5()} />
-    ) : null;
-    const suffix9 = searchMaxPrice ? (
-      <Icon type="close-circle" onClick={() => this.emitEmpty6()} />
-    ) : null;
 
     return (
       <div>
         <div className="system-search">
-          <ul className="search-ul more-ul">
-            <li>
-              <span>订单号查询</span>
-              <Input
-                style={{ width: "172px" }}
-                suffix={suffix}
-                value={searchorderNo}
-                onChange={e => this.searchOrderNoChange(e)}
-              />
-            </li>
-            <li>
-              <span>云平台工单号</span>
-              <Input
-                style={{ width: "172px" }}
-                suffix={suffix4}
-                value={searchRefer}
-                onChange={e => this.searchReferChange(e)}
-              />
-            </li>
-            <li>
-              <span>订单状态</span>
-              <Select
-                placeholder="全部"
-                allowClear
-                style={{ width: "172px" }}
-                onChange={e => this.searchConditionsChange(e)}
-              >
-                <Option value={2}>待发货</Option>
-                <Option value={3}>待收货</Option>
-                <Option value={4}>已完成</Option>
-              </Select>
-            </li>
-            <li>
-              <span>用户id</span>
-              <Input
-                style={{ width: "172px" }}
-                suffix={suffix2}
-                value={searchUserName}
-                onChange={e => this.searchUserNameChange(e)}
-              />
-            </li>
-            <li>
-              <span>用户类型</span>
-              <Select
-                allowClear
-                placeholder="全部"
-                style={{ width: "172px" }}
-                onChange={e => this.onSearchType(e)}
-              >
-                <Option value={0}>经销商（体验版）</Option>
-                <Option value={1}>经销商（微创版）</Option>
-                <Option value={2}>经销商（个人版）</Option>
-                <Option value={3}>分享用户</Option>
-                <Option value={4}>普通用户</Option>
-                <Option value={5}>企业版经销商</Option>
-                <Option value={6}>企业版子账号</Option>
-                <Option value={7}>分销商</Option>
-              </Select>
-            </li>
-            <li>
-              <span>产品类型</span>
-              <Select
-                allowClear
-                placeholder="全部"
-                style={{ width: "172px" }}
-                onChange={e => this.searchProductType(e)}
-              >
-                {this.state.productTypes.map((item, index) => {
-                  return (
-                    <Option key={index} value={item.id}>
-                      {item.name}
-                    </Option>
-                  );
-                })}
-              </Select>
-            </li>
-            <li>
-              <span>流水号查询</span>
-              <Input
-                style={{ width: "172px" }}
-                suffix={suffix3}
-                value={searchmchOrderIdChange}
-                onChange={e => this.mchOrderIdChange(e)}
-              />
-            </li>
-            <li>
-              <span>支付方式</span>
-              <Select
-                placeholder="全部"
-                allowClear
-                style={{ width: "172px" }}
-                onChange={e => this.searchPayTypeChange(e)}
-              >
-                <Option value={1}>微信支付</Option>
-                <Option value={2}>支付宝支付</Option>
-              </Select>
-            </li>
-            <li>
-              <span>活动方式</span>
-              <Select
-                placeholder="全部"
-                allowClear
-                style={{ width: "172px" }}
-                onChange={e => this.searchActivityType(e)}
-              >
-                <Option value={1}>普通商品</Option>
-                <Option value={2}>活动商品</Option>
-              </Select>
-            </li>
-            <li>
-              <span>订单总金额</span>
-              <Input
-                style={{ width: "80px" }}
-                min={0}
-                max={999999}
-                placeholder="最小价格"
-                onChange={v => this.searchMinPriceChange(v)}
-                value={searchMinPrice}
-                suffix={suffix8}
-              />
-              --
-              <Input
-                style={{ width: "80px" }}
-                min={0}
-                max={999999}
-                placeholder="最大价格"
-                onChange={e => this.searchMaxPriceChange(e)}
-                value={searchMaxPrice}
-                suffix={suffix9}
-              />
-            </li>
-            <li>
-              <span style={{ marginRight: "10px" }}>支付时间</span>
-              <DatePicker
-                showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
-                format="YYYY-MM-DD HH:mm:ss"
-                placeholder="开始时间"
-                onChange={e => this.searchBeginTime(e)}
-                onOk={onOk}
-              />
-              --
-              <DatePicker
-                showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
-                format="YYYY-MM-DD HH:mm:ss"
-                placeholder="结束时间"
-                value={this.state.searchEndTime}
-                onChange={e => this.searchEndTime(e)}
-                onOk={onOk}
-              />
-            </li>
-            {/*<li>*/}
-            {/*<span style={{width:'50px'}}>对账日期</span>*/}
-            {/*<DatePicker*/}
-            {/*value={this.state.searchTime}*/}
-            {/*onChange={(e) =>this.searchTime(e)}*/}
-            {/*/>*/}
-            {/*</li>*/}
-            <li>
-              <span>活动方式</span>
-              <Select
-                placeholder="全部"
-                allowClear
-                style={{ width: "172px" }}
-                onChange={e => this.searchActivityType(e)}
-              >
-                <Option value={1}>普通商品</Option>
-                <Option value={2}>活动商品</Option>
-              </Select>
-            </li>
-            <li style={{ marginLeft: "40px" }}>
-              <Button
-                icon="search"
-                type="primary"
-                onClick={() => this.onSearch()}
-              >
-                搜索
-              </Button>
-            </li>
-            <li>
-              <Button
-                icon="download"
-                type="primary"
-                onClick={() => this.onExport()}
-              >
-                导出
-              </Button>
-            </li>
-          </ul>
-        </div>
-        <div className="system-table">
-          <Table
-            columns={this.makeColumns()}
-            dataSource={this.makeData(this.state.data)}
-            scroll={{ x: 2000 }}
-            pagination={{
-              total: this.state.total,
-              current: this.state.pageNum,
-              pageSize: this.state.pageSize,
-              showQuickJumper: true,
-              showTotal: (total, range) => `共 ${total} 条数据`,
-              onChange: (page, pageSize) =>
-                this.onTablePageChange(page, pageSize)
-            }}
-          />
-        </div>
-        <Modal
-          title="查看地区"
-          visible={this.state.addnewModalShow}
-          onOk={() => this.onAddNewOk()}
-          onCancel={() => this.onAddNewClose()}
-          confirmLoading={this.state.addnewLoading}
-        >
-          <Form>
-            <FormItem label="服务站地区" {...formItemLayout}>
-              <span style={{ color: "#888" }}>
-                {this.state.nowData &&
-                this.state.addOrUp === "up" &&
-                this.state.nowData.province &&
-                this.state.nowData.city &&
-                this.state.nowData.region
-                  ? `${this.state.nowData.province}/${
-                      this.state.nowData.city
-                    }/${this.state.nowData.region}`
-                  : null}
-              </span>
-              {getFieldDecorator("addnewCitys", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请选择区域" }]
-              })(
-                <Cascader
-                  placeholder="请选择服务区域"
-                  options={this.state.citys}
-                  loadData={e => this.getAllCitySon(e)}
+          <Tabs type="card" onChange={(e) => this.onSearchJump(e)}>
+            <TabPane tab="汇总对账" key="1">
+              <div className="system-table">
+                <ul className="search-ul more-ul">
+                  <li>
+                    <span>订单号查询</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      suffix={suffix}
+                      value={searchorderNo}
+                      onChange={e => this.searchOrderNoChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>云平台工单号</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      suffix={suffix4}
+                      value={searchRefer}
+                      onChange={e => this.searchReferChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>订单状态</span>
+                    <Select
+                      placeholder="全部"
+                      allowClear
+                      style={{ width: "172px" }}
+                      onChange={e => this.searchConditionsChange(e)}
+                    >
+                      <Option value={2}>待发货</Option>
+                      <Option value={3}>待收货</Option>
+                      <Option value={4}>已完成</Option>
+                    </Select>
+                  </li>
+                  <li>
+                    <span>产品类型</span>
+                    <Select
+                      allowClear
+                      placeholder="全部"
+                      style={{ width: "172px" }}
+                      onChange={e => this.searchProductType(e)}
+                    >
+                      {this.state.productTypes.map((item, index) => {
+                        return (
+                          <Option key={index} value={item.id}>
+                            {item.name}
+                          </Option>
+                        );
+                      })}
+                    </Select>
+                  </li>
+                  <li>
+                    <span style={{ marginRight: "10px" }}>支付时间</span>
+                    <DatePicker
+                      showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                      format="YYYY-MM-DD HH:mm:ss"
+                      placeholder="开始时间"
+                      onChange={e => this.searchBeginTime(e)}
+                      onOk={onOk}
+                    />
+                    --
+                    <DatePicker
+                      showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                      format="YYYY-MM-DD HH:mm:ss"
+                      placeholder="结束时间"
+                      value={this.state.searchEndTime}
+                      onChange={e => this.searchEndTime(e)}
+                      onOk={onOk}
+                    />
+                  </li>
+                  <li>
+                    <span>流水号查询</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      suffix={suffix3}
+                      value={searchmchOrderIdChange}
+                      onChange={e => this.mchOrderIdChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>用户id</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      suffix={suffix2}
+                      value={searchUserName}
+                      onChange={e => this.searchUserNameChange(e)}
+                    />
+                  </li>
+                  <li style={{ marginLeft: "40px" }}>
+                    <Button
+                      icon="search"
+                      type="primary"
+                      onClick={() => this.onSearch()}
+                    >
+                      搜索
+                    </Button>
+                  </li>
+                  <li>
+                    <Button
+                      icon="download"
+                      type="primary"
+                      onClick={() => this.onExport()}
+                    >
+                      导出
+                    </Button>
+                  </li>
+                </ul>
+              </div>
+              <div className="system-table">
+                <Table
+                  columns={this.makeColumns()}
+                  dataSource={this.makeData(this.state.data)}
+                  scroll={{ x: 1800 }}
+                  pagination={{
+                    total: this.state.total,
+                    current: this.state.pageNum,
+                    pageSize: this.state.pageSize,
+                    showQuickJumper: true,
+                    showTotal: (total, range) => `共 ${total} 条数据`,
+                    onChange: (page, pageSize) =>
+                      this.onTablePageChange(page, pageSize)
+              }}
                 />
-              )}
-            </FormItem>
-          </Form>
-        </Modal>
-        {/* 查看详情模态框 */}
-        <Modal
-          title="查看详情"
-          visible={this.state.queryModalShow}
-          onOk={() => this.onQueryModalClose()}
-          onCancel={() => this.onQueryModalClose()}
-          onChange={() => this.onQueryClick()}
-          wrapClassName={"list"}
-        >
-          <Form>
-            <FormItem label="订单号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.orderNo : ""}
-            </FormItem>
-            <FormItem label="云平台工单号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.refer : ""}
-            </FormItem>
-            <FormItem label="订单状态" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getListByModelId(this.state.nowData.conditions)
-                : ""}
-            </FormItem>
-            <FormItem label="订单来源" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getSource(this.state.nowData.orderFrom)
-                : ""}
-            </FormItem>
-            <FormItem label="产品类型" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.findProductNameById(this.state.nowData.typeId)
-                : ""}
-            </FormItem>
-            <FormItem label="产品型号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.modelType : ""}
-            </FormItem>
-            <FormItem label="产品名称" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.name : ""}
-            </FormItem>
-            <FormItem label="产品公司" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.Productcompany(this.state.nowData.company)
-                : ""}
-            </FormItem>
-            <FormItem label="用户id" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.userId : ""}
-            </FormItem>
-            <FormItem label="活动方式" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getActivity(this.state.nowData.activityType)
-                : ""}
-            </FormItem>
-            <FormItem label="下单时间" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.createTime : ""}
-            </FormItem>
-            <FormItem label="数量" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.count : ""}
-            </FormItem>
-            <FormItem label="订单总金额" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.fee : ""}
-            </FormItem>
-            <FormItem label="用户类型" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getUserType(this.state.nowData.userType)
-                : ""}
-            </FormItem>
-            <FormItem label="流水号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.mchOrderId : ""}
-            </FormItem>
-            <FormItem label="支付方式" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.AllpayType(this.state.nowData.payType)
-                : ""}
-            </FormItem>
-            <FormItem label="支付状态" {...formItemLayout}>
-              {!!this.state.nowData ? (
-                Boolean(this.state.nowData.pay) === true ? (
-                  <span>已支付</span>
-                ) : (
-                  <span>未支付</span>
-                )
-              ) : (
-                ""
-              )}
-            </FormItem>
-            <FormItem label="支付时间" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.payTime : ""}
-            </FormItem>
-            <FormItem label="经销商id" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.id : ""}
-            </FormItem>
-            <FormItem label="经销商账户" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.state.nowData.distributorAccount
-                : ""}
-            </FormItem>
-            <FormItem label="经销商身份" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getUserType(this.state.nowData.userType2)
-                : ""}
-            </FormItem>
-            <FormItem
-              label="用户收货地址"
-              {...formItemLayout}
-              className={this.state.typeId == 5 ? "hide" : ""}
-            >
-              {!!this.state.nowData
-                ? this.getAddress(
-                    this.state.nowData.province,
-                    this.state.nowData.city,
-                    this.state.nowData.region,
-                    this.state.nowData.street
-                  )
-                : ""}
-            </FormItem>
-            <FormItem
-              label="用户收货手机号"
-              {...formItemLayout}
-              className={this.state.typeId == 5 ? "hide" : ""}
-            >
-              {!!this.state.nowData ? this.state.nowData.mobile : ""}
-            </FormItem>
-            <FormItem
-              label="推荐人姓名"
-              {...formItemLayout}
-              className={
-                this.state.typeId == 1 ||
-                this.state.typeId == 4 ||
-                this.state.typeId == 5
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.userName2 : ""}
-            </FormItem>
-            <FormItem
-              label="推荐人账户"
-              {...formItemLayout}
-              className={
-                this.state.typeId == 1 ||
-                this.state.typeId == 4 ||
-                this.state.typeId == 5
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.ambassadorAccount : ""}
-            </FormItem>
-            <FormItem
-              label="服务站地区（推荐人）"
-              {...formItemLayout}
-              className={
-                this.state.typeId == 1 ||
-                this.state.typeId == 4 ||
-                this.state.typeId == 5
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData
-                ? this.getAddress2(
-                    this.state.nowData.province2,
-                    this.state.nowData.city2,
-                    this.state.nowData.region2
-                  )
-                : ""}
-            </FormItem>
-            <FormItem
-              label="服务站公司名称（推荐人）"
-              {...formItemLayout}
-              className={
-                this.state.typeId == 1 ||
-                this.state.typeId == 4 ||
-                this.state.typeId == 5
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.company2 : ""}
-            </FormItem>
-            <FormItem
-              label="服务站地区（经销商）"
-              {...formItemLayout}
-              className={
-                this.state.typeId == 1 ||
-                this.state.typeId == 2 ||
-                this.state.typeId == 3
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData
-                ? this.getAddress2(
-                    this.state.nowData.province4,
-                    this.state.nowData.city4,
-                    this.state.nowData.region4
-                  )
-                : ""}
-            </FormItem>
-            <FormItem
-              label="服务站公司名称（经销商）"
-              {...formItemLayout}
-              className={
-                this.state.typeId == 1 ||
-                this.state.typeId == 2 ||
-                this.state.typeId == 3
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.company3 : ""}
-            </FormItem>
-            <FormItem
-              label="服务站地区（安装工）"
-              {...formItemLayout}
-              className={
-                this.state.typeId == 2 ||
-                this.state.typeId == 3 ||
-                this.state.typeId == 4 ||
-                this.state.typeId == 5
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData
-                ? this.getAddress3(
-                    this.state.nowData.province3,
-                    this.state.nowData.city3,
-                    this.state.nowData.region3
-                  )
-                : ""}
-            </FormItem>
-            <FormItem
-              label="服务站公司名称（安装工）"
-              {...formItemLayout}
-              className={
-                this.state.typeId == 2 ||
-                this.state.typeId == 3 ||
-                this.state.typeId == 4 ||
-                this.state.typeId == 5
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.companyName : ""}
-            </FormItem>
-            <FormItem
-              label="安装工姓名"
-              {...formItemLayout}
-              className={
-                this.state.typeId == 2 ||
-                this.state.typeId == 3 ||
-                this.state.typeId == 4 ||
-                this.state.typeId == 5
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.customerName : ""}
-            </FormItem>
-            <FormItem
-              label="安装工电话"
-              {...formItemLayout}
-              className={
-                this.state.typeId == 2 ||
-                this.state.typeId == 3 ||
-                this.state.typeId == 4 ||
-                this.state.typeId == 5
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.customerPhone : ""}
-            </FormItem>
-          </Form>
-        </Modal>
-      </div>
+              </div>
+              {/* 查看详情模态框 */}
+              <Modal
+                title="查看详情"
+                visible={this.state.queryModalShow}
+                onOk={() => this.onQueryModalClose()}
+                onCancel={() => this.onQueryModalClose()}
+                onChange={() => this.onQueryClick()}
+                wrapClassName={"list"}
+              >
+                <Form>
+                  <FormItem label="订单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.orderNo : ""}
+                  </FormItem>
+                  <FormItem label="云平台工单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.refer : ""}
+                  </FormItem>
+                  <FormItem label="订单状态" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.conditions: ""}
+                  </FormItem>
+                  <FormItem label="订单来源" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.orderFrom: ""}
+                  </FormItem>
+                  <FormItem label="用户身份" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.userType : ""}
+                  </FormItem>
+                  <FormItem label="用户id" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.userId : ""}
+                  </FormItem>
+                  <FormItem label="产品类型" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.typeId : ""}
+                  </FormItem>
+                  <FormItem label="产品型号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.modelType : ""}
+                  </FormItem>
+                  <FormItem label="产品公司" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.company: ""}
+                  </FormItem>
+                  <FormItem label="数量" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.count : ""}
+                  </FormItem>
+                  <FormItem label="订单金额" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.fee : ""}
+                  </FormItem>
+                  <FormItem label="流水号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.mchOrderId : ""}
+                  </FormItem>
+                  {/*<FormItem label="下单时间" {...formItemLayout}>*/}
+                    {/*{!!this.state.nowData ? this.state.nowData.createTime : ""}*/}
+                  {/*</FormItem>*/}
+                  <FormItem label="支付方式" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.payType : ""}
+                  </FormItem>
+                  <FormItem label="支付时间" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.payTime : ""}
+                  </FormItem>
+                  <FormItem label="销售主体省市区" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.settlementSubjectArea : ""}
+                  </FormItem>
+                  <FormItem label="销售主体公司名称" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.settlementSubjectCompany : ""}
+                  </FormItem>
+                  <FormItem label="收款说明" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.paymentInstructions : ""}
+                  </FormItem>
+                </Form>
+              </Modal>
+            </TabPane>
+            <TabPane tab="净水服务" key="2">
+              <div className="system-table">
+                <ul className="search-ul more-ul">
+                  <li>
+                    <span>订单号查询</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix}
+                        value={searchorderNo}
+                        onChange={e => this.searchOrderNoChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>云平台工单号</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix4}
+                        value={searchRefer}
+                        onChange={e => this.searchReferChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>订单状态</span>
+                    <Select
+                        placeholder="全部"
+                        allowClear
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchConditionsChange(e)}
+                    >
+                      <Option value={2}>待发货</Option>
+                      <Option value={3}>待收货</Option>
+                      <Option value={4}>已完成</Option>
+                    </Select>
+                  </li>
+                  <li>
+                    <span>产品型号</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      onChange={e => this.searchTypeChange(e)}
+                    />
+                    {/*<Select*/}
+                        {/*allowClear*/}
+                        {/*placeholder="全部"*/}
+                        {/*style={{ width: "172px" }}*/}
+                        {/*// onChange={e => this.searchProductType(e)}*/}
+                    {/*>*/}
+                      {/*{this.state.productModels.map((item, index) => {*/}
+                        {/*return (*/}
+                            {/*<Option key={index} value={item.id}>*/}
+                              {/*{item.name}*/}
+                            {/*</Option>*/}
+                        {/*);*/}
+                      {/*})}*/}
+                    {/*</Select>*/}
+                  </li>
+                  <li>
+                    <span style={{ marginRight: "10px" }}>支付时间</span>
+                    <DatePicker
+                        showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                        format="YYYY-MM-DD HH:mm:ss"
+                        placeholder="开始时间"
+                        onChange={e => this.searchBeginTime(e)}
+                        onOk={onOk}
+                    />
+                    --
+                    <DatePicker
+                        showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                        format="YYYY-MM-DD HH:mm:ss"
+                        placeholder="结束时间"
+                        value={this.state.searchEndTime}
+                        onChange={e => this.searchEndTime(e)}
+                        onOk={onOk}
+                    />
+                  </li>
+                  <li>
+                    <span>流水号查询</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix3}
+                        value={searchmchOrderIdChange}
+                        onChange={e => this.mchOrderIdChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>用户id</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix2}
+                        value={searchUserName}
+                        onChange={e => this.searchUserNameChange(e)}
+                    />
+                  </li>
+                  <li style={{ marginLeft: "40px" }}>
+                    <Button
+                        icon="search"
+                        type="primary"
+                        onClick={() => this.onSearch2()}
+                    >
+                      搜索
+                    </Button>
+                  </li>
+                  <li>
+                    <Button
+                        icon="download"
+                        type="primary"
+                        onClick={() => this.onExport2()}
+                    >
+                      导出
+                    </Button>
+                  </li>
+                </ul>
+              </div>
+              <div className="system-table">
+                <Table
+                  columns={this.makeColumns2()}
+                  dataSource={this.makeData(this.state.data2)}
+                  scroll={{ x: 1800 }}
+                  pagination={{
+                    total: this.state.total2,
+                    current: this.state.pageNum,
+                    pageSize: this.state.pageSize,
+                    showQuickJumper: true,
+                    showTotal: (total, range) => `共 ${total} 条数据`,
+                    onChange: (page, pageSize) =>
+                      this.onTablePageChange2(page, pageSize)
+                  }}
+                />
+              </div>
+              {/* 查看详情模态框 */}
+              <Modal
+                title="查看详情"
+                visible={this.state.queryModalShow}
+                onOk={() => this.onQueryModalClose()}
+                onCancel={() => this.onQueryModalClose()}
+                onChange={() => this.onQueryClick()}
+                wrapClassName={"list"}
+              >
+                <Form>
+                  <FormItem label="订单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.orderNo : ""}
+                  </FormItem>
+                  <FormItem label="云平台工单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.refer : ""}
+                  </FormItem>
+                  <FormItem label="订单来源" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.orderFrom: ""}
+                  </FormItem>
+                  <FormItem label="下单时间" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.createTime : ""}
+                  </FormItem>
+                  <FormItem label="订单状态" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.conditions: ""}
+                  </FormItem>
+                  <FormItem label="用户身份" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.userType : ""}
+                  </FormItem>
+                  <FormItem label="用户id" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.userId : ""}
+                  </FormItem>
+                  <FormItem label="产品类型" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.typeId : ""}
+                  </FormItem>
+                  <FormItem label="产品型号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.modelType : ""}
+                  </FormItem>
+                  <FormItem label="产品公司" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.company: ""}
+                  </FormItem>
+                  <FormItem label="计费方式" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.feeType: ""}
+                  </FormItem>
+                  <FormItem label="数量" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.count : ""}
+                  </FormItem>
+                  <FormItem label="订单金额" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.fee : ""}
+                  </FormItem>
+                  <FormItem label="流水号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.mchOrderId : ""}
+                  </FormItem>
+                  <FormItem label="支付方式" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.payType : ""}
+                  </FormItem>
+                  <FormItem label="支付时间" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.payTime : ""}
+                  </FormItem>
+                  <FormItem label="经销商身份" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorIdentity: ""}
+                  </FormItem>
+                  <FormItem label="经销商id" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.id : ""}
+                  </FormItem>
+                  <FormItem label="经销商姓名" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorName : ""}
+                  </FormItem>
+                  <FormItem label="经销商账户" {...formItemLayout}>
+                    {!!this.state.nowData
+                        ? this.state.nowData.distributorAccount
+                        : ""}
+                  </FormItem>
+                  <FormItem label="经销商省" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorProvince : ""}
+                  </FormItem>
+                  <FormItem label="经销商市" {...formItemLayout}>
+                  {!!this.state.nowData ? this.state.nowData.distributorCity : ""}
+                </FormItem>
+                  <FormItem label="经销商区" {...formItemLayout}>
+                   {!!this.state.nowData ? this.state.nowData.distributorRegion : ""}
+                </FormItem>
+                  <FormItem label="是否有子账号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.isSonAccount : ""}
+                  </FormItem>
+                  <FormItem label="子账号id" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.sonAccountId : ""}
+                  </FormItem>
+                </Form>
+              </Modal>
+            </TabPane>
+            <TabPane tab="健康食品" key="3">
+              <div className="system-table">
+                <ul className="search-ul more-ul">
+                  <li>
+                    <span>订单号查询</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix}
+                        value={searchorderNo}
+                        onChange={e => this.searchOrderNoChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>云平台工单号</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix4}
+                        value={searchRefer}
+                        onChange={e => this.searchReferChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>订单状态</span>
+                    <Select
+                        placeholder="全部"
+                        allowClear
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchConditionsChange(e)}
+                    >
+                      <Option value={2}>待发货</Option>
+                      <Option value={3}>待收货</Option>
+                      <Option value={4}>已完成</Option>
+                    </Select>
+                  </li>
+                  <li>
+                    <span>产品型号</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchTypeChange(e)}
+                    />
+                    {/*<Select*/}
+                        {/*allowClear*/}
+                        {/*placeholder="全部"*/}
+                        {/*style={{ width: "172px" }}*/}
+                        {/*// onChange={e => this.searchProductType(e)}*/}
+                    {/*>*/}
+                      {/*{this.state.productModels.map((item, index) => {*/}
+                        {/*return (*/}
+                            {/*<Option key={index} value={item.id}>*/}
+                              {/*{item.name}*/}
+                            {/*</Option>*/}
+                        {/*);*/}
+                      {/*})}*/}
+                    {/*</Select>*/}
+                  </li>
+                  <li>
+                    <span style={{ marginRight: "10px" }}>支付时间</span>
+                    <DatePicker
+                        showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                        format="YYYY-MM-DD HH:mm:ss"
+                        placeholder="开始时间"
+                        onChange={e => this.searchBeginTime(e)}
+                        onOk={onOk}
+                    />
+                    --
+                    <DatePicker
+                        showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                        format="YYYY-MM-DD HH:mm:ss"
+                        placeholder="结束时间"
+                        value={this.state.searchEndTime}
+                        onChange={e => this.searchEndTime(e)}
+                        onOk={onOk}
+                    />
+                  </li>
+                  <li>
+                    <span>流水号查询</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix3}
+                        value={searchmchOrderIdChange}
+                        onChange={e => this.mchOrderIdChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>用户id</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix2}
+                        value={searchUserName}
+                        onChange={e => this.searchUserNameChange(e)}
+                    />
+                  </li>
+                  <li style={{ marginLeft: "40px" }}>
+                    <Button
+                        icon="search"
+                        type="primary"
+                        onClick={() => this.onSearch3()}
+                    >
+                      搜索
+                    </Button>
+                  </li>
+                  <li>
+                    <Button
+                        icon="download"
+                        type="primary"
+                        onClick={() => this.onExport3()}
+                    >
+                      导出
+                    </Button>
+                  </li>
+                </ul>
+              </div>
+              <div className="system-table">
+                <Table
+                  columns={this.makeColumns5()}
+                  dataSource={this.makeData(this.state.data3)}
+                  scroll={{ x: 1800 }}
+                  pagination={{
+                    total: this.state.total3,
+                    current: this.state.pageNum,
+                    pageSize: this.state.pageSize,
+                    showQuickJumper: true,
+                    showTotal: (total, range) => `共 ${total} 条数据`,
+                    onChange: (page, pageSize) =>
+                      this.onTablePageChange3(page, pageSize)
+                  }}
+                />
+              </div>
+              {/* 查看详情模态框 */}
+              <Modal
+                  title="查看详情"
+                  visible={this.state.queryModalShow}
+                  onOk={() => this.onQueryModalClose()}
+                  onCancel={() => this.onQueryModalClose()}
+                  onChange={() => this.onQueryClick()}
+                  wrapClassName={"list"}
+              >
+                <Form>
+                  <FormItem label="订单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.orderNo : ""}
+                  </FormItem>
+                  <FormItem label="云平台工单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.refer : ""}
+                  </FormItem>
+                  <FormItem label="订单来源" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.orderFrom: ""}
+                  </FormItem>
+                  <FormItem label="下单时间" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.createTime : ""}
+                  </FormItem>
+                  <FormItem label="订单状态" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.conditions: ""}
+                  </FormItem>
+                  <FormItem label="用户身份" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.userType : ""}
+                  </FormItem>
+                  <FormItem label="用户id" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.userId : ""}
+                  </FormItem>
+                  <FormItem label="产品类型" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.typeId : ""}
+                  </FormItem>
+                  <FormItem label="产品型号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.modelType : ""}
+                  </FormItem>
+                  <FormItem label="产品公司" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.company: ""}
+                  </FormItem>
+                  {/*<FormItem label="计费方式" {...formItemLayout}>*/}
+                    {/*{!!this.state.nowData ? this.state.nowData.feeType: ""}*/}
+                  {/*</FormItem>*/}
+                  <FormItem label="数量" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.count : ""}
+                  </FormItem>
+                  <FormItem label="订单金额" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.fee : ""}
+                  </FormItem>
+                  <FormItem label="流水号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.mchOrderId : ""}
+                  </FormItem>
+                  <FormItem label="支付方式" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.payType : ""}
+                  </FormItem>
+                  <FormItem label="支付时间" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.payTime : ""}
+                  </FormItem>
+                  <FormItem label="经销商身份" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorIdentity: ""}
+                  </FormItem>
+                  <FormItem label="经销商id" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.id : ""}
+                  </FormItem>
+                  <FormItem label="经销商姓名" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorName : ""}
+                  </FormItem>
+                  <FormItem label="经销商账户" {...formItemLayout}>
+                    {!!this.state.nowData
+                        ? this.state.nowData.distributorAccount
+                        : ""}
+                  </FormItem>
+                  <FormItem label="经销商省" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorProvince : ""}
+                  </FormItem>
+                  <FormItem label="经销商市" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorCity : ""}
+                  </FormItem>
+                  <FormItem label="经销商区" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorRegion : ""}
+                  </FormItem>
+                  <FormItem label="是否有子账号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.isSonAccount : ""}
+                  </FormItem>
+                  <FormItem label="子账号id" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.sonAccountId : ""}
+                  </FormItem>
+                  <FormItem label="推荐人姓名" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.recommendName : ""}
+                  </FormItem>
+                  <FormItem label="推荐人账户" {...formItemLayout}>
+                    {!!this.state.nowData
+                      ? this.state.nowData.recommendAccount
+                      : ""}
+                  </FormItem>
+                  <FormItem label="推荐人省" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.recommendProvince : ""}
+                  </FormItem>
+                  <FormItem label="推荐人市" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.recommendCity : ""}
+                  </FormItem>
+                  <FormItem label="推荐人区" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.recommendRegion : ""}
+                  </FormItem>
+                  <FormItem label="销售主体省市区" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.settlementSubjectArea : ""}
+                  </FormItem>
+                  <FormItem label="销售主体公司名称" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.settlementSubjectCompany : ""}
+                  </FormItem>
+                  <FormItem label="收款说明" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.paymentInstructions : ""}
+                  </FormItem>
+                </Form>
+              </Modal>
+            </TabPane>
+            <TabPane tab="生物理疗" key="4">
+              <div className="system-table">
+                <ul className="search-ul more-ul">
+                  <li>
+                    <span>订单号查询</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix}
+                        value={searchorderNo}
+                        onChange={e => this.searchOrderNoChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>云平台工单号</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix4}
+                        value={searchRefer}
+                        onChange={e => this.searchReferChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>订单状态</span>
+                    <Select
+                        placeholder="全部"
+                        allowClear
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchConditionsChange(e)}
+                    >
+                      <Option value={2}>待发货</Option>
+                      <Option value={3}>待收货</Option>
+                      <Option value={4}>已完成</Option>
+                    </Select>
+                  </li>
+                  <li>
+                    <span>产品型号</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchTypeChange(e)}
+                    />
+                    {/*<Select*/}
+                        {/*allowClear*/}
+                        {/*placeholder="全部"*/}
+                        {/*style={{ width: "172px" }}*/}
+                        {/*// onChange={e => this.searchProductType(e)}*/}
+                    {/*>*/}
+                      {/*{this.state.productModels.map((item, index) => {*/}
+                        {/*return (*/}
+                            {/*<Option key={index} value={item.id}>*/}
+                              {/*{item.name}*/}
+                            {/*</Option>*/}
+                        {/*);*/}
+                      {/*})}*/}
+                    {/*</Select>*/}
+                  </li>
+                  <li>
+                    <span style={{ marginRight: "10px" }}>支付时间</span>
+                    <DatePicker
+                      showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                      format="YYYY-MM-DD HH:mm:ss"
+                      placeholder="开始时间"
+                      onChange={e => this.searchBeginTime(e)}
+                      onOk={onOk}
+                    />
+                    --
+                    <DatePicker
+                      showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                      format="YYYY-MM-DD HH:mm:ss"
+                      placeholder="结束时间"
+                      value={this.state.searchEndTime}
+                      onChange={e => this.searchEndTime(e)}
+                      onOk={onOk}
+                    />
+                  </li>
+                  <li>
+                    <span>流水号查询</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix3}
+                        value={searchmchOrderIdChange}
+                        onChange={e => this.mchOrderIdChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>用户id</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix2}
+                        value={searchUserName}
+                        onChange={e => this.searchUserNameChange(e)}
+                    />
+                  </li>
+                  <li style={{ marginLeft: "40px" }}>
+                    <Button
+                        icon="search"
+                        type="primary"
+                        onClick={() => this.onSearch5()}
+                    >
+                      搜索
+                    </Button>
+                  </li>
+                  <li>
+                    <Button
+                        icon="download"
+                        type="primary"
+                        onClick={() => this.onExport4()}
+                    >
+                      导出
+                    </Button>
+                  </li>
+                </ul>
+              </div>
+              <div className="system-table">
+                <Table
+                    columns={this.makeColumns5()}
+                    dataSource={this.makeData(this.state.data4)}
+                    scroll={{ x: 1800 }}
+                    pagination={{
+                      total: this.state.total4,
+                      current: this.state.pageNum,
+                      pageSize: this.state.pageSize,
+                      showQuickJumper: true,
+                      showTotal: (total, range) => `共 ${total} 条数据`,
+                      onChange: (page, pageSize) =>
+                          this.onTablePageChange4(page, pageSize)
+                    }}
+                />
+              </div>
+              {/* 查看详情模态框 */}
+              <Modal
+                  title="查看详情"
+                  visible={this.state.queryModalShow}
+                  onOk={() => this.onQueryModalClose()}
+                  onCancel={() => this.onQueryModalClose()}
+                  onChange={() => this.onQueryClick()}
+                  wrapClassName={"list"}
+              >
+                <Form>
+                  <FormItem label="订单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.orderNo : ""}
+                  </FormItem>
+                  <FormItem label="云平台工单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.refer : ""}
+                  </FormItem>
+                  <FormItem label="订单来源" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.orderFrom: ""}
+                  </FormItem>
+                  <FormItem label="下单时间" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.createTime : ""}
+                  </FormItem>
+                  <FormItem label="订单状态" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.conditions: ""}
+                  </FormItem>
+                  <FormItem label="用户身份" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.userType : ""}
+                  </FormItem>
+                  <FormItem label="用户id" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.userId : ""}
+                  </FormItem>
+                  <FormItem label="产品类型" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.typeId : ""}
+                  </FormItem>
+                  <FormItem label="产品型号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.modelType : ""}
+                  </FormItem>
+                  <FormItem label="产品公司" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.company: ""}
+                  </FormItem>
+                  <FormItem label="数量" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.count : ""}
+                  </FormItem>
+                  <FormItem label="订单金额" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.fee : ""}
+                  </FormItem>
+                  <FormItem label="流水号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.mchOrderId : ""}
+                  </FormItem>
+                  <FormItem label="支付方式" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.payType : ""}
+                  </FormItem>
+                  <FormItem label="支付时间" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.payTime : ""}
+                  </FormItem>
+                  <FormItem label="经销商身份" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorIdentity: ""}
+                  </FormItem>
+                  <FormItem label="经销商id" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.id : ""}
+                  </FormItem>
+                  <FormItem label="经销商姓名" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorName : ""}
+                  </FormItem>
+                  <FormItem label="经销商账户" {...formItemLayout}>
+                    {!!this.state.nowData
+                        ? this.state.nowData.distributorAccount
+                        : ""}
+                  </FormItem>
+                  <FormItem label="经销商省" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorProvince : ""}
+                  </FormItem>
+                  <FormItem label="经销商市" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorCity : ""}
+                  </FormItem>
+                  <FormItem label="经销商区" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorRegion : ""}
+                  </FormItem>
+                  <FormItem label="是否有子账号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.isSonAccount : ""}
+                  </FormItem>
+                  <FormItem label="子账号id" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.sonAccountId : ""}
+                  </FormItem>
+                  <FormItem label="推荐人姓名" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.recommendName : ""}
+                  </FormItem>
+                  <FormItem label="推荐人账户" {...formItemLayout}>
+                    {!!this.state.nowData
+                        ? this.state.nowData.recommendAccount
+                        : ""}
+                  </FormItem>
+                  <FormItem label="推荐人省" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.recommendProvince : ""}
+                  </FormItem>
+                  <FormItem label="推荐人市" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.recommendCity : ""}
+                  </FormItem>
+                  <FormItem label="推荐人区" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.recommendRegion : ""}
+                  </FormItem>
+                  <FormItem label="销售主体省市区" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.settlementSubjectArea : ""}
+                  </FormItem>
+                  <FormItem label="销售主体公司名称" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.settlementSubjectCompany : ""}
+                  </FormItem>
+                  <FormItem label="收款说明" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.paymentInstructions : ""}
+                  </FormItem>
+                </Form>
+              </Modal>
+            </TabPane>
+            <TabPane tab="优惠卡" key="5">
+              <div className="system-table">
+                <ul className="search-ul more-ul">
+                  <li>
+                    <span>订单号查询</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      suffix={suffix}
+                      value={searchorderNo}
+                      onChange={e => this.searchOrderNoChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>体检卡号</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      suffix={suffix4}
+                      value={searchRefer}
+                      onChange={e => this.searchReferChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span style={{ marginRight: "10px" }}>支付时间</span>
+                    <DatePicker
+                      showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                      format="YYYY-MM-DD HH:mm:ss"
+                      placeholder="开始时间"
+                      onChange={e => this.searchBeginTime(e)}
+                      onOk={onOk}
+                    />
+                    --
+                    <DatePicker
+                      showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                      format="YYYY-MM-DD HH:mm:ss"
+                      placeholder="结束时间"
+                      value={this.state.searchEndTime}
+                      onChange={e => this.searchEndTime(e)}
+                      onOk={onOk}
+                    />
+                  </li>
+                  <li>
+                    <span>流水号查询</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      suffix={suffix3}
+                      value={searchmchOrderIdChange}
+                      onChange={e => this.mchOrderIdChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>用户id</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      suffix={suffix2}
+                      value={searchUserName}
+                      onChange={e => this.searchUserNameChange(e)}
+                    />
+                  </li>
+                  <li style={{ marginLeft: "40px" }}>
+                    <Button
+                      icon="search"
+                      type="primary"
+                      onClick={() => this.onSearch4()}
+                    >
+                      搜索
+                    </Button>
+                  </li>
+                  <li>
+                    <Button
+                      icon="download"
+                      type="primary"
+                      onClick={() => this.onExport5()}
+                    >
+                      导出
+                    </Button>
+                  </li>
+                  <Spin tip="Loading..." delay="6s">
+                  </Spin>
+                </ul>
+              </div>
+              <div className="system-table">
+                <Table
+                  columns={this.makeColumns3()}
+                  dataSource={this.makeData(this.state.data5)}
+                  scroll={{ x: 1800 }}
+                  pagination={{
+                    total: this.state.total5,
+                    current: this.state.pageNum,
+                    pageSize: this.state.pageSize,
+                    showQuickJumper: true,
+                    showTotal: (total, range) => `共 ${total} 条数据`,
+                    onChange: (page, pageSize) =>
+                      this.onTablePageChange5(page, pageSize)
+                  }}
+                />
+              </div>
+              {/* 查看详情模态框 */}
+              <Modal
+                  title="查看详情"
+                  visible={this.state.queryModalShow}
+                  onOk={() => this.onQueryModalClose()}
+                  onCancel={() => this.onQueryModalClose()}
+                  onChange={() => this.onQueryClick()}
+                  wrapClassName={"list"}
+              >
+                <Form>
+                  <FormItem label="订单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.orderNo : ""}
+                  </FormItem>
+                  <FormItem label="体检卡号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.refer : ""}
+                  </FormItem>
+                  <FormItem label="订单状态" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.conditions: ""}
+                  </FormItem>
+                  <FormItem label="用户身份" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.userType : ""}
+                  </FormItem>
+                  <FormItem label="用户id" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.userId : ""}
+                  </FormItem>
+                  <FormItem label="产品类型" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.typeId : ""}
+                  </FormItem>
+                  <FormItem label="产品型号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.modelType : ""}
+                  </FormItem>
+                  <FormItem label="产品公司" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.company: ""}
+                  </FormItem>
+                  <FormItem label="数量" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.count : ""}
+                  </FormItem>
+                  <FormItem label="订单金额" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.fee : ""}
+                  </FormItem>
+                  <FormItem label="流水号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.mchOrderId : ""}
+                  </FormItem>
+                  <FormItem label="支付方式" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.payType : ""}
+                  </FormItem>
+                  <FormItem label="支付时间" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.payTime : ""}
+                  </FormItem>
+                  <FormItem label="收款说明" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.paymentInstructions : ""}
+                  </FormItem>
+                </Form>
+              </Modal>
+            </TabPane>
+            <TabPane tab="健康评估" key="6">
+              <div className="system-table">
+                <ul className="search-ul more-ul">
+                  <li>
+                    <span>订单号查询</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix}
+                        value={searchorderNo}
+                        onChange={e => this.searchOrderNoChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>产品型号</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchTypeChange(e)}
+                    />
+                    {/*<Select*/}
+                        {/*allowClear*/}
+                        {/*placeholder="全部"*/}
+                        {/*style={{ width: "172px" }}*/}
+                        {/*// onChange={e => this.searchProductType(e)}*/}
+                    {/*>*/}
+                      {/*{this.state.productModels.map((item, index) => {*/}
+                        {/*return (*/}
+                            {/*<Option key={index} value={item.id}>*/}
+                              {/*{item.name}*/}
+                            {/*</Option>*/}
+                        {/*);*/}
+                      {/*})}*/}
+                    {/*</Select>*/}
+                  </li>
+                  <li>
+                    <span style={{ marginRight: "10px" }}>支付时间</span>
+                    <DatePicker
+                        showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                        format="YYYY-MM-DD HH:mm:ss"
+                        placeholder="开始时间"
+                        onChange={e => this.searchBeginTime(e)}
+                        onOk={onOk}
+                    />
+                    --
+                    <DatePicker
+                        showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                        format="YYYY-MM-DD HH:mm:ss"
+                        placeholder="结束时间"
+                        value={this.state.searchEndTime}
+                        onChange={e => this.searchEndTime(e)}
+                        onOk={onOk}
+                    />
+                  </li>
+                  <li>
+                    <span>流水号查询</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix3}
+                        value={searchmchOrderIdChange}
+                        onChange={e => this.mchOrderIdChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>用户id</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix2}
+                        value={searchUserName}
+                        onChange={e => this.searchUserNameChange(e)}
+                    />
+                  </li>
+                  <li style={{ marginLeft: "40px" }}>
+                    <Button
+                        icon="search"
+                        type="primary"
+                        onClick={() => this.onSearch6()}
+                    >
+                      搜索
+                    </Button>
+                  </li>
+                  <li>
+                    <Button
+                        icon="download"
+                        type="primary"
+                        onClick={() => this.onExport6()}
+                    >
+                      导出
+                    </Button>
+                  </li>
+                </ul>
+              </div>
+              <div className="system-table">
+                <Table
+                    columns={this.makeColumns4()}
+                    dataSource={this.makeData(this.state.data6)}
+                    scroll={{ x: 1800 }}
+                    pagination={{
+                      total: this.state.total6,
+                      current: this.state.pageNum,
+                      pageSize: this.state.pageSize,
+                      showQuickJumper: true,
+                      showTotal: (total, range) => `共 ${total} 条数据`,
+                      onChange: (page, pageSize) =>
+                          this.onTablePageChange6(page, pageSize)
+                    }}
+                />
+              </div>
+              {/* 查看详情模态框 */}
+              <Modal
+                  title="查看详情"
+                  visible={this.state.queryModalShow}
+                  onOk={() => this.onQueryModalClose()}
+                  onCancel={() => this.onQueryModalClose()}
+                  onChange={() => this.onQueryClick()}
+                  wrapClassName={"list"}
+              >
+                <Form>
+                  <FormItem label="订单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.orderNo : ""}
+                  </FormItem>
+                  <FormItem label="下单时间" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.createTime : ""}
+                  </FormItem>
+                  <FormItem label="订单状态" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.conditions: ""}
+                  </FormItem>
+                  <FormItem label="用户身份" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.userType : ""}
+                  </FormItem>
+                  <FormItem label="用户id" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.userId : ""}
+                  </FormItem>
+                  <FormItem label="产品类型" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.typeId : ""}
+                  </FormItem>
+                  <FormItem label="产品型号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.modelType : ""}
+                  </FormItem>
+                  <FormItem label="产品公司" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.company: ""}
+                  </FormItem>
+                  <FormItem label="数量" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.count : ""}
+                  </FormItem>
+                  <FormItem label="订单金额" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.fee : ""}
+                  </FormItem>
+                  <FormItem label="流水号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.mchOrderId : ""}
+                  </FormItem>
+                  <FormItem label="支付方式" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.payType : ""}
+                  </FormItem>
+                  <FormItem label="支付时间" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.payTime : ""}
+                  </FormItem>
+                  <FormItem label="经销商身份" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorIdentity: ""}
+                  </FormItem>
+                  <FormItem label="经销商id" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.id : ""}
+                  </FormItem>
+                  <FormItem label="经销商姓名" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorName : ""}
+                  </FormItem>
+                  <FormItem label="经销商账户" {...formItemLayout}>
+                    {!!this.state.nowData
+                        ? this.state.nowData.distributorAccount
+                        : ""}
+                  </FormItem>
+                  <FormItem label="经销商省" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorProvince : ""}
+                  </FormItem>
+                  <FormItem label="经销商市" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorCity : ""}
+                  </FormItem>
+                  <FormItem label="经销商区" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.distributorRegion : ""}
+                  </FormItem>
+                  <FormItem label="是否有子账号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.isSonAccount : ""}
+                  </FormItem>
+                  <FormItem label="子账号id" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.sonAccountId : ""}
+                  </FormItem>
+                  <FormItem label="销售主体省市区" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.settlementSubjectArea : ""}
+                  </FormItem>
+                  <FormItem label="销售主体公司名称" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.settlementSubjectCompany : ""}
+                  </FormItem>
+                  <FormItem label="收款说明" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.paymentInstructions : ""}
+                  </FormItem>
+                </Form>
+              </Modal>
+            </TabPane>
+      </Tabs>
+    </div>
+  </div>
     );
   }
 }

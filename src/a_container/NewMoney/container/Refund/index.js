@@ -43,7 +43,8 @@ import {
   onChange,
   onOk,
   refundList,
-  refundAuditEgis
+  refundAuditEgis,
+  AuditLog
 } from "../../../../a_action/shop-action";
 
 // ==================
@@ -58,7 +59,7 @@ class Category extends React.Component {
     this.state = {
       data: [], // 当前页面全部数据
       data2: [], // 操作日志全部数据
-        productTypes: [], //所有的产品类型
+      productTypes: [], //所有的产品类型
       productModels: [], // 所有的产品型号
       searchProductName: "", // 搜索 - 产品名称
       searchProductType: "", // 搜索 - 产品类型
@@ -77,6 +78,9 @@ class Category extends React.Component {
       searchorderNo: "", //搜索 - 订单号
       searchUserName: "", //搜索 - 用户id
       searchActivity: "", //搜索 - 活动方式
+      searchFlagChange:"",   //搜索 - 操作方式
+      searchOperationBegin:"", //搜索 - 操作开始时间
+      searchOperationEnd:"", //搜索 - 操作结束时间
       nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
       addnewModalShow: false, // 查看地区模态框是否显示
       upModalShow: false, // 修改模态框是否显示
@@ -91,7 +95,7 @@ class Category extends React.Component {
 
   componentDidMount() {
     this.getAllProductType(); // 获取所有的产品类型
-    this.onGetDataJournal(this.state.pageNum, this.state.pageSize);
+    // this.onGetDataJournal(this.state.pageNum, this.state.pageSize); //操作日志
     this.onGetData(this.state.pageNum, this.state.pageSize);
   }
 
@@ -107,10 +111,6 @@ class Category extends React.Component {
       });
     }
   }
-
-    warning2 = () =>{
-        message.warning('导出功能尚在开发 敬请期待');
-    };
 
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
@@ -153,45 +153,36 @@ class Category extends React.Component {
     });
   }
 
-    // 查询当前页面 - 操作日志 - 所需列表数据
-    onGetDataJournal(pageNum, pageSize) {
-        const params = {
-            pageNum,
-            pageSize,
-            userType: this.state.searchUserType,
-            withdrawType: this.state.searchWithdrawType,
-            id: this.state.searchId,
-            userId: this.state.searchUserMallId,
-            partnerTradeNo: this.state.searchPartnerTradeNo,
-            minApplyTime: this.state.searchApplyBeginTime
-                ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
-                : "",
-            maxApplyTime: this.state.searchApplyEndTime
-                ? `${tools.dateToStr(this.state.searchApplyEndTime.utc()._d)} `
-                : "",
-            minPaymentTime: this.state.searchBeginTime
-                ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)} `
-                : "",
-            maxPaymentTime: this.state.searchEndTime
-                ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
-                : ""
-        };
-        // this.props.actions.RecordDetail(tools.clearNull(params)).then(res => {
-        //     if (res.status === 200) {
-        //         this.setState({
-        //             data2: res.data.result || [],
-        //             pageNum,
-        //             pageSize,
-        //             total: res.data.total
-        //         });
-        //     } else if (res.status === 400) {
-        //         this.setState({
-        //             data2: []
-        //         });
-        //         message.error(res.message || "查询失败，请重试");
-        //     }
-        // });
-    }
+  // 查询当前页面 - 操作日志 - 所需列表数据
+  onGetDataJournal(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      type:1,
+      userType: this.state.searchUserType,
+      withdrawType: this.state.searchWithdrawType,
+      id: this.state.searchId,
+      orderNo: this.state.searchorderNo,
+      operation:this.state.searchFlagChange,
+      partnerTradeNo: this.state.searchPartnerTradeNo,
+      beginTime: this.state.searchOperationBegin
+        ? `${tools.dateToStr(this.state.searchOperationBegin.utc()._d)}`
+        : "",
+      endTime: this.state.searchOperationEnd
+        ? `${tools.dateToStr(this.state.searchOperationEnd.utc()._d)} `
+        : ""
+    };
+    this.props.actions.AuditLog(tools.clearNull(params)).then(res => {
+      if (res.returnCode === '0') {
+        this.setState({
+          data2: res.messsageBody.result || [],
+          pageNum,
+          pageSize,
+          total2: res.messsageBody.total
+        });
+      }
+    });
+  }
 
   // 工具 - 根据受理状态码查询对应的名字
   getConditionNameById(id) {
@@ -300,6 +291,20 @@ class Category extends React.Component {
     });
   }
 
+  //搜索 - 操作开始时间
+  searchOperationBegin(v) {
+    this.setState({
+      searchOperationBegin: _.cloneDeep(v)
+    });
+  }
+
+  //搜索 - 操作结束时间
+  searchOperationEnd(v) {
+    this.setState({
+      searchOperationEnd: _.cloneDeep(v)
+    });
+  }
+
   //搜索 - 退款状态改变时触发
   searchConditionsChange(e) {
     this.setState({
@@ -386,6 +391,13 @@ class Category extends React.Component {
     this.setState({
       searchProductType: v
     });
+  }
+
+  //搜索 - 操作方式
+  searchFlagChange(e){
+    this.setState({
+      searchFlagChange:e
+   })
   }
 
   //搜索 - 用户类型
@@ -477,6 +489,11 @@ class Category extends React.Component {
     onSearchJournal(){
         this.onGetDataJournal(1, this.state.pageSize);
     }
+
+  //点击操作日志时发起请求
+  auditList(){
+      this.onGetDataJournal(this.state.pageNum, this.state.pageSize)
+  }
 
   //导出
   onExport() {
@@ -686,11 +703,11 @@ class Category extends React.Component {
     this.onGetData(page, pageSize);
   }
 
-    // 操作日志--表单页码改变
-    onTablePageChangeJournal(page, pageSize) {
-        console.log("页码改变：", page, pageSize);
-        this.onGetDataJournal(page, pageSize);
-    }
+  // 操作日志--表单页码改变
+  onTablePageChangeJournal(page, pageSize) {
+    console.log("页码改变：", page, pageSize);
+    this.onGetDataJournal(page, pageSize);
+  }
 
   // 构建字段
   makeColumns() {
@@ -820,27 +837,35 @@ class Category extends React.Component {
     return columns;
   }
 
-    //构建字段 - 操作日志所对应列表
-    makeColumnsJournal(){
-        const columns = [
-            {
-                title: "订单号",
-            },
-            {
-                title:'操作',
-            },
-            {
-                title:'操作人',
-            },
-            {
-                title:'操作时间'
-            },
-            {
-                title:'审核不通过理由'
-            },
-        ]
-        return columns;
-    }
+  //构建字段 - 操作日志所对应列表
+  makeColumnsJournal(){
+    const columns = [
+      {
+        title: "订单号",
+        dataIndex:'orderId',
+        key:'orderId'
+      },
+      {
+        title:'操作',
+        dataIndex:'operation',
+        key:'operation'
+      },
+      {
+        title:'操作人',
+        dataIndex:'creator',
+        key:'creator'
+      },
+      {
+        title:'操作时间',
+        dataIndex:'createTime',
+        key:'createTime',
+      },
+      {
+        title:'审核理由'
+      },
+    ]
+    return columns;
+  }
 
   // 构建table所需数据
   makeData(data) {
@@ -892,21 +917,21 @@ class Category extends React.Component {
     });
   }
 
-    //操作日志 - table所需数据
-    makeDataJournal(data3) {
-        return data3.map((item, index) => {
-            return {
-                key: index,
-                addrId: item.addrId,
-                company: item.productType,
-                conditions: item.conditions,
-                username: item.username,
-                orderId: item.orderId,
-                reason: item.reason,
-                auditTime:item.auditTime,
-            };
-        });
-    }
+  //操作日志 - table所需数据
+  makeDataJournal(data2) {
+    return data2.map((item, index) => {
+      return {
+        key: index,
+        orderId: item.orderId,
+        company: item.productType,
+        conditions: item.conditions,
+        username: item.username,
+        operation: item.operation,
+        createTime: item.createTime,
+        creator:item.creator,
+      };
+    });
+  }
 
   render() {
     const me = this;
@@ -947,7 +972,7 @@ class Category extends React.Component {
     return (
         <div>
           <div className="system-search">
-            <Tabs type="card">
+            <Tabs type="card" onTabClick={()=>this.auditList()}>
               <TabPane tab="退款记录" key="1">
                 <div className="system-table">
                   <div className="system-table">
@@ -1108,7 +1133,7 @@ class Category extends React.Component {
                           搜索
                         </Button>
                       </li>
-                      <Button icon="download" type="primary" onClick={this.warning2}>
+                      <Button icon="download" type="primary" onClick={()=>this.onExport()}>
                         导出
                       </Button>
                     </ul>
@@ -1228,7 +1253,9 @@ class Category extends React.Component {
                         <span>订单号查询</span>
                         <Input
                             style={{ width: "172px" }}
-                            onChange={v => this.searchPartnerTradeNoChange(v)}
+                            onChange={v => this.searchOrderNoChange(v)}
+                            suffix={suffix}
+                            value={searchorderNo}
                         />
                       </li>
                       <li>
@@ -1239,8 +1266,9 @@ class Category extends React.Component {
                             style={{ width: "172px" }}
                             onChange={e => this.searchFlagChange(e)}
                         >
-                          <Option value={1}>审核通过</Option>
-                          <Option value={2}>审核不通过</Option>
+                          <Option value={'审核通过'}>审核通过</Option>
+                          <Option value={'审核不通过'}>审核不通过</Option>
+                          <Option value={'审核撤回'}>审核撤回</Option>
                         </Select>
                       </li>
                       <li>
@@ -1251,7 +1279,7 @@ class Category extends React.Component {
                             }}
                             format="YYYY-MM-DD HH:mm:ss"
                             placeholder="开始时间"
-                            // onChange={e => this.searchBeginTime(e)}
+                            onChange={e => this.searchOperationBegin(e)}
                             onOk={onOk}
                         />
                         --
@@ -1261,7 +1289,7 @@ class Category extends React.Component {
                             }}
                             format="YYYY-MM-DD HH:mm:ss"
                             placeholder="结束时间"
-                            // onChange={e => this.searchEndTime(e)}
+                            onChange={e => this.searchOperationEnd(e)}
                             onOk={onOk}
                         />
                       </li>
@@ -1287,7 +1315,7 @@ class Category extends React.Component {
                             showQuickJumper: true,
                             showTotal: (total, range) => `共 ${total} 条数据`,
                             onChange: (page, pageSize) =>
-                                this.onTablePageChangeJournal(page, pageSize)
+                              this.onTablePageChangeJournal(page, pageSize)
                         }}
                     />
                   </div>
@@ -1321,7 +1349,7 @@ export default connect(
   }),
   dispatch => ({
     actions: bindActionCreators(
-      { findProductTypeByWhere, onChange, onOk, refundList, refundAuditEgis },
+      { findProductTypeByWhere, onChange, onOk, refundList, refundAuditEgis ,AuditLog},
       dispatch
     )
   })

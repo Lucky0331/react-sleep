@@ -115,7 +115,7 @@ class Menus extends React.Component {
   makeTreeDom(data, key) {
     return data.map((item, index) => {
       const newKey = `${key}/${item.menuUrl.replace(/\//, "")}`;
-      console.log('key都是什么：', newKey);
+      // console.log('key都是什么：', newKey);
       if (item.children) {
         if(item.parentId === 0){
               return (

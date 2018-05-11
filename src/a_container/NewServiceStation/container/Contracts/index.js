@@ -5,21 +5,27 @@
 // ==================
 
 import React from "react";
-import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
+import {connect} from "react-redux";
+import {bindActionCreators} from "redux";
 import P from "prop-types";
+import moment from "moment";
 import Config from "../../../../config/config";
 import {
   Form,
   Button,
   Icon,
+  InputNumber,
   Popconfirm,
   Table,
+  DatePicker,
   message,
+  TimePicker,
+  Popover,
   Modal,
   Radio,
   Tooltip,
   Select,
+  Upload,
   Divider,
   Cascader,
   Input
@@ -27,7 +33,7 @@ import {
 import "./index.scss";
 import tools from "../../../../util/tools"; // 工具
 import Power from "../../../../util/power"; // 权限
-import { power } from "../../../../util/data";
+import {power} from "../../../../util/data";
 import _ from "lodash";
 // ==================
 // 所需的所有组件
@@ -47,20 +53,31 @@ import {
   addProductLine,
   updateProductLine,
   updateContract,
+  downContract,
   ContractList,
-  warning
+  updateStation,
+  findColumnCount,
+  addColumnCount,
+  warning,
+  deleteImage,
+  onOk
 } from "../../../../a_action/shop-action";
+import {recordCard} from "../../../../a_action/info-action";
 // ==================
 // Definition
 // ==================
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
 const Option = Select.Option;
+const { TextArea } = Input;
+const format = 'HH:mm';
+
 class Category extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       data: [], // 当前页面全部数据
+      data2:[],//栏目数据
       stations: [], // 当前省市区下面的服务站
       productModels: [], // 所有的产品型号
       searchTypeId: undefined, // 搜索 - 产品类型
@@ -69,24 +86,29 @@ class Category extends React.Component {
       searchStationName: [], // 搜索 - 服务站名称
       searchCompanyName: [], // 搜索 - 公司名称
       addOrUp: "add", // 当前操作是新增还是修改
-      upModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
+      upModalShow: false, // 修改承包信息录入模态框是否显示
       addnewLoading: false, // 是否正在添加新用户中
+      maskClose:false,//蒙层是否关闭
       nowData: null, // 当前选中用户的信息，用于查看详情、修改、分配菜单
+      addnewModalShow:false, //添加栏目时的弹窗
       queryModalShow: false, // 查看详情模态框是否显示
+      updateModalShow:false, //承包录入信息模态框是否显示
       pageNum: 1, // 当前第几页
       pageSize: 20, // 每页多少条
       total: 0, // 数据库总共多少条数据
-      citys: [] // 符合Cascader组件的城市数据
+      citys: [], // 符合Cascader组件的城市数据
+      fileList: [], // 服务站图片已上传的列表
+      fileListLan: [], // 自定义栏目图片已上传的列表
     };
   }
-
+  
   componentDidMount() {
     if (!this.props.citys.length) {
       // 获取所有省，全局缓存
       this.getAllCity0();
     } else {
       this.setState({
-        citys: this.props.citys.map((item, index) => ({
+        citys: this.props.citys.map((item,index) => ({
           id: item.id,
           value: item.areaName,
           label: item.areaName,
@@ -94,13 +116,14 @@ class Category extends React.Component {
         }))
       });
     }
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(this.state.pageNum,this.state.pageSize);
+    // this.onGetData2(this.state.pageNum,this.state.pageSize);
   }
-
+  
   componentWillReceiveProps(nextP) {
     if (nextP.citys !== this.props.citys) {
       this.setState({
-        citys: nextP.citys.map((item, index) => ({
+        citys: nextP.citys.map((item,index) => ({
           id: item.id,
           value: item.areaName,
           label: item.areaName,
@@ -109,7 +132,7 @@ class Category extends React.Component {
       });
     }
   }
-
+  
   // 工具 - 根据ID获取用户来源名字
   getNameByModelId(id) {
     switch (String(id)) {
@@ -123,51 +146,51 @@ class Category extends React.Component {
         return "";
     }
   }
-
+  
   //工具
-  getCity(s, c, q) {
+  getCity(s,c,q) {
     if (!s) {
       return " ";
     }
     return `${s}/${c}/${q}`;
   }
-
+  
   // 搜索 - 服务站地区输入框值改变时触发
   onSearchAddress(c) {
     this.setState({
       searchAddress: c
     });
   }
-
+  
   // 搜索 - 服务站名称关键字
   onSearchStationName(e) {
     this.setState({
       searchStationName: e.target.value
     });
   }
-
+  
   // 搜索 - 公司名称关键字
   onSearchCompanyName(e) {
     this.setState({
       searchCompanyName: e.target.value
     });
   }
-
+  
   //搜索 - 承包上下线状态输入框值改变时触发
   searchNameChange(e) {
     this.setState({
       searchContract: e
     });
   }
-
+  
   // 表单页码改变
-  onTablePageChange(page, pageSize) {
-    console.log("页码改变：", page, pageSize);
-    this.onGetData(page, pageSize);
+  onTablePageChange(page,pageSize) {
+    console.log("页码改变：",page,pageSize);
+    this.onGetData(page,pageSize);
   }
-
+  
   // 查询当前页面所需列表数据
-  onGetData(pageNum, pageSize) {
+  onGetData(pageNum,pageSize) {
     const params = {
       pageNum,
       pageSize,
@@ -191,15 +214,31 @@ class Category extends React.Component {
       }
     });
   }
-
+  
+  //栏目列表 数据
+  onGetData2(stationId) {
+    const params = {
+      stationId:this.state.nowData.id,
+    };
+    this.props.actions.findColumnCount(tools.clearNull(params)).then(res => {
+      if (res.returnCode === "0") {
+        this.setState({
+          data2: res.messsageBody.result || [],
+        });
+      } else {
+        message.error(res.returnMessaage || "获取数据失败，请重试");
+      }
+    });
+  }
+  
   // 获取所有的省
   getAllCity0() {
     this.props.actions.findAllProvince();
   }
-
+  
   // 获取某省下面的市
   getAllCitySon(selectedOptions) {
-    console.log("SSS", selectedOptions);
+    console.log("SSS",selectedOptions);
     const targetOption = selectedOptions[selectedOptions.length - 1];
     targetOption.loading = true;
     this.props.actions
@@ -208,7 +247,7 @@ class Category extends React.Component {
       })
       .then(res => {
         if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+          targetOption.children = res.messsageBody.map((item,index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -224,16 +263,194 @@ class Category extends React.Component {
         });
       });
   }
-
+  
+  // 添加新用户模态框出现
+  onAddColumnShow() {
+    const me = this;
+    const { form } = me.props;
+    form.resetFields(["addnewRoleName", "addnewRoleDuty"]);
+    this.setState({
+      addnewModalShow: true,
+      nowData: null
+    });
+  }
+  
+  // 添加新的确定
+  onAddColumnOk() {
+    const me = this;
+    const { form } = me.props;
+    form.validateFields(
+      [
+        "addnewColumnTitle",
+        "addnewColumntextContent",
+        "addnewImgs",
+      ],
+      (err, values) => {
+        if (err) {
+          return false;
+        }
+        me.setState({
+          addnewLoading: true
+        });
+        const params = {
+          title: values.addnewColumnTitle,
+          textContent: values.addnewColumntextContent,
+          imgs: this.state.fileListLan.map(item => item.url).join(",")
+        };
+        
+        me.props.actions
+          .addColumnCount(params)
+          .then(res => {
+            console.log("添加用户返回数据：", res);
+            me.setState({
+              addnewLoading: false
+            });
+            this.onGetData(this.state.pageNum, this.state.pageSize);
+            this.onAddColumnClose();
+          })
+          .catch(() => {
+            me.setState({
+              addnewLoading: false
+            });
+          });
+      }
+    );
+  }
+  
+  // 添加新用户取消
+  onAddColumnClose() {
+    this.setState({
+      addnewModalShow: false
+    });
+  }
+  
+  // 承包信息录入模态框出现
+  onAddNewShow(record) {
+    const me = this;
+    const { form } = me.props;
+    form.resetFields([
+      "addnewName",
+      "addnewMobile",
+      "addnewContractorIdentityNumber",
+      "addnewTime",
+      "addnewConditions"
+    ]);
+    this.setState({
+      addOrUp: "add",
+      updateModalShow: true,
+      nowData:record
+    });
+  }
+  
   // 承包或者不承包
-  onUpdateClick2(record) {
-    console.log("LO:", record.contract);
+  onAddNewOk(record) {
+    // console.log("id是什么:",record.id);
+    const me = this;
+    const { form } = me.props;
+    form.validateFields(
+      [
+        "addnewName",
+        "addnewMobile",
+        "addnewContractorIdentityNumber",
+        "addnewTime",
+        "addnewConditions",
+      ],
+      (err, values) => {
+        if (err) {
+          return false;
+        }
+        const params = {
+          stationId:Number(this.state.nowData.id),
+          contractorPhone:Number(values.addnewMobile),
+          contractTime: `${tools.dateToStr2(values.addnewTime._d)}`,
+          contractorIdentityNumber: String(values.addnewContractorIdentityNumber),
+          contractor:values.addnewName,
+        };
+        if (this.state.addOrUp === "add") {   //录入承包信息
+          me.props.actions
+            .updateContract(params)
+            .then(res => {
+              console.log("添加用户返回数据：",res);
+              me.setState({
+                addnewLoading: false
+              });
+              this.onGetData(this.state.pageNum,this.state.pageSize);
+              this.onAddNewClose();
+            })
+            .catch(() => {
+              me.setState({
+                addnewLoading: false
+              });
+            });
+          } else if (this.state.addOrUp === "up"){   //修改承包信息
+          params.id = this.state.nowData.id;
+          me.props.actions
+            .updateContract(params)
+            .then(res => {
+              me.setState({
+                addnewLoading: false
+              });
+              this.onGetData(this.state.pageNum,this.state.pageSize);
+              this.onAddNewClose();
+            })
+            .catch(() => {
+              me.setState({
+                addnewLoading: false
+              });
+            });
+        }
+      }
+    );
+    console.log('shishenme :',record)
+  }
+  
+  // 关闭模态框
+  onAddNewClose() {
+    this.setState({
+      updateModalShow: false
+    });
+  }
+  
+  // 录入信息模态框取消
+  onAddNewClose() {
+    this.setState({
+      updateModalShow: false
+    });
+  }
+  
+  
+// 搜索
+  onSearch() {
+    this.onGetData(1,this.state.pageSize);
+  }
+  // 导出
+  onExport() {
+    this.onGetData(this.state.pageNum,this.state.pageSize);
+  }
+  // 查询某一条数据的详情
+  onQueryClick(record) {
+    this.setState({
+      nowData: record,
+      id:record.id,
+      queryModalShow: true
+    });
+    console.log('是什么详情：',record)
+  }
+  
+  // 查看详情模态框关闭
+  onQueryModalClose() {
+    this.setState({
+      queryModalShow: false
+    });
+  }
+  
+  // 承包下线
+  onUpdateDown(record) {
     const params = {
-      stationId: Number(record.id),
-      contract: record.contract ? 1 : 0
+      id: Number(record.id)
     };
     this.props.actions
-      .updateContract(params)
+      .downContract(params)
       .then(res => {
         if (res.returnCode === "0") {
           message.success("修改成功");
@@ -246,38 +463,232 @@ class Category extends React.Component {
         message.error("修改失败");
       });
   }
-
-  // 搜索
-  onSearch() {
-    this.onGetData(1, this.state.pageSize);
-  }
-  // 导出
-  onExport() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
-  }
-
-  // 查询某一条数据的详情
-  onQueryClick(record) {
-    this.setState({
+  
+  // 修改某一条数据 模态框出现
+  onUpdateClick(record) {
+    const me = this;
+    const { form } = me.props;
+    console.log("是什么：", record);
+    form.setFieldsValue({
+      addnewName: record.name,
+      addnewTypeId: `${record.typeId}`,
+      addnewTypeCode: String(record.typeCode),
+      addnewOnShelf: record.onShelf ? "1" : "0",
+      addnewProductImg: record.productImg,
+      addnewDetailImg: record.detailImg,
+      addnewTimeLimitNum: record.timeLimitNum,
+      addnewTimeLimitType: record.timeLimitType,
+      addnewActivityType: record.activityType,
+      addnewMobile:record.contractorPhone,
+      addnewName:record.contractor,
+      addnewTime:record.contractTime,
+      addnewContractorIdentityNumber:record.contractorIdentityNumber,
+    });
+    console.log("是什么：", record);
+    me.setState({
+      addOrUp: "up",
       nowData: record,
-      queryModalShow: true
+      upModalShow: true,
+      code: record.typeId,
     });
   }
-
-  // 查看详情模态框关闭
-  onQueryModalClose() {
-    this.setState({
-      queryModalShow: false
-    });
+  
+  // 确定修改承包信息里的数据数据
+  onUpOk() {
+    const me = this;
+    const { form } = me.props;
+    form.validateFields(
+      [
+        "addnewRecommended",
+        "addnewEstablishedTime",
+        "addnewStoreArea",
+        "addnewEmployeeNum",
+        "addnewBusinesHoursStart",
+        "addnewBusinessHoursEnd",
+        "addnewImgs",
+      ],
+      (err, values) => {
+        if (err) {
+          return;
+        }
+        
+        me.setState({
+          upLoading: true
+        });
+        const params = {
+          id: me.state.nowData.id,
+          recommended: values.addnewRecommended,  // 是否推荐
+          imgs: this.state.fileList.map(item => item.url).join(","), //服务站图片
+          establishedTime: `${tools.dateToStr2(values.addnewEstablishedTime._d)}`, //成立时间
+          storeArea: values.addnewStoreArea,//门店规模
+          employeeNum: values.addnewEmployeeNum,//员工数量
+          businessHoursStart: `${tools.dateToStrHM(values.addnewBusinesHoursStart._d)}`,//营业开始时间
+          businessHoursEnd: `${tools.dateToStrHM(values.addnewBusinessHoursEnd._d)}`, //营业结束时间
+        };
+        
+      this.props.actions
+          .updateStation(params)
+          .then(res => {
+            if (res.returnCode === "0") {
+              message.success("修改成功");
+              this.onGetData(this.state.pageNum, this.state.pageSize);
+              this.onUpClose();
+            } else {
+              message.error(res.returnMessaage || "修改失败，请重试");
+            }
+            me.setState({
+              upLoading: false
+            });
+          })
+          .catch(() => {
+            me.setState({
+              upLoading: false
+            });
+          });
+      }
+    );
   }
-
-  // 关闭模态框
-  onAddNewClose() {
+  
+  // 关闭修改某一条数据
+  onUpClose() {
     this.setState({
       upModalShow: false
     });
   }
-
+  
+  // 服务站图片 - 上传中、上传成功、上传失败的回调
+  onUpLoadChange(obj) {
+    console.log("图片上传：", obj);
+    if (obj.file.status === "done") {
+      // 上传成功后调用,将新的地址加进原list
+      if (obj.file.response.messsageBody) {
+        const list = _.cloneDeep(this.state.fileList);
+        const t = list.find(item => item.uid === obj.file.uid);
+        t.url = obj.file.response.messsageBody;
+        this.setState({
+          fileList: list,
+          fileLoading: false
+        });
+      } else {
+        const list = _.cloneDeep(this.state.fileList);
+        this.setState({
+          fileList: list.filter(item => item.uid !== obj.file.uid),
+          fileLoading: false
+        });
+        message.error("图片上传失败");
+      }
+    } else if (obj.file.status === "uploading") {
+      this.setState({
+        fileLoading: true
+      });
+    } else if (obj.file.status === "error") {
+      const list = _.cloneDeep(this.state.fileList);
+      this.setState({
+        fileList: list.filter(item => item.uid !== obj.file.uid),
+        fileLoading: false
+      });
+      message.error("图片上传失败");
+    }
+  }
+  
+  // 服务站图片 - 上传前
+  onUploadBefore(f, fl) {
+    console.log("上传前：", f, fl);
+    if (
+        ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
+    ) {
+      message.error("只能上传jpg、jpeg、png、bmp、gif格式的图片");
+      return false;
+    } else {
+      const newList = _.cloneDeep(this.state.fileList);
+      newList.push(f);
+      this.setState({
+        fileList: newList
+      });
+      return true;
+    }
+  }
+  
+  // 服务站图片 - 删除一个图片
+  onUpLoadRemove(f) {
+    console.log("删除；", f);
+    this.deleteImg(f.url);
+    const list = _.cloneDeep(this.state.fileList);
+    this.setState({
+      fileList: list.filter(item => item.uid !== f.uid)
+    });
+  }
+  
+  // 真正从服务端删除商品的图片
+  deleteImg(uri) {
+    const temp = uri.split("/");
+    const fileName = temp.splice(-1, 1);
+    const params = {
+      path: temp.join("/"),
+      fileName
+    };
+    console.log("删除后的是啥？", temp.join("/"), fileName);
+    this.props.actions.deleteImage(params);
+  }
+  
+  // 列表封面图片 - 上传前
+  onUploadDetailBefore(f) {
+    if (
+        ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
+    ) {
+      message.error("只能上传jpg、jpeg、png、bmp、gif格式的图片");
+      return false;
+    } else {
+      const newList = _.cloneDeep(this.state.fileListLan);
+      newList.push(f);
+      this.setState({
+        fileListLan: newList
+      });
+      return true;
+    }
+  }
+  
+  // 列表封面图片 - 上传中、成功、失败
+  onUpLoadDetailChange(obj) {
+    if (obj.file.status === "done") {
+      // 上传成功后调用,将新的地址加进原list
+      if (obj.file.response.messsageBody) {
+        const list = _.cloneDeep(this.state.fileListLan);
+        const t = list.find(item => item.uid === obj.file.uid);
+        t.url = obj.file.response.messsageBody;
+        this.setState({
+          fileListLan: list,
+          fileDetailLoading: false
+        });
+      } else {
+        const list = _.cloneDeep(this.state.fileListLan);
+        this.setState({
+          fileListLan: list.filter(item => item.uid !== obj.file.uid),
+          fileDetailLoading: false
+        });
+      }
+    } else if (obj.file.status === "uploading") {
+      this.setState({
+        fileDetailLoading: true
+      });
+    } else if (obj.file.status === "error") {
+      const list = _.cloneDeep(this.state.fileListLan);
+      this.setState({
+        fileListLan: list.filter(item => item.uid !== obj.file.uid),
+        fileLoading: false
+      });
+      message.error("图片上传失败");
+    }
+  }
+  
+  // 列表封面图片 - 删除
+  onUpLoadDetailRemove(f) {
+    const list = _.cloneDeep(this.state.fileListLan);
+    this.setState({
+      fileListLan: list.filter(item => item.uid !== f.uid)
+    });
+  }
+  
   // 构建字段
   makeColumns() {
     const columns = [
@@ -285,14 +696,6 @@ class Category extends React.Component {
         title: "序号",
         dataIndex: "serial",
         key: "serial"
-      },
-      {
-        title: "服务站地区",
-        dataIndex: "station.city",
-        key: "station.city",
-        render: (text, record) => {
-          return `${record.province}/${record.city}/${record.region}`;
-        }
       },
       {
         title: "服务站名称",
@@ -305,42 +708,58 @@ class Category extends React.Component {
         key: "companyName"
       },
       {
-        title: "联系人",
-        dataIndex: "person",
-        key: "person"
+        title:'省',
+        dataIndex:'province',
+        key:'province'
       },
       {
-        title: "联系方式",
-        dataIndex: "phone",
-        key: "phone"
+        title:'市',
+        dataIndex:'city',
+        key:'key'
       },
       {
-        title: "上线时间",
-        dataIndex: "createTime",
-        key: "createTime"
+        title:'区',
+        dataIndex:'region',
+        key:'region'
       },
       {
-        title: "承包时间",
-        dataIndex: "contractTime",
-        key: "contractTime"
-      },
-      {
-        title: "状态",
+        title: "承包状态",
         dataIndex: "contract",
         key: "contract",
         render: text =>
           String(text) === "true" ? (
-            <span style={{ color: "green" }}>已承包</span>
+            <span style={{color: "green"}}>已承包</span>
           ) : (
-            <span style={{ color: "red" }}>未承包</span>
+            <span style={{color: "red"}}>未承包</span>
           )
+      },
+      {
+        title: "产品上线状态",
+        // dataIndex: "contract",
+        // key: "contract",
+        // render: text =>
+        //   String(text) === "true" ? (
+        //     <span style={{color: "green"}}>已上线</span>
+        //   ) : (
+        //     <span style={{color: "red"}}>未上线</span>
+        //   )
+      },
+      {
+        title: "是否推荐",
+        dataIndex: "recommended",
+        key: "recommended",
+        render: text =>
+          Boolean(text) === true ? (
+           <span style={{color: "green"}}>是</span>
+        ) : (
+           <span style={{color: "red"}}>否</span>
+        )
       },
       {
         title: "操作",
         key: "control",
-        render: (text, record) => {
+        render: (text,record) => {
           const controls = [];
-
           controls.push(
             <span
               key="0"
@@ -348,47 +767,45 @@ class Category extends React.Component {
               onClick={() => this.onQueryClick(record)}
             >
               <Tooltip placement="top" title="查看">
-                <Icon type="eye" />
+                <Icon type="eye"/>
               </Tooltip>
             </span>
           );
-          record.contract === false &&
-            controls.push(
-              <Popconfirm
-                key="1"
-                title="确定上线吗?"
-                onConfirm={() => this.onUpdateClick2(record)}
-                okText="确定"
-                cancelText="取消"
-              >
-                <span className="control-btn blue">
-                  <Tooltip placement="top" title="承包上线">
-                    <Icon type="caret-up" />
-                  </Tooltip>
-                </span>
-              </Popconfirm>
-            );
           record.contract === true &&
-            controls.push(
-              <Popconfirm
-                key="2"
-                title="确定下线吗?"
-                onConfirm={() => this.onUpdateClick2(record)}
-                okText="确定"
-                cancelText="取消"
-              >
-                <span className="control-btn red">
-                  <Tooltip placement="top" title="承包下线">
-                    <Icon type="caret-down" />
-                  </Tooltip>
-                </span>
-              </Popconfirm>
-            );
-
+          controls.push(
+            <span className="control-btn blue" onClick={() => this.onAddNewShow(record)}>
+              <Tooltip placement="top" title="修改承包信息">
+                <Icon type="setting"/>
+              </Tooltip>
+           </span>
+          );
+          record.contract === false &&
+          controls.push(
+            <span className="control-btn blue" onClick={() => this.onAddNewShow(record)}>
+              <Tooltip placement="top" title="承包上线">
+                <Icon type="caret-up"/>
+              </Tooltip>
+            </span>
+          );
+          record.contract === true &&
+          controls.push(
+            <span className="control-btn red">
+              <Tooltip placement="top" title="承包下线" onClick={() => this.onUpdateDown(record)}>
+                <Icon type="caret-down"/>
+              </Tooltip>
+            </span>
+          );
+          controls.push(
+            <span className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
+            <Tooltip placement="top" title="编辑">
+              <Icon type="edit"/>
+            </Tooltip>
+          </span>
+          );
           const result = [];
-          controls.forEach((item, index) => {
+          controls.forEach((item,index) => {
             if (index) {
-              result.push(<Divider type="vertical" key={`line${index}`} />);
+              result.push(<Divider type="vertical" key={`line${index}`}/>);
             }
             result.push(item);
           });
@@ -398,11 +815,93 @@ class Category extends React.Component {
     ];
     return columns;
   }
-
+  
+  //添加栏目信息
+  makeColumnsSmall(){
+    const columns = [
+      {
+        title: "栏目标题",
+        dataIndex: "title",
+        key: "title"
+      },
+      {
+        title: "栏目文本",
+        dataIndex: "textContent",
+        key: "textContent"
+      },
+      {
+        title: "栏目图片",
+        dataIndex: "imgs",
+        key: "imgs",
+        render: (text, index) => {
+          if (text) {
+            const img = text.split(",");
+            return (
+              <Popover
+                key={index}
+                placement="right"
+                content={<img className="table-img-big" src={img[0]} />}
+              >
+                <img className="table-img" src={img[0]} />
+              </Popover>
+            );
+          }
+          return "";
+        }
+      },
+      {
+        title: "操作",
+        key: "control",
+        width: 200,
+        render: (text, record) => {
+          const controls = [];
+          controls.push(
+              <span
+                  key="1"
+                  className="control-btn blue"
+                  onClick={() => this.onUpdateClick(record)}
+              >
+              <Tooltip placement="top" title="编辑">
+                <Icon type="edit" />
+              </Tooltip>
+            </span>
+          );
+          controls.push(
+              <Popconfirm
+                  key="3"
+                  title="确定删除吗?"
+                  onConfirm={() => this.onDeleteClick(record.id)}
+                  okText="确定"
+                  cancelText="取消"
+              >
+              <span className="control-btn red">
+                <Tooltip placement="top" title="删除">
+                  <Icon type="delete" />
+                </Tooltip>
+              </span>
+              </Popconfirm>
+          );
+        
+          const result = [];
+          controls.forEach((item, index) => {
+            if (index) {
+              result.push(
+                  <span key={`line${index}`} className="ant-divider" />
+              );
+            }
+            result.push(item);
+          });
+          return result;
+        }
+      }
+    ];
+    return columns;
+  }
+  
   // 构建table所需数据
   makeData(data) {
-    console.log("data是个啥：", data);
-    return data.map((item, index) => {
+    console.log("data是个啥：",data);
+    return data.map((item,index) => {
       return {
         key: index,
         id: item.id,
@@ -417,6 +916,7 @@ class Category extends React.Component {
         station: item.station,
         name: item.name,
         person: item.person,
+        recommended:item.recommended,
         phone: item.phone,
         companyName: item.companyName,
         stationTel: item.stationTel,
@@ -427,41 +927,70 @@ class Category extends React.Component {
         state: item.state,
         contract: item.contract,
         deviceStatus: item.deviceStatus,
-        contractTime: item.contractTime,
+        contractTime: item.stationContractRecord ? item.stationContractRecord.contractTime : '',
+        contractor:item.stationContractRecord ? item.stationContractRecord.contractor : '',
+        contractorPhone:item.stationContractRecord ? item.stationContractRecord.contractorPhone :'',
+        contractorIdentityNumber:item.stationContractRecord ? item.stationContractRecord.contractorIdentityNumber : '',
         createTime: item.createTime,
         productType: item.productType
       };
     });
   }
-
+  
+  // 构建table所需数据
+  makeData2(data2) {
+    return data2.map((item,index) => {
+      return {
+        key: index,
+        id: item.id,
+        address: item.address,
+        province: item.province,
+        typeId: item.typeId,
+        station: item.station,
+      };
+    });
+  }
+  
   render() {
     const me = this;
-    const { form } = me.props;
-    const { getFieldDecorator } = form;
+    const {form} = me.props;
+    const {getFieldDecorator} = form;
     const formItemLayout = {
       labelCol: {
-        xs: { span: 24 },
-        sm: { span: 8 }
+        xs: {span: 24},
+        sm: {span: 8}
       },
       wrapperCol: {
-        xs: { span: 24 },
-        sm: { span: 16 }
+        xs: {span: 24},
+        sm: {span: 16}
       }
-    };
-    console.log("是啥：", this.state.pageNum);
-    return (
-      <div style={{ width: "100%" }}>
+  };
+  const formItemLayout2 = {
+    labelCol: {
+      xs: {span: 24},
+      sm: {span: 8}
+    },
+    wrapperCol: {
+      xs: {span: 24},
+      sm: {span: 16}
+    }
+  };
+  
+  const formItemLayout3 = {
+    labelCol: {
+      xs: {span: 24},
+      sm: {span: 5}
+    },
+    wrapperCol: {
+      xs: {span: 24},
+      sm: {span: 19}
+    }
+  }
+  console.log("是啥：",this.state.pageNum);
+  return (
+      <div style={{width: "100%"}}>
         <div className="system-search">
           <ul className="search-ul">
-            <li style={{ marginRight: "20px" }}>
-              <span style={{ marginRight: "10px" }}>服务站地区</span>
-              <Cascader
-                placeholder="请选择服务区域"
-                onChange={v => this.onSearchAddress(v)}
-                options={this.state.citys}
-                loadData={e => this.getAllCitySon(e)}
-              />
-            </li>
             <li>
               <span>服务站名称</span>
               <Input
@@ -486,38 +1015,58 @@ class Category extends React.Component {
                 onChange={e => this.onSearchCompanyName(e)}
               />
             </li>
+            <li style={{marginRight: "20px"}}>
+              <span style={{marginRight: "10px"}}>服务站地区</span>
+              <Cascader
+                placeholder="请选择服务区域"
+                onChange={v => this.onSearchAddress(v)}
+                options={this.state.citys}
+                loadData={e => this.getAllCitySon(e)}
+              />
+            </li>
             <li>
-              <span style={{ marginRight: "10px" }}>状态</span>
+              <span style={{marginRight: "10px"}}>承包状态</span>
               <Select
                 placeholder="全部"
                 allowClear
-                style={{ width: "120px", marginRight: "25px" }}
+                style={{width: "120px",marginRight: "25px"}}
                 onChange={e => this.searchNameChange(e)}
               >
                 <Option value={0}>未承包</Option>
                 <Option value={1}>已承包</Option>
               </Select>
             </li>
-            <li style={{ width: "80px", marginRight: "15px" }}>
+            <li>
+              <span style={{marginRight: "10px"}}>产品上线状态</span>
+              <Select
+                placeholder="全部"
+                allowClear
+                style={{width: "120px",marginRight: "25px"}}
+                // onChange={e => this.searchNameChange(e)}
+              >
+                <Option value={0}>已上线</Option>
+                <Option value={1}>未上线</Option>
+              </Select>
+            </li>
+            <li>
+              <span style={{marginRight: "10px"}}>是否推荐</span>
+              <Select
+                placeholder="全部"
+                allowClear
+                style={{width: "120px",marginRight: "25px"}}
+                // onChange={e => this.searchNameChange(e)}
+              >
+                <Option value={0}>是</Option>
+                <Option value={1}>否</Option>
+              </Select>
+            </li>
+            <li style={{width: "80px",marginRight: "15px"}}>
               <Button
                 type="primary"
                 icon="search"
                 onClick={() => this.onSearch()}
               >
                 搜索
-              </Button>
-            </li>
-            <li>
-              <Button
-                icon="download"
-                style={{
-                  color: "#fff",
-                  backgroundColor: "#108ee9",
-                  borderColor: "#108ee9"
-                }}
-                onClick={warning}
-              >
-                导出
               </Button>
             </li>
           </ul>
@@ -532,12 +1081,84 @@ class Category extends React.Component {
               current: this.state.pageNum,
               pageSize: this.state.pageSize,
               showQuickJumper: true,
-              showTotal: (total, range) => `共 ${total} 条数据`,
-              onChange: (page, pageSize) =>
-                this.onTablePageChange(page, pageSize)
+              showTotal: (total,range) => `共 ${total} 条数据`,
+              onChange: (page,pageSize) =>
+                this.onTablePageChange(page,pageSize)
             }}
           />
         </div>
+        {/*承包上线信息录入模态框*/}
+        <Modal
+          title={this.state.addOrUp === "add" ? "承包相关信息" : "承包相关信息"}
+          visible={this.state.updateModalShow}
+          onOk={()=>this.onAddNewOk()}
+          onCancel={() => this.onAddNewClose()}
+          maskClosable={this.state.maskClose}
+        >
+          <Form>
+            <FormItem label="承包时间" {...formItemLayout}>
+              {getFieldDecorator("addnewTime", {
+                initialValue: undefined,
+                rules: [
+                  {required: true},
+                ]
+              })(<DatePicker
+                  showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                  format="YYYY-MM-DD HH:mm:ss"
+                  placeholder="录入时间"
+                  onOk={onOk}
+              />)}
+            </FormItem>
+            <FormItem label="承包人姓名" {...formItemLayout}>
+             {getFieldDecorator("addnewName", {
+               initialValue: undefined,
+               rules: [
+                { required: true, message: "请输入承包人姓名" },
+                {
+                   validator: (rule, value, callback) => {
+                     const v = tools.trim(value);
+                     if (v) {
+                       if (v.length > 8) {
+                         callback("最多输入8个字");
+                       }
+                     }
+                     callback();
+                   }
+                 }
+               ]
+             })(<Input placeholder="请输入承包人姓名" />)}
+            </FormItem>
+            <FormItem label="承包人手机号" {...formItemLayout}>
+              {getFieldDecorator("addnewMobile", {
+                initialValue: undefined,
+                rules: [
+                  { required: true, message: "请输入承包人手机号" },
+                  {
+                    validator: (rule, value, callback) => {
+                      if (!tools.checkPhone(value)) {
+                        callback("请输入正确的承包人手机号");
+                      }
+                      callback();
+                    }
+                  }
+                ]
+              })(<Input placeholder="请输入承包人手机号" />)}
+            </FormItem>
+            <FormItem label="承包人身份证号" {...formItemLayout}>
+              {getFieldDecorator("addnewContractorIdentityNumber", {
+                initialValue: undefined,
+                rules: [
+                  {
+                    required: true,
+                    whitespace: true,
+                    message: "请输入承包人身份证"
+                  },
+                  { max: 18, message: "最多输入18位字符" }
+                ]
+              })(<Input placeholder="请输入承包人身份证号" />)}
+            </FormItem>
+          </Form>
+        </Modal>
         {/* 查看详情模态框 */}
         <Modal
           title="查看详情"
@@ -546,23 +1167,20 @@ class Category extends React.Component {
           onCancel={() => this.onQueryModalClose()}
         >
           <Form>
-            <FormItem label="服务站地区" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getCity(
-                    this.state.nowData.province,
-                    this.state.nowData.city,
-                    this.state.nowData.region
-                  )
-                : ""}
-            </FormItem>
             <FormItem label="服务站名称" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.name : ""}
             </FormItem>
             <FormItem label="公司名称" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.companyName : ""}
             </FormItem>
-            <FormItem label="站长名称" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.person : ""}
+            <FormItem label="省" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.province : ""}
+            </FormItem>
+            <FormItem label="市" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.city : ""}
+            </FormItem>
+            <FormItem label="区" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.region : ""}
             </FormItem>
             <FormItem label="联系方式" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.phone : ""}
@@ -575,16 +1193,255 @@ class Category extends React.Component {
             </FormItem>
             <FormItem label="状态" {...formItemLayout}>
               {!!this.state.nowData ? (
-                String(this.state.nowData.contract) === "true" ? (
-                  <span style={{ color: "green" }}>已承包</span>
+                Boolean(this.state.nowData.contract) === true ? (
+                  <span style={{color: "green"}}>已承包</span>
                 ) : (
-                  <span style={{ color: "red" }}>未承包</span>
+                  <span style={{color: "red"}}>未承包</span>
                 )
               ) : (
                 ""
               )}
             </FormItem>
           </Form>
+        </Modal>
+        {/* 添加角色模态框 */}
+        <Modal
+          title="添加栏目"
+          visible={this.state.addnewModalShow}
+          onOk={() => this.onAddColumnOk()}
+          onCancel={() => this.onAddColumnClose()}
+          confirmLoading={this.state.addnewLoading}
+        >
+          <Form>
+            <FormItem label="栏目标题" {...formItemLayout}>
+              {getFieldDecorator("addnewColumnTitle", {
+                initialValue: undefined,
+                rules: [
+                  {
+                    whitespace: true,
+                    message: "请输入栏目标题"
+                  },
+                  {
+                    validator: (rule, value, callback) => {
+                      const v = tools.trim(value);
+                      if (v) {
+                        if (v.length > 12) {
+                          callback("最多输入12位字符");
+                        }
+                      }
+                      callback();
+                    }
+                  }
+                ]
+              })(<Input placeholder="请输入栏目标题" />)}
+            </FormItem>
+            <FormItem label="栏目文本" {...formItemLayout}>
+              {getFieldDecorator("addnewColumntextContent", {
+                initialValue: undefined,
+                rules: [
+                  {
+                    whitespace: true,message: "请输入栏目文本"
+                  },
+                  {
+                    validator: (rule, value, callback) => {
+                      const v = tools.trim(value);
+                      if (v) {
+                        if (v.length > 12) {
+                          callback("最多输入12位字符");
+                        }
+                      }
+                      callback();
+                    }
+                  }
+                ]
+              })(<Input placeholder="请输入APP前台展示名称" />)}
+            </FormItem>
+            <FormItem label="栏目图片" {...formItemLayout}>
+              {getFieldDecorator("addnewImgs", {
+              })(
+              <Upload
+                name="pImg"
+                action={`${Config.baseURL}/manager/station/uploadImage`}
+                listType="picture-card"
+                withCredentials={true}
+                fileList={this.state.fileListDetail}
+                beforeUpload={(f, fl) => this.onUploadDetailBefore(f, fl)}
+                onChange={f => this.onUpLoadDetailChange(f)}
+                onRemove={f => this.onUpLoadDetailRemove(f)}
+              >
+                {this.state.fileListLan.length >= 1 ? null : (
+                  <div>
+                    <Icon type="plus" />
+                    <div className="ant-upload-text">选择文件</div>
+                  </div>
+                )}
+              </Upload>
+              )}
+            </FormItem>
+          </Form>
+        </Modal>
+        {/* 修改承包信息录入模态框 */}
+        <Modal
+          title="修改承包信息"
+          visible={this.state.upModalShow}
+          onOk={() => this.onUpOk()}
+          onCancel={() => this.onUpClose()}
+          wrapClassName={"codNum"}
+          width={"1000px"}
+          maskClosable={this.state.maskClose}
+          confirmLoading={this.state.addnewLoading}
+        >
+          <div className="system-table" style={{width:'-webkit-fill-available', display: 'inline-flex',border:'none',padding:'0px 0px 10px 70px',boxShadow:'4px 4px 10px #888888'}}>
+          <Form style={{float:'left',width:'290px'}} className={"FormList"}>
+            <FormItem label="服务站名称" {...formItemLayout2} >
+              {!!this.state.nowData ? this.state.nowData.name : ""}
+            </FormItem>
+            <FormItem label="省" {...formItemLayout2}>
+              {!!this.state.nowData ? this.state.nowData.province : ""}
+            </FormItem>
+            <FormItem label="区" {...formItemLayout2}>
+              {!!this.state.nowData ? this.state.nowData.region : ""}
+            </FormItem>
+            <FormItem label="联系方式" {...formItemLayout2}>
+              {!!this.state.nowData ? this.state.nowData.phone : ""}
+            </FormItem>
+            <FormItem label="产品上线状态" {...formItemLayout2}>
+              {/*{!!this.state.nowData ? this.state.nowData.  : ""}*/}
+            </FormItem>
+            <FormItem label="承包时间" {...formItemLayout2}>
+              {!!this.state.nowData ? this.state.nowData.contractTime : ""}
+            </FormItem>
+            <FormItem label="承包人手机号" {...formItemLayout2}>
+              {!!this.state.nowData ? this.state.nowData.contractorPhone : ""}
+            </FormItem>
+          </Form>
+          <Form style={{float:'right',width:'290px'}} className={"FormList"}>
+            <FormItem label="公司名称" {...formItemLayout2}>
+              {!!this.state.nowData ? this.state.nowData.companyName : ""}
+            </FormItem>
+            <FormItem label="市" {...formItemLayout2}>
+              {!!this.state.nowData ? this.state.nowData.city : ""}
+            </FormItem>
+            <FormItem label="联系人" {...formItemLayout2}>
+              {/*{!!this.state.nowData ? this.state.nowData.city : ""}*/}
+            </FormItem>
+            <FormItem label="上线时间" {...formItemLayout2}>
+              {!!this.state.nowData ? this.state.nowData.createTime : ""}
+            </FormItem>
+            <FormItem label="承包状态" {...formItemLayout2}>
+              {!!this.state.nowData ? (
+                  Boolean(this.state.nowData.contract) === true ? (
+                    <span style={{color: "green"}}>已承包</span>
+                  ) : (
+                    <span style={{color: "red"}}>未承包</span>
+                  )
+              ) : (
+                  ""
+              )}
+            </FormItem>
+            <FormItem label="承包人姓名" {...formItemLayout} >
+              {!!this.state.nowData ? this.state.nowData.contractor : ""}
+            </FormItem>
+            <FormItem label="承包人身份证号" {...formItemLayout} labelCol={{ span: 11 }}>
+              {!!this.state.nowData ? this.state.nowData.contractorIdentityNumber : ""}
+            </FormItem>
+          </Form>
+         </div>
+          <div className="system-table" style={{width:'525px',padding:'20px 0px 0px 70px'}}>
+            <Form>
+              <FormItem label="是否推荐" {...formItemLayout3}>
+                {getFieldDecorator("addnewRecommended", {
+                  initialValue: undefined,
+                  rules: [{ required: true, message: "请选择是否推荐" }]
+                })(
+                  <Select placeholder="请选择是否推荐">
+                    <Option value={0}>否</Option>
+                    <Option value={1}>是</Option>
+                  </Select>
+                )}
+              </FormItem>
+              <FormItem label="服务站图片上传(最多3张)" {...formItemLayout3} labelCol={{ span: 10 }} wrapperCol={{ span: 16 }}>
+                <Upload
+                  name="pImg"
+                  action={`${Config.baseURL}/manager/station/uploadImage`}
+                  listType="picture-card"
+                  withCredentials={true}
+                  fileList={this.state.fileList}
+                  beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
+                  onChange={f => this.onUpLoadChange(f)}
+                  onRemove={f => this.onUpLoadRemove(f)}
+                >
+                  {this.state.fileList.length >= 3 ? null : (
+                    <div>
+                      <Icon type="plus" />
+                      <div className="ant-upload-text">选择文件</div>
+                    </div>
+                  )}
+                </Upload>
+              </FormItem>
+              <FormItem label="营业时间" {...formItemLayout3} labelCol={{ span: 5 }} wrapperCol={{ span: 18 }}>
+                {getFieldDecorator("addnewBusinesHoursStart", {
+                  initialValue: undefined,
+                  rules: [
+                    {required: true},
+                ]
+                })(<TimePicker placeholder="开始时间" format={format} />)}--
+                {getFieldDecorator("addnewBusinessHoursEnd", {
+                  initialValue: undefined,
+                  rules: [
+                    {required: true},
+                ]
+                })(<TimePicker placeholder="结束时间" format={format} />)}
+              </FormItem>
+              <FormItem label="成立时间" {...formItemLayout3}>
+                {getFieldDecorator("addnewEstablishedTime", {
+                  initialValue: undefined,
+                  rules: [
+                    {required: true},
+                ]
+                })(<DatePicker
+                    showTime={{ defaultValue: moment }}
+                    format="YYYY-MM-DD HH:mm:ss"
+                    placeholder="成立时间"
+                    onOk={onOk}
+                />)}
+              </FormItem>
+              <FormItem label="门店规模" {...formItemLayout3}>
+                {getFieldDecorator("addnewStoreArea", {
+                  initialValue: undefined,
+                  rules: [{ required: true, message: "请输入门店规模" }]
+                })(<InputNumber placeholder="请输入门店规模" style={{width:'172px'}}/> )}
+              </FormItem>
+              <FormItem label="员工数量" {...formItemLayout3}>
+                {getFieldDecorator("addnewEmployeeNum", {
+                  initialValue: undefined,
+                  rules: [{ required: true, message: "请输入员工数量" }]
+                })(<InputNumber placeholder="请输入员工数量" style={{width:'172px'}}/>)}
+              </FormItem>
+              <FormItem label="自定义栏目" {...formItemLayout3} style={{width:'800px',height:'230px'}}>
+                {getFieldDecorator("addnewCount", {
+                  initialValue: undefined,
+                })(
+                 <div>
+                    <Button
+                        icon="plus-circle-o"
+                        type="primary"
+                        onClick={() => this.onAddColumnShow()}
+                    >
+                      添加栏目
+                    </Button>
+                    <div className="system-table">
+                      <Table
+                        columns={this.makeColumnsSmall()}
+                        dataSource={this.makeData2(this.state.data2)}
+                        width={{ x: 900 }}
+                      />
+                    </div>
+                 </div>
+                )}
+              </FormItem>
+            </Form>
+          </div>
         </Modal>
       </div>
     );
@@ -619,10 +1476,16 @@ export default connect(
         findStationByArea,
         updateProductLine,
         updateContract,
+        downContract,
         ContractList,
+        updateStation,
+        addColumnCount,
         findProductLine,
         addProductLine,
-        warning
+        findColumnCount,
+        warning,
+        onOk,
+        deleteImage
       },
       dispatch
     )

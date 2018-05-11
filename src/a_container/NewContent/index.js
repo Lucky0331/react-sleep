@@ -19,6 +19,7 @@ import Banner from "./container/Banner";
 import Cardlist from "./container/Cardlist";
 import Column from "./container/Column";
 import Release from "./container/Release";
+import Activity from "./container/Activity";
 
 // ==================
 // 本页面所需action
@@ -63,13 +64,18 @@ class TheContainer extends React.Component {
           />
           <Route
             exact
-            path={`${this.props.match.path}/consulting/Column`}
+            path={`${this.props.match.path}/consulting/Column`}   //直播栏目
             component={Column}
           />
           <Route
             exact
-            path={`${this.props.match.path}/consulting/Release`}
+            path={`${this.props.match.path}/consulting/Release`}  //直播列表
             component={Release}
+          />
+          <Route
+            exact
+            path={`${this.props.match.path}/activity`}
+            component={Activity}
           />
         </Switch>
       </div>

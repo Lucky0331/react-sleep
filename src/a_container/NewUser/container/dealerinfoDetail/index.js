@@ -341,23 +341,24 @@ class Manager extends React.Component {
 
     return (
       <div style={{width:'100%'}}>
+        <div className="detailsome">
         <div className="top">
-          <span style={{marginLeft:'20px',fontSize:'20px'}}>详情</span>
+          <a href="#/usermanage/dealerinfo" className="title" >经销商信息管理</a>
           <Tooltip>
-            <Icon
-             type="left"
-              style={{
-               color: "black",
-               marginTop: "5px",
-               marginLeft: "3px",
-               fontSize: "17px"
-                }}
-            />
+          <Icon
+            type="right"
+            style={{
+              color: "black",
+              marginTop: "5px",
+              marginLeft: "3px",
+              fontSize: "17px"
+            }}
+          />
           </Tooltip>
-          <a href="#/usermanage/dealerinfo" style={{fontSize:'20px',color:'#798AE0',marginLeft:'5px',borderBottom:'2px solid #798AE0'}} >经销商信息管理</a>
+          <span style={{fontSize:'20px',color:'#798ae0'}}>详情</span>
         </div>
-        <div className="system-table" style={{ display: 'inline-flex',borderColor:'#798AE0',padding:'10px 0px 10px 70px',marginLeft:'390px'}}>
-          <Form style={{float:'left',width:'350px'}}>
+        <div className="system-table" style={{ display: 'inline-flex',border:'none',padding:'10px 0px 10px 70px'}}>
+          <Form style={{float:'left',width:'320px'}}>
             <FormItem label="经销商id" {...formItemLayout} style={{paddingLeft:'29px'}}>
               <span style={{marginLeft:'-13px'}}>{ this.props.detail.mid2} </span>
             </FormItem>
@@ -389,7 +390,7 @@ class Manager extends React.Component {
               <span style={{marginLeft:'6px'}}>{ this.props.detail.city2} </span>
             </FormItem>
           </Form>
-          <Form style={{float:'right',width:'350px'}}>
+          <Form style={{float:'right',width:'320px'}}>
             <FormItem label="经销商昵称" {...formItemLayout} style={{paddingLeft:'12px'}}>
               <span style={{marginLeft:'-7px'}}>{ this.props.detail.nickName2 } </span>
             </FormItem>
@@ -419,6 +420,7 @@ class Manager extends React.Component {
             </FormItem>
           </Form>
         </div>
+       </div>
       </div>
     );
   }

@@ -80,3 +80,42 @@ export function UpdateOnline(params = {}) {
       });
   };
 }
+
+//直播视频列表
+export function LiveVideo(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/live/list", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//发布或取消视频
+export function UpdateVideo(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/live/outOff", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//删除视频
+export function DeleteVideo(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/live/delete", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}

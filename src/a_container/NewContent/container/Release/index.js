@@ -9,6 +9,7 @@ import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import P from "prop-types";
 import Config from "../../../../config/config";
+import moment from "moment";
 import {
   Form,
   Button,
@@ -21,6 +22,7 @@ import {
   Popconfirm,
   Select,
   Divider,
+  DatePicker,
   Popover,
   InputNumber,
   Upload
@@ -43,14 +45,15 @@ import {
   onOk,
   advertPositionList,
   findProductModelByWhere,
-  findProductTypeByWhere
+  findProductTypeByWhere,
+  findProductByWhere,
 } from "../../../../a_action/shop-action";
 import {
-  Cardlist,
-  deleteCard,
+  LiveVideo,
+  DeleteVideo,
   addCard,
   UpdateCard,
-  UpdateOnline
+  UpdateVideo
 } from "../../../../a_action/card-action";
 
 // ==================
@@ -64,6 +67,8 @@ class Category extends React.Component {
     this.state = {
       data: [], // 当前页面全部数据
       productTypes: [], //所有的产品类型
+      productModels:[] ,//所有推荐产品型号
+      classifyOne:[],  //所有的一级分类
       titleList: [], // 所有的标题位置
       titles: [], //所有的标题
       searchTitle: "", //搜索 - 标题
@@ -72,9 +77,9 @@ class Category extends React.Component {
       nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
       addnewModalShow: false, // 查看地区模态框是否显示
       upModalShow: false, // 修改模态框是否显示
+      searchLiveStatus:'', //搜索 - 标签
       upLoading: false, // 是否正在修改用户中
-      fileList: [], // 代言卡上传的列表
-      fileListDetail: [], //背景图上传列表
+      fileList: [], // 封面图上传的列表
       fileLoading: false, // 缩略图片正在上传
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
@@ -83,8 +88,7 @@ class Category extends React.Component {
   }
 
   componentDidMount() {
-    this.getAllAdvertPosition(); // 获取所有代言卡列表
-    this.getAllProductType(); // 获取所有的产品类型
+    this.getAllProductModel(); // 获取所有的产品型号
     this.onGetData(this.state.pageNum, this.state.pageSize);
   }
 
@@ -93,51 +97,27 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      deleteStatus: this.state.searchDeleteStatus,
+      liveStatus: this.state.searchLiveStatus,  //查询标签
       title: this.state.searchTitle,
       productTypeCode: this.state.searchTypeCode
     };
-    this.props.actions.Cardlist(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.data.result);
-      if (res.status === 200) {
+    this.props.actions.LiveVideo(tools.clearNull(params)).then(res => {
+      console.log("返回的什么：", res.messsageBody.result);
+      if (res.returnCode === '0') {
         this.setState({
-          data: res.data.result || [],
+          data: res.messsageBody.result || [],
           pageNum,
           pageSize,
-          total: res.data.total || []
+          // classifyOne:res.messsageBody.result[].liveType || '',
+          total: res.messsageBody.total || []
         });
       } else {
         message.error(res.returnMessaage || "获取数据失败，请重试");
       }
-      console.log("啥代言卡信息：", res.data.result);
+      // console.log("直播列表一级分类：", res.messsageBody.result.liveType);
     });
   }
-
-  // 获取代言卡信息
-  getAllAdvertPosition() {
-    this.props.actions
-      .advertPositionList({ pageNum: 0, pageSize: 10 })
-      .then(res => {
-        if (res.returnCode === "0") {
-          this.setState({
-            titleList: res.messsageBody.result
-          });
-        }
-      });
-  }
-
-  // 获取所有的产品类型，当前页要用
-  getAllProductType() {
-    this.props.actions
-      .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
-      .then(res => {
-        if (res.returnCode === "0") {
-          this.setState({
-            productTypes: res.messsageBody.result || []
-          });
-        }
-      });
-  }
+  
 
   // 工具 - 根据产品类型ID查产品类型名称
   findProductNameById(id) {
@@ -146,11 +126,56 @@ class Category extends React.Component {
     );
     return t ? t.name : "";
   }
+  
+  //工具 - 根据类型id拿到所有的一级分类名称
+  findClassifyOne(id){
+    const t = this.state.classifyOne.find(
+        item => String(item.id) === String(id)
+    )
+    return t ? t.name :'';
+  }
+  
+  // 获取所有产品型号，当前页要用
+  getAllProductModel() {
+    this.props.actions
+      .findProductByWhere({ pageNum: 0, pageSize: 9999 })
+      .then(res => {
+        if (res.returnCode === "0") {
+          this.setState({
+            productModels: res.messsageBody.result || []
+          });
+        }
+      });
+  }
+  
+  // 工具 - 根据id返回标签名称
+  getNameLiveStatusId(id) {
+    switch (String(id)) {
+      case "1":
+        return "直播中";
+      case "2":
+        return "回放";
+      case "3":
+        return "视频";
+      case "4":
+        return "预告";
+      default:
+        return "";
+    }
+  }
+  
+  // 工具 - 根据产品型号ID获取产品型号名称
+  getNameByModelId(id) {
+    const t = this.state.productModels.find(
+        item => String(item.id) === String(id)
+    );
+    return t ? t.name : "";
+  }
 
-  //搜索 - 发布状态输入框值改变时触发
+  //搜索 - 标签输入框值改变时触发
   searchNameChange(e) {
     this.setState({
-      searchDeleteStatus: e
+      searchLiveStatus: e
     });
   }
 
@@ -186,7 +211,6 @@ class Category extends React.Component {
     this.setState({
       addOrUp: "add",
       fileList: [],
-      fileListDetail: [],
       addnewModalShow: true,
       nowData: null
     });
@@ -239,8 +263,6 @@ class Category extends React.Component {
           colorOne: String(values.addnewColor), // 添加文字颜色
           sorts: values.addnewSorts, // 添加排序的顺序
           titleImage: this.state.fileList.map(item => item.url).join(","),
-          contentImage: this.state.fileList.map(item => item.url).join(","),
-          backImage: this.state.fileListDetail.map(item => item.url).join(",")
         };
         if (this.state.addOrUp === "add") {
           // 新增
@@ -287,7 +309,7 @@ class Category extends React.Component {
     console.log("是什么：", record);
     form.setFieldsValue({
       addnewTypeId: record.productTypeCode,
-      addnewTitle: String(record.title),
+      addnewTitle: String(record.name),
       addnewSlogan: String(record.name),
       addnewContent: String(record.content),
       addnewConditions: Boolean(record.deleteStatus) ? false : true,
@@ -305,24 +327,19 @@ class Category extends React.Component {
         ? record.titleImage
             .split(",")
             .map((item, index) => ({ uid: index, url: item, status: "done" }))
-        : [], // 标题图上传的列表
-      fileListDetail: record.backImage
-        ? record.backImage
-            .split(",")
-            .map((item, index) => ({ uid: index, url: item, status: "done" }))
-        : [] // 背景图上传的列表
+        : [], // 封面图上传的列表
     });
   }
 
   // 发布或取消发布
   onUpdateClick2(record) {
     const params = {
-      speakCardId: Number(record.id)
+      liveId: Number(record.liveId)
     };
     this.props.actions
-      .UpdateOnline(params)
+      .UpdateVideo(params)
       .then(res => {
-        if (res.status === 200) {
+        if (res.returnCode === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
@@ -335,9 +352,9 @@ class Category extends React.Component {
   }
 
   // 删除某一条数据
-  onRemoveClick(id) {
-    this.props.actions.deleteCard({ id: id }).then(res => {
-      if (res.status === 200) {
+  onRemoveClick(liveId) {
+    this.props.actions.DeleteVideo({ liveId: liveId }).then(res => {
+      if (res.returnCode === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
@@ -346,7 +363,7 @@ class Category extends React.Component {
     });
   }
 
-  // 代言卡图 - 上传中、上传成功、上传失败的回调
+  // 封面图 - 上传中、上传成功、上传失败的回调
   onUpLoadChange(obj) {
     // console.log('图片上传：', obj);
     if (obj.file.status === "done") {
@@ -381,7 +398,7 @@ class Category extends React.Component {
     }
   }
 
-  // 代言卡图 - 上传前
+  // 封面图 - 上传前
   onUploadBefore(f, fl) {
     console.log("上传前：", f, fl);
     if (
@@ -399,7 +416,7 @@ class Category extends React.Component {
     }
   }
 
-  // 代言卡图 - 删除一个图片
+  // 封面图 - 删除一个图片
   onUpLoadRemove(f) {
     console.log("删除；", f);
     this.deleteImg(f.url);
@@ -420,64 +437,7 @@ class Category extends React.Component {
     console.log("删除后的是啥？", temp.join("/"), fileName);
     this.props.actions.deleteImage(params);
   }
-
-  // 详细图片 - 上传前
-  onUploadDetailBefore(f) {
-    if (
-      ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
-    ) {
-      message.error("只能上传jpg、jpeg、png、bmp、gif格式的图片");
-      return false;
-    } else {
-      const newList = _.cloneDeep(this.state.fileListDetail);
-      newList.push(f);
-      this.setState({
-        fileListDetail: newList
-      });
-      return true;
-    }
-  }
-
-  // 详细图片 - 上传中、成功、失败
-  onUpLoadDetailChange(obj) {
-    if (obj.file.status === "done") {
-      // 上传成功后调用,将新的地址加进原list
-      if (obj.file.response.messsageBody) {
-        const list = _.cloneDeep(this.state.fileListDetail);
-        const t = list.find(item => item.uid === obj.file.uid);
-        t.url = obj.file.response.messsageBody;
-        this.setState({
-          fileListDetail: list,
-          fileDetailLoading: false
-        });
-      } else {
-        const list = _.cloneDeep(this.state.fileListDetail);
-        this.setState({
-          fileListDetail: list.filter(item => item.uid !== obj.file.uid),
-          fileDetailLoading: false
-        });
-      }
-    } else if (obj.file.status === "uploading") {
-      this.setState({
-        fileDetailLoading: true
-      });
-    } else if (obj.file.status === "error") {
-      const list = _.cloneDeep(this.state.fileListDetail);
-      this.setState({
-        fileListDetail: list.filter(item => item.uid !== obj.file.uid),
-        fileLoading: false
-      });
-      message.error("图片上传失败");
-    }
-  }
-
-  // 详细图片 - 删除
-  onUpLoadDetailRemove(f) {
-    const list = _.cloneDeep(this.state.fileListDetail);
-    this.setState({
-      fileListDetail: list.filter(item => item.uid !== f.uid)
-    });
-  }
+  
 
   // 关闭修改某一条数据
   onUpClose() {
@@ -524,31 +484,78 @@ class Category extends React.Component {
         width: 100
       },
       {
-        title: "咨询类型"
-        // dataIndex: 'productTypeCode',
-        // key: 'productTypeCode',
+        title: "频道ID",
+        dataIndex: 'liveId',
+        key: 'liveId',
       },
       {
-        title: "咨询标题"
-        // dataIndex:'name',
-        // key:'name'
+        title: "标题",
+        dataIndex:'name',
+        key:'name'
       },
       {
-        title: "展示样式"
-        // dataIndex: 'deleteStatus',
-        // key: 'deleteStatus',
+        title: "封面图",
+        dataIndex: 'coverImage',
+        key: 'coverImage',
+        render: (text, index) => {
+          if (text) {
+            const img = text.split(",");
+            return (
+              <Popover
+                key={index}
+                placement="right"
+                content={<img className="table-img-big" src={img[0]} />}
+              >
+                <img className="table-img" src={img[0]} />
+              </Popover>
+            );
+          }
+          return "";
+        }
       },
       {
-        title: "是否设未头条"
+        title: "拉取时间",
+        dataIndex:'createTime',
+        key:'createTime'
       },
       {
-        title: "是否发布"
+        title: "一级分类",
+        dataIndex:'name2',
+        key:'name2',
+        // render: text => this.findClassifyOne(text)
       },
       {
-        title: "是否置顶"
+        title: "二级分类",
+        dataIndex:'name3',
+        key:'name3'
       },
       {
-        title: "最新发布时间"
+        title: "标签",
+        dataIndex:'liveStatus',
+        key:'liveStatus',
+        render:text => this.getNameLiveStatusId(text),
+      },
+      {
+        title: "是否推荐",
+        dataIndex:'recommend',
+        key:'recommend',
+        render: text =>
+          Boolean(text) === true ? (
+            <span style={{ color: "green" }}>已推荐</span>
+          ) : (
+            <span style={{ color: "red" }}>未推荐</span>
+          )
+      },
+      {
+        title: "是否发布",
+        dataIndex:'deleteFlag',
+        key:'deleteFlag',
+        render:(text) =>
+          Boolean(text) === true ?(
+            <span style={{color:"green"}}>已发布</span>
+          ):(
+            <span style={{color:"red"}}>未发布</span>
+          )
       },
       {
         title: "操作",
@@ -557,7 +564,7 @@ class Category extends React.Component {
           const controls = [];
           controls.push(
             <span
-              key="2"
+              key="0"
               className="control-btn green"
               onClick={() => this.onQueryClick(record)}
             >
@@ -568,7 +575,7 @@ class Category extends React.Component {
           );
           controls.push(
             <span
-              key="3"
+              key="1"
               className="control-btn blue"
               onClick={() => this.onUpdateClick(record)}
             >
@@ -579,42 +586,31 @@ class Category extends React.Component {
           );
           controls.push(
             <span
-              key="1"
-              className="control-btn red"
+              key="2"
+              className="control-btn blue"
               onClick={() => this.onUpdateClick2(record)}
             >
-              <Tooltip placement="top" title="发布">
-                <Icon type="logout" />
-              </Tooltip>
-            </span>
+            <Tooltip placement="top" title="发布">
+              <Icon type="login" />
+            </Tooltip>
+          </span>
           );
           controls.push(
             <span
-              key="5"
+              key="3"
               className="control-btn red"
               onClick={() => this.onUpdateClick2(record)}
             >
-              <Tooltip placement="top" title="设为头条">
-                <Icon type="logout" />
-              </Tooltip>
-            </span>
-          );
-          controls.push(
-            <span
-              key="6"
-              className="control-btn red"
-              onClick={() => this.onUpdateClick2(record)}
-            >
-              <Tooltip placement="top" title="设为置顶">
-                <Icon type="logout" />
-              </Tooltip>
-            </span>
+            <Tooltip placement="top" title="回撤">
+              <Icon type="logout" />
+            </Tooltip>
+          </span>
           );
           controls.push(
             <Popconfirm
               key="4"
               title="确定删除吗?"
-              onConfirm={() => this.onRemoveClick(record.id)}
+              onConfirm={() => this.onRemoveClick(record.liveId)}
               okText="确定"
               cancelText="取消"
             >
@@ -644,21 +640,20 @@ class Category extends React.Component {
     return data.map((item, index) => {
       return {
         key: index,
-        productTypeCode: item.productTypeCode,
-        productModelCode: item.productModelCode,
+        liveId: item.liveId,
+        name: item.name,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
-        typeId: item.product ? item.product.typeId : "",
-        conditions: item.conditions,
-        backImage: item.backImage,
-        title: item.title,
+        coverImage: item.coverImage,
+        liveStatus: item.liveStatus,
+        name2: item.liveType ? item.liveType.name : '', //一级分类
+        name3:item.liveType &&  item.liveType.subList[0] ? item.liveType.subList[0].name :'', //二级分类
+        createTime: item.createTime,
         titleImage: item.titleImage,
         productTypeName: item.productTypeName,
         contentImage: item.contentImage,
-        name: item.name,
-        colorOne: item.colorOne,
-        colorTwo: item.colorTwo,
         content: item.content,
-        id: item.id,
+        recommend:item.recommend,
+        deleteFlag:item.deleteFlag,
         deleteStatus: item.deleteStatus,
         sorts: item.sorts,
         realName: item.distributor ? item.distributor.realName : ""
@@ -684,37 +679,83 @@ class Category extends React.Component {
     return (
       <div>
         <div className="system-search">
-          <ul className="search-ul more-ul">
+          <ul className="search-ul">
+            <li>
+              <span style={{marginRight:'8px'}}>频道ID</span>
+              <Input
+                style={{ width:"172px" }}
+                // suffix={suffix}
+                // value={searchTitle}
+                onChange={e => this.searchTitleChange(e)}
+              />
+            </li>
+            <li>
+              <span style={{marginRight:'8px'}}>分类</span>
+              <Select
+                placeholder="全部"
+                allowClear
+                style={{ width: "172px" }}
+                onChange={e => this.searchNameChange(e)}
+              >
+                {/*<Option value={1}>已推荐</Option>*/}
+                {/*<Option value={0}>未推荐</Option>*/}
+              </Select>
+            </li>
+            <li>
+              <span style={{marginRight:'8px'}}>标签</span>
+              <Select
+                placeholder="全部"
+                allowClear
+                style={{ width: "172px" }}
+                onChange={e => this.searchNameChange(e)}
+              >
+                <Option value={1}>直播中</Option>
+                <Option value={2}>回放</Option>
+                <Option value={3}>视频</Option>
+                <Option value={4}>预告</Option>
+              </Select>
+            </li>
+            <li>
+              <span style={{marginRight:'8px'}}>是否推荐</span>
+              <Select
+                placeholder="全部"
+                allowClear
+                style={{ width: "172px" }}
+                onChange={e => this.searchNameChange(e)}
+              >
+                <Option value={1}>已推荐</Option>
+                <Option value={0}>未推荐</Option>
+              </Select>
+            </li>
+            <li>
+              <span style={{marginRight:'8px'}}>是否发布</span>
+              <Select
+                placeholder="全部"
+                allowClear
+                style={{ width: "172px" }}
+                onChange={e => this.searchNameChange(e)}
+              >
+                <Option value={1}>已发布</Option>
+                <Option value={0}>未发布</Option>
+              </Select>
+            </li>
+            <li style={{ marginLeft: "40px", marginRight: "15px" }}>
+              <Button
+                icon="search"
+                type="primary"
+                onClick={() => this.onSearch()}
+              >
+                搜索
+              </Button>
+            </li>
             <ul className="search-func">
-              <li>
-                <span>咨询类型</span>
-                <Select
-                  allowClear
-                  placeholder="全部"
-                  style={{ width: "172px" }}
-                  onChange={e => this.searchProductType(e)}
-                >
-                  {/*{this.state.productTypes.map((item, index) => {*/}
-                  {/*return <Option key={index} value={item.id}>{ item.name }</Option>*/}
-                  {/*})}*/}
-                </Select>
-              </li>
-              <li>
-                <span>咨询标题</span>
-                <Input
-                  style={{ width: "172px" }}
-                  // suffix={ suffix }
-                  // value={ searchOrderId }
-                  // onChange={(e) => this.searchOrderIdChange(e)}
-                />
-              </li>
               <li style={{ marginTop: "2px" }}>
                 <Button
                   icon="plus-circle-o"
                   type="primary"
                   onClick={() => this.onAddNewShow()}
                 >
-                  添加资讯类型
+                  直播发布
                 </Button>
               </li>
             </ul>
@@ -744,37 +785,135 @@ class Category extends React.Component {
         />
         {/* 添加模态框 */}
         <Modal
-          title={this.state.addOrUp === "add" ? "添加资讯类型" : "修改资讯类型"}
+          title={this.state.addOrUp === "add" ? "添加直播发布" : "修改直播发布"}
           visible={this.state.addnewModalShow}
           onOk={() => this.onAddNewOk()}
           onCancel={() => this.onAddNewClose()}
           confirmLoading={this.state.addnewLoading}
         >
           <Form>
-            <FormItem label="资讯类型名称" {...formItemLayout}>
+            <FormItem label="频道ID" {...formItemLayout}>
               {getFieldDecorator("addnewTypeId", {
                 initialValue: undefined,
-                rules: [{ required: true, message: "请添写资讯类型名称" }]
-              })(<Input placeholder="请添写资讯类型名称" />)}
+                rules: [{ required: true, message: "请添写频道ID" }]
+              })(
+                  <Input placeholder="请添写频道ID"  style={{width:'180px',marginRight:'15px'}}/>
+              )}
+              {getFieldDecorator("addnewTypeId", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请添写频道ID" }]
+              })(
+                <Button
+                  type="primary"
+                  // icon="search"
+                  // onClick={() => this.onPull()}  // 拉取可以拉取到标题、封面图、拉取时间
+                >
+                  拉取
+                </Button>
+              )}
             </FormItem>
-            <FormItem label="咨询标识" {...formItemLayout}>
+            <FormItem label="分类" {...formItemLayout}>
+              {getFieldDecorator("addnewClassifyOne", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择一级分类" }]
+              })(
+                <Select placeholder="请选择一级分类">
+                </Select>
+              )}
+              {getFieldDecorator("addnewClassifyTwo", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择二级分类" }]
+              })(
+                <Select placeholder="请选择二级分类">
+                </Select>
+              )}
+            </FormItem>
+            <FormItem label="标签" {...formItemLayout}>
+              {getFieldDecorator("addnewLabel", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择标签" }]
+              })(
+                <Select placeholder="请选择标签">
+                  <Option value={1}>直播中</Option>
+                  <Option value={2}>回放</Option>
+                  <Option value={3}>视频</Option>
+                  <Option value={4}>预告</Option>
+                </Select>
+              )}
+            </FormItem>
+            <FormItem label="是否推荐" {...formItemLayout}>
+              {getFieldDecorator("addnewRecommend", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择是否推荐" }]
+              })(
+                <Select placeholder="请选择标签">
+                  <Option value={1}>是</Option>
+                  <Option value={0}>否</Option>
+                </Select>
+              )}
+            </FormItem>
+            <FormItem label="排序" {...formItemLayout}>
+              {getFieldDecorator("addnewSort", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请输入排序序号" }]
+              })(<InputNumber placeholder="请输入排序序号" style={{width:'314px'}}/>)}
+            </FormItem>
+            <FormItem label="推荐产品" {...formItemLayout}>
+              {getFieldDecorator('addnewProduct',{
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择所要推荐产品" }]
+              })(
+                <Select
+                  mode="multiple"
+                  style={{ width: '100%' }}
+                  placeholder="请选择所要推荐产品"
+                >
+                  {this.state.productModels
+                    .map((item, index) => (
+                      <Option key={this.state.addOrUp === "add" ? `${item.id}_${item.name}` : `${item.id}`}>
+                        {item.name}
+                      </Option>
+                    )) }
+                </Select>
+              )}
+            </FormItem>
+            <FormItem label="标题" {...formItemLayout}>
               {getFieldDecorator("addnewTitle", {
                 initialValue: undefined,
+                rules: [{ required: true, message: "请添写标题名称" }]
+              })(<Input placeholder="请添写标题名称" />)}
+            </FormItem>
+            <FormItem label="封面图片上传" {...formItemLayout} labelCol={{ span: 7 }} wrapperCol={{ span: 11 }}>
+              <Upload
+                name="pImg"
+                action={`${Config.baseURL}/manager/product/uploadImage`}
+                listType="picture-card"
+                withCredentials={true}
+                fileList={this.state.fileList}
+                beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
+                onChange={f => this.onUpLoadChange(f)}
+                onRemove={f => this.onUpLoadRemove(f)}
+              >
+                {this.state.fileList.length >= 1 ? null : (
+                  <div>
+                    <Icon type="plus" />
+                    <div className="ant-upload-text">选择文件</div>
+                  </div>
+                )}
+              </Upload>
+            </FormItem>
+            <FormItem label="拉取时间" {...formItemLayout}>
+              {getFieldDecorator("addnewTime", {
+                initialValue: undefined,
                 rules: [
-                  { required: true, message: "请添加咨询标识" },
-                  {
-                    validator: (rule, value, callback) => {
-                      const v = tools.trim(value);
-                      if (v) {
-                        if (v.length > 50) {
-                          callback("最多输入20位字符");
-                        }
-                      }
-                      callback();
-                    }
-                  }
+                  {required: true},
                 ]
-              })(<Input placeholder="请添加咨询标识" />)}
+              })(<DatePicker
+                  showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                  format="YYYY-MM-DD HH:mm:ss"
+                  placeholder="拉取时间"
+                  onOk={onOk}
+              />)}
             </FormItem>
           </Form>
         </Modal>
@@ -786,64 +925,55 @@ class Category extends React.Component {
           onCancel={() => this.onQueryModalClose()}
         >
           <Form>
-            <FormItem label="产品类型" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.findProductNameById(this.state.nowData.productTypeCode)
-                : ""}
+            <FormItem label="频道ID" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.liveId : ""}
             </FormItem>
             <FormItem label="标题" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.name : ""}
             </FormItem>
-            <FormItem label="背景图片" {...formItemLayout}>
-              {!!this.state.nowData && this.state.nowData.backImage
-                ? this.state.nowData.backImage.split(",").map((item, index) => {
-                    return (
-                      <Popover
-                        key={index}
-                        placement="right"
-                        content={<img className="table-img-big" src={item} />}
-                      >
-                        <img className="small-img" src={item} />
-                      </Popover>
-                    );
-                  })
+            <FormItem label="封面图" {...formItemLayout}>
+              {!!this.state.nowData && this.state.nowData.coverImage
+                ? this.state.nowData.coverImage.split(",").map((item, index) => {
+                return (
+                  <Popover
+                    key={index}
+                    placement="right"
+                    content={<img className="table-img-big" src={item} />}
+                  >
+                    <img className="small-img" src={item} />
+                  </Popover>
+                );
+                })
+              : ""}
+            </FormItem>
+            <FormItem label="标签" {...formItemLayout}>
+              {!!this.state.nowData
+                ? this.getNameLiveStatusId(this.state.nowData.liveStatus)
                 : ""}
             </FormItem>
-            <FormItem label="代言卡图片" {...formItemLayout}>
-              {!!this.state.nowData && this.state.nowData.titleImage
-                ? this.state.nowData.titleImage
-                    .split(",")
-                    .map((item, index) => {
-                      return (
-                        <Popover
-                          key={index}
-                          placement="right"
-                          content={<img className="table-img-big" src={item} />}
-                        >
-                          <img className="small-img" src={item} />
-                        </Popover>
-                      );
-                    })
-                : ""}
+            <FormItem label="拉取时间" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.createTime : ""}
             </FormItem>
-            <FormItem label="标语" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.title : ""}
+            <FormItem label="一级分类" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.name2 : ""}
             </FormItem>
-            <FormItem label="分享文案" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.content : ""}
+            <FormItem label="二级分类" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.name3 : ""}
             </FormItem>
-            <FormItem label="字体颜色" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.colorOne : ""}
-            </FormItem>
-            <FormItem label="按钮颜色" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.colorTwo : ""}
-            </FormItem>
-            <FormItem label="位置排序" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.sorts : ""}
+            <FormItem label="是否推荐" {...formItemLayout}>
+              {!!this.state.nowData ? (
+                Boolean(this.state.nowData.recommend) === true ? (
+                  <span style={{ color: "green" }}>已推荐</span>
+                ) : (
+                  <span style={{ color: "red" }}>未推荐</span>
+                )
+              ) : (
+                ""
+              )}
             </FormItem>
             <FormItem label="是否发布" {...formItemLayout}>
               {!!this.state.nowData ? (
-                Boolean(this.state.nowData.deleteStatus) === true ? (
+                Boolean(this.state.nowData.deleteFlag) === true ? (
                   <span style={{ color: "green" }}>已发布</span>
                 ) : (
                   <span style={{ color: "red" }}>未发布</span>
@@ -881,14 +1011,15 @@ export default connect(
         onChange,
         deleteImage,
         onOk,
-        Cardlist,
+        LiveVideo,
         advertPositionList,
         findProductModelByWhere,
         findProductTypeByWhere,
-        deleteCard,
+        DeleteVideo,
         addCard,
         UpdateCard,
-        UpdateOnline
+        UpdateVideo,
+        findProductByWhere
       },
       dispatch
     )

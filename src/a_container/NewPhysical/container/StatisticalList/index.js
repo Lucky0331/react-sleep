@@ -40,18 +40,13 @@ import _ from "lodash";
 // ==================
 
 import {
-    findAllProvince,
-    findCityOrCounty,
+  findAllProvince,
+  findCityOrCounty,
 } from "../../../../a_action/sys-action";
 import {
-  StatisticsList,
-  addProduct,
-  upReserveList,
-  deleteProduct,
-  deleteImage,
-  findProductModelByWhere,
+  StatisticalList,
   onOk,
-} from "../../../../a_action/shop-action";
+} from "../../../../a_action/statistical-action";
 
 // ==================
 // Definition
@@ -71,10 +66,12 @@ class Category extends React.Component {
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
       searchAddress: [], // 搜索 - 地址
-      searchStationKeyWord:'',  //搜索 - 服务站关键字
-      citys: [] // 符合Cascader组件的城市数据
+      searchType:'',//搜索 - 产品类型
+      searchrefundBeginTime:"", //搜索 - 选择开始时间
+      searchrefundEndTime:"", //搜索 - 选择结束时间
+      citys: [] ,// 符合Cascader组件的城市数据
+      statisticCount:'' ,//总数
     };
-    this.echartsDom = null; // Echarts实例
   }
 
   componentDidMount() {
@@ -90,17 +87,8 @@ class Category extends React.Component {
           isLeaf: false
         }))
       });
+      this.onGetData(this.state.pageNum, this.state.pageSize);
     }
-    const me = this;
-    // setTimeout是因为初次加载时，CSS可能还没加载完毕，导致图表样式有问题
-    setTimeout(() => {
-      const dom = Echarts.init(document.getElementById("echarts-1"));
-      this.echartsDom = dom;
-      dom.setOption(me.makeOption(this.state.data), true);
-      window.onresize = dom.resize;
-        this.onGetData(this.state.pageNum,this.state.pageSize)
-    }, 16);
-
   }
 
   componentWillReceiveProps(nextP) {
@@ -114,14 +102,6 @@ class Category extends React.Component {
         }))
       });
     }
-  }
-
-  componentWillUpdate(nextP, nextS) {
-    console.log(nextS, nextP);
-    if(nextS.data !== this.state.data) {
-        this.echartsDom.setOption(this.makeOption(nextS.data), true);
-    }
-
   }
 
   // 表单页码改变
@@ -161,25 +141,24 @@ class Category extends React.Component {
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2],
-      stationKeyWord:this.state.searchStationKeyWord,
-      minTime: this.state.searchrefundBeginTime
+      modelType:this.state.searchType,
+      beginTime: this.state.searchrefundBeginTime
         ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)} `
         : "",
-      maxTime: this.state.searchrefundEndTime
+      endTime: this.state.searchrefundEndTime
         ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)} `
         : ""
     };
-    this.props.actions.StatisticsList(tools.clearNull(params)).then(res => {
-      console.log("what hell:", res.messsageBody.data);
+    this.props.actions.StatisticalList(tools.clearNull(params)).then(res => {
       if (res.returnCode === "0") {
-
         this.setState({
-          data: res.messsageBody.data || [],
+          data: res.messsageBody.statistic.result || [],
           pageNum,
           pageSize,
-          total:res.messsageBody.size,
+          total:res.messsageBody.statistic.total,
+          statisticCount:res.messsageBody.statisticCount || [],  //总数
         });
-      } else {
+      } else if(res.returnCode === "1") {
         message.error(res.returnMessaage || "获取数据失败，请重试");
       }
     });
@@ -211,8 +190,8 @@ class Category extends React.Component {
             };
           });
       }
-          targetOption.loading = false;
-          this.setState({
+        targetOption.loading = false;
+        this.setState({
           citys: [...this.state.citys]
         });
       });
@@ -224,53 +203,12 @@ class Category extends React.Component {
       searchAddress: c
     });
   }
-  // 搜索 - 服务站关键字
-  searchStationKeyWordChange(v){
-    this.setState({
-      searchStationKeyWord:v
-    })
-  }
 
-  // 处理图表数据
-  makeOption(data) {
-      const option = {
-      tooltip: {
-        trigger: "item",
-        formatter: "{a} <br/>{b} : {c}"
-      },
-      legend: {
-        data:['体检用户','公众号预约用户']
-      },
-      grid: {
-        left: "3%",
-        right: "4%",
-        bottom: "3%",
-        containLabel: true
-      },
-      xAxis: {
-        type: "category",
-        name: "x",
-        splitLine: { show: true },  //是否显示X轴线条
-        data: data.map((item)=> item.date)
-      },
-      yAxis: {
-        type: "value",
-        name: "y"
-      },
-      series:[
-        {
-          name: "体检用户",
-          type: "line",
-          data: data.map((item)=> item.usedCount),
-          },
-        {
-          name: "公众号预约用户",
-          type: "line",
-          data: data.map((item)=> item.reverseCount)
-        }
-      ]
-    };
-    return option;
+  //搜索 - 产品型号
+  onSearchType(c){
+    this.setState({
+      searchType:c
+    })
   }
 
   // 搜索
@@ -289,22 +227,32 @@ class Category extends React.Component {
         width: 80
       },
       {
-        title: "日期",
-        dataIndex: "date",
-        key: "date",
+        title: "省",
+        dataIndex: "stationProvince",
+        key: "stationProvince",
       },
       {
-        title: "体检用户",
-        dataIndex: "usedCount",
-        key: "usedCount",
+        title: "市",
+        dataIndex: "stationCity",
+        key: "stationCity",
       },
       {
-        title: "公众号预约用户 ",
-        dataIndex: "reverseCount",
-        key: "reverseCount",
+        title: "区",
+        dataIndex: "stationRegion",
+        key: "stationRegion",
       },
       {
-        title: "公众号预约用户占比",
+        title: "服务站名称",
+        dataIndex: "stationName",
+        key: "stationName",
+      },
+      {
+        title:'体检用户',
+        dataIndex:'ticketCount',
+        key:'ticketCount'
+      },
+      {
+        title: "百分比",
         dataIndex: "ratio",
         key: "ratio",
       },
@@ -321,13 +269,13 @@ class Category extends React.Component {
         id: item.id,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         date: item.date,
-        usedCount: item.usedCount,
-        reverseCount: item.reverseCount,
-        ratio:(item.usedCount && item.reverseCount) ? (item.reverseCount)/(item.usedCount) : '',
-        citys:
-          item.province && item.city && item.region
-            ? `${item.province}/${item.city}/${item.region}`
-            : ""
+        stationProvince:item.stationProvince,
+        stationCity:item.stationCity,
+        stationRegion:item.stationRegion,
+        stationName:item.stationName,
+        ticketCount: item.ticketCount,
+        statisticCount:item.statisticCount,
+        ratio:(item.ticketCount && this.state.statisticCount) ? `${((item.ticketCount)/(this.state.statisticCount)*100).toFixed(2)}%` : '',
       };
     });
   }
@@ -354,6 +302,7 @@ class Category extends React.Component {
             <li>
               <span style={{ marginRight: "10px" }}>服务站地区</span>
               <Cascader
+                style={{ width: "175px" }}
                 placeholder="请选择服务区域"
                 onChange={v => this.onSearchAddress(v)}
                 options={this.state.citys}
@@ -361,12 +310,16 @@ class Category extends React.Component {
               />
             </li>
             <li>
-              <span style={{ marginRight: "10px" }}>服务站关键字</span>
-              <Input
-                placeholder="服务站关键字搜索"
+              <span style={{ marginRight: "10px" }}>产品型号</span>
+              <Select
+                allowClear
+                placeholder="全部"
                 style={{ width: "172px" }}
-                onChange={e => this.searchStationKeyWordChange(e)}
-              />
+                onChange={e => this.onSearchType(e)}
+              >
+                <Option value={"Y"}>Y</Option>
+                <Option value={"M"}>M</Option>
+              </Select>
             </li>
             <li>
               <span style={{ marginRight: "10px" }}>选择时间</span>
@@ -382,7 +335,6 @@ class Category extends React.Component {
                 showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
                 format="YYYY-MM-DD HH:mm:ss"
                 placeholder="结束时间"
-                // value={this.state.searchEndTime}
                 onChange={e => this.searchApplyEndTime(e)}
                 onOk={onOk}
               />
@@ -397,9 +349,6 @@ class Category extends React.Component {
               </Button>
             </li>
           </ul>
-        </div>
-        <div className="charts-box">
-          <div id="echarts-1" className="echarts" />
         </div>
         <div className="system-table">
           <Table
@@ -452,13 +401,7 @@ export default connect(
       {
         findAllProvince,
         findCityOrCounty,
-        StatisticsList,
-        addProduct,
-        upReserveList,
-        deleteProduct,
-        deleteImage,
-        findProductModelByWhere,
-        onOk
+        StatisticalList
       },
       dispatch
     )

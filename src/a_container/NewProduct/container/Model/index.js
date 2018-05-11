@@ -166,6 +166,7 @@ class Category extends React.Component {
     console.log("Record:", record);
     form.setFieldsValue({
       upName: record.name,
+      upNickName:record.nickName,
       upTypeId: record.typeId,
       upDescription: record.description,
       upPrice: record.price,
@@ -194,6 +195,7 @@ class Category extends React.Component {
     const { form } = me.props;
     const uparr = [
       "upName",
+      "upNickName",
       "upTypeId",
       "upDescription",
       "upPrice",
@@ -219,6 +221,7 @@ class Category extends React.Component {
       const params = {
         id: me.state.nowData.id,
         name: values.upName,
+        nickName:values.upNickName,
         typeId: values.upTypeId,
         updescription: values.upDescription,
         price: values.upPrice,
@@ -299,6 +302,7 @@ class Category extends React.Component {
     const { form } = me.props;
     form.resetFields([
       "addnewName",
+      "addnewNickName",
       "addnewTypeId",
       "addnewPrice",
       "addnewCharges",
@@ -324,6 +328,7 @@ class Category extends React.Component {
     const { form } = me.props;
     const newarr = [
       "addnewName",
+      "addnewNickName",
       "addnewTypeId",
       "addnewPrice",
       "addnewInDate",
@@ -349,6 +354,7 @@ class Category extends React.Component {
       });
       const params = {
         name: values.addnewName,
+        nickName:values.addnewNickName,
         typeId: Number(values.addnewTypeId),
         price: Number(values.addnewPrice),
         charges: String(values.addnewCharges),
@@ -415,6 +421,11 @@ class Category extends React.Component {
         dataIndex: "typeId",
         key: "typeId",
         render: text => this.getNameByTypeId(text)
+      },
+      {
+        title:'类型别名',
+        dataIndex:'nickName',
+        key:'nickName'
       },
       {
         title: "价格",
@@ -511,6 +522,7 @@ class Category extends React.Component {
         timeLimitType: item.timeLimitType,
         chargeName: item.chargeName,
         charges: item.charges,
+        nickName:item.nickName,
         chargeTypes: item.chargeTypes,
         openAccountFee: item.openAccountFee
       };
@@ -623,6 +635,19 @@ class Category extends React.Component {
                     message: "请输入产品型号名称"
                   },
                   { max: 12, message: "最多输入12字符" }
+                ]
+              })(<Input style={{ width: "80%" }} />)}
+            </FormItem>
+            <FormItem label="型号别名" {...formItemLayout}>
+              {getFieldDecorator("addnewNickName", {
+                initialValue: undefined,
+                rules: [
+                  {
+                    required: true,
+                    whitespace: true,
+                    message: "请输入产品型号别名"
+                  },
+                  { max: 20, message: "最多输入20个字" }
                 ]
               })(<Input style={{ width: "80%" }} />)}
             </FormItem>
@@ -825,6 +850,29 @@ class Category extends React.Component {
                   })}
                 </Select>
               )}
+            </FormItem>
+            <FormItem label="类型别名" {...formItemLayout}>
+              {getFieldDecorator("upNickName", {
+                initialValue: undefined,
+                rules: [
+                  {
+                    required: true,
+                    whitespace: true,
+                    message: "请输入产品类型别名"
+                  },
+                  {
+                    validator: (rule, value, callback) => {
+                      const v = tools.trim(value);
+                      if (v) {
+                        if (v.length > 20) {
+                          callback("最多输入20个字");
+                        }
+                      }
+                      callback();
+                    }
+                  }
+                ]
+              })(<Input placeholder="请输入产品类型别名" />)}
             </FormItem>
             <FormItem label="价格" {...formItemLayout}>
               {getFieldDecorator("upPrice", {

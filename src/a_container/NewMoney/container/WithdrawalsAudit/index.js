@@ -27,6 +27,7 @@ import {
   Popover
 } from "antd";
 import "./index.scss";
+import Config from "../../../../config/config";
 import tools from "../../../../util/tools"; // 工具
 import Power from "../../../../util/power"; // 权限
 import { power } from "../../../../util/data";
@@ -451,7 +452,160 @@ class Category extends React.Component {
   }
   //导出
   onExport() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onExportData(this.state.pageNum, this.state.pageSize);
+  }
+  
+  // 导出提现审核列表数据
+  onExportData(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      userType: this.state.searchUserType,
+      withdrawType: this.state.searchWithdrawType,
+      id: this.state.searchId,
+      nickName: this.state.searchUserName,
+      username: this.state.searchRealName,
+      ambassadorName: this.state.searchambassadorName,
+      tradeNo: this.state.searchtradeNo,
+      phone: this.state.searchMobile,
+      minAmount: this.state.searchMinPrice,
+      maxAmount: this.state.searchMaxPrice,
+      userId: this.state.searchUserMallId,
+      partnerTradeNo: this.state.searchPartnerTradeNo,
+      minApplyTime: this.state.searchBeginTime
+          ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)}`
+          : "",
+      maxApplyTime: this.state.searchEndTime
+          ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
+          : ""
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/export/withdraw/audit`;
+    form.method = "post";
+    console.log("FORM:", params);
+    
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+    
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+    
+    const newElement3 = document.createElement("input");
+    if (params.userType) {
+      newElement3.setAttribute("name", "userType");
+      newElement3.setAttribute("type", "hidden");
+      newElement3.setAttribute("value", params.userType);
+      form.appendChild(newElement3);
+    }
+    
+    const newElement4 = document.createElement("input");
+    if (params.withdrawType) {
+      newElement4.setAttribute("name", "withdrawType");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.withdrawType);
+      form.appendChild(newElement4);
+    }
+    
+    const newElement5 = document.createElement("input");
+    if (params.productType) {
+      newElement5.setAttribute("name", "productType");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.productType);
+      form.appendChild(newElement5);
+    }
+    
+    const newElement6 = document.createElement("input");
+    if (params.refundEndTime) {
+      newElement6.setAttribute("name", "refundEndTime");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.refundEndTime);
+      form.appendChild(newElement6);
+    }
+    
+    const newElement7 = document.createElement("input");
+    if (params.orderNo) {
+      newElement7.setAttribute("name", "orderNo");
+      newElement7.setAttribute("type", "hidden");
+      newElement7.setAttribute("value", params.orderNo);
+      form.appendChild(newElement7);
+    }
+    
+    const newElement8 = document.createElement("input");
+    if (params.minPrice) {
+      newElement8.setAttribute("name", "minPrice");
+      newElement8.setAttribute("type", "hidden");
+      newElement8.setAttribute("value", params.minPrice);
+      form.appendChild(newElement8);
+    }
+    
+    const newElement9 = document.createElement("input");
+    if (params.minAmount) {
+      newElement9.setAttribute("name", "minAmount");
+      newElement9.setAttribute("type", "hidden");
+      newElement9.setAttribute("value", params.minAmount);
+      form.appendChild(newElement9);
+    }
+    
+    const newElement10 = document.createElement("input");
+    if (params.maxAmount) {
+      newElement10.setAttribute("name", "maxAmount");
+      newElement10.setAttribute("type", "hidden");
+      newElement10.setAttribute("value", params.maxAmount);
+      form.appendChild(newElement10);
+    }
+    
+    const newElement11 = document.createElement("input");
+    if (params.userType) {
+      newElement11.setAttribute("name", "userType");
+      newElement11.setAttribute("type", "hidden");
+      newElement11.setAttribute("value", params.userType);
+      form.appendChild(newElement11);
+    }
+    
+    const newElement12 = document.createElement("input");
+    if (params.activityType) {
+      newElement12.setAttribute("name", "activityType");
+      newElement12.setAttribute("type", "hidden");
+      newElement12.setAttribute("value", params.activityType);
+      form.appendChild(newElement12);
+    }
+    
+    const newElement13 = document.createElement("input");
+    if (params.minApplyTime) {
+      newElement13.setAttribute("name", "minApplyTime");
+      newElement13.setAttribute("type", "hidden");
+      newElement13.setAttribute("value", params.minApplyTime);
+      form.appendChild(newElement13);
+    }
+    
+    const newElement14 = document.createElement("input");
+    if (params.maxApplyTime) {
+      newElement14.setAttribute("name", "maxApplyTime");
+      newElement14.setAttribute("type", "hidden");
+      newElement14.setAttribute("value", params.maxApplyTime);
+      form.appendChild(newElement14);
+    }
+    
+    const newElement15 = document.createElement("input");
+    if (params.endTime) {
+      newElement15.setAttribute("name", "endTime");
+      newElement15.setAttribute("type", "hidden");
+      newElement15.setAttribute("value", params.endTime);
+      form.appendChild(newElement15);
+    }
+    
+    form.submit();
   }
 
   // 查询某一条数据的详情
@@ -988,15 +1142,7 @@ class Category extends React.Component {
               </Button>
             </li>
             <li>
-              <Button
-                icon="download"
-                style={{
-                  color: "#fff",
-                  backgroundColor: "#108ee9",
-                  borderColor: "#108ee9"
-                }}
-                onClick={this.warning2}
-              >
+              <Button icon="download" type="primary" onClick={()=>this.onExport()}>
                 导出
               </Button>
             </li>

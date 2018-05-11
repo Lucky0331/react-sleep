@@ -213,10 +213,6 @@ class Manager extends React.Component {
     return `${s}${c}${q}`;
   }
 
-    warning2 = () =>{
-        message.warning('导出功能尚在开发 敬请期待');
-    };
-
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
     const params = {
@@ -306,29 +302,29 @@ class Manager extends React.Component {
       return [];
     }
     return data.map((item, index) => {
-        return {
-            key: index,
-            adminIp: item.adminIp,
-            password: item.password,
-            id: this.props.detail2.id,
-            id2: this.props.detail2.id2,
-            mobile: this.props.detail2.mobile,
-            eId: this.props.detail2.eId,
-            nickName: this.props.detail2.nickName,
-            userType: this.props.detail2.userType,
-            realName: this.props.detail2.realName,
-            province: this.props.detail2.province,
-            city: this.props.detail2.city,
-            region: this.props.detail2.region,
-            nickName2: this.props.detail2.nickName2,
-            realName2: this.props.detail2.realName2,
-            mobile2: this.props.detail2.mobile2,
-            nickName3: this.props.detail2.nickName3,
-            realName3: this.props.detail2.realName3,
-            mobile3: this.props.detail2.mobile3,
-            userType3: this.getListByModelId(this.props.detail2.userType3),
-            userName3: this.props.detail2.userName3
-        };
+    return {
+    key: index,
+    adminIp: item.adminIp,
+    password: item.password,
+    id: this.props.detail2.id,
+    id2: this.props.detail2.id2,
+    mobile: this.props.detail2.mobile,
+    eId: this.props.detail2.eId,
+    nickName: this.props.detail2.nickName,
+    userType: this.props.detail2.userType,
+    realName: this.props.detail2.realName,
+    province: this.props.detail2.province,
+    city: this.props.detail2.city,
+    region: this.props.detail2.region,
+    nickName2: this.props.detail2.nickName2,
+    realName2: this.props.detail2.realName2,
+    mobile2: this.props.detail2.mobile2,
+    nickName3: this.props.detail2.nickName3,
+    realName3: this.props.detail2.realName3,
+    mobile3: this.props.detail2.mobile3,
+    userType3: this.getListByModelId(this.props.detail2.userType3),
+    userName3: this.props.detail2.userName3
+    };
     });
   }
 
@@ -349,24 +345,25 @@ class Manager extends React.Component {
 
 
     return (
-      <div style={{width:'100%'}}>
+      <div style={{width:'100%',}}>
+        <div className="detailsome">
         <div className="top">
-          <span style={{marginLeft:'20px',fontSize:'20px'}}>详情</span>
+          <a href="#/usermanage/userinfo" className="title" >用户信息管理</a>
           <Tooltip>
             <Icon
-             type="left"
+              type="right"
               style={{
-               color: "black",
-               marginTop: "5px",
-               marginLeft: "3px",
-               fontSize: "17px"
-                }}
+                color: "black",
+                marginTop: "5px",
+                marginLeft: "3px",
+                fontSize: "17px"
+              }}
             />
           </Tooltip>
-          <a href="#/usermanage/userinfo" style={{fontSize:'20px',color:'#798AE0',marginLeft:'5px',borderBottom:'2px solid #798AE0'}} >用户信息管理</a>
+          <span style={{ fontSize:'20px',color:'#798ae0'}}>详情</span>
         </div>
-        <div className="system-table" style={{ display: 'inline-flex',borderColor:'#798AE0',padding:'10px 0px 10px 70px',marginLeft:'390px'}}>
-          <Form style={{float:'left',width:'350px'}} className={"FormList"}>
+        <div className="system-table" style={{ display: 'inline-flex',border:'none',padding:'0px 0px 10px 70px'}}>
+          <Form style={{float:'left',width:'320px'}} className={"FormList"}>
             <FormItem label="用户id" {...formItemLayout} style={{paddingLeft:'29px'}}>
               <span style={{marginLeft:'-13px'}}>{ this.props.detail2.eId} </span>
             </FormItem>
@@ -416,16 +413,17 @@ class Manager extends React.Component {
                <span style={{marginLeft:'16px'}}>{ this.props.detail2.region} </span>
             </FormItem>
           </Form>
-          <Form style={{float:'right',width:'350px'}} className={"FormList"}>
+          <Form style={{float:'right',width:'320px'}} className={"FormList"}>
             <FormItem label="用户昵称" {...formItemLayout} style={{paddingLeft:'27px'}}>
               <span style={{marginLeft:'-18px'}}>{ this.props.detail2.nickName } </span>
-            </FormItem>
-            <FormItem label="用户手机号" {...formItemLayout} style={{paddingLeft:'15px'}}>
-              <span style={{marginLeft:'-12px'}}>{ this.props.detail2.mobile } </span>
             </FormItem>
             <FormItem label="创建时间" {...formItemLayout} style={{paddingLeft:'28px'}}>
               <span style={{marginLeft:'-19px'}}>{ this.props.detail2.createTime }</span>
             </FormItem>
+            <FormItem label="用户手机号" {...formItemLayout} style={{paddingLeft:'15px'}}>
+              <span style={{marginLeft:'-12px'}}>{ this.props.detail2.mobile } </span>
+            </FormItem>
+
             <FormItem  {...formItemLayout} style={{height:'40px'}}>
             </FormItem>
             <FormItem label="健康大使昵称" {...formItemLayout}>
@@ -460,6 +458,7 @@ class Manager extends React.Component {
               </FormItem>
           </Form>
         </div>
+      </div>
       </div>
     );
   }

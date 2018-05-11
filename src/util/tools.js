@@ -45,6 +45,24 @@ const tools = {
       .padStart(2, "0");
     return `${date.getFullYear()}-${m}-${d} ${h}:${min}:${s}`;
   },
+  
+  /**
+   * 标准日期转字符串时分
+   * */
+  dateToStrHM(date) {
+    if (!date) {
+      return "";
+    }
+    const h = date
+      .getHours()
+      .toString()
+      .padStart(2, "0");
+    const min = date
+      .getMinutes()
+      .toString()
+      .padStart(2, "0");
+    return `${h}:${min}`;
+  },
 
   /**
    * 标准日期转字符串年月日，时分秒
@@ -101,10 +119,22 @@ const tools = {
     }
     const m = `${date.getMonth() + 1}`.padStart(2, "0");
     const d = date
-      .getDate()
-      .toString()
-      .padStart(2, "0");
+        .getDate()
+        .toString()
+        .padStart(2, "0");
     return `${date.getFullYear()}-${m}-${d}`;
+  },
+  
+  /**
+   * 标准日期转字符串年月
+   * 返回年月
+   * */
+  dateToStrYM(date) {
+    if (!date) {
+      return "";
+    }
+    const m = `${date.getMonth() + 1}`.padStart(2, "0");
+    return `${date.getFullYear()}-${m}`;
   },
 
   /**

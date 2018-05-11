@@ -25,6 +25,7 @@ import {
 } from "antd";
 import "./index.scss";
 import _ from "lodash";
+import Config from "../../../../config/config";
 import tools from "../../../../util/tools"; // 工具
 import Power from "../../../../util/power"; // 权限
 import { power } from "../../../../util/data";
@@ -45,7 +46,8 @@ import {
   warning,
   findProductTypeByWhere,
   WithdrawalsRevoke,
-  RecordDetail
+  RecordDetail,
+  WithdrawLog
 } from "../../../../a_action/shop-action";
 
 // ==================
@@ -79,9 +81,15 @@ class Category extends React.Component {
       searchMobile: "", //搜索 - 用户手机号
       searchRealName: "", // 搜索 - 用户真实姓名
       searchFlag: "", //搜索 - 提现状态
+      searchFlag2:"", //搜索 - 操作方式
       searchUserMallId: "", // 搜索 - 用户翼猫id
       searchPartnerTradeNo: "", //搜索 - 提现单号
       searchOrderId: "", // 搜索 - 订单号
+      searchPresentNumber:"", //搜索 - 提现单号
+      searchOperationBegin:"",//搜索 - 操作开始时间
+      searchOperationEnd:"", //搜索 - 操作结束时间
+      searchMinTime:"", //搜索 - 操作开始时间-操作日志
+      searchMaxTime:"", //搜索 - 操作结束时间-操作日志
       nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
       addnewModalShow: false, // 查看地区模态框是否显示
       upModalShow: false, // 修改模态框是否显示
@@ -97,8 +105,8 @@ class Category extends React.Component {
 
   componentDidMount() {
     this.onGetData(this.state.pageNum, this.state.pageSize);
-    this.onGetDataDetail(this.state.pageNum, this.state.pageSize);
-    this.onGetDataJournal(this.state.pageNum, this.state.pageSize)
+    this.onGetDataDetail(this.state.pageNum, this.state.pageSize);// 提现明细调用接口
+    this.onGetDataJournal(this.state.pageNum, this.state.pageSize);//操作日志调用接口
     this.getAllProductType(); // 获取所有的产品类型
   }
 
@@ -218,45 +226,33 @@ class Category extends React.Component {
     });
   }
 
-    // 查询当前页面 - 操作日志 - 所需列表数据
-    onGetDataJournal(pageNum, pageSize) {
-        const params = {
-            pageNum,
-            pageSize,
-            userType: this.state.searchUserType,
-            withdrawType: this.state.searchWithdrawType,
-            id: this.state.searchId,
-            userId: this.state.searchUserMallId,
-            partnerTradeNo: this.state.searchPartnerTradeNo,
-            minApplyTime: this.state.searchApplyBeginTime
-                ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
-                : "",
-            maxApplyTime: this.state.searchApplyEndTime
-                ? `${tools.dateToStr(this.state.searchApplyEndTime.utc()._d)} `
-                : "",
-            minPaymentTime: this.state.searchBeginTime
-                ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)} `
-                : "",
-            maxPaymentTime: this.state.searchEndTime
-                ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
-                : ""
-        };
-        // this.props.actions.RecordDetail(tools.clearNull(params)).then(res => {
-        //     if (res.status === 200) {
-        //         this.setState({
-        //             data2: res.data.result || [],
-        //             pageNum,
-        //             pageSize,
-        //             total3: res.data.total
-        //         });
-        //     } else if (res.status === 400) {
-        //         this.setState({
-        //             data2: []
-        //         });
-        //         message.error(res.message || "查询失败，请重试");
-        //     }
-        // });
-    }
+  // 查询当前页面 - 操作日志 - 所需列表数据
+  onGetDataJournal(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      withdrawType: String(this.state.searchWithdrawType),
+      partnerTradeNo: String(this.state.searchPresentNumber),
+      operation:this.state.searchFlag2,
+      minTime: this.state.searchMinTime
+        ? `${tools.dateToStr(this.state.searchMinTime.utc()._d)}`
+        : "",
+      maxTime: this.state.searchMaxTime
+        ? `${tools.dateToStr(this.state.searchMaxTime.utc()._d)} `
+        : ""
+    };
+    this.props.actions.WithdrawLog(tools.clearNull(params)).then(res => {
+      if (res.returnCode === "0") {
+        console.log('data:', res);
+        this.setState({
+          data3: res.messsageBody.result || [],
+          pageNum,
+          pageSize,
+          total3: res.messsageBody.total
+        });
+      }
+    });
+  }
 
   // 工具 - 根据受理状态码查询对应的名字
   getConditionNameById(id) {
@@ -351,6 +347,12 @@ class Category extends React.Component {
   emitEmpty9() {
     this.setState({
       searchOrderId: ""
+    });
+  }
+
+  emitEmpty10() {
+    this.setState({
+      searchPresentNumber: ""
     });
   }
 
@@ -468,7 +470,14 @@ class Category extends React.Component {
     });
   }
 
-  // 点击查看地区模态框出现
+  //搜索 - 提现单号
+  searchPresentNumber(e){
+   this.setState({
+     searchPresentNumber:e.target.value
+   })
+  }
+
+    // 点击查看地区模态框出现
   onAddNewShow() {
     const me = this;
     const { form } = me.props;
@@ -485,6 +494,13 @@ class Category extends React.Component {
   searchFlagChange(e) {
     this.setState({
       searchFlag: e
+    });
+  }
+
+  //搜索 - 操作方式
+  searchFlagChange2(e) {
+    this.setState({
+      searchFlag2: e
     });
   }
 
@@ -565,6 +581,34 @@ class Category extends React.Component {
     });
   }
 
+  //搜索 - 操作开始时间
+  searchOperationBegin(v) {
+    this.setState({
+      searchOperationBegin: _.cloneDeep(v)
+    });
+  }
+
+  //搜索 - 操作结束时间
+  searchOperationEnd(v) {
+    this.setState({
+      searchOperationEnd: _.cloneDeep(v)
+    });
+  }
+
+  //操作开始时间
+  searchMinTime(v){
+    this.setState({
+      searchMinTime: _.cloneDeep(v)
+    });
+  }
+
+  //操作结束时间
+  searchMaxTime(v){
+    this.setState({
+      searchMaxTime: _.cloneDeep(v)
+    });
+  }
+
   // 搜索 - 提现记录
   onSearch() {
     this.onGetData(1, this.state.pageSize);
@@ -577,12 +621,345 @@ class Category extends React.Component {
 
   //搜索 - 操作日志
   onSearchJournal(){
-      this.onGetDataJournal(1, this.state.pageSize);
+    this.onGetDataJournal(1, this.state.pageSize);
+  }
+
+  //点击操作日志时发起请求
+  auditList(){
+    this.onGetDataJournal(this.state.pageNum, this.state.pageSize)
   }
 
   //导出
   onExport() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onExportData(this.state.pageNum, this.state.pageSize);
+  }
+  
+  //提现明细 - 导出
+  onExportDetail(){
+    this.onExportDataDetail(this.state.pageNum, this.state.pageSize);
+  }
+  
+  // 导出提现记录列表数据
+  onExportData(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      userType: this.state.searchUserType,
+      withdrawType: this.state.searchWithdrawType,
+      id: this.state.searchId,
+      nickName: this.state.searchUserName,
+      username: this.state.searchRealName,
+      ambassadorName: this.state.searchambassadorName,
+      paymentNo: this.state.searchtradeNo,
+      flag: this.state.searchFlag,
+      phone: this.state.searchMobile,
+      minAmount: this.state.searchMinPrice,
+      maxAmount: this.state.searchMaxPrice,
+      productType: this.state.searchTypeId,
+      userId: this.state.searchUserMallId,
+      partnerTradeNo: this.state.searchPartnerTradeNo,
+      minApplyTime: this.state.searchApplyBeginTime
+          ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
+          : "",
+      maxApplyTime: this.state.searchApplyEndTime
+          ? `${tools.dateToStr(this.state.searchApplyEndTime.utc()._d)} `
+          : "",
+      minPaymentTime: this.state.searchBeginTime
+          ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)} `
+          : "",
+      maxPaymentTime: this.state.searchEndTime
+          ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
+          : ""
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/export/withdraw/record`;
+    form.method = "post";
+    console.log("FORM:", params);
+    
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+    
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+    
+    const newElement3 = document.createElement("input");
+    if (params.conditions) {
+      newElement3.setAttribute("name", "conditions");
+      newElement3.setAttribute("type", "hidden");
+      newElement3.setAttribute("value", params.conditions);
+      form.appendChild(newElement3);
+    }
+    
+    const newElement4 = document.createElement("input");
+    if (params.userId) {
+      newElement4.setAttribute("name", "userId");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.userId);
+      form.appendChild(newElement4);
+    }
+    
+    const newElement5 = document.createElement("input");
+    if (params.productType) {
+      newElement5.setAttribute("name", "productType");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.productType);
+      form.appendChild(newElement5);
+    }
+    
+    const newElement6 = document.createElement("input");
+    if (params.refundEndTime) {
+      newElement6.setAttribute("name", "refundEndTime");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.refundEndTime);
+      form.appendChild(newElement6);
+    }
+    
+    const newElement7 = document.createElement("input");
+    if (params.orderNo) {
+      newElement7.setAttribute("name", "orderNo");
+      newElement7.setAttribute("type", "hidden");
+      newElement7.setAttribute("value", params.orderNo);
+      form.appendChild(newElement7);
+    }
+    
+    const newElement8 = document.createElement("input");
+    if (params.minPrice) {
+      newElement8.setAttribute("name", "minPrice");
+      newElement8.setAttribute("type", "hidden");
+      newElement8.setAttribute("value", params.minPrice);
+      form.appendChild(newElement8);
+    }
+    
+    const newElement9 = document.createElement("input");
+    if (params.maxPrice) {
+      newElement9.setAttribute("name", "maxPrice");
+      newElement9.setAttribute("type", "hidden");
+      newElement9.setAttribute("value", params.maxPrice);
+      form.appendChild(newElement9);
+    }
+    
+    const newElement10 = document.createElement("input");
+    if (params.mchOrderId) {
+      newElement10.setAttribute("name", "mchOrderId");
+      newElement10.setAttribute("type", "hidden");
+      newElement10.setAttribute("value", params.mchOrderId);
+      form.appendChild(newElement10);
+    }
+    
+    const newElement11 = document.createElement("input");
+    if (params.userType) {
+      newElement11.setAttribute("name", "userType");
+      newElement11.setAttribute("type", "hidden");
+      newElement11.setAttribute("value", params.userType);
+      form.appendChild(newElement11);
+    }
+    
+    const newElement12 = document.createElement("input");
+    if (params.activityType) {
+      newElement12.setAttribute("name", "activityType");
+      newElement12.setAttribute("type", "hidden");
+      newElement12.setAttribute("value", params.activityType);
+      form.appendChild(newElement12);
+    }
+    
+    const newElement13 = document.createElement("input");
+    if (params.refundBeginTime) {
+      newElement13.setAttribute("name", "refundBeginTime");
+      newElement13.setAttribute("type", "hidden");
+      newElement13.setAttribute("value", params.refundBeginTime);
+      form.appendChild(newElement13);
+    }
+    
+    const newElement14 = document.createElement("input");
+    if (params.beginTime) {
+      newElement14.setAttribute("name", "beginTime");
+      newElement14.setAttribute("type", "hidden");
+      newElement14.setAttribute("value", params.beginTime);
+      form.appendChild(newElement14);
+    }
+    
+    const newElement15 = document.createElement("input");
+    if (params.endTime) {
+      newElement15.setAttribute("name", "endTime");
+      newElement15.setAttribute("type", "hidden");
+      newElement15.setAttribute("value", params.endTime);
+      form.appendChild(newElement15);
+    }
+    
+    form.submit();
+  }
+  
+  // 导出提现明细列表数据
+  onExportDataDetail(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      userType: this.state.searchUserType,
+      withdrawType: this.state.searchWithdrawType,
+      id: this.state.searchId,
+      nickName: this.state.searchUserName,
+      username: this.state.searchRealName,
+      ambassadorName: this.state.searchambassadorName,
+      paymentNo: this.state.searchtradeNo,
+      flag: this.state.searchFlag,
+      phone: this.state.searchMobile,
+      orderId: this.state.searchOrderId,
+      minAmount: this.state.searchMinPrice,
+      maxAmount: this.state.searchMaxPrice,
+      productType: this.state.searchTypeId,
+      userId: this.state.searchUserMallId,
+      partnerTradeNo: this.state.searchPartnerTradeNo,
+      minApplyTime: this.state.searchApplyBeginTime
+          ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
+          : "",
+      maxApplyTime: this.state.searchApplyEndTime
+          ? `${tools.dateToStr(this.state.searchApplyEndTime.utc()._d)} `
+          : "",
+      minPaymentTime: this.state.searchBeginTime
+          ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)} `
+          : "",
+      maxPaymentTime: this.state.searchEndTime
+          ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
+          : ""
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/export/withdraw/detail`;
+    form.method = "post";
+    console.log("FORM:", params);
+    
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+    
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+    
+    const newElement3 = document.createElement("input");
+    if (params.conditions) {
+      newElement3.setAttribute("name", "conditions");
+      newElement3.setAttribute("type", "hidden");
+      newElement3.setAttribute("value", params.conditions);
+      form.appendChild(newElement3);
+    }
+    
+    const newElement4 = document.createElement("input");
+    if (params.userId) {
+      newElement4.setAttribute("name", "userId");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.userId);
+      form.appendChild(newElement4);
+    }
+    
+    const newElement5 = document.createElement("input");
+    if (params.productType) {
+      newElement5.setAttribute("name", "productType");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.productType);
+      form.appendChild(newElement5);
+    }
+    
+    const newElement6 = document.createElement("input");
+    if (params.refundEndTime) {
+      newElement6.setAttribute("name", "refundEndTime");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.refundEndTime);
+      form.appendChild(newElement6);
+    }
+    
+    const newElement7 = document.createElement("input");
+    if (params.orderNo) {
+      newElement7.setAttribute("name", "orderNo");
+      newElement7.setAttribute("type", "hidden");
+      newElement7.setAttribute("value", params.orderNo);
+      form.appendChild(newElement7);
+    }
+    
+    const newElement8 = document.createElement("input");
+    if (params.minPrice) {
+      newElement8.setAttribute("name", "minPrice");
+      newElement8.setAttribute("type", "hidden");
+      newElement8.setAttribute("value", params.minPrice);
+      form.appendChild(newElement8);
+    }
+    
+    const newElement9 = document.createElement("input");
+    if (params.maxPrice) {
+      newElement9.setAttribute("name", "maxPrice");
+      newElement9.setAttribute("type", "hidden");
+      newElement9.setAttribute("value", params.maxPrice);
+      form.appendChild(newElement9);
+    }
+    
+    const newElement10 = document.createElement("input");
+    if (params.mchOrderId) {
+      newElement10.setAttribute("name", "mchOrderId");
+      newElement10.setAttribute("type", "hidden");
+      newElement10.setAttribute("value", params.mchOrderId);
+      form.appendChild(newElement10);
+    }
+    
+    const newElement11 = document.createElement("input");
+    if (params.userType) {
+      newElement11.setAttribute("name", "userType");
+      newElement11.setAttribute("type", "hidden");
+      newElement11.setAttribute("value", params.userType);
+      form.appendChild(newElement11);
+    }
+    
+    const newElement12 = document.createElement("input");
+    if (params.activityType) {
+      newElement12.setAttribute("name", "activityType");
+      newElement12.setAttribute("type", "hidden");
+      newElement12.setAttribute("value", params.activityType);
+      form.appendChild(newElement12);
+    }
+    
+    const newElement13 = document.createElement("input");
+    if (params.refundBeginTime) {
+      newElement13.setAttribute("name", "refundBeginTime");
+      newElement13.setAttribute("type", "hidden");
+      newElement13.setAttribute("value", params.refundBeginTime);
+      form.appendChild(newElement13);
+    }
+    
+    const newElement14 = document.createElement("input");
+    if (params.beginTime) {
+      newElement14.setAttribute("name", "beginTime");
+      newElement14.setAttribute("type", "hidden");
+      newElement14.setAttribute("value", params.beginTime);
+      form.appendChild(newElement14);
+    }
+    
+    const newElement15 = document.createElement("input");
+    if (params.endTime) {
+      newElement15.setAttribute("name", "endTime");
+      newElement15.setAttribute("type", "hidden");
+      newElement15.setAttribute("value", params.endTime);
+      form.appendChild(newElement15);
+    }
+    
+    form.submit();
   }
 
   // 查询提新纪录某一条数据的详情
@@ -647,11 +1024,11 @@ class Category extends React.Component {
     this.onGetDataDetail(page, pageSize);
   }
 
-    // 操作日志--表单页码改变
-    onTablePageChangeJournal(page, pageSize) {
-        console.log("页码改变：", page, pageSize);
-        this.onGetDataJournal(page, pageSize);
-    }
+  // 操作日志--表单页码改变
+  onTablePageChangeJournal(page, pageSize) {
+    console.log("页码改变：", page, pageSize);
+    this.onGetDataJournal(page, pageSize);
+  }
 
 
   // 构建字段  -- 提现纪录
@@ -734,13 +1111,6 @@ class Category extends React.Component {
         width: 100,
         render: (text, record) => {
           const controls = [];
-          // (record.flag === 2) && controls.push(
-          //     <span key="1" className="control-btn red" onClick={() => this.onAdoptAloneRefuse(record)}>
-          //         <Tooltip placement="top" title="撤销审核">
-          //             <Icon type="logout" style={{color:'red'}}/>
-          //         </Tooltip>
-          //     </span>
-          // );
           controls.push(
             <span
               key="0"
@@ -889,28 +1259,36 @@ class Category extends React.Component {
   }
 
   //构建字段 - 操作日志所对应列表
-    makeColumnsJournal(){
-        const columns = [
-            {
-                title: "提现单号",
-                dataIndex: "partnerTradeNo",
-                key: "partnerTradeNo"
-            },
-            {
-                title:'操作',
-            },
-            {
-                title:'操作人',
-            },
-            {
-                title:'操作时间'
-            },
-            {
-              title:'审核不通过理由'
-            },
-        ]
-        return columns;
-    }
+  makeColumnsJournal(){
+    const columns = [
+    {
+      title: "提现单号",
+      dataIndex:'orderId',
+      key:'orderId'
+    },
+    {
+      title:'操作',
+      dataIndex:'operation',
+      key:'operation'
+    },
+    {
+      title:'操作人',
+      dataIndex:'creator',
+      key:'creator'
+    },
+    {
+      title:'操作时间',
+      dataIndex:'createTime',
+      key:'createTime',
+    },
+    {
+      title:'审核理由',
+      dataIndex:'auditReason',
+      key:'auditReason'
+    },
+  ]
+    return columns;
+  }
 
   // 构建table所需数据
   makeData(data) {
@@ -997,19 +1375,20 @@ class Category extends React.Component {
   }
 
     //操作日志 - table所需数据
-    makeDataJournal(data3) {
-        return data3.map((item, index) => {
-            return {
-                key: index,
-                addrId: item.addrId,
-                company: item.productType,
-                conditions: item.conditions,
-                username: item.username,
-                orderId: item.orderId,
-                reason: item.reason,
-                auditTime:item.auditTime,
-            };
-        });
+  makeDataJournal(data3) {
+    return data3.map((item, index) => {
+      return {
+        key: index,
+        orderId: String(item.orderId),
+        company: item.productType,
+        conditions: item.conditions,
+        username: item.username,
+        operation: item.operation,
+        createTime: item.createTime,
+        creator:item.creator,
+        auditReason:item.auditReason
+      };
+    });
     }
 
   render() {
@@ -1036,6 +1415,7 @@ class Category extends React.Component {
     const { searchMobile } = this.state;
     const { searchPartnerTradeNo } = this.state;
     const { searchOrderId } = this.state;
+    const { searchPresentNumber } = this.state;
     const suffix = searchtradeNo ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty0()} />
     ) : null;
@@ -1063,10 +1443,13 @@ class Category extends React.Component {
     const suffix7 = searchOrderId ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty9()} />
     ) : null;
-
+    const suffix11 = searchPresentNumber ? (
+        <Icon type="close-circle" onClick={() => this.emitEmpty10()} />
+    ) : null;
     return (
       <div>
         <div className="system-search">
+          {/*<Tabs type="card" onTabClick={()=>this.auditList()}>*/}
           <Tabs type="card">
             <TabPane tab="提现记录" key="1">
               <div className="system-table">
@@ -1243,17 +1626,9 @@ class Category extends React.Component {
                       </Button>
                     </li>
                     <li>
-                      <Button
-                        icon="download"
-                        style={{
-                          color: "#fff",
-                          backgroundColor: "#108ee9",
-                          borderColor: "#108ee9"
-                        }}
-                        onClick={this.warning2}
-                      >
-                        导出
-                      </Button>
+                    <Button icon="download" type="primary" onClick={()=>this.onExport()}>
+                      导出
+                    </Button>
                     </li>
                   </ul>
                 </div>
@@ -1549,15 +1924,7 @@ class Category extends React.Component {
                       </Button>
                     </li>
                     <li>
-                      <Button
-                        icon="download"
-                        style={{
-                          color: "#fff",
-                          backgroundColor: "#108ee9",
-                          borderColor: "#108ee9"
-                        }}
-                        onClick={this.warning2}
-                      >
+                      <Button icon="download" type="primary" onClick={()=>this.onExportDetail()}>
                         导出
                       </Button>
                     </li>
@@ -1647,18 +2014,18 @@ class Category extends React.Component {
                     {!!this.state.nowData ? this.state.nowData.phone : ""}
                   </FormItem>
                   <FormItem
-                      label="审核时间"
-                      {...formItemLayout}
-                      className={this.state.flag == 2 ? "hide" : ""}
+                    label="审核时间"
+                    {...formItemLayout}
+                    className={this.state.flag == 2 ? "hide" : ""}
                   >
-                      {!!this.state.nowData ? this.state.nowData.auditTime : ""}
+                    {!!this.state.nowData ? this.state.nowData.auditTime : ""}
                   </FormItem>
                   <FormItem
-                      label="审核时间"
-                      {...formItemLayout}
-                      className={this.state.flag == 1 ? "hide" : ""}
+                    label="审核时间"
+                    {...formItemLayout}
+                    className={this.state.flag == 1 ? "hide" : ""}
                   >
-                      {!!this.state.nowData ? this.state.nowData.auditTime : ""}
+                    {!!this.state.nowData ? this.state.nowData.auditTime : ""}
                   </FormItem>
                   <FormItem
                     label="提现失败理由"
@@ -1677,44 +2044,44 @@ class Category extends React.Component {
                     <li>
                       <span>提现单号查询</span>
                       <Input
-                          style={{ width: "172px" }}
-                          onChange={v => this.searchPartnerTradeNoChange(v)}
-                          value={searchPartnerTradeNo}
-                          suffix={suffix6}
+                        style={{ width: "172px" }}
+                        onChange={v => this.searchPresentNumber(v)}
+                        value={searchPresentNumber}
+                        suffix={suffix11}
                       />
                     </li>
                     <li>
                       <span>操作</span>
                       <Select
-                          placeholder="全部"
-                          allowClear
-                          style={{ width: "172px" }}
-                          onChange={e => this.searchFlagChange(e)}
+                        placeholder="全部"
+                        allowClear
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchFlagChange2(e)}
                       >
-                        <Option value={1}>审核通过</Option>
-                        <Option value={2}>审核不通过</Option>
+                        <Option value={'审核通过'}>审核通过</Option>
+                        <Option value={'审核不通过'}>审核不通过</Option>
                       </Select>
                     </li>
                     <li>
                       <span style={{ marginRight: "10px" }}>操作时间</span>
                       <DatePicker
-                          showTime={{
-                              defaultValue: moment("00:00:00", "HH:mm:ss")
-                          }}
-                          format="YYYY-MM-DD HH:mm:ss"
-                          placeholder="开始时间"
-                          // onChange={e => this.searchBeginTime(e)}
-                          onOk={onOk}
+                        showTime={{
+                          defaultValue: moment("00:00:00", "HH:mm:ss")
+                        }}
+                        format="YYYY-MM-DD HH:mm:ss"
+                        placeholder="开始时间"
+                        onChange={e => this.searchMinTime(e)}
+                        onOk={onOk}
                       />
                       --
                       <DatePicker
-                          showTime={{
-                              defaultValue: moment("23:59:59", "HH:mm:ss")
-                          }}
-                          format="YYYY-MM-DD HH:mm:ss"
-                          placeholder="结束时间"
-                          // onChange={e => this.searchEndTime(e)}
-                          onOk={onOk}
+                        showTime={{
+                          defaultValue: moment("23:59:59", "HH:mm:ss")
+                        }}
+                        format="YYYY-MM-DD HH:mm:ss"
+                        placeholder="结束时间"
+                        onChange={e => this.searchMaxTime(e)}
+                        onOk={onOk}
                       />
                     </li>
                     <li style={{ marginLeft: "40px" }}>
@@ -1730,17 +2097,17 @@ class Category extends React.Component {
                 </div>
                 <div className="system-table">
                   <Table
-                      columns={this.makeColumnsJournal()}
-                      dataSource={this.makeDataJournal(this.state.data3)}
-                      pagination={{
-                          total: this.state.total3,
-                          current: this.state.pageNum,
-                          pageSize: this.state.pageSize,
-                          showQuickJumper: true,
-                          showTotal: (total, range) => `共 ${total} 条数据`,
-                          onChange: (page, pageSize) =>
-                              this.onTablePageChangeJournal(page, pageSize)
-                      }}
+                    columns={this.makeColumnsJournal()}
+                    dataSource={this.makeDataJournal(this.state.data3)}
+                    pagination={{
+                      total: this.state.total3,
+                      current: this.state.pageNum,
+                      pageSize: this.state.pageSize,
+                      showQuickJumper: true,
+                      showTotal: (total, range) => `共 ${total} 条数据`,
+                      onChange: (page, pageSize) =>
+                        this.onTablePageChangeJournal(page, pageSize)
+                    }}
                   />
                 </div>
               </div>
@@ -1782,7 +2149,8 @@ export default connect(
         warning,
         findProductTypeByWhere,
         WithdrawalsRevoke,
-        RecordDetail
+        RecordDetail,
+        WithdrawLog
       },
       dispatch
     )

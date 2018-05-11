@@ -494,7 +494,7 @@ class Category extends React.Component {
       document.body.appendChild(form);
     }
     form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/order/refundExport`;
+    form.action = `${Config.baseURL}/manager/export/refund/audit`;
     form.method = "post";
     console.log("FORM:", params);
 
@@ -1202,10 +1202,10 @@ class Category extends React.Component {
               </Button>
             </li>
             <li>
-              {/*<Button icon="download" type="primary" onClick={() => this.onExport()}>导出</Button>*/}
-              <Button icon="download" type="primary" onClick={this.warning2}>
-                导出
-              </Button>
+              <Button icon="download" type="primary" onClick={() => this.onExport()}>导出</Button>
+              {/*<Button icon="download" type="primary" onClick={this.warning2}>*/}
+                {/*导出*/}
+              {/*</Button>*/}
             </li>
           </ul>
         </div>

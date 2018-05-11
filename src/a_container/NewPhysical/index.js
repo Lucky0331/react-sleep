@@ -21,6 +21,7 @@ import PhyStatistics from "./container/PhyStatistics";
 import Detail from "./container/Detail";
 import Distribution from "./container/Distribution";
 import Station from "./container/Station";
+import StatisticalList from "./container/StatisticalList"
 
 // ==================
 // 本页面所需action
@@ -78,6 +79,11 @@ class TheContainer extends React.Component {
             exact
             path={`${this.props.match.path}/station`}
             component={Station}
+          />
+          <Route
+            exact
+            path={`${this.props.match.path}/StatisticalList`} //体检统计列表
+            component={StatisticalList}
           />
         </Switch>
       </div>

@@ -726,8 +726,8 @@ class Category extends React.Component {
                     validator: (rule, value, callback) => {
                       const v = tools.trim(value);
                       if (v) {
-                        if (v.length > 12) {
-                          callback("最多输入12位字符");
+                        if (v.length > 18) {
+                          callback("最多输入18个字");
                         }
                       }
                       callback();

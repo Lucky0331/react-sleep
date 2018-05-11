@@ -89,6 +89,23 @@ export function deleteProductType(params = {}) {
   };
 }
 
+// 删除产品类型
+export function hasRecommendProductType(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/product/hasRecommend", params, "post", true)
+      .then(msg => {
+        dispatch({
+          type: "SHOP::deleteProductType",
+          payload: msg
+        });
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
 // 查询产品型号
 export function findProductModelByWhere(params = {}) {
   return dispatch => {
@@ -544,7 +561,7 @@ export function updateProductLine(params = {}) {
   };
 }
 
-//承包上下线列表查询
+//服务站信息管理列表查询
 export function ContractList(params = {}) {
   return dispatch => {
     return Fetchapi.newPost("/manager/station/list  ", params)
@@ -557,10 +574,36 @@ export function ContractList(params = {}) {
   };
 }
 
-//承包上下线切换
+//服务站承包上线 / 承包人信息修改
 export function updateContract(params = {}) {
   return dispatch => {
-    return Fetchapi.newPost("/manager/station/contract  ", params)
+    return Fetchapi.newPost("/manager/station/contract/up  ", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//服务站承包下线
+export function downContract(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/station/contract/down", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//承包信息编辑
+export function updateStation(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/station/edit  ", params,'post',true)
       .then(msg => {
         return msg;
       })
@@ -731,6 +774,71 @@ export function deletePosition(params = {}) {
   };
 }
 
+//获取所有活动列表
+export function ActivityList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/activity/list", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//添加新活动
+export function NewActivityList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/activity/save", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//修改新活动
+export function upDateActivityList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/activity/update", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//删除活动
+export function deleteActivity(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/activity/delete", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//发布/撤回活动
+export function upDateOnlineList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/activity/outOff", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
 // 购买权限管理列表
 export function buyPower(params = {}) {
   return dispatch => {
@@ -760,7 +868,7 @@ export function cashRecord(params = {}) {
 // 订单对账列表
 export function statementList(params = {}) {
   return dispatch => {
-    return Fetchapi.newPost("/manager/order/statementList", params)
+    return Fetchapi.newPost("/manager/order/reconciliation", params)
       .then(msg => {
         return msg;
       })
@@ -809,6 +917,19 @@ export function refundAuditEgis(params = {}) {
   };
 }
 
+//退款审核操作日志
+export function AuditLog(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/auditLog/list", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("请求出现网络错误，请重试");
+      });
+  };
+}
+
 //提现审核列表
 export function WithdrawalsAudit(params = {}) {
   return dispatch => {
@@ -832,6 +953,19 @@ export function RecordDetail(params = {}) {
       .catch(() => {
         message.error("请求出现网络错误，请重试");
       });
+  };
+}
+
+//提现操作日志
+export function WithdrawLog(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/cashRecord/withdraw/operate/log", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("请求出现网络错误，请重试");
+    });
   };
 }
 
@@ -870,6 +1004,32 @@ export function findUserInfoCount(params = {}) {
       .catch(() => {
         message.error("请求出现网络错误，请重试");
       });
+  };
+}
+
+//栏目列表
+export function findColumnCount(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/station/column/list", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("请求出现网络错误，请重试");
+      });
+  };
+}
+
+//栏目列表 - 添加数据
+export function addColumnCount(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/station/column/add", params,'post',true)
+        .then(msg => {
+          return msg;
+        })
+        .catch(() => {
+          message.error("请求出现网络错误，请重试");
+        });
   };
 }
 

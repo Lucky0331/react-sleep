@@ -189,7 +189,8 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      productType: 5,
+      isServiceIncome:false,
+      orderType: 5,
       typeId: this.state.searchTypeId,
       orderId: this.state.searchOrderId,
       userId: this.state.searchUserId,
@@ -220,7 +221,7 @@ class Category extends React.Component {
       document.body.appendChild(form);
     }
     form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/capital/genericIncome/export`;
+    form.action = `${Config.baseURL}/manager/export/settleAccounts/record`;
     form.method = "post";
     console.log("FORM:", form);
 
@@ -237,9 +238,9 @@ class Category extends React.Component {
     form.appendChild(newElement2);
 
     const newElement3 = document.createElement("input");
-    newElement3.setAttribute("name", "productType");
+    newElement3.setAttribute("name", "orderType");
     newElement3.setAttribute("type", "hidden");
-    newElement3.setAttribute("value", params.productType);
+    newElement3.setAttribute("value", "5");
     form.appendChild(newElement3);
 
     const newElement4 = document.createElement("input");
@@ -377,6 +378,12 @@ class Category extends React.Component {
       newElement20.setAttribute("value", params.region);
       form.appendChild(newElement20);
     }
+  
+    const newElement21 = document.createElement("input");
+    newElement21.setAttribute("name", "isServiceIncome");
+    newElement21.setAttribute("type", "hidden");
+    newElement21.setAttribute("value", false);
+    form.appendChild(newElement21);
 
     form.submit();
   }

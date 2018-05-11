@@ -9,9 +9,9 @@ import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import P from "prop-types";
 import moment from "moment";
-import _ from "lodash";
-
 import "./index.scss";
+import _ from "lodash";
+import Config from "../../../../config/config";
 import tools from "../../../../util/tools"; // 工具
 import Power from "../../../../util/power"; // 权限
 import { power } from "../../../../util/data";
@@ -34,6 +34,7 @@ import {
   Tooltip,
   Divider,
   Cascader,
+  Popover,
   DatePicker,
   Alert
 } from "antd";
@@ -56,8 +57,9 @@ import {
   findCityOrCounty,
   findStationByArea
 } from "../../../../a_action/sys-action";
-import { findUserInfo, detailRecord ,CardList} from "../../../../a_action/info-action";
+import { findUserInfo, myCustomers,userinfoRecord } from "../../../../a_action/info-action";
 import { onOk } from "../../../../a_action/shop-action";
+import { cashRecord } from "../../../../a_action/shop-action";
 // ==================
 // Definition
 // ==================
@@ -70,6 +72,8 @@ class Manager extends React.Component {
     super(props);
     this.state = {
       data: [], // 当前页面全部数据
+      Tdata: [], //推广客户所有信息
+      searchUserName: "",
       searchConditions: null,
       addnewModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
       addnewLoading: false, // 是否正在添加新用户中
@@ -82,17 +86,13 @@ class Manager extends React.Component {
       roleTreeShow: false, // 角色树是否显示
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
-      // total: 0, // 数据库总共多少条数据
+      total: 0, // 数据库总共多少条数据
       userId: "", // 获取用户id
       eId: "",
       addOrUp: "add", // 当前操作是新增还是修改
       citys: [], // 所有的省
       stations: [], // 当前服务站地区所对应的服务站
-      searchBindingBeginTime: "", //搜索 - 开始绑定时间
-      searchBindingEndTime: "", //搜搜 - 结束绑定时间
-      searchCashId: "", //搜索 - 领取人id
-      ticketCount:'' ,  //总共持有多少张优惠卡
-      total:'',   //赠送出去多少张优惠卡
+      searchAddress: [] // 搜索 - 地址
     };
   }
 
@@ -101,8 +101,7 @@ class Manager extends React.Component {
     // if((!this.props.allOrganizer) || (!this.props.allOrganizer.length)) {
     //     this.getAllOrganizer();
     // }
-      console.log("这是看优惠卡带的参数：", this.props.cardlist);
-      if (!this.props.citys.length) {
+    if (!this.props.citys.length) {
       // 获取所有省，全局缓存
       this.getAllCity0();
     } else {
@@ -129,6 +128,14 @@ class Manager extends React.Component {
         }))
       });
     }
+  }
+
+  //工具
+  getCity(s, c, q) {
+    if (!s) {
+      return "";
+    }
+    return `${s}/${c}/${q}`;
   }
 
   // 获取所有的省
@@ -164,6 +171,88 @@ class Manager extends React.Component {
       });
   }
 
+  // 修改某一条数据 模态框出现
+  onUpdateClick(record) {
+    const me = this;
+    const { form } = me.props;
+    console.log("是什么：", record);
+    form.setFieldsValue({
+      addnewName: record.name,
+      addnewTypeId: `${record.typeId}`,
+      addnewTypeCode: String(record.typeCode),
+    });
+    console.log("是什么：", record);
+    me.setState({
+      nowData: record,
+      upModalShow: true,
+      code: record.typeId,
+      fileList: record.productImg
+        ? record.productImg
+          .split(",")
+          .map((item, index) => ({ uid: index, url: item, status: "done" }))
+        : [], // 产品图片已上传的列表
+      fileListDetail: record.detailImg
+        ? record.detailImg
+          .split(",")
+          .map((item, index) => ({ uid: index, url: item, status: "done" }))
+        : []
+    });
+  }
+
+  // 确定修改某一条数据
+  onUpOk() {
+    const me = this;
+    const { form } = me.props;
+    form.validateFields(
+      [
+        "addnewName",
+        "addnewTypeId",
+        "addnewTypeCode",
+      ],
+      (err, values) => {
+        if (err) {
+          return;
+        }
+        me.setState({
+          upLoading: true
+        });
+        const params = {
+          id: me.state.nowData.id,
+          name: values.addnewName,
+          typeId: values.addnewTypeId,
+          typeCode: values.addnewTypeCode,
+        };
+
+        this.props.actions
+          .updateProduct(params)
+          .then(res => {
+            if (res.returnCode === "0") {
+              message.success("修改成功");
+              this.onGetData(this.state.pageNum, this.state.pageSize);
+              this.onUpClose();
+            } else {
+              message.error(res.returnMessaage || "修改失败，请重试");
+            }
+            me.setState({
+              upLoading: false
+            });
+          })
+          .catch(() => {
+            me.setState({
+              upLoading: false
+            });
+          });
+      }
+    );
+  }
+
+  // 关闭修改某一条数据
+  onUpClose() {
+    this.setState({
+      upModalShow: false
+    });
+  }
+
   // 工具 - 根据ID获取用户类型
   getListByModelId(id) {
     switch (String(id)) {
@@ -197,42 +286,41 @@ class Manager extends React.Component {
   }
 
 
+
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
     const params = {
       pageNum,
       pageSize,
-      userId:this.props.cardlist.mid2,
-      userName: this.state.searchUserName,
-      conditions: this.state.searchConditions,
-      cashId: this.state.searchCashId,
-      beginTime: this.state.searchBeginTime
-        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
-        : "",
-      endTime: this.state.searchEndTime
-        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59 `
-        : "",
+      category: 2,
+      userType: this.state.searchType,
+      mobile: this.state.searchMobile ? this.state.searchMobile : "",
+      realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 用户姓名
+      userId: this.state.searchEId ? this.state.searchEId : "",
+      ambassadorId:this.state.searchId,     //搜索 - 健康大使id
+      distributorId: this.state.searchDistributorId
+        ? this.state.searchDistributorId
+        : "", //搜索 - 经销商id
       bindBeginTime: this.state.searchBindingBeginTime
         ? `${tools.dateToStrD(this.state.searchBindingBeginTime._d)} 00:00:00`
         : "",
       bindEndTime: this.state.searchBindingEndTime
         ? `${tools.dateToStrD(this.state.searchBindingEndTime._d)} 23:59:59`
-        : ""
+        : "",
     };
 
-    this.props.actions.CardList(tools.clearNull(params)).then(res => {
-      if (res.status === 200) {
-        this.setState({
-          data: res.data.htlcBasePage.result || [],
-          pageNum,
-          pageSize,
-          ticketCount:res.data.ticketCount || 0,   //累计持有的优惠卡数
-          total: res.data.htlcBasePage.total || 0  //赠送总数
-        });
-      } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
-      }
-    });
+    // this.props.actions.findUserInfo(tools.clearNull(params)).then(res => {
+    //   if (res.status === 200) {
+    //     this.setState({
+    //       data: res.data.result || [],
+    //       pageNum,
+    //       pageSize,
+    //       total: res.data.total
+    //     });
+    //   } else {
+    //     message.error(res.returnMessaage || "获取数据失败，请重试");
+    //   }
+    // });
   }
 
   // 搜索
@@ -240,10 +328,19 @@ class Manager extends React.Component {
     this.onGetData(1, this.state.pageSize);
   }
 
-  //Input中的删除按钮所删除的条件
-  emitEmpty() {
+  // 搜索 - 服务站地区输入框值改变时触发
+  onSearchAddress(c) {
     this.setState({
-        SearchcashId: ""
+      searchAddress: c
+    });
+  }
+
+  // 查询某一条数据的详情
+  onQueryClick(record) {
+    this.setState({
+      nowData: record,
+      userType: record.userType,
+      queryModalShow: true
     });
   }
 
@@ -254,41 +351,13 @@ class Manager extends React.Component {
     });
   }
 
-  // 搜索 - 开始时间变化
-  searchBeginTime(v) {
+  //搜索 - 用户类型
+  onSearchType(v) {
     this.setState({
-      searchBeginTime: v
+      searchType: v
     });
   }
 
-  // 搜索 - 结束时间变化
-  searchEndTime(v) {
-    this.setState({
-      searchEndTime: v
-    });
-  }
-
-  //搜索 - 开始绑定时间
-  searchBindingBeginTimeChange(v) {
-    this.setState({
-      searchBindingBeginTime: v
-    });
-    console.log("这是什么：", v);
-  }
-
-  //搜索 - 结束绑定时间
-  searchBindingEndTimeChange(v) {
-    this.setState({
-      searchBindingEndTime: v
-    });
-  }
-
-  //搜索 - 领取人id
-  onSearchCashId(e) {
-    this.setState({
-      searchCashId: e.target.value
-    });
-  }
 
   // 表单页码改变
   onTablePageChange(page, pageSize) {
@@ -305,42 +374,62 @@ class Manager extends React.Component {
         key: "serial"
       },
       {
-        title: "优惠卡卡号",
-        dataIndex:'ticketNo',
-        key:'ticketNo'
+        title: "省份",
       },
       {
-        title: "领取人id",
-        dataIndex:'id',
-        key:'id'
+        title: "省级经理姓氏",
       },
       {
-        title: "领取人姓名",
-        dataIndex:'realName',
-        key:'realName'
+        title: "省级经理联系电话",
       },
       {
-        title: "领取人昵称",
-        dataIndex:'nickName',
-        key:'nickName'
-      },
-      {
-        title: "领取人手机号",
-        dataIndex:'mobile',
-        key:'mobile'
-      },
-      {
-        title: "领取时间",
-        dataIndex:'receiveTime',
-        key:'receiveTime'
-      },
+        title: "操作",
+        key: "control",
+        fixed: "right",
+        width: 60,
+        render: (text, record) => {
+          let controls = [];
+          controls.push(
+            <span
+              key="0"
+              className="control-btn green"
+              onClick={() => this.onQueryClick(record)}
+            >
+              <a href="#/usermanage/userinfoRecord">
+                <Tooltip placement="top" title="查看">
+                  <Icon type="eye" />
+                </Tooltip>
+              </a>
+            </span>
+          );
+          controls.push(
+            <span
+              key="1"
+              className="control-btn blue"
+              onClick={() => this.onUpdateClick(record)}
+            >
+              <Tooltip placement="top" title="编辑">
+                <Icon type="edit" />
+              </Tooltip>
+            </span>
+          );
+          const result = [];
+          controls.forEach((item, index) => {
+            if (index) {
+              result.push(<Divider key={`line${index}`} type="vertical" />);
+            }
+            result.push(item);
+          });
+          return result;
+        }
+      }
     ];
     return columns;
   }
 
   // 构建table所需数据
   makeData(data) {
-    console.log("什么是DATA:", data);
+    console.log("DATA:", data);
     if (!data) {
       return [];
     }
@@ -349,18 +438,28 @@ class Manager extends React.Component {
         key: index,
         adminIp: item.adminIp,
         password: item.password,
-        ticketNo: item.ticketNo,
+        eId: item.id,
+        citys:
+          item.province && item.city && item.region
+            ? `${item.province}/${item.city}/${item.region}`
+            : "",
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
-        receiveTime: item.receiveTime,
-        id: (item.giveUserInfo) ? item.giveUserInfo.id : '',
-        nickName: (item.giveUserInfo) ? item.giveUserInfo.nickName : '',
-        mobile: (item.giveUserInfo) ? item.giveUserInfo.mobile : '',
-        realName: (item.giveUserInfo) ? item.giveUserInfo.realName : '',
+        age: item.age,
+        conditions: item.conditions,
+        creator: item.creator,
+        createTime: item.createTime,
+        bindTime: item.bindTime,
+        description: item.description,
+        email: item.email,
+        orgCode: item.orgType,
+        mobile: item.mobile,
+        headImg: item.headImg,
+        updateTime: item.updateTime,
       };
     });
   }
 
-  render(data) {
+  render() {
     const me = this;
     const { form } = me.props;
     const { getFieldDecorator, getFieldValue } = form;
@@ -375,60 +474,16 @@ class Manager extends React.Component {
       }
     };
 
-    const { searchCashId } = this.state;
-    const suffix = searchCashId ? (
-      <Icon type="close-circle" onClick={() => this.emitEmpty()} />
-    ) : null;
-
-      return (
+    return (
       <div>
-        <div className="detailsome" style={{height:'850px'}}>
-        <div className="top">
-          <a href="#/usermanage/dealerinfo" className="title" >经销商信息管理</a>
-          <Tooltip>
-          <Icon
-            type="right"
-            style={{
-              color: "black",
-              marginTop: "5px",
-              marginLeft: "3px",
-              fontSize: "17px"
-            }}
-          />
-          </Tooltip>
-          <span style={{fontSize:'20px',color:'#798ae0'}}>优惠卡统计</span>
-        </div>
-        <div className="system-search" style={{marginTop:'10px'}}>
-          <ul className="search-ul" style={{ marginBottom: "10px" }}>
+        <div className="system-search">
+          <ul className="search-ul more-ul">
             <li>
-              <span style={{ marginRight: "4px", marginLeft: "13px" }}>
-                领取人id
+              <span>
+                省份
               </span>
               <Input
                 style={{ width: "172px" }}
-                // suffix={suffix}
-                // value={searchCashId}
-                onChange={e => this.onSearchCashId(e)}
-              />
-            </li>
-            <li>
-              <span style={{ marginRight: "10px", marginLeft: "7px" }}>
-                领取时间
-              </span>
-              <DatePicker
-                showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
-                format="YYYY-MM-DD HH:mm:ss"
-                placeholder="开始时间"
-                // onChange={e => this.searchBindingBeginTimeChange(e)}
-                onOk={onOk}
-              />
-              --
-              <DatePicker
-                showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
-                format="YYYY-MM-DD HH:mm:ss"
-                placeholder="结束时间"
-                // onChange={e => this.searchBindingEndTimeChange(e)}
-                onOk={onOk}
               />
             </li>
             <li style={{ marginLeft: "5px" }}>
@@ -441,9 +496,6 @@ class Manager extends React.Component {
               </Button>
             </li>
           </ul>
-        </div>
-        <div style={{fontSize:'15px',marginLeft:'15px',color:'black'}}>
-          <span>累计持有<span style={{color:'firebrick',padding: '0px 5px'}}>{this.state.ticketCount}</span>张优惠卡</span>，<span>赠出<span style={{color:'firebrick',padding: '0px 5px'}}>{this.state.total}</span>张优惠卡</span>
         </div>
         <div className="system-table" style={{ marginTop: "2px" }}>
           <Table
@@ -460,7 +512,37 @@ class Manager extends React.Component {
             }}
           />
         </div>
-       </div>
+        {/* 查看用户详情模态框 */}
+        <Modal
+          title="省级经理信息详情"
+          visible={this.state.queryModalShow}
+          onOk={() => this.onQueryModalClose()}
+          onCancel={() => this.onQueryModalClose()}
+          wrapClassName={"list"}
+        >
+          <Form>
+            <FormItem label="用户id" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.eId : ""}
+            </FormItem>
+            <FormItem label="用户昵称" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.nickName : ""}
+            </FormItem>
+            <FormItem label="用户姓名" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.realName : ""}
+            </FormItem>
+            <FormItem label="用户手机号" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.mobile : ""}
+            </FormItem>
+            <FormItem label="用户身份" {...formItemLayout}>
+              {!!this.state.nowData
+                ? this.getListByModelId(this.state.nowData.userType)
+                : ""}
+            </FormItem>
+            <FormItem label="创建时间" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.createTime : ""}
+            </FormItem>
+          </Form>
+        </Modal>
       </div>
     );
   }
@@ -476,8 +558,7 @@ Manager.propTypes = {
   actions: P.any,
   allRoles: P.any,
   allOrganizer: P.any,
-  citys: P.array,
-  cardlist:P.array,
+  citys: P.array
 };
 
 // ==================
@@ -488,8 +569,7 @@ export default connect(
   state => ({
     allRoles: state.sys.allRoles,
     allOrganizer: state.sys.allOrganizer,
-    citys: state.sys.citys,
-    cardlist:state.sys.cardlist,
+    citys: state.sys.citys
   }),
   dispatch => ({
     actions: bindActionCreators(
@@ -506,9 +586,9 @@ export default connect(
         findCityOrCounty,
         findStationByArea,
         findUserInfo,
+        myCustomers,
         onOk,
-        detailRecord,
-        CardList
+        userinfoRecord
       },
       dispatch
     )

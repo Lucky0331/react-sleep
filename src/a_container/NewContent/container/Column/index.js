@@ -17,6 +17,7 @@ import {
   Table,
   message,
   Modal,
+  Tabs,
   Tooltip,
   Popconfirm,
   Select,
@@ -58,11 +59,13 @@ import {
 // ==================
 const FormItem = Form.Item;
 const Option = Select.Option;
+const TabPane = Tabs.TabPane;
 class Category extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      data: [], // 当前页面全部数据
+      data: [], // 一级全部数据
+      data2:[],//二级全部数据
       productTypes: [], //所有的产品类型
       titleList: [], // 所有的标题位置
       titles: [], //所有的标题
@@ -70,7 +73,8 @@ class Category extends React.Component {
       searchDeleteStatus: "", //搜索 - 是否发布
       searchTypeCode: "", //搜索 - 产品类型
       nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
-      addnewModalShow: false, // 查看地区模态框是否显示
+      addnewModalShow: false, // 添加一级模态框是否显示
+      addnewTwoShow: false, // 添加二级模态框是否显示
       upModalShow: false, // 修改模态框是否显示
       upLoading: false, // 是否正在修改用户中
       fileList: [], // 代言卡上传的列表
@@ -78,7 +82,8 @@ class Category extends React.Component {
       fileLoading: false, // 缩略图片正在上传
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
-      total: 0 // 数据库总共多少条数据
+      total: 0, // 一级分类数据库总共多少条数据
+      total2: 0 // 一级分类数据库总共多少条数据
     };
   }
 
@@ -97,20 +102,20 @@ class Category extends React.Component {
       title: this.state.searchTitle,
       productTypeCode: this.state.searchTypeCode
     };
-    this.props.actions.Cardlist(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.data.result);
-      if (res.status === 200) {
-        this.setState({
-          data: res.data.result || [],
-          pageNum,
-          pageSize,
-          total: res.data.total || []
-        });
-      } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
-      }
-      console.log("啥代言卡信息：", res.data.result);
-    });
+    // this.props.actions.Cardlist(tools.clearNull(params)).then(res => {
+    //   console.log("返回的什么：", res.data.result);
+    //   if (res.status === 200) {
+    //     this.setState({
+    //       data: res.data.result || [],
+    //       pageNum,
+    //       pageSize,
+    //       total: res.data.total || []
+    //     });
+    //   } else {
+    //     message.error(res.returnMessaage || "获取数据失败，请重试");
+    //   }
+    //   console.log("啥代言卡信息：", res.data.result);
+    // });
   }
 
   // 获取代言卡信息
@@ -168,26 +173,32 @@ class Category extends React.Component {
     });
   }
 
-  // 添加产品代言卡模态框出现
+  // 添加一级分类模态框出现
   onAddNewShow() {
     const me = this;
     const { form } = me.props;
     form.resetFields([
       "addnewTypeId", //添加产品类型
       "addnewTitle", // 添加标题
-      "addnewSlogan", //添加标语
-      "addnewContent", //添加分享文案的内容
-      "addnewConditions", //添加是否发布
-      "addnewColor", //添加文字颜色
-      "addnewBtnColor", // 添加按钮颜色
-      "addnewSorts", // 添加排序的顺序
-      "addnewProductImg"
     ]);
     this.setState({
       addOrUp: "add",
-      fileList: [],
-      fileListDetail: [],
       addnewModalShow: true,
+      nowData: null
+    });
+  }
+  
+  // 添加二级分类模态框出现
+  onAddNewShowTwo() {
+    const me = this;
+    const { form } = me.props;
+    form.resetFields([
+      "addnewTypeId", //添加产品类型
+      "addnewTitle", // 添加标题
+    ]);
+    this.setState({
+      addOrUp: "add",
+      addnewTwoShow: true,
       nowData: null
     });
   }
@@ -195,7 +206,8 @@ class Category extends React.Component {
   // 关闭模态框
   onAddNewClose() {
     this.setState({
-      addnewModalShow: false
+      addnewModalShow: false,
+      addnewTwoShow:false,
     });
   }
 
@@ -233,14 +245,6 @@ class Category extends React.Component {
           productTypeName: this.findProductNameById(values.addnewTypeId), //添加产品名称
           name: values.addnewTitle, // 添加标题
           title: values.addnewSlogan, //添加标语
-          content: values.addnewContent, //添加分享文案
-          deleteStatus: values.addnewConditions ? true : false, //添加是否发布
-          colorTwo: String(values.addnewBtnColor), //添加按钮颜色
-          colorOne: String(values.addnewColor), // 添加文字颜色
-          sorts: values.addnewSorts, // 添加排序的顺序
-          titleImage: this.state.fileList.map(item => item.url).join(","),
-          contentImage: this.state.fileList.map(item => item.url).join(","),
-          backImage: this.state.fileListDetail.map(item => item.url).join(",")
         };
         if (this.state.addOrUp === "add") {
           // 新增
@@ -301,38 +305,9 @@ class Category extends React.Component {
       addOrUp: "up",
       addnewModalShow: true,
       // fileList: record.contentImage ? record.contentImage.split(',').map((item, index) => ({ uid: index, url: item, status: 'done' })) : [],   // 标题图上传的列表
-      fileList: record.titleImage
-        ? record.titleImage
-            .split(",")
-            .map((item, index) => ({ uid: index, url: item, status: "done" }))
-        : [], // 标题图上传的列表
-      fileListDetail: record.backImage
-        ? record.backImage
-            .split(",")
-            .map((item, index) => ({ uid: index, url: item, status: "done" }))
-        : [] // 背景图上传的列表
     });
   }
-
-  // 发布或取消发布
-  onUpdateClick2(record) {
-    const params = {
-      speakCardId: Number(record.id)
-    };
-    this.props.actions
-      .UpdateOnline(params)
-      .then(res => {
-        if (res.status === 200) {
-          message.success("修改成功");
-          this.onGetData(this.state.pageNum, this.state.pageSize);
-        } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
-        }
-      })
-      .catch(() => {
-        message.error("修改失败");
-      });
-  }
+  
 
   // 删除某一条数据
   onRemoveClick(id) {
@@ -345,139 +320,7 @@ class Category extends React.Component {
       }
     });
   }
-
-  // 代言卡图 - 上传中、上传成功、上传失败的回调
-  onUpLoadChange(obj) {
-    // console.log('图片上传：', obj);
-    if (obj.file.status === "done") {
-      // 上传成功后调用,将新的地址加进原list
-      if (obj.file.response.messsageBody) {
-        const list = _.cloneDeep(this.state.fileList);
-        const t = list.find(item => item.uid === obj.file.uid);
-        t.url = obj.file.response.messsageBody;
-        this.setState({
-          fileList: list,
-          fileLoading: false
-        });
-      } else {
-        const list = _.cloneDeep(this.state.fileList);
-        this.setState({
-          fileList: list.filter(item => item.uid !== obj.file.uid),
-          fileLoading: false
-        });
-        message.error("图片上传失败");
-      }
-    } else if (obj.file.status === "uploading") {
-      this.setState({
-        fileLoading: true
-      });
-    } else if (obj.file.status === "error") {
-      const list = _.cloneDeep(this.state.fileList);
-      this.setState({
-        fileList: list.filter(item => item.uid !== obj.file.uid),
-        fileLoading: false
-      });
-      message.error("图片上传失败");
-    }
-  }
-
-  // 代言卡图 - 上传前
-  onUploadBefore(f, fl) {
-    console.log("上传前：", f, fl);
-    if (
-      ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
-    ) {
-      message.error("只能上传jpg、jpeg、png、bmp、gif格式的图片");
-      return false;
-    } else {
-      const newList = _.cloneDeep(this.state.fileList);
-      newList.push(f);
-      this.setState({
-        fileList: newList
-      });
-      return true;
-    }
-  }
-
-  // 代言卡图 - 删除一个图片
-  onUpLoadRemove(f) {
-    console.log("删除；", f);
-    this.deleteImg(f.url);
-    const list = _.cloneDeep(this.state.fileList);
-    this.setState({
-      fileList: list.filter(item => item.uid !== f.uid)
-    });
-  }
-
-  // 真正从服务端删除商品的图片
-  deleteImg(uri) {
-    const temp = uri.split("/");
-    const fileName = temp.splice(-1, 1);
-    const params = {
-      path: temp.join("/"),
-      fileName
-    };
-    console.log("删除后的是啥？", temp.join("/"), fileName);
-    this.props.actions.deleteImage(params);
-  }
-
-  // 详细图片 - 上传前
-  onUploadDetailBefore(f) {
-    if (
-      ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
-    ) {
-      message.error("只能上传jpg、jpeg、png、bmp、gif格式的图片");
-      return false;
-    } else {
-      const newList = _.cloneDeep(this.state.fileListDetail);
-      newList.push(f);
-      this.setState({
-        fileListDetail: newList
-      });
-      return true;
-    }
-  }
-
-  // 详细图片 - 上传中、成功、失败
-  onUpLoadDetailChange(obj) {
-    if (obj.file.status === "done") {
-      // 上传成功后调用,将新的地址加进原list
-      if (obj.file.response.messsageBody) {
-        const list = _.cloneDeep(this.state.fileListDetail);
-        const t = list.find(item => item.uid === obj.file.uid);
-        t.url = obj.file.response.messsageBody;
-        this.setState({
-          fileListDetail: list,
-          fileDetailLoading: false
-        });
-      } else {
-        const list = _.cloneDeep(this.state.fileListDetail);
-        this.setState({
-          fileListDetail: list.filter(item => item.uid !== obj.file.uid),
-          fileDetailLoading: false
-        });
-      }
-    } else if (obj.file.status === "uploading") {
-      this.setState({
-        fileDetailLoading: true
-      });
-    } else if (obj.file.status === "error") {
-      const list = _.cloneDeep(this.state.fileListDetail);
-      this.setState({
-        fileListDetail: list.filter(item => item.uid !== obj.file.uid),
-        fileLoading: false
-      });
-      message.error("图片上传失败");
-    }
-  }
-
-  // 详细图片 - 删除
-  onUpLoadDetailRemove(f) {
-    const list = _.cloneDeep(this.state.fileListDetail);
-    this.setState({
-      fileListDetail: list.filter(item => item.uid !== f.uid)
-    });
-  }
+  
 
   // 关闭修改某一条数据
   onUpClose() {
@@ -485,11 +328,7 @@ class Category extends React.Component {
       upModalShow: false
     });
   }
-
-  // 搜索
-  onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
-  }
+  
 
   // 查询某一条数据的详情
   onQueryClick(record) {
@@ -513,7 +352,7 @@ class Category extends React.Component {
     this.onGetData(page, pageSize);
   }
 
-  // 构建字段
+  // 一级分类构建字段
   makeColumns() {
     const columns = [
       {
@@ -524,19 +363,9 @@ class Category extends React.Component {
         width: 100
       },
       {
-        title: "咨询类型名称"
+        title: "一级分类名称",
         // dataIndex: 'productTypeCode',
         // key: 'productTypeCode',
-      },
-      {
-        title: "咨询标识"
-        // dataIndex:'name',
-        // key:'name'
-      },
-      {
-        title: "咨询数量"
-        // dataIndex: 'deleteStatus',
-        // key: 'deleteStatus',
       },
       {
         title: "操作",
@@ -545,18 +374,7 @@ class Category extends React.Component {
           const controls = [];
           controls.push(
             <span
-              key="2"
-              className="control-btn green"
-              onClick={() => this.onQueryClick(record)}
-            >
-              <Tooltip placement="top" title="查看">
-                <Icon type="eye" />
-              </Tooltip>
-            </span>
-          );
-          controls.push(
-            <span
-              key="3"
+              key="0"
               className="control-btn blue"
               onClick={() => this.onUpdateClick(record)}
             >
@@ -566,19 +384,71 @@ class Category extends React.Component {
             </span>
           );
           controls.push(
-            <span
+            <Popconfirm
               key="1"
-              className="control-btn red"
-              onClick={() => this.onUpdateClick2(record)}
+              title="确定删除吗?"
+              onConfirm={() => this.onRemoveClick(record.id)}
+              okText="确定"
+              cancelText="取消"
             >
-              <Tooltip placement="top" title="转移">
-                <Icon type="logout" />
-              </Tooltip>
+              <span className="control-btn red">
+                <Tooltip placement="top" title="删除">
+                  <Icon type="delete" />
+                </Tooltip>
+              </span>
+            </Popconfirm>
+          );
+          const result = [];
+          controls.forEach((item, index) => {
+            if (index) {
+              result.push(<Divider key={`line${index}`} type="vertical" />);
+            }
+            result.push(item);
+          });
+          return result;
+        }
+      }
+    ];
+    return columns;
+  }
+  
+  //二级分类构建字段
+  makeColumnsTwo() {
+    const columns = [
+      {
+        title: "序号",
+        fixed: "left",
+        dataIndex: "serial",
+        key: "serial",
+        width: 100
+      },
+      {
+        title: "二级分类名称",
+        // dataIndex: 'productTypeCode',
+        // key: 'productTypeCode',
+      },
+      {
+        title:'一级分类',
+      },
+      {
+        title: "操作",
+        key: "control",
+        render: (text, record) => {
+          const controls = [];
+          controls.push(
+            <span
+              key="0"
+              className="control-btn blue"
+              onClick={() => this.onUpdateClick(record)}
+            >
+            <Tooltip placement="top" title="编辑">
+              <Icon type="edit" />
+            </Tooltip>
             </span>
           );
           controls.push(
             <Popconfirm
-              key="4"
+              key="1"
               title="确定删除吗?"
               onConfirm={() => this.onRemoveClick(record.id)}
               okText="确定"
@@ -605,29 +475,26 @@ class Category extends React.Component {
     return columns;
   }
 
-  // 构建table所需数据
+  // 构建一级分类table所需数据
   makeData(data) {
     return data.map((item, index) => {
       return {
         key: index,
-        productTypeCode: item.productTypeCode,
-        productModelCode: item.productModelCode,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         typeId: item.product ? item.product.typeId : "",
-        conditions: item.conditions,
-        backImage: item.backImage,
-        title: item.title,
-        titleImage: item.titleImage,
-        productTypeName: item.productTypeName,
-        contentImage: item.contentImage,
-        name: item.name,
-        colorOne: item.colorOne,
-        colorTwo: item.colorTwo,
-        content: item.content,
-        id: item.id,
-        deleteStatus: item.deleteStatus,
         sorts: item.sorts,
-        realName: item.distributor ? item.distributor.realName : ""
+      };
+    });
+  }
+  
+  // 构建二级分类table所需数据
+  makeDataTwo(data2) {
+    return data2.map((item, index) => {
+      return {
+        key: index,
+        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
+        typeId: item.product ? item.product.typeId : "",
+        sorts: item.sorts,
       };
     });
   }
@@ -650,154 +517,132 @@ class Category extends React.Component {
     return (
       <div>
         <div className="system-search">
-          <ul className="search-ul more-ul">
-            <ul className="search-func">
-              <li style={{ marginTop: "2px" }}>
-                <Button
-                  icon="plus-circle-o"
-                  type="primary"
-                  onClick={() => this.onAddNewShow()}
-                >
-                  添加资讯类型
-                </Button>
-              </li>
-            </ul>
-          </ul>
+          <Tabs type="card">
+            <TabPane tab="一级分类" key="1">
+              <div className="system-table">
+                <ul className="search-ul more-ul">
+                  <li>
+                    <span>一级分类名称</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      onChange={e => this.searchOrderNoChange(e)}
+                    />
+                  </li>
+                  <li style={{ marginTop: "2px" }}>
+                    <Button
+                      icon="plus-circle-o"
+                      type="primary"
+                      onClick={() => this.onAddNewShow()}
+                    >
+                      添加一级分类
+                    </Button>
+                  </li>
+                </ul>
+               </div>
+              <div className="system-table">
+                <Table
+                  columns={this.makeColumns()}
+                  dataSource={this.makeData(this.state.data)}
+                  // scroll={{ x: 400 }}
+                  pagination={{
+                    total: this.state.total,
+                    current: this.state.pageNum,
+                    pageSize: this.state.pageSize,
+                    showQuickJumper: true,
+                    showTotal: (total, range) => `共 ${total} 条数据`,
+                    onChange: (page, pageSize) =>
+                      this.onTablePageChange(page, pageSize)
+                  }}
+                />
+              </div>
+              {/* 添加模态框 */}
+              <Modal
+                title={this.state.addOrUp === "add" ? "添加二级分类" : "修改二级分类"}
+                visible={this.state.addnewTwoShow}
+                onOk={() => this.onAddNewOk()}
+                onCancel={() => this.onAddNewClose()}
+                confirmLoading={this.state.addnewLoading}
+              >
+                <Form>
+                  <FormItem label="一级分类" {...formItemLayout}>
+                    {getFieldDecorator("addnewTypeId", {
+                      initialValue: undefined,
+                      rules: [{ required: true, message: "请输入一级分类名称" }]
+                    })(<Input placeholder="请输入一级分类名称" />)}
+                  </FormItem>
+                  <FormItem label="二级分类名称" {...formItemLayout}>
+                    {getFieldDecorator("addnewTypeId", {
+                      initialValue: undefined,
+                      rules: [{ required: true, message: "请输入二级分类名称" }]
+                    })(<Input placeholder="请输入二级分类名称" />)}
+                  </FormItem>
+                </Form>
+              </Modal>
+            </TabPane>
+            <TabPane tab="二级分类" key="2">
+              <div className="system-table">
+                <ul className="search-ul more-ul">
+                  <li>
+                    <span>二级分类名称</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      onChange={e => this.searchOrderNoChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>一级分类</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      onChange={e => this.searchOrderNoChange(e)}
+                    />
+                  </li>
+                  <li style={{ marginTop: "2px" }}>
+                    <Button
+                      icon="plus-circle-o"
+                      type="primary"
+                      onClick={() => this.onAddNewShowTwo()}
+                    >
+                      添加二级分类
+                    </Button>
+                  </li>
+                </ul>
+              </div>
+              <div className="system-table">
+                <Table
+                  columns={this.makeColumnsTwo()}
+                  dataSource={this.makeDataTwo(this.state.data2)}
+                  // scroll={{ x: 400 }}
+                  pagination={{
+                    total: this.state.total2,
+                    current: this.state.pageNum,
+                    pageSize: this.state.pageSize,
+                    showQuickJumper: true,
+                    showTotal: (total, range) => `共 ${total} 条数据`,
+                    onChange: (page, pageSize) =>
+                      this.onTablePageChange(page, pageSize)
+                  }}
+                />
+              </div>
+              {/* 添加模态框 */}
+              <Modal
+                title={this.state.addOrUp === "add" ? "添加一级分类" : "修改一级分类"}
+                visible={this.state.addnewModalShow}
+                onOk={() => this.onAddNewOk()}
+                onCancel={() => this.onAddNewClose()}
+                confirmLoading={this.state.addnewLoading}
+              >
+                <Form>
+                  <FormItem label="一级分类名称" {...formItemLayout}>
+                    {getFieldDecorator("addnewTypeId", {
+                      initialValue: undefined,
+                      rules: [{ required: true, message: "请输入一级分类名称" }]
+                    })(<Input placeholder="请输入一级分类名称" />)}
+                  </FormItem>
+                </Form>
+              </Modal>
+            </TabPane>
+          </Tabs>
         </div>
-        <div className="system-table">
-          <Table
-            columns={this.makeColumns()}
-            dataSource={this.makeData(this.state.data)}
-            pagination={{
-              total: this.state.total,
-              current: this.state.pageNum,
-              pageSize: this.state.pageSize,
-              showQuickJumper: true,
-              showTotal: (total, range) => `共 ${total} 条数据`,
-              onChange: (page, pageSize) =>
-                this.onTablePageChange(page, pageSize)
-            }}
-          />
-        </div>
-        <Modal
-          title="查看地区"
-          visible={this.state.addnewModalShow}
-          onOk={() => this.onAddNewOk()}
-          onCancel={() => this.onAddNewClose()}
-          confirmLoading={this.state.addnewLoading}
-        />
-        {/* 添加模态框 */}
-        <Modal
-          title={this.state.addOrUp === "add" ? "添加资讯类型" : "修改资讯类型"}
-          visible={this.state.addnewModalShow}
-          onOk={() => this.onAddNewOk()}
-          onCancel={() => this.onAddNewClose()}
-          confirmLoading={this.state.addnewLoading}
-        >
-          <Form>
-            <FormItem label="资讯类型名称" {...formItemLayout}>
-              {getFieldDecorator("addnewTypeId", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请添写资讯类型名称" }]
-              })(<Input placeholder="请添写资讯类型名称" />)}
-            </FormItem>
-            <FormItem label="咨询标识" {...formItemLayout}>
-              {getFieldDecorator("addnewTitle", {
-                initialValue: undefined,
-                rules: [
-                  { required: true, message: "请添加咨询标识" },
-                  {
-                    validator: (rule, value, callback) => {
-                      const v = tools.trim(value);
-                      if (v) {
-                        if (v.length > 50) {
-                          callback("最多输入20位字符");
-                        }
-                      }
-                      callback();
-                    }
-                  }
-                ]
-              })(<Input placeholder="请添加咨询标识" />)}
-            </FormItem>
-          </Form>
-        </Modal>
-        {/* 查看详情模态框 */}
-        <Modal
-          title="查看详情"
-          visible={this.state.queryModalShow}
-          onOk={() => this.onQueryModalClose()}
-          onCancel={() => this.onQueryModalClose()}
-        >
-          <Form>
-            <FormItem label="产品类型" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.findProductNameById(this.state.nowData.productTypeCode)
-                : ""}
-            </FormItem>
-            <FormItem label="标题" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.name : ""}
-            </FormItem>
-            <FormItem label="背景图片" {...formItemLayout}>
-              {!!this.state.nowData && this.state.nowData.backImage
-                ? this.state.nowData.backImage.split(",").map((item, index) => {
-                    return (
-                      <Popover
-                        key={index}
-                        placement="right"
-                        content={<img className="table-img-big" src={item} />}
-                      >
-                        <img className="small-img" src={item} />
-                      </Popover>
-                    );
-                  })
-                : ""}
-            </FormItem>
-            <FormItem label="代言卡图片" {...formItemLayout}>
-              {!!this.state.nowData && this.state.nowData.titleImage
-                ? this.state.nowData.titleImage
-                    .split(",")
-                    .map((item, index) => {
-                      return (
-                        <Popover
-                          key={index}
-                          placement="right"
-                          content={<img className="table-img-big" src={item} />}
-                        >
-                          <img className="small-img" src={item} />
-                        </Popover>
-                      );
-                    })
-                : ""}
-            </FormItem>
-            <FormItem label="标语" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.title : ""}
-            </FormItem>
-            <FormItem label="分享文案" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.content : ""}
-            </FormItem>
-            <FormItem label="字体颜色" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.colorOne : ""}
-            </FormItem>
-            <FormItem label="按钮颜色" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.colorTwo : ""}
-            </FormItem>
-            <FormItem label="位置排序" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.sorts : ""}
-            </FormItem>
-            <FormItem label="是否发布" {...formItemLayout}>
-              {!!this.state.nowData ? (
-                Boolean(this.state.nowData.deleteStatus) === true ? (
-                  <span style={{ color: "green" }}>已发布</span>
-                ) : (
-                  <span style={{ color: "red" }}>未发布</span>
-                )
-              ) : (
-                ""
-              )}
-            </FormItem>
-          </Form>
-        </Modal>
       </div>
     );
   }

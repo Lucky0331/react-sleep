@@ -212,6 +212,14 @@ class Manager extends React.Component {
                 name: '趋势数据',
                 type: 'line',
                 data: seriesData,
+                itemStyle:{
+                    normal:{
+                        color:'#1890FF',
+                        lineStyle:{
+                            color:'#1890FF'
+                        }
+                    }
+                }
             }]
         };
         return option;

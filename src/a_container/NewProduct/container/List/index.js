@@ -15,6 +15,7 @@ import {
   Button,
   Icon,
   Input,
+  InputNumber,
   Checkbox,
   Row,
   Table,
@@ -55,7 +56,8 @@ import {
   deleteImage,
   findProductModelByWhere,
   upProductModel,
-  onChange3
+  onChange3,
+  hasRecommendProductType
 } from "../../../../a_action/shop-action";
 
 // ==================
@@ -86,11 +88,11 @@ class Category extends React.Component {
       total: 0, // 数据库总共多少条数据
       code: undefined, //产品类型所对应的code值
       fileList: [], // 产品图片已上传的列表
-      fileListDetail: [], // 详细图片已上传的列表
+      fileListDetail: [], // 列表封面图片已上传的列表
       fileLoading: false, // 产品图片正在上传
       fileDetailLoading: false, // 详细图片正在上传
     };
-      this.onChange = (editorState) => this.setState({editorState})
+    this.onChange = (editorState) => this.setState({editorState})
   }
 
   componentDidMount() {
@@ -280,8 +282,7 @@ class Category extends React.Component {
           timeLimitType: values.addnewTimeLimitType,
           activityType: values.addnewActivityType,
           productImg: this.state.fileList.map(item => item.url).join(","),
-          detailImg: this.state.fileListDetail.map(item => item.url).join(",")
-          // detailImg: this.state.fileListDetail.length ? this.state.fileListDetail[0].url : '',
+          // detailImg: this.state.fileListDetail.map(item => item.url).join(",")
         };
 
         this.props.actions
@@ -403,6 +404,30 @@ class Category extends React.Component {
       });
   }
 
+  //推荐或者不推荐
+  onUpdateClick3(record) {
+    const params = {
+      id: record.id,
+      saleMode: Number(record.saleMode),
+      onShelf: record.onShelf ? 1 : 0,
+      activityType: record.activityType
+    };
+
+    this.props.actions
+      .hasRecommendProductType(params)
+      .then(res => {
+        if (res.returnCode === "0") {
+          message.success("修改成功");
+          this.onGetData(this.state.pageNum, this.state.pageSize);
+        } else {
+          message.error(res.returnMessaage || "修改失败，请重试");
+        }
+      })
+      .catch(() => {
+        message.error("修改失败");
+      });
+  }
+
   // 添加或修改确定
   onAddNewOk() {
     console.log("AAAAAAAA");
@@ -442,8 +467,7 @@ class Category extends React.Component {
           onShelf: values.addnewOnShelf ? 1 : 0,
           activityType: values.addnewActivityType,
           productImg: this.state.fileList.map(item => item.url).join(","),
-          // detailImg: this.state.fileListDetail.length ? this.state.fileListDetail[0].url : '',
-          detailImg: this.state.fileListDetail.map(item => item.url).join(",")
+          // detailImg: this.state.fileListDetail.map(item => item.url).join(",")
         };
         if (this.state.addOrUp === "add") {
           // 新增
@@ -568,7 +592,7 @@ class Category extends React.Component {
     });
   }
 
-  // 详细图片 - 上传前
+  // 列表封面图片 - 上传前
   onUploadDetailBefore(f) {
     if (
       ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
@@ -585,7 +609,7 @@ class Category extends React.Component {
     }
   }
 
-  // 详细图片 - 上传中、成功、失败
+  // 列表封面图片 - 上传中、成功、失败
   onUpLoadDetailChange(obj) {
     if (obj.file.status === "done") {
       // 上传成功后调用,将新的地址加进原list
@@ -618,7 +642,7 @@ class Category extends React.Component {
     }
   }
 
-  // 详细图片 - 删除
+  // 列表封面图片 - 删除
   onUpLoadDetailRemove(f) {
     const list = _.cloneDeep(this.state.fileListDetail);
     this.setState({
@@ -668,6 +692,9 @@ class Category extends React.Component {
         key: "serial",
         width: 100
       },
+      // {
+      //   title:'列表缩略图'
+      // },
       {
         title: "缩略图",
         dataIndex: "productImg",
@@ -724,9 +751,25 @@ class Category extends React.Component {
           )
       },
       {
-        title: "操作",
+        title:'是否设为推荐',
+        dataIndex:'newProduct',
+        key:'newProduct',
+        render:text =>
+          text ? (
+              <span style={{ color: "green" }}>已推荐</span>
+          ):(
+              <span style={{ color: "red" }}>未推荐</span>
+          )
+      },
+      {
+        title:'排序',
+        dataIndex:'sort',
+        key:'sort'
+      },
+      {
+        title:'操作',
         key: "control",
-        width: 170,
+        width: 200,
         render: (text, record) => {
           const controls = [];
 
@@ -754,7 +797,30 @@ class Category extends React.Component {
                 </Tooltip>
               </span>
             );
-
+          !record.newProduct &&
+            controls.push(
+              <span
+                key="6"
+                className="control-btn blue"
+                onClick={() => this.onUpdateClick3(record)}
+              >
+               <Tooltip placement="top" title="推荐">
+                 <Icon type="login" />
+               </Tooltip>
+            </span>
+            );
+          record.newProduct &&
+            controls.push(
+              <span
+                key="5"
+                className="control-btn red"
+                onClick={() => this.onUpdateClick3(record)}
+              >
+             <Tooltip placement="top" title="撤回推荐">
+               <Icon type="logout" />
+             </Tooltip>
+            </span>
+            );
           controls.push(
             <span
               key="2"
@@ -846,14 +912,6 @@ class Category extends React.Component {
     });
   }
 
-    handleChange = (content) => {
-        console.log(content)
-    }
-
-    handleRawChange = (rawContent) => {
-        console.log(rawContent)
-    }
-
   render() {
     const me = this;
     const { form } = me.props;
@@ -861,12 +919,12 @@ class Category extends React.Component {
     console.log("AAA:", this.state.code);
     const formItemLayout = {
       labelCol: {
-        xs: { span: 24 },
-        sm: { span: 10 }
+        xs: { span: 22 },
+        sm: { span: 6 }
       },
       wrapperCol: {
-        xs: { span: 24 },
-        sm: { span: 13 }
+        xs: { span: 22 },
+        sm: { span: 16 }
       }
     };
 
@@ -880,54 +938,11 @@ class Category extends React.Component {
     const modelId = form.getFieldValue("addnewTypeCode");
     const obj = this.onSelectModels(modelId);
     console.log("OBJ是什么：", obj);
-      // const editorProps = {
-      //     placeholder: 'Hello World!',
-      //     initialContent: '',
-      //     onHTMLChange: this.handleHTMLChange,
-      //     viewWrapper: '.demo',
-      //     // 增加自定义预览按钮
-      //     extendControls: [
-      //         {
-      //             type: 'split',
-      //         },
-      //         {
-      //             type: 'button',
-      //             text: '预览',
-      //             className: 'preview-button',
-      //             onClick: () => {
-      //                 window.open().document.write(this.state.htmlContent)
-      //             }
-      //         }, {
-      //             type: 'dropdown',
-      //             text: <span>下拉菜单</span>,
-      //             component: <h1 style={{width: 200, color: '#ffffff', padding: 10, margin: 0}}>Hello World!</h1>
-      //         }, {
-      //             type: 'modal',
-      //             text: <span style={{paddingRight: 10,paddingLeft: 10}}>弹出菜单</span>,
-      //             className: 'modal-button',
-      //             modal: {
-      //                 title: '这是一个弹出框',
-      //                 showClose: true,
-      //                 showCancel: true,
-      //                 showConfirm: true,
-      //                 confirmable: true,
-      //                 onConfirm: () => console.log(1),
-      //                 onCancel: () => console.log(2),
-      //                 onClose: () => console.log(3),
-      //                 children: (
-      //                     <div style={{width: 480, height: 320, padding: 30}}>
-      //                         <span>Hello World！</span>
-      //                     </div>
-      //                 )
-      //             }
-      //         }
-      //     ]
-      // }
-      const editorProps = {
-          height: 500,
-          contentFormat: 'html',
-          initialContent: '<p>Hello World!</p>',
-      }
+    const editorProps = {
+      height: 400,
+      contentFormat: 'html',
+      initialContent: '<p>请编写内容...</p>',
+    }
     return (
       <div style={{ width: "100%" }}>
         <div className="system-search">
@@ -1004,11 +1019,10 @@ class Category extends React.Component {
           onOk={() => this.onAddNewOk()}
           onCancel={() => this.onAddNewClose()}
           wrapClassName={"codNum"}
-          width="800px"
           confirmLoading={this.state.addnewLoading}
         >
           <Form>
-            <FormItem label="产品类型" {...formItemLayout}>
+            <FormItem label="产品类型" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
               {getFieldDecorator("addnewTypeId", {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请选择产品类型" }]
@@ -1025,7 +1039,7 @@ class Category extends React.Component {
                 </Select>
               )}
             </FormItem>
-            <FormItem label="产品名称" {...formItemLayout}>
+            <FormItem label="产品名称" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
               {getFieldDecorator("addnewName", {
                 initialValue: undefined,
                 rules: [
@@ -1044,7 +1058,7 @@ class Category extends React.Component {
                 ]
               })(<Input placeholder="请输入产品名称" />)}
             </FormItem>
-            <FormItem label="产品型号" {...formItemLayout}>
+            <FormItem label="产品型号" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
               {getFieldDecorator("addnewTypeCode", {
                 initialValue: undefined,
                 rules: [
@@ -1078,7 +1092,7 @@ class Category extends React.Component {
                 </Select>
               )}
             </FormItem>
-            <FormItem label="活动方式" {...formItemLayout}>
+            <FormItem label="活动方式" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
               {getFieldDecorator("addnewActivityType", {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请选择活动方式" }]
@@ -1146,7 +1160,26 @@ class Category extends React.Component {
             >
               {obj.openAccountFee}
             </FormItem>
-            <FormItem label="产品封面图片上传(最多5张)" {...formItemLayout}>
+            <FormItem label="列表封面图片上传" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>
+              <Upload
+                name="pImg"
+                action={`${Config.baseURL}/manager/product/uploadImage`}
+                listType="picture-card"
+                withCredentials
+                fileList={this.state.fileListDetail}
+                beforeUpload={(f, fl) => this.onUploadDetailBefore(f, fl)}
+                onChange={f => this.onUpLoadDetailChange(f)}
+                onRemove={f => this.onUpLoadDetailRemove(f)}
+              >
+                {this.state.fileListDetail.length >= 1 ? null : (
+                  <div>
+                    <Icon type="plus" />
+                    <div className="ant-upload-text">选择文件</div>
+                  </div>
+                )}
+              </Upload>
+            </FormItem>
+            <FormItem label="产品封面图片上传(最多5张)" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>
               <Upload
                 name="pImg"
                 action={`${Config.baseURL}/manager/product/uploadImage`}
@@ -1165,30 +1198,50 @@ class Category extends React.Component {
                 )}
               </Upload>
             </FormItem>
-            <FormItem label="产品详情图片上传(最多8张)" {...formItemLayout}>
-              <Upload
-                name="pImg"
-                action={`${Config.baseURL}/manager/product/uploadImage`}
-                listType="picture-card"
-                withCredentials
-                fileList={this.state.fileListDetail}
-                beforeUpload={(f, fl) => this.onUploadDetailBefore(f, fl)}
-                onChange={f => this.onUpLoadDetailChange(f)}
-                onRemove={f => this.onUpLoadDetailRemove(f)}
-              >
-                {this.state.fileListDetail.length >= 8 ? null : (
-                  <div>
-                    <Icon type="plus" />
-                    <div className="ant-upload-text">选择文件</div>
-                  </div>
-                )}
-              </Upload>
-            </FormItem>
-            <FormItem label="产品详情" {...formItemLayout}>
-              <div className="demo">
-                <BraftEditor {...editorProps} />
+            {/*<FormItem label="产品详情图片上传" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>*/}
+              {/*<Upload*/}
+                {/*name="pImg"*/}
+                {/*action={`${Config.baseURL}/manager/product/uploadImage`}*/}
+                {/*listType="picture-card"*/}
+                {/*withCredentials*/}
+                {/*fileList={this.state.fileListDetail}*/}
+                {/*beforeUpload={(f, fl) => this.onUploadDetailBefore(f, fl)}*/}
+                {/*onChange={f => this.onUpLoadDetailChange(f)}*/}
+                {/*onRemove={f => this.onUpLoadDetailRemove(f)}*/}
+              {/*>*/}
+              {/*{this.state.fileListDetail.length >= 1 ? null : (*/}
+                {/*<div>*/}
+                  {/*<Icon type="plus" />*/}
+                  {/*<div className="ant-upload-text">选择文件</div>*/}
+                {/*</div>*/}
+              {/*)}*/}
+              {/*</Upload>*/}
+            {/*</FormItem>*/}
+            <FormItem label="产品封面视频上传" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 15 }}>
 
-              </div>
+            </FormItem>
+            <FormItem label="产品详情链接" {...formItemLayout}>
+              {getFieldDecorator("addnewUrl", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请输入链接地址" }]
+              })(<Input placeholder="请输入链接地址" />)}
+            </FormItem>
+            <FormItem label="是否设为推荐" {...formItemLayout}>
+              {getFieldDecorator("addnewConditions", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择是否设为推荐" }]
+              })(
+                <Select placeholder="请选择是否设为推荐">
+                  <Option value={0}>否</Option>
+                  <Option value={-1}>是</Option>
+                </Select>
+              )}
+            </FormItem>
+            <FormItem label="排序" {...formItemLayout}>
+              {getFieldDecorator("addnewSort", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请输入排序序号" }]
+              })(<InputNumber placeholder="请输入排序序号" style={{width:'314px'}}/>)}
             </FormItem>
           </Form>
         </Modal>
@@ -1326,7 +1379,26 @@ class Category extends React.Component {
             >
               {obj.openAccountFee}
             </FormItem>
-            <FormItem label="产品封面图片上传(最多5张)" {...formItemLayout}>
+            <FormItem label="列表封面图片上传" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 11 }}>
+              {/*<Upload*/}
+                {/*name="pImg"*/}
+                {/*action={`${Config.baseURL}/manager/product/uploadImage`}*/}
+                {/*listType="picture-card"*/}
+                {/*withCredentials*/}
+                {/*fileList={this.state.fileListDetail}*/}
+                {/*beforeUpload={(f, fl) => this.onUploadDetailBefore(f, fl)}*/}
+                {/*onChange={f => this.onUpLoadDetailChange(f)}*/}
+                {/*onRemove={f => this.onUpLoadDetailRemove(f)}*/}
+              {/*>*/}
+                {/*{this.state.fileListDetail.length >= 1 ? null : (*/}
+                  {/*<div>*/}
+                    {/*<Icon type="plus" />*/}
+                    {/*<div className="ant-upload-text">选择文件</div>*/}
+                  {/*</div>*/}
+                {/*)}*/}
+              {/*</Upload>*/}
+            </FormItem>
+            <FormItem label="产品封面图片上传(最多5张)" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 11 }}>
               <Upload
                 name="pImg"
                 action={`${Config.baseURL}/manager/product/uploadImage`}
@@ -1345,24 +1417,49 @@ class Category extends React.Component {
                 )}
               </Upload>
             </FormItem>
-            <FormItem label="产品详情图片上传(最多8张)" {...formItemLayout}>
-              <Upload
-                name="pImg"
-                action={`${Config.baseURL}/manager/product/uploadImage`}
-                listType="picture-card"
-                withCredentials
-                fileList={this.state.fileListDetail}
-                beforeUpload={(f, fl) => this.onUploadDetailBefore(f, fl)}
-                onChange={f => this.onUpLoadDetailChange(f)}
-                onRemove={f => this.onUpLoadDetailRemove(f)}
-              >
-                {this.state.fileListDetail.length >= 8 ? null : (
-                  <div>
-                    <Icon type="plus" />
-                    <div className="ant-upload-text">选择文件</div>
-                  </div>
-                )}
-              </Upload>
+            {/*<FormItem label="产品详情图片上传" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 11 }}>*/}
+              {/*<Upload*/}
+                {/*name="pImg"*/}
+                {/*action={`${Config.baseURL}/manager/product/uploadImage`}*/}
+                {/*listType="picture-card"*/}
+                {/*withCredentials*/}
+                {/*fileList={this.state.fileListDetail}*/}
+                {/*beforeUpload={(f, fl) => this.onUploadDetailBefore(f, fl)}*/}
+                {/*onChange={f => this.onUpLoadDetailChange(f)}*/}
+                {/*onRemove={f => this.onUpLoadDetailRemove(f)}*/}
+              {/*>*/}
+                {/*{this.state.fileListDetail.length >= 8 ? null : (*/}
+                {/*<div>*/}
+                 {/*<Icon type="plus" />*/}
+                 {/*<div className="ant-upload-text">选择文件</div>*/}
+                {/*</div>*/}
+              {/*)}*/}
+              {/*</Upload>*/}
+            {/*</FormItem>*/}
+            <FormItem label="产品封面视频上传" {...formItemLayout}>
+            </FormItem>
+            <FormItem label="产品详情链接" {...formItemLayout}>
+              {getFieldDecorator("addnewUrl", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请输入链接地址" }]
+              })(<Input placeholder="请输入链接地址" />)}
+            </FormItem>
+            <FormItem label="是否设为推荐" {...formItemLayout}>
+              {getFieldDecorator("addnewConditions", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择是否设为推荐" }]
+              })(
+                <Select placeholder="请选择是否设为推荐">
+                  <Option value={0}>否</Option>
+                  <Option value={-1}>是</Option>
+                </Select>
+              )}
+            </FormItem>
+            <FormItem label="排序" {...formItemLayout}>
+              {getFieldDecorator("addnewSort", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请输入排序序号" }]
+              })(<InputNumber placeholder="请输入排序序号" style={{width:'314px'}}/>)}
             </FormItem>
           </Form>
         </Modal>
@@ -1375,7 +1472,7 @@ class Category extends React.Component {
           onCancel={() => this.onQueryModalClose()}
         >
           <Form>
-            <FormItem label="产品名称" {...formItemLayout}>
+            <FormItem label="产品名称" {...formItemLayout} wrapperCol={{ span: 13}}>
               {!!this.state.nowData ? this.state.nowData.name : ""}
             </FormItem>
             <FormItem label="产品类型" {...formItemLayout}>
@@ -1477,6 +1574,17 @@ class Category extends React.Component {
                   : "未上架"
                 : ""}
             </FormItem>
+            <FormItem label="是否推荐" {...formItemLayout}>
+              {!!this.state.nowData
+                ? this.state.nowData.newProduct
+                  ? "已推荐"
+                  : "未推荐"
+                : ""}
+            </FormItem>
+            <FormItem label="排序" {...formItemLayout}>
+              {/*{!!this.state.nowData*/}
+                  {/*? this.state.nowData.newProduct :''}*/}
+            </FormItem>
           </Form>
         </Modal>
       </div>
@@ -1514,7 +1622,8 @@ export default connect(
         findProductModelByWhere,
         upProductModel,
         updateProduct,
-        onChange3
+        onChange3,
+        hasRecommendProductType
       },
       dispatch
     )

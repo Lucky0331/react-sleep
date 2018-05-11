@@ -287,8 +287,8 @@ class Category extends React.Component {
     console.log("是什么：", record);
     form.setFieldsValue({
       addnewTypeId: record.productTypeCode,
-      addnewTitle: String(record.title),
-      addnewSlogan: String(record.name),
+      addnewTitle: String(record.name),
+      addnewSlogan: String(record.title),
       addnewContent: String(record.content),
       addnewConditions: Boolean(record.deleteStatus) ? false : true,
       addnewBtnColor: String(record.colorTwo),
@@ -764,13 +764,6 @@ class Category extends React.Component {
             }}
           />
         </div>
-        <Modal
-          title="查看地区"
-          visible={this.state.addnewModalShow}
-          onOk={() => this.onAddNewOk()}
-          onCancel={() => this.onAddNewClose()}
-          confirmLoading={this.state.addnewLoading}
-        />
         {/* 添加模态框 */}
         <Modal
           title={this.state.addOrUp === "add" ? "添加代言卡" : "修改代言卡"}

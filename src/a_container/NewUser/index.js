@@ -21,7 +21,7 @@ import DealerInfoDetail from "./container/DealerInfoDetail";
 import CouponCard from "./container/CouponCard";
 import UserInfoRecord from "./container/UserInfoRecord";
 import UserInfoCount from "./container/UserInfoCount";
-
+import ProvincialManager from "./container/ProvincialManager"
 
 // ==================
 // 本页面所需action
@@ -65,25 +65,30 @@ class TheContainer extends React.Component {
             component={DealerInfo}
           />
           <Route
-              exact
-              path={`${this.props.match.path}/dealerinfoDetail`}
-              component={DealerInfoDetail}
+            exact
+            path={`${this.props.match.path}/dealerinfoDetail`}
+            component={DealerInfoDetail}
           />
           <Route
-              exact
-              path={`${this.props.match.path}/couponCard`}
-              component={CouponCard}
+            exact
+            path={`${this.props.match.path}/couponCard`}
+            component={CouponCard}
           />
           <Route
-              exact
-              path={`${this.props.match.path}/userinfoRecord`}
-              component={UserInfoRecord}
+            exact
+            path={`${this.props.match.path}/userinfoRecord`}
+            component={UserInfoRecord}
           />
-            <Route
-                exact
-                path={`${this.props.match.path}/userinfocount`}
-                component={UserInfoCount}
-            />
+          <Route
+            exact
+            path={`${this.props.match.path}/userinfocount`}
+            component={UserInfoCount}
+          />
+          <Route
+            exact
+            path={`${this.props.match.path}/provincialManager`}
+            component={ProvincialManager}
+          />
         </Switch>
       </div>
     );

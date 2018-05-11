@@ -1,0 +1,24 @@
+.detailsome{
+  border:solid 2px #ccc;
+  margin: 0px 15px;
+  box-shadow: 4px 4px 10px #888888;
+  .top{
+    background-color: #e0e0e0;
+    padding-bottom: 10px;
+    padding-top: 5px;
+  }
+}
+
+.title{
+  margin-left:20px;
+  font-size:20px;
+  color:#000;
+}
+
+a.title:visited,a.title:link {
+  text-decoration:none;
+}
+
+a.title:hover,a.title:active{
+  text-decoration:underline;
+}

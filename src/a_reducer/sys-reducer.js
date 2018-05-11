@@ -10,6 +10,7 @@ const initState = {
   test: {},
   detail:{},
   detail2:{},
+  cardlist:{},
 };
 
 // ============================================
@@ -55,21 +56,29 @@ const saveTest = (state, action) => {
 };
 
 const detailRecord = (state, action) => {
-    const { payload } = action;
-    console.log("跳转到详情传的是什么：", payload);
-    return Object.assign({}, state, {
-      detail: payload
-    });
+  const { payload } = action;
+  console.log("跳转到详情传的是什么：", payload);
+  return Object.assign({}, state, {
+    detail: payload
+  });
 };
 
 
 const userinfoRecord = (state, action) => {
-    const { payload } = action;
-    console.log("跳转到详情传的是什么：", payload);
-    return Object.assign({}, state, {
-        detail2: payload
-    });
+  const { payload } = action;
+  console.log("跳转到详情传的是什么：", payload);
+  return Object.assign({}, state, {
+    detail2: payload
+  });
 };
+
+const recordCard = (state,action) => {
+  const { payload } = action;
+  console.log("优惠卡参数：", payload);
+  return Object.assign({}, state, {
+    cardlist: payload
+  });
+}
 
 // ============================================
 // reducer function
@@ -90,6 +99,8 @@ const reducerFn = (state = initState, action) => {
       return detailRecord(state, action);
     case "Detail2::userinfoRecord":    //用户信息 页面跳转查看详情
       return userinfoRecord(state, action);
+    case "CardList::recordCard":    //经销商id - 优惠卡信息
+      return recordCard(state,action);
     default:
       return actDefault(state, action);
   }

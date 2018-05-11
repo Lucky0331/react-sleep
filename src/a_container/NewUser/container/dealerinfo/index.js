@@ -10,7 +10,7 @@ import { bindActionCreators } from "redux";
 import P from "prop-types";
 import moment from "moment";
 import _ from "lodash";
-
+import Config from "../../../../config/config";
 import "./index.scss";
 import tools from "../../../../util/tools"; // 工具
 import Power from "../../../../util/power"; // 权限
@@ -56,7 +56,7 @@ import {
   findCityOrCounty,
   findStationByArea
 } from "../../../../a_action/sys-action";
-import { findUserInfo, detailRecord } from "../../../../a_action/info-action";
+import { findUserInfo, detailRecord ,recordCard} from "../../../../a_action/info-action";
 import { onOk } from "../../../../a_action/shop-action";
 // ==================
 // Definition
@@ -206,10 +206,6 @@ class Manager extends React.Component {
     return `${s}${c}${q}`;
   }
 
-    warning2 = () =>{
-        message.warning('导出功能尚在开发 敬请期待');
-    };
-
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
     const params = {
@@ -272,6 +268,166 @@ class Manager extends React.Component {
   onSearch() {
     this.onGetData(1, this.state.pageSize);
   }
+
+  //导出
+  onExport() {
+    this.onExportData(this.state.pageNum, this.state.pageSize);
+  }
+
+  //优惠卡导出
+  onExportCard(){
+      this.onExportCardList(this.state.pageNum,this.state.pageSize);
+  }
+
+  // 导出经销商信息列表数据
+  onExportData(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      category: 1,
+      userType: this.state.searchType ? this.state.searchType : "",//搜索 - 经销商身份
+      realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 经销商姓名
+      userId: this.state.searchEId ? this.state.searchEId : "",   //经销商id
+      distributorId: this.state.searchDistributorId
+        ? this.state.searchDistributorId
+        : "", //搜索 - 经销商id
+      bindBeginTime: this.state.searchBindingBeginTime
+        ? `${tools.dateToStrD(this.state.searchBindingBeginTime._d)} 00:00:00`
+        : "",
+      bindEndTime: this.state.searchBindingEndTime
+        ? `${tools.dateToStrD(this.state.searchBindingEndTime._d)} 23:59:59`
+        : "",
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/userInfo/listExport`;
+    form.method = "post";
+    console.log("FORM:", params);
+
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+
+    const newElement10 = document.createElement("input");
+    newElement10.setAttribute("name", "category");
+    newElement10.setAttribute("type", "hidden");
+    newElement10.setAttribute("value",'1');
+    form.appendChild(newElement10);
+
+    const newElement3 = document.createElement("input");
+    if (params.userType) {
+      newElement3.setAttribute("name", "userType");
+      newElement3.setAttribute("type", "hidden");
+      newElement3.setAttribute("value", params.userType);
+      form.appendChild(newElement3);
+    }
+
+    const newElement4 = document.createElement("input");
+    if (params.mobile) {
+      newElement4.setAttribute("name", "mobile");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.mobile);
+      form.appendChild(newElement4);
+    }
+
+    const newElement5 = document.createElement("input");
+    if (params.realName) {
+      newElement5.setAttribute("name", "realName");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.realName);
+      form.appendChild(newElement5);
+    }
+
+    const newElement6 = document.createElement("input");
+    if (params.userId) {
+      newElement6.setAttribute("name", "userId");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.userId);
+      form.appendChild(newElement6);
+    }
+
+    const newElement7 = document.createElement("input");
+    if (params.mobile) {
+      newElement7.setAttribute("name", "mobile");
+      newElement7.setAttribute("type", "hidden");
+      newElement7.setAttribute("value", params.mobile);
+      form.appendChild(newElement7);
+    }
+
+    const newElement8 = document.createElement("input");
+    if (params.bindBeginTime) {
+      newElement8.setAttribute("name", "bindBeginTime");
+      newElement8.setAttribute("type", "hidden");
+      newElement8.setAttribute("value", params.bindBeginTime);
+      form.appendChild(newElement8);
+    }
+
+    const newElement9 = document.createElement("input");
+    if (params.bindEndTime) {
+      newElement9.setAttribute("name", "bindEndTime");
+      newElement9.setAttribute("type", "hidden");
+      newElement9.setAttribute("value", params.bindEndTime);
+      form.appendChild(newElement9);
+    }
+
+    form.submit();
+  }
+
+  // 导出优惠卡详情数据
+    onExportCardList(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      category: 1,
+      userType: this.state.searchType ? this.state.searchType : "",//搜索 - 经销商身份
+      realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 经销商姓名
+      userId: this.state.searchEId ? this.state.searchEId : "",   //经销商id
+      distributorId: this.state.searchDistributorId
+        ? this.state.searchDistributorId
+        : "", //搜索 - 经销商id
+      bindBeginTime: this.state.searchBindingBeginTime
+        ? `${tools.dateToStrD(this.state.searchBindingBeginTime._d)} 00:00:00`
+        : "",
+      bindEndTime: this.state.searchBindingEndTime
+        ? `${tools.dateToStrD(this.state.searchBindingEndTime._d)} 23:59:59`
+        : "",
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/userInfo/listTicketsExport`;
+    form.method = "post";
+    console.log("FORM:", params);
+
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+
+    form.submit();
+}
 
   //Input中的删除按钮所删除的条件
   emitEmpty() {
@@ -338,6 +494,17 @@ class Manager extends React.Component {
     this.props.actions.detailRecord(d);
     this.props.history.push("../NewUser/dealerinfoDetail");
     console.log("跳转页面的record带了哪些参数：", d);
+  }
+
+  //优惠卡赠送详情
+  CardList(record){
+    const d = _.cloneDeep(record);
+    this.setState({
+      nowData: d,
+    });
+    this.props.actions.recordCard(d);
+    this.props.history.push("../NewUser/CouponCard");
+    console.log("优惠卡带啥参数了：", d);
   }
 
 
@@ -540,15 +707,20 @@ class Manager extends React.Component {
         render: text => this.getListByModelId(text)
       },
       {
-        title: "服务站地区（经销商）",
-        dataIndex: "station",
-        key: "station",
-        render: (text, record) => {
-          return `${record.province}${record.city}${record.region}`
-            ? `${record.province}${record.city}${record.region}`
-            : "";
-        }
+        title: "经销商省",
+        dataIndex: "province",
+        key: "province",
       },
+      {
+        title: "经销商市",
+        dataIndex: "city",
+        key: "city",
+      },
+      {
+        title: "经销商区",
+        dataIndex: "region",
+        key: "region",
+       },
       {
         title: "绑定时间",
         dataIndex: "bindTime",
@@ -574,11 +746,12 @@ class Manager extends React.Component {
           );
           controls.push(
             <span
-                key="1"
-                className="control-btn blue"
+              key="1"
+              className="control-btn blue"
+              onClick={() => this.CardList(record)}
             >
               <a href="#/usermanage/CouponCard"><Tooltip placement="top" title="查看优惠卡详情">
-                <Icon type="idcard"/>
+              <Icon type="idcard"/>
               </Tooltip></a>
             </span>
           );
@@ -607,7 +780,6 @@ class Manager extends React.Component {
         key: index,
         adminIp: item.adminIp,
         password: item.password,
-        eId: item.id,
         citys:
           item.province && item.city && item.region
             ? `${item.province}/${item.city}/${item.region}`
@@ -752,7 +924,7 @@ class Manager extends React.Component {
     return (
       <div>
         <div className="system-search">
-          <ul className="search-ul" style={{ marginBottom: "10px" }}>
+          <ul className="search-ul more-ul">
             <li>
               <span style={{ marginRight: "4px", marginLeft: "13px" }}>
                 经销商id
@@ -776,6 +948,17 @@ class Manager extends React.Component {
               />
             </li>
             <li>
+              <span style={{ marginRight: "4px", marginLeft: "13px" }}>
+                经销商账户
+              </span>
+              <Input
+                style={{ width: "172px" }}
+                suffix={suffix8}
+                value={searchUserName}
+                onChange={e => this.onSearchUserName(e)}
+              />
+            </li>
+            <li>
               <span style={{ marginRight: "4px", marginLeft: "15px" }}>
                 经销商身份
               </span>
@@ -792,8 +975,6 @@ class Manager extends React.Component {
                 <Option value={6}>企业版子账号</Option>
               </Select>
             </li>
-          </ul>
-          <ul className="search-ul">
             <li>
               <span style={{ marginRight: "6px", marginLeft: "-2px" }}>
                 服务站地区（经销商）
@@ -807,26 +988,24 @@ class Manager extends React.Component {
                 changeOnSelect
               />
             </li>
-          </ul>
-          <ul className="search-ul" style={{ marginTop: "10px" }}>
             <li>
               <span style={{ marginRight: "10px", marginLeft: "7px" }}>
                 绑定时间
               </span>
               <DatePicker
-                  showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
-                  format="YYYY-MM-DD HH:mm:ss"
-                  placeholder="开始时间"
-                  onChange={e => this.searchBindingBeginTimeChange(e)}
-                  onOk={onOk}
+                showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
+                placeholder="开始时间"
+                onChange={e => this.searchBindingBeginTimeChange(e)}
+                onOk={onOk}
               />
               --
               <DatePicker
-                  showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
-                  format="YYYY-MM-DD HH:mm:ss"
-                  placeholder="结束时间"
-                  onChange={e => this.searchBindingEndTimeChange(e)}
-                  onOk={onOk}
+                showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
+                placeholder="结束时间"
+                onChange={e => this.searchBindingEndTimeChange(e)}
+                onOk={onOk}
               />
             </li>
             <li style={{ marginLeft: "5px" }}>
@@ -840,15 +1019,30 @@ class Manager extends React.Component {
             </li>
             <li>
               <Button
-                  icon="download"
-                  style={{
-                      color: "#fff",
-                      backgroundColor: "#108ee9",
-                      borderColor: "#108ee9"
-                  }}
-                  onClick={this.warning2}
+                icon="download"
+                type="primary"
+                style={{
+                  color: "#fff",
+                  backgroundColor: "#108ee9",
+                  borderColor: "#108ee9"
+                }}
+                onClick={()=>this.onExport()}
               >
                 导出
+              </Button>
+            </li>
+            <li>
+              <Button
+                icon="download"
+                type="primary"
+                style={{
+                  color: "#fff",
+                  backgroundColor: "#108ee9",
+                  borderColor: "#108ee9"
+                }}
+                onClick={()=>this.onExportCard()}
+              >
+                优惠卡情况导出
               </Button>
             </li>
           </ul>
@@ -993,6 +1187,7 @@ export default connect(
         findUserInfo,
         onOk,
         detailRecord,
+        recordCard
       },
       dispatch
     )

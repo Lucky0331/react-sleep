@@ -125,6 +125,10 @@ class Category extends React.Component {
     }
   }
 
+    // warning2 = () =>{
+    //     message.warning('导出功能尚在开发 敬请期待');
+    // };
+
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
     const params = {
@@ -1148,15 +1152,7 @@ class Category extends React.Component {
               </Button>
             </li>
             <li>
-              <Button
-                icon="download"
-                onClick={() => this.onExport()}
-                style={{
-                  color: "#fff",
-                  backgroundColor: "#108ee9",
-                  borderColor: "#108ee9"
-                }}
-              >
+              <Button icon="download" type="primary" onClick={()=>this.onExport()}>
                 导出
               </Button>
             </li>
