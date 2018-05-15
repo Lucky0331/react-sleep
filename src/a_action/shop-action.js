@@ -1033,6 +1033,32 @@ export function addColumnCount(params = {}) {
   };
 }
 
+//栏目列表 - 修改栏目数据
+export function updateColumnCount(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/station/column/update", params,'post',true)
+        .then(msg => {
+          return msg;
+        })
+        .catch(() => {
+          message.error("请求出现网络错误，请重试");
+        });
+  };
+}
+
+//栏目列表 - 删除数据
+export function deleteColumnCount(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/station/column/delete", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("请求出现网络错误，请重试");
+      });
+  };
+}
+
 //计费方式的选择
 export function onChange3(feeType) {
   console.log("checked = ", feeType);

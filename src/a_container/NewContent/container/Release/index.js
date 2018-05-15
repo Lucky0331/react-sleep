@@ -52,8 +52,12 @@ import {
   LiveVideo,
   DeleteVideo,
   addCard,
+  addLiveType,
+  updateLiveType,
   UpdateCard,
-  UpdateVideo
+  UpdateVideo,
+  LiveType,
+  allPullVideo
 } from "../../../../a_action/card-action";
 
 // ==================
@@ -66,15 +70,19 @@ class Category extends React.Component {
     super(props);
     this.state = {
       data: [], // 当前页面全部数据
+      datapull:[],//拉取的东西
       productTypes: [], //所有的产品类型
       productModels:[] ,//所有推荐产品型号
+      liveTypes:[], //所有的直播分类
       classifyOne:[],  //所有的一级分类
       titleList: [], // 所有的标题位置
       titles: [], //所有的标题
       searchTitle: "", //搜索 - 标题
       searchDeleteStatus: "", //搜索 - 是否发布
       searchTypeCode: "", //搜索 - 产品类型
+      pullliveId:"", //拉取操作
       nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
+      pullnowData:null,//指的是拉取后的数据
       addnewModalShow: false, // 查看地区模态框是否显示
       upModalShow: false, // 修改模态框是否显示
       searchLiveStatus:'', //搜索 - 标签
@@ -83,12 +91,26 @@ class Category extends React.Component {
       fileLoading: false, // 缩略图片正在上传
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
-      total: 0 // 数据库总共多少条数据
+      total: 0 ,// 数据库总共多少条数据
+      addnewTitle:'' ,//拉取标题
+      addnewTime:'', //拉取时间
+      addnewRecommend:'',//是否推荐
+      addnewLabel:'' ,//标签
+      addnewClassifyOne:'',//一级分类
+      addnewClassifyTwo:'',//二级分类
+      addnewProduct:'',//推荐产品
+      addnewSorts:'',//排序
+      coverImage:'',//封面图片
+      watchTimes:'',
+      realWatchTimes:'',
+      pcUrl:'',
+      mobileUrl:'',
     };
   }
 
   componentDidMount() {
     this.getAllProductModel(); // 获取所有的产品型号
+    this.LiveTypeAll(); //所有的直播分类、
     this.onGetData(this.state.pageNum, this.state.pageSize);
   }
 
@@ -117,6 +139,7 @@ class Category extends React.Component {
       // console.log("直播列表一级分类：", res.messsageBody.result.liveType);
     });
   }
+
   
 
   // 工具 - 根据产品类型ID查产品类型名称
@@ -147,6 +170,73 @@ class Category extends React.Component {
         }
       });
   }
+
+  //所有的直播分类，当前页可用
+  LiveTypeAll(){
+    this.props.actions
+    .LiveType({ pageNum: 0, pageSize: 9999 })
+    .then(res => {
+      if (res.returnCode === "0") {
+        this.setState({
+          liveTypes: res.messsageBody.result || []
+        });
+      }
+    });
+  }
+
+  //拉取视频
+  onPullVideo(record) {
+    const params= {
+      liveId:this.state.pullliveId
+    };
+    const form = this.props.form;
+    this.props.actions.allPullVideo(tools.clearNull(params)).then(res => {
+      console.log('又没有拉取到:',res.messsageBody)
+      if (res.returnCode === '0') {
+        this.setState({
+          datapull: res.messsageBody || [],
+          pcUrl:res.messsageBody.pcUrl,
+          watchTimes:res.messsageBody.watchTimes,
+          realWatchTimes:res.messsageBody.realWatchTimes,
+          mobileUrl:res.messsageBody.mobileUrl,
+        });
+        form.setFieldsValue({
+          addnewTitle: res.messsageBody.name,
+          addnewTime:res.messsageBody.createTime,
+          watchTimes:res.messsageBody.watchTimes,
+          addnewLabel:res.messsageBody.liveStatus, //标签
+          addnewRecommend:res.messsageBody.recommend ? 1 : 0 ,//是否推荐
+          addnewSorts:res.messsageBody.sorts,//排序
+          addnewClassifyOne:res.messsageBody.liveType.name,//一级分类名称
+          addnewClassifyTwo:res.messsageBody.liveType.subList[0].name,//二级分类名称
+          addnewProduct:res.messsageBody.recommendProductList[0].productName,//推荐产品
+          realWatchTimes:res.messsageBody.realWatchTimes,
+          pcUrl:res.messsageBody.pcUrl,
+          mobileUrl:res.messsageBody.mobileUrl,
+          coverImage: res.messsageBody.coverImage
+            ? res.messsageBody.coverImage
+                .split(",")
+                .map((item, index) => ({ uid: index, url: item, status: "done" }))
+            : [],
+        });
+        this.setState({
+          fileList: res.messsageBody.coverImage
+              ? res.messsageBody.coverImage
+                  .split(",")
+                  .map((item, index) => ({ uid: index, url: item, status: "done" }))
+              : [], // 封面图上传的列表
+        });
+      } 
+    });
+  }
+
+  // 工具 - 根据一级分类ID获取二级分类名称
+  getNameByCloumnId(id) {
+    const t = this.state.productModels.find(
+        item => String(item.id) === String(id)
+    );
+    return t ? t.name : "";
+  }
   
   // 工具 - 根据id返回标签名称
   getNameLiveStatusId(id) {
@@ -164,13 +254,6 @@ class Category extends React.Component {
     }
   }
   
-  // 工具 - 根据产品型号ID获取产品型号名称
-  getNameByModelId(id) {
-    const t = this.state.productModels.find(
-        item => String(item.id) === String(id)
-    );
-    return t ? t.name : "";
-  }
 
   //搜索 - 标签输入框值改变时触发
   searchNameChange(e) {
@@ -193,26 +276,31 @@ class Category extends React.Component {
     });
   }
 
-  // 添加产品代言卡模态框出现
+  // 添加直播发布模态框出现
   onAddNewShow() {
     const me = this;
     const { form } = me.props;
     form.resetFields([
-      "addnewTypeId", //添加产品类型
-      "addnewTitle", // 添加标题
-      "addnewSlogan", //添加标语
-      "addnewContent", //添加分享文案的内容
-      "addnewConditions", //添加是否发布
-      "addnewColor", //添加文字颜色
-      "addnewBtnColor", // 添加按钮颜色
-      "addnewSorts", // 添加排序的顺序
-      "addnewProductImg"
+      "addnewLiveId", //添加直播id
+      "addnewClassifyOne", // 添加一级分类
+      "addnewClassifyTwo", //添加二级分类
+      "addnewLabel", //添加标签
+      "addnewRecommend", //添加是否推荐
+      "addnewSorts", //添加排序的顺序
+      "addnewProduct", // 推荐产品
+      "addnewTime", //添加拉取的时间
+      "addnewTitle",//同步标题
+      "addnewWatchTimes",
+      "addnewRealWatchTimes",
+      "addnewPcUrl",
+      "addnewMobileUrl"
     ]);
     this.setState({
       addOrUp: "add",
       fileList: [],
       addnewModalShow: true,
-      nowData: null
+      nowData: null,
+      pullnowData:null,
     });
   }
 
@@ -234,15 +322,15 @@ class Category extends React.Component {
 
     form.validateFields(
       [
-        "addnewTypeId", //添加产品类型
-        "addnewTitle", // 添加标题
-        "addnewSlogan", //添加标语
-        "addnewContent", //添加分享文案的内容
-        "addnewConditions", //添加是否发布
-        "addnewColor", //添加文字颜色
-        "addnewBtnColor", // 添加按钮颜色
-        "addnewSorts", // 添加排序的顺序
-        "addnewProductImg"
+        "addnewLiveId", //添加直播id
+        "addnewClassifyOne", // 添加一级分类
+        "addnewClassifyTwo", //添加二级分类
+        "addnewLabel", //添加标签
+        "addnewRecommend", //添加是否推荐
+        "addnewSorts", //添加排序的顺序
+        "addnewProduct", // 推荐产品
+        "addnewTime", //添加拉取的时间
+        "addnewTitle",//同步标题
       ],
       (err, values) => {
         if (err) {
@@ -253,21 +341,25 @@ class Category extends React.Component {
         });
 
         const params = {
-          productTypeCode: values.addnewTypeId, //添加产品类型
-          productTypeName: this.findProductNameById(values.addnewTypeId), //添加产品名称
-          name: values.addnewTitle, // 添加标题
-          title: values.addnewSlogan, //添加标语
-          content: values.addnewContent, //添加分享文案
-          deleteStatus: values.addnewConditions ? true : false, //添加是否发布
-          colorTwo: String(values.addnewBtnColor), //添加按钮颜色
-          colorOne: String(values.addnewColor), // 添加文字颜色
+          liveId: Number(values.addnewLiveId), //添加直播id
+          liveTypeId: Number(values.addnewClassifyOne), //添加一级分类
+          liveTypeSubId:Number(values.addnewClassifyTwo),//添加二级分类
+          liveStatus: values.addnewLabel, // 添加标签
+          recommend: values.addnewRecommend , //添加是否推荐
           sorts: values.addnewSorts, // 添加排序的顺序
-          titleImage: this.state.fileList.map(item => item.url).join(","),
+          recommendProduct: String(values.addnewProduct),//推荐产品
+          name:values.addnewTitle,// 同步标题
+          // updateTime:values.addnewTime,//同步拉取时间
+          coverImage: this.state.fileList.map(item => item.url).join(","),
+          mobileUrl:this.state.mobileUrl,// 手机播放地址
+          pcUrl:this.state.pcUrl,// pc播放地址
+          realWatchTimes:this.state.realWatchTimes,// 观看次数(真)
+          watchTimes:this.state.watchTimes,// 观看次数(假)
         };
         if (this.state.addOrUp === "add") {
           // 新增
           me.props.actions
-            .addCard(tools.clearNull(params))
+            .addLiveType(tools.clearNull(params))
             .then(res => {
               me.setState({
                 addnewLoading: false
@@ -283,7 +375,7 @@ class Category extends React.Component {
         } else {
           params.id = this.state.nowData.id;
           me.props.actions
-            .UpdateCard(params)
+            .updateLiveType(params)
             .then(res => {
               // 修改
               me.setState({
@@ -308,23 +400,27 @@ class Category extends React.Component {
     const { form } = me.props;
     console.log("是什么：", record);
     form.setFieldsValue({
-      addnewTypeId: record.productTypeCode,
-      addnewTitle: String(record.name),
-      addnewSlogan: String(record.name),
-      addnewContent: String(record.content),
-      addnewConditions: Boolean(record.deleteStatus) ? false : true,
-      addnewBtnColor: String(record.colorTwo),
-      addnewColor: String(record.colorOne),
-      addnewSorts: Number(record.sorts)
+      addnewLiveId: Number(record.liveId),//修改直播id
+      addnewClassifyOne: record.name2,//修改一级分类
+      addnewClassifyTwo:record.name3,//修改二级分类
+      addnewLabel: record.liveStatus,// 修改标签
+      addnewRecommend: record.recommend ? 1 : 0,//修改是否推荐
+      addnewSorts:record.sorts,
+      addnewTitle: record.name, //修改标题
+      mobileUrl:this.state.mobileUrl,// 手机播放地址
+      pcUrl:this.state.pcUrl,// pc播放地址
+      realWatchTimes:this.state.realWatchTimes,// 观看次数(真)
+      watchTimes:this.state.watchTimes,// 观看次数(假)
+      
     });
     console.log("是什么：", record);
     me.setState({
       nowData: record,
+      pullnowData:record,
       addOrUp: "up",
       addnewModalShow: true,
-      // fileList: record.contentImage ? record.contentImage.split(',').map((item, index) => ({ uid: index, url: item, status: 'done' })) : [],   // 标题图上传的列表
-      fileList: record.titleImage
-        ? record.titleImage
+      fileList: record.coverImage
+        ? record.coverImage
             .split(",")
             .map((item, index) => ({ uid: index, url: item, status: "done" }))
         : [], // 封面图上传的列表
@@ -451,6 +547,20 @@ class Category extends React.Component {
     this.onGetData(this.state.pageNum, this.state.pageSize);
   }
 
+  //触发拉取操作 - Id改变时
+  pullliveId(e){
+    this.setState({
+      pullliveId: e.target.value
+    });
+  }
+
+
+  //拉取的视频-操作
+  onPull(){
+    this.onPullVideo(this.state.pageNum, this.state.pageSize)
+    // console.log('拉取到的是什么：',datapull)    
+  }
+
   // 查询某一条数据的详情
   onQueryClick(record) {
     console.log("是什么：", record);
@@ -522,7 +632,6 @@ class Category extends React.Component {
         title: "一级分类",
         dataIndex:'name2',
         key:'name2',
-        // render: text => this.findClassifyOne(text)
       },
       {
         title: "二级分类",
@@ -584,6 +693,7 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
+          record.deleteFlag === false &&
           controls.push(
             <span
               key="2"
@@ -595,6 +705,7 @@ class Category extends React.Component {
             </Tooltip>
           </span>
           );
+          record.deleteFlag === true &&
           controls.push(
             <span
               key="3"
@@ -676,6 +787,14 @@ class Category extends React.Component {
       }
     };
 
+    console.log(
+      "是啥直播类型：",
+      this.state.liveTypes.filter(
+        item =>
+          String(item.liveTypeId) === String(form.getFieldValue("addnewClassifyOne"))
+      )
+    );
+    const modelId = form.getFieldValue("addnewClassifyTwo");
     return (
       <div>
         <div className="system-search">
@@ -793,11 +912,11 @@ class Category extends React.Component {
         >
           <Form>
             <FormItem label="频道ID" {...formItemLayout}>
-              {getFieldDecorator("addnewTypeId", {
+              {getFieldDecorator("addnewLiveId", {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请添写频道ID" }]
               })(
-                  <Input placeholder="请添写频道ID"  style={{width:'180px',marginRight:'15px'}}/>
+                  <Input placeholder="请添写频道ID" onChange={e => this.pullliveId(e)} style={{width:'180px',marginRight:'15px'}}/>
               )}
               {getFieldDecorator("addnewTypeId", {
                 initialValue: undefined,
@@ -805,8 +924,7 @@ class Category extends React.Component {
               })(
                 <Button
                   type="primary"
-                  // icon="search"
-                  // onClick={() => this.onPull()}  // 拉取可以拉取到标题、封面图、拉取时间
+                  onClick={() => this.onPull()}  // 拉取可以拉取到标题、封面图、拉取时间
                 >
                   拉取
                 </Button>
@@ -817,16 +935,38 @@ class Category extends React.Component {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请选择一级分类" }]
               })(
-                <Select placeholder="请选择一级分类">
+                <Select
+                  style={{ width: '100%' }}
+                  placeholder="请选择一级分类"
+                >
+                {
+                  this.state.liveTypes.map((item) => {
+                    return (
+                        <Option key={String(item.id)}>{item.name}</Option>
+                    );
+                  })
+                }
                 </Select>
               )}
+              {this.state.addnewClassifyOne ? this.state.addnewClassifyOne : ''}
               {getFieldDecorator("addnewClassifyTwo", {
                 initialValue: undefined,
-                rules: [{ required: true, message: "请选择二级分类" }]
+                rules: [{ message: "请选择二级分类" }]
               })(
                 <Select placeholder="请选择二级分类">
+                  {this.state.productModels
+                    .filter(
+                      item =>
+                        String(item.liveTypeId) ===
+                        String(form.getFieldValue("addnewClassifyOne"))
+                    )
+                    .map((item, index) => (
+                      <Option key={index} value={`${item.id}`}>
+                      </Option>
+                    ))}
                 </Select>
               )}
+              {this.state.addnewClassifyTwo ? this.state.addnewClassifyTwo : ''}
             </FormItem>
             <FormItem label="标签" {...formItemLayout}>
               {getFieldDecorator("addnewLabel", {
@@ -840,6 +980,7 @@ class Category extends React.Component {
                   <Option value={4}>预告</Option>
                 </Select>
               )}
+              {this.state.addnewLabel ? this.state.addnewLabel : ''}
             </FormItem>
             <FormItem label="是否推荐" {...formItemLayout}>
               {getFieldDecorator("addnewRecommend", {
@@ -851,12 +992,14 @@ class Category extends React.Component {
                   <Option value={0}>否</Option>
                 </Select>
               )}
+              {this.state.addnewRecommend ? this.state.addnewRecommend : ''}
             </FormItem>
             <FormItem label="排序" {...formItemLayout}>
-              {getFieldDecorator("addnewSort", {
+              {getFieldDecorator("addnewSorts", {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请输入排序序号" }]
               })(<InputNumber placeholder="请输入排序序号" style={{width:'314px'}}/>)}
+              {this.state.addnewSorts ? this.state.addnewSorts : ''}
             </FormItem>
             <FormItem label="推荐产品" {...formItemLayout}>
               {getFieldDecorator('addnewProduct',{
@@ -868,20 +1011,23 @@ class Category extends React.Component {
                   style={{ width: '100%' }}
                   placeholder="请选择所要推荐产品"
                 >
-                  {this.state.productModels
-                    .map((item, index) => (
-                      <Option key={this.state.addOrUp === "add" ? `${item.id}_${item.name}` : `${item.id}`}>
-                        {item.name}
-                      </Option>
-                    )) }
+                {
+                  this.state.productModels.map((item) => {
+                    return (
+                        <Option key={String(item.id)}>{item.name}</Option>
+                    );
+                  })
+                }
                 </Select>
               )}
+              {this.state.addnewProduct ? this.state.addnewProduct : ''}
             </FormItem>
             <FormItem label="标题" {...formItemLayout}>
               {getFieldDecorator("addnewTitle", {
                 initialValue: undefined,
-                rules: [{ required: true, message: "请添写标题名称" }]
+                rules: [{ message: "请添写标题名称" }]
               })(<Input placeholder="请添写标题名称" />)}
+              {this.state.liveId ? this.state.addnewTitle : ''}
             </FormItem>
             <FormItem label="封面图片上传" {...formItemLayout} labelCol={{ span: 7 }} wrapperCol={{ span: 11 }}>
               <Upload
@@ -894,7 +1040,7 @@ class Category extends React.Component {
                 onChange={f => this.onUpLoadChange(f)}
                 onRemove={f => this.onUpLoadRemove(f)}
               >
-                {this.state.fileList.length >= 1 ? null : (
+                {this.state.fileList.length >= 3 ? null : (
                   <div>
                     <Icon type="plus" />
                     <div className="ant-upload-text">选择文件</div>
@@ -905,15 +1051,9 @@ class Category extends React.Component {
             <FormItem label="拉取时间" {...formItemLayout}>
               {getFieldDecorator("addnewTime", {
                 initialValue: undefined,
-                rules: [
-                  {required: true},
-                ]
-              })(<DatePicker
-                  showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
-                  format="YYYY-MM-DD HH:mm:ss"
-                  placeholder="拉取时间"
-                  onOk={onOk}
-              />)}
+                rules: [{ message: "请添写拉取时间" }]
+              })(<Input placeholder="请添写拉取时间" />)}
+              {this.state.addnewTime ? this.state.addnewTime : ''}
             </FormItem>
           </Form>
         </Modal>
@@ -996,7 +1136,8 @@ class Category extends React.Component {
 Category.propTypes = {
   location: P.any,
   history: P.any,
-  actions: P.any
+  actions: P.any,
+form: P.any,
 };
 
 // ==================
@@ -1016,10 +1157,14 @@ export default connect(
         findProductModelByWhere,
         findProductTypeByWhere,
         DeleteVideo,
+        updateLiveType,
         addCard,
+        LiveType,
         UpdateCard,
         UpdateVideo,
-        findProductByWhere
+        findProductByWhere,
+        allPullVideo,
+        addLiveType
       },
       dispatch
     )

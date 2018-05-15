@@ -83,16 +83,19 @@ class Category extends React.Component {
       upLoading: false, // 是否正在添加新用户中
       nowData: null, // 当前选中用户的信息，用于查看详情、修改、分配菜单
       queryModalShow: false, // 查看详情模态框是否显示
+      maskClose:false,//蒙层是否关闭
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
       code: undefined, //产品类型所对应的code值
       fileList: [], // 产品图片已上传的列表
+      fileListVideo:[],//产品封面视频上传列表
       fileListDetail: [], // 列表封面图片已上传的列表
       fileLoading: false, // 产品图片正在上传
       fileDetailLoading: false, // 详细图片正在上传
     };
-    this.onChange = (editorState) => this.setState({editorState})
+    this.onChange = (editorState) => this.setState({editorState});
+    this.editor = null;
   }
 
   componentDidMount() {
@@ -437,7 +440,7 @@ class Category extends React.Component {
       message.warning("有图片正在上传...");
       return;
     }
-
+    console.log('编辑器内容：', this.editor.getHTMLContent());
     form.validateFields(
       [
         "addnewName",
@@ -568,7 +571,7 @@ class Category extends React.Component {
   onUploadBefore(f, fl) {
     console.log("上传前：", f, fl);
     if (
-      ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
+      ["jpg", "jpeg", "png", "bmp", "gif","mp4"].indexOf(f.type.split("/")[1]) < 0
     ) {
       message.error("只能上传jpg、jpeg、png、bmp、gif格式的图片");
       return false;
@@ -1020,6 +1023,7 @@ class Category extends React.Component {
           onCancel={() => this.onAddNewClose()}
           wrapClassName={"codNum"}
           confirmLoading={this.state.addnewLoading}
+          maskClosable={this.state.maskClose}
         >
           <Form>
             <FormItem label="产品类型" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
@@ -1161,6 +1165,7 @@ class Category extends React.Component {
               {obj.openAccountFee}
             </FormItem>
             <FormItem label="列表封面图片上传" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>
+              <p style={{float:'left',marginTop:'30px',marginLeft:'-195px',color: 'brown'}}>(推荐尺寸500*500)</p>
               <Upload
                 name="pImg"
                 action={`${Config.baseURL}/manager/product/uploadImage`}
@@ -1180,6 +1185,7 @@ class Category extends React.Component {
               </Upload>
             </FormItem>
             <FormItem label="产品封面图片上传(最多5张)" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>
+              <p style={{float:'left',marginTop:'30px',marginLeft:'-195px',color: 'brown'}}>(推荐尺寸750*600)</p>
               <Upload
                 name="pImg"
                 action={`${Config.baseURL}/manager/product/uploadImage`}
@@ -1217,14 +1223,29 @@ class Category extends React.Component {
               {/*)}*/}
               {/*</Upload>*/}
             {/*</FormItem>*/}
-            <FormItem label="产品封面视频上传" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 15 }}>
-
+            <FormItem label="产品封面视频上传" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>
+              <Upload
+                name="video"
+                action={`${Config.baseURL}/manager/product/uploadImage`}
+                listType="picture-card"
+                withCredentials={true}
+                fileList={this.state.fileListVideo}
+                beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
+                onChange={f => this.onUpLoadChange(f)}
+                onRemove={f => this.onUpLoadRemove(f)}
+              >
+                {this.state.fileList.length >= 5 ? null : (
+                  <div>
+                    <Icon type="plus" />
+                    <div className="ant-upload-text">选择视频</div>
+                  </div>
+                )}
+              </Upload>
             </FormItem>
-            <FormItem label="产品详情链接" {...formItemLayout}>
-              {getFieldDecorator("addnewUrl", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请输入链接地址" }]
-              })(<Input placeholder="请输入链接地址" />)}
+            <FormItem label="产品详情" {...formItemLayout} labelCol={{ span: 20 }} wrapperCol={{ span: 20}}>
+              <div className="demo">
+                <BraftEditor {...editorProps} ref={(dom) => this.editor = dom}/>
+              </div>
             </FormItem>
             <FormItem label="是否设为推荐" {...formItemLayout}>
               {getFieldDecorator("addnewConditions", {
@@ -1253,6 +1274,7 @@ class Category extends React.Component {
           onCancel={() => this.onUpClose()}
           wrapClassName={"codNum"}
           confirmLoading={this.state.addnewLoading}
+          maskClosable={this.state.maskClose}
         >
           <Form>
             <FormItem label="产品类型" {...formItemLayout}>
@@ -1380,23 +1402,23 @@ class Category extends React.Component {
               {obj.openAccountFee}
             </FormItem>
             <FormItem label="列表封面图片上传" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 11 }}>
-              {/*<Upload*/}
-                {/*name="pImg"*/}
-                {/*action={`${Config.baseURL}/manager/product/uploadImage`}*/}
-                {/*listType="picture-card"*/}
-                {/*withCredentials*/}
-                {/*fileList={this.state.fileListDetail}*/}
-                {/*beforeUpload={(f, fl) => this.onUploadDetailBefore(f, fl)}*/}
-                {/*onChange={f => this.onUpLoadDetailChange(f)}*/}
-                {/*onRemove={f => this.onUpLoadDetailRemove(f)}*/}
-              {/*>*/}
-                {/*{this.state.fileListDetail.length >= 1 ? null : (*/}
-                  {/*<div>*/}
-                    {/*<Icon type="plus" />*/}
-                    {/*<div className="ant-upload-text">选择文件</div>*/}
-                  {/*</div>*/}
-                {/*)}*/}
-              {/*</Upload>*/}
+              <Upload
+                name="pImg"
+                action={`${Config.baseURL}/manager/product/uploadImage`}
+                listType="picture-card"
+                withCredentials
+                fileList={this.state.fileListDetail}
+                beforeUpload={(f, fl) => this.onUploadDetailBefore(f, fl)}
+                onChange={f => this.onUpLoadDetailChange(f)}
+                onRemove={f => this.onUpLoadDetailRemove(f)}
+              >
+                {this.state.fileListDetail.length >= 1 ? null : (
+                  <div>
+                    <Icon type="plus" />
+                    <div className="ant-upload-text">选择文件</div>
+                  </div>
+                )}
+              </Upload>
             </FormItem>
             <FormItem label="产品封面图片上传(最多5张)" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 11 }}>
               <Upload
@@ -1436,13 +1458,29 @@ class Category extends React.Component {
               {/*)}*/}
               {/*</Upload>*/}
             {/*</FormItem>*/}
-            <FormItem label="产品封面视频上传" {...formItemLayout}>
+            <FormItem label="产品封面视频上传" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>
+              <Upload
+                name="video"
+                // action={`${Config.baseURL}/manager/product/uploadImage`}
+                listType="picture-card"
+                withCredentials={true}
+                fileList={this.state.fileListVideo}
+                beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
+                onChange={f => this.onUpLoadChange(f)}
+                onRemove={f => this.onUpLoadRemove(f)}
+              >
+                {this.state.fileList.length >= 5 ? null : (
+                  <div>
+                    <Icon type="plus" />
+                    <div className="ant-upload-text">选择视频</div>
+                  </div>
+                )}
+              </Upload>
             </FormItem>
-            <FormItem label="产品详情链接" {...formItemLayout}>
-              {getFieldDecorator("addnewUrl", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请输入链接地址" }]
-              })(<Input placeholder="请输入链接地址" />)}
+            <FormItem label="产品详情" {...formItemLayout} labelCol={{ span: 20 }} wrapperCol={{ span: 23}}>
+              <div className="demo">
+                <BraftEditor {...editorProps}/>
+              </div>
             </FormItem>
             <FormItem label="是否设为推荐" {...formItemLayout}>
               {getFieldDecorator("addnewConditions", {

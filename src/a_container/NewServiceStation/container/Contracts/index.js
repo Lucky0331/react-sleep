@@ -58,6 +58,8 @@ import {
   updateStation,
   findColumnCount,
   addColumnCount,
+  deleteColumnCount,
+  updateColumnCount,
   warning,
   deleteImage,
   onOk
@@ -85,12 +87,15 @@ class Category extends React.Component {
       searchAddress: [], // 搜索 - 地址
       searchStationName: [], // 搜索 - 服务站名称
       searchCompanyName: [], // 搜索 - 公司名称
+      searchBeginTime:'',//承包开始时间
+      searchEndTime:'',//承包结束时间
       addOrUp: "add", // 当前操作是新增还是修改
       upModalShow: false, // 修改承包信息录入模态框是否显示
       addnewLoading: false, // 是否正在添加新用户中
       maskClose:false,//蒙层是否关闭
       nowData: null, // 当前选中用户的信息，用于查看详情、修改、分配菜单
       addnewModalShow:false, //添加栏目时的弹窗
+      updatenewModalShow:false, //修改栏目时的弹窗
       queryModalShow: false, // 查看详情模态框是否显示
       updateModalShow:false, //承包录入信息模态框是否显示
       pageNum: 1, // 当前第几页
@@ -99,6 +104,7 @@ class Category extends React.Component {
       citys: [], // 符合Cascader组件的城市数据
       fileList: [], // 服务站图片已上传的列表
       fileListLan: [], // 自定义栏目图片已上传的列表
+      id:'',// 栏目id
     };
   }
   
@@ -117,7 +123,6 @@ class Category extends React.Component {
       });
     }
     this.onGetData(this.state.pageNum,this.state.pageSize);
-    // this.onGetData2(this.state.pageNum,this.state.pageSize);
   }
   
   componentWillReceiveProps(nextP) {
@@ -199,7 +204,9 @@ class Category extends React.Component {
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2],
       stationName: this.state.searchStationName,
-      companyName: this.state.searchCompanyName
+      companyName: this.state.searchCompanyName,
+      minContractTime:this.state.searchBeginTime,
+      maxContractTime:this.state.searchEndTime,
     };
     this.props.actions.ContractList(tools.clearNull(params)).then(res => {
       if (res.returnCode === "0") {
@@ -216,9 +223,11 @@ class Category extends React.Component {
   }
   
   //栏目列表 数据
-  onGetData2(stationId) {
+  onGetData2(pageNum,pageSize) {
     const params = {
-      stationId:this.state.nowData.id,
+      pageNum,
+      pageSize,
+      // stationId:this.state.nowData.id,
     };
     this.props.actions.findColumnCount(tools.clearNull(params)).then(res => {
       if (res.returnCode === "0") {
@@ -228,6 +237,21 @@ class Category extends React.Component {
       } else {
         message.error(res.returnMessaage || "获取数据失败，请重试");
       }
+    });
+  }
+  
+  // 搜索 - 承包开始时间变化
+  searchBeginTime(v) {
+    console.log("是什么：", v);
+    this.setState({
+      searchBeginTime: v
+    });
+  }
+  
+  // 搜索 - 承包结束时间变化
+  searchEndTime(v) {
+    this.setState({
+      searchEndTime: v
     });
   }
   
@@ -271,12 +295,14 @@ class Category extends React.Component {
     form.resetFields(["addnewRoleName", "addnewRoleDuty"]);
     this.setState({
       addnewModalShow: true,
-      nowData: null
+      fileListLan: [],
+      // nowData: record
     });
   }
   
   // 添加新的确定
-  onAddColumnOk() {
+  onAddColumnOk(record) {
+    // console.log('里面有没有id',record)
     const me = this;
     const { form } = me.props;
     form.validateFields(
@@ -293,6 +319,7 @@ class Category extends React.Component {
           addnewLoading: true
         });
         const params = {
+          stationId:Number(this.state.nowData.id),
           title: values.addnewColumnTitle,
           textContent: values.addnewColumntextContent,
           imgs: this.state.fileListLan.map(item => item.url).join(",")
@@ -326,6 +353,7 @@ class Category extends React.Component {
   
   // 承包信息录入模态框出现
   onAddNewShow(record) {
+    console.log('record出来了么：',record)
     const me = this;
     const { form } = me.props;
     form.resetFields([
@@ -404,6 +432,8 @@ class Category extends React.Component {
     console.log('shishenme :',record)
   }
   
+  
+  
   // 关闭模态框
   onAddNewClose() {
     this.setState({
@@ -466,6 +496,18 @@ class Category extends React.Component {
   
   // 修改某一条数据 模态框出现
   onUpdateClick(record) {
+    const params = {
+      stationId:record.id,
+    };
+    this.props.actions.findColumnCount(tools.clearNull(params)).then(res => {
+      if (res.returnCode === "0") {
+        this.setState({
+          data2: res.messsageBody || [],
+        });
+      } else {
+        message.error(res.returnMessaage || "获取数据失败，请重试");
+      }
+    });
     const me = this;
     const { form } = me.props;
     console.log("是什么：", record);
@@ -500,6 +542,7 @@ class Category extends React.Component {
     form.validateFields(
       [
         "addnewRecommended",
+        "addnewSorts",
         "addnewEstablishedTime",
         "addnewStoreArea",
         "addnewEmployeeNum",
@@ -518,6 +561,7 @@ class Category extends React.Component {
         const params = {
           id: me.state.nowData.id,
           recommended: values.addnewRecommended,  // 是否推荐
+          sorts:values.addnewSorts,//排序位置
           imgs: this.state.fileList.map(item => item.url).join(","), //服务站图片
           establishedTime: `${tools.dateToStr2(values.addnewEstablishedTime._d)}`, //成立时间
           storeArea: values.addnewStoreArea,//门店规模
@@ -553,6 +597,90 @@ class Category extends React.Component {
   onUpClose() {
     this.setState({
       upModalShow: false
+    });
+  }
+  
+  // 修改某一条数据 模态框出现
+  onUpdateColumnClick(record) {
+    const me = this;
+    const { form } = me.props;
+    console.log("Record:", record);
+    console.log('栏目id是：',record.id)
+    form.setFieldsValue({
+      upColumnTitle: record.title,
+      upColumntextContent: record.textContent,
+    });
+    me.setState({
+      fileListLan: record.imgs
+        ? record.imgs
+            .split(",")
+            .map((item, index) => ({ uid: index, url: item, status: "done" }))
+        : [], // 封面图上传的列表
+      updatenewModalShow: true
+    });
+  }
+  
+  // 确定修改某一条数据
+  onUpColumnOk(record) {
+    const me = this;
+    const { form } = me.props;
+    console.log('是什么是：',me)
+    form.validateFields(
+      ["upColumnTitle","upColumntextContent","upImgs"],
+      (err, values) => {
+        if (err) {
+          return;
+        }
+        console.log("values:", values);
+        me.setState({
+          upLoading: true
+        });
+        const params = {
+          staitonId: me.state.nowData.id,
+          title: values.upColumnTitle,
+          id:me.state.data2[0].id,
+          textContent: values.upColumntextContent,
+          imgs: this.state.fileListLan.map(item => item.url).join(","),
+        };
+        this.props.actions
+          .updateColumnCount(params)
+          .then(res => {
+            if (res.returnCode === "0") {
+              message.success("修改成功");
+              this.onGetData(this.state.pageNum, this.state.pageSize);
+              this.onUpClose();
+            } else {
+              message.error(res.returnMessaage || "修改失败，请重试");
+            }
+            me.setState({
+              upLoading: false
+            });
+          })
+          .catch(() => {
+            me.setState({
+              upLoading: false
+              // fileList: record.typeIcon ? record.typeIcon.split(',').map((item, index) => ({ uid: index, url: item, status: 'done' })) : [],   // 标题图上传的列表
+            });
+          });
+      }
+    );
+  }
+  // 关闭修改某一条数据
+  onUpColumnClose() {
+    this.setState({
+      updatenewModalShow: false
+    });
+  }
+  
+  // 删除某一条数据
+  onRemoveClick(id) {
+    this.props.actions.deleteColumnCount({ stationColumnId: id }).then(res => {
+      if (res.returnCode === "0") {
+        message.success("删除成功");
+        this.onGetData(this.state.pageNum, this.state.pageSize);
+      } else {
+        message.error(res.returnMessaage || "删除失败，请重试");
+      }
     });
   }
   
@@ -723,6 +851,11 @@ class Category extends React.Component {
         key:'region'
       },
       {
+        title:'服务站地址',
+        dataIndex:'address',
+        key:'address'
+      },
+      {
         title: "承包状态",
         dataIndex: "contract",
         key: "contract",
@@ -734,15 +867,20 @@ class Category extends React.Component {
           )
       },
       {
-        title: "产品上线状态",
-        // dataIndex: "contract",
-        // key: "contract",
-        // render: text =>
-        //   String(text) === "true" ? (
-        //     <span style={{color: "green"}}>已上线</span>
-        //   ) : (
-        //     <span style={{color: "red"}}>未上线</span>
-        //   )
+        title:'承包时间',
+        dataIndex:'contractTime',
+        key:'contractTime'
+      },
+      {
+        title: "HRA设备上线状态",
+        dataIndex: "contract",
+        key: "contract",
+        render: text =>
+          Boolean(text) === true ? (
+            <span style={{color: "green"}}>已上线</span>
+          ) : (
+            <span style={{color: "red"}}>未上线</span>
+          )
       },
       {
         title: "是否推荐",
@@ -856,30 +994,30 @@ class Category extends React.Component {
         render: (text, record) => {
           const controls = [];
           controls.push(
-              <span
-                  key="1"
-                  className="control-btn blue"
-                  onClick={() => this.onUpdateClick(record)}
-              >
-              <Tooltip placement="top" title="编辑">
-                <Icon type="edit" />
-              </Tooltip>
+            <span
+              key="1"
+              className="control-btn blue"
+              onClick={() => this.onUpdateColumnClick(record)}
+            >
+            <Tooltip placement="top" title="编辑">
+              <Icon type="edit" />
+            </Tooltip>
             </span>
           );
           controls.push(
-              <Popconfirm
-                  key="3"
-                  title="确定删除吗?"
-                  onConfirm={() => this.onDeleteClick(record.id)}
-                  okText="确定"
-                  cancelText="取消"
-              >
-              <span className="control-btn red">
-                <Tooltip placement="top" title="删除">
-                  <Icon type="delete" />
-                </Tooltip>
-              </span>
-              </Popconfirm>
+            <Popconfirm
+              key="3"
+              title="确定删除吗?"
+              onConfirm={() => this.onRemoveClick(record.id)}
+              okText="确定"
+              cancelText="取消"
+            >
+            <span className="control-btn red">
+              <Tooltip placement="top" title="删除">
+                <Icon type="delete" />
+              </Tooltip>
+            </span>
+            </Popconfirm>
           );
         
           const result = [];
@@ -906,7 +1044,6 @@ class Category extends React.Component {
         key: index,
         id: item.id,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
-        address: item.address,
         citys:
           item.province && item.city && item.region
             ? `${item.province}/${item.city}/${item.region}`
@@ -921,18 +1058,19 @@ class Category extends React.Component {
         companyName: item.companyName,
         stationTel: item.stationTel,
         city: item.city,
+        address:item.address,
         region: item.region,
         contactPhone: item.contactPhone,
         dayCount: item.dayCount,
         state: item.state,
         contract: item.contract,
         deviceStatus: item.deviceStatus,
-        contractTime: item.stationContractRecord ? item.stationContractRecord.contractTime : '',
-        contractor:item.stationContractRecord ? item.stationContractRecord.contractor : '',
-        contractorPhone:item.stationContractRecord ? item.stationContractRecord.contractorPhone :'',
-        contractorIdentityNumber:item.stationContractRecord ? item.stationContractRecord.contractorIdentityNumber : '',
+        contractTime: item.contractTime ,
+        contractor:item.contractor ,
+        contractorPhone:item.contractorPhone ,
+        contractorIdentityNumber:item.contractorIdentityNumber,
         createTime: item.createTime,
-        productType: item.productType
+        productType: item.productType,
       };
     });
   }
@@ -943,15 +1081,15 @@ class Category extends React.Component {
       return {
         key: index,
         id: item.id,
-        address: item.address,
-        province: item.province,
-        typeId: item.typeId,
-        station: item.station,
+        title: item.title,
+        textContent: item.textContent,
+        imgs: item.imgs,
+        stationId:item.stationId,
       };
     });
   }
   
-  render() {
+  render(record) {
     const me = this;
     const {form} = me.props;
     const {getFieldDecorator} = form;
@@ -987,10 +1125,11 @@ class Category extends React.Component {
     }
   }
   console.log("是啥：",this.state.pageNum);
+  
   return (
       <div style={{width: "100%"}}>
         <div className="system-search">
-          <ul className="search-ul">
+          <ul className="search-ul more-ul">
             <li>
               <span>服务站名称</span>
               <Input
@@ -1037,7 +1176,7 @@ class Category extends React.Component {
               </Select>
             </li>
             <li>
-              <span style={{marginRight: "10px"}}>产品上线状态</span>
+              <span style={{marginRight: "10px"}}>HRA设备上线状态</span>
               <Select
                 placeholder="全部"
                 allowClear
@@ -1059,6 +1198,46 @@ class Category extends React.Component {
                 <Option value={0}>是</Option>
                 <Option value={1}>否</Option>
               </Select>
+            </li>
+            <li>
+              <span style={{ marginRight: "10px" }}>承包时间</span>
+              <DatePicker
+                style={{ width: "130px" }}
+                dateRender={current => {
+                  const style = {};
+                  if (current.date() === 1) {
+                    style.border = "1px solid #1890ff";
+                    style.borderRadius = "45%";
+                  }
+                  return (
+                    <div className="ant-calendar-date" style={style}>
+                      {current.date()}
+                    </div>
+                  );
+                }}
+                format="YYYY-MM-DD"
+                placeholder="开始时间"
+                onChange={e => this.searchBeginTime(e)}
+              />
+              --
+              <DatePicker
+                style={{ width: "130px" }}
+                dateRender={current => {
+                  const style = {};
+                  if (current.date() === 1) {
+                    style.border = "1px solid #1890ff";
+                    style.borderRadius = "45%";
+                  }
+                  return (
+                    <div className="ant-calendar-date" style={style}>
+                      {current.date()}
+                    </div>
+                  );
+                }}
+                format="YYYY-MM-DD"
+                placeholder="结束时间"
+                onChange={e => this.searchEndTime(e)}
+              />
             </li>
             <li style={{width: "80px",marginRight: "15px"}}>
               <Button
@@ -1204,13 +1383,14 @@ class Category extends React.Component {
             </FormItem>
           </Form>
         </Modal>
-        {/* 添加角色模态框 */}
+        {/* 添加栏目模态框 */}
         <Modal
           title="添加栏目"
           visible={this.state.addnewModalShow}
           onOk={() => this.onAddColumnOk()}
           onCancel={() => this.onAddColumnClose()}
           confirmLoading={this.state.addnewLoading}
+          onClick={() => this.onGetData2()}
         >
           <Form>
             <FormItem label="栏目标题" {...formItemLayout}>
@@ -1246,15 +1426,15 @@ class Category extends React.Component {
                     validator: (rule, value, callback) => {
                       const v = tools.trim(value);
                       if (v) {
-                        if (v.length > 12) {
-                          callback("最多输入12位字符");
+                        if (v.length > 50) {
+                          callback("最多输入50个字");
                         }
                       }
                       callback();
                     }
                   }
                 ]
-              })(<Input placeholder="请输入APP前台展示名称" />)}
+              })(<Input placeholder="请输入栏目文本" />)}
             </FormItem>
             <FormItem label="栏目图片" {...formItemLayout}>
               {getFieldDecorator("addnewImgs", {
@@ -1264,18 +1444,94 @@ class Category extends React.Component {
                 action={`${Config.baseURL}/manager/station/uploadImage`}
                 listType="picture-card"
                 withCredentials={true}
-                fileList={this.state.fileListDetail}
+                fileList={this.state.fileListLan}
                 beforeUpload={(f, fl) => this.onUploadDetailBefore(f, fl)}
                 onChange={f => this.onUpLoadDetailChange(f)}
                 onRemove={f => this.onUpLoadDetailRemove(f)}
               >
-                {this.state.fileListLan.length >= 1 ? null : (
+                {this.state.fileListLan.length >= 5 ? null : (
                   <div>
                     <Icon type="plus" />
                     <div className="ant-upload-text">选择文件</div>
                   </div>
                 )}
               </Upload>
+              )}
+            </FormItem>
+          </Form>
+        </Modal>
+        {/* 修改栏目模态框 */}
+        <Modal
+          title="修改栏目"
+          visible={this.state.updatenewModalShow}
+          onOk={() => this.onUpColumnOk(record)}
+          onCancel={() => this.onUpColumnClose()}
+          confirmLoading={this.state.addnewLoading}
+        >
+          <Form>
+            <FormItem label="栏目标题" {...formItemLayout}>
+              {getFieldDecorator("upColumnTitle", {
+                initialValue: undefined,
+                rules: [
+                  {
+                    whitespace: true,
+                    message: "请输入栏目标题"
+                  },
+                  {
+                    validator: (rule, value, callback) => {
+                      const v = tools.trim(value);
+                      if (v) {
+                        if (v.length > 12) {
+                          callback("最多输入12位字符");
+                        }
+                      }
+                      callback();
+                    }
+                  }
+                ]
+              })(<Input placeholder="请输入栏目标题" />)}
+            </FormItem>
+            <FormItem label="栏目文本" {...formItemLayout}>
+              {getFieldDecorator("upColumntextContent", {
+                initialValue: undefined,
+                rules: [
+                  {
+                    whitespace: true,message: "请输入栏目文本"
+                  },
+                  {
+                    validator: (rule, value, callback) => {
+                      const v = tools.trim(value);
+                      if (v) {
+                        if (v.length > 50) {
+                          callback("最多输入50个字");
+                        }
+                      }
+                      callback();
+                    }
+                  }
+                ]
+              })(<Input placeholder="请输入栏目文本" />)}
+            </FormItem>
+            <FormItem label="栏目图片" {...formItemLayout}>
+              {getFieldDecorator("upImgs", {
+              })(
+                <Upload
+                  name="pImg"
+                  action={`${Config.baseURL}/manager/station/uploadImage`}
+                  listType="picture-card"
+                  withCredentials={true}
+                  fileList={this.state.fileListLan}
+                  beforeUpload={(f, fl) => this.onUploadDetailBefore(f, fl)}
+                  onChange={f => this.onUpLoadDetailChange(f)}
+                  onRemove={f => this.onUpLoadDetailRemove(f)}
+                >
+                  {this.state.fileListLan.length >= 5 ? null : (
+                    <div>
+                      <Icon type="plus" />
+                      <div className="ant-upload-text">选择文件</div>
+                    </div>
+                  )}
+                </Upload>
               )}
             </FormItem>
           </Form>
@@ -1292,7 +1548,7 @@ class Category extends React.Component {
           confirmLoading={this.state.addnewLoading}
         >
           <div className="system-table" style={{width:'-webkit-fill-available', display: 'inline-flex',border:'none',padding:'0px 0px 10px 70px',boxShadow:'4px 4px 10px #888888'}}>
-          <Form style={{float:'left',width:'290px'}} className={"FormList"}>
+          <Form style={{float:'left',width:'320px'}} className={"FormList"}>
             <FormItem label="服务站名称" {...formItemLayout2} >
               {!!this.state.nowData ? this.state.nowData.name : ""}
             </FormItem>
@@ -1305,7 +1561,7 @@ class Category extends React.Component {
             <FormItem label="联系方式" {...formItemLayout2}>
               {!!this.state.nowData ? this.state.nowData.phone : ""}
             </FormItem>
-            <FormItem label="产品上线状态" {...formItemLayout2}>
+            <FormItem label="HRA设备上线状态" {...formItemLayout2} labelCol={{ span: 13 }} wrapperCol={{ span: 16 }}>
               {/*{!!this.state.nowData ? this.state.nowData.  : ""}*/}
             </FormItem>
             <FormItem label="承包时间" {...formItemLayout2}>
@@ -1314,6 +1570,9 @@ class Category extends React.Component {
             <FormItem label="承包人手机号" {...formItemLayout2}>
               {!!this.state.nowData ? this.state.nowData.contractorPhone : ""}
             </FormItem>
+            <FormItem label="承包人身份证号" {...formItemLayout} labelCol={{ span: 11 }} wrapperCol={{ span: 16 }}>
+              {!!this.state.nowData ? this.state.nowData.contractorIdentityNumber : ""}
+            </FormItem>
           </Form>
           <Form style={{float:'right',width:'290px'}} className={"FormList"}>
             <FormItem label="公司名称" {...formItemLayout2}>
@@ -1321,6 +1580,9 @@ class Category extends React.Component {
             </FormItem>
             <FormItem label="市" {...formItemLayout2}>
               {!!this.state.nowData ? this.state.nowData.city : ""}
+            </FormItem>
+            <FormItem label="服务站地址" {...formItemLayout2}>
+              {!!this.state.nowData ? this.state.nowData.address : ""}
             </FormItem>
             <FormItem label="联系人" {...formItemLayout2}>
               {/*{!!this.state.nowData ? this.state.nowData.city : ""}*/}
@@ -1342,9 +1604,6 @@ class Category extends React.Component {
             <FormItem label="承包人姓名" {...formItemLayout} >
               {!!this.state.nowData ? this.state.nowData.contractor : ""}
             </FormItem>
-            <FormItem label="承包人身份证号" {...formItemLayout} labelCol={{ span: 11 }}>
-              {!!this.state.nowData ? this.state.nowData.contractorIdentityNumber : ""}
-            </FormItem>
           </Form>
          </div>
           <div className="system-table" style={{width:'525px',padding:'20px 0px 0px 70px'}}>
@@ -1354,11 +1613,17 @@ class Category extends React.Component {
                   initialValue: undefined,
                   rules: [{ required: true, message: "请选择是否推荐" }]
                 })(
-                  <Select placeholder="请选择是否推荐">
+                  <Select placeholder="请选择是否推荐" style={{width:'172px'}}>
                     <Option value={0}>否</Option>
                     <Option value={1}>是</Option>
                   </Select>
                 )}
+              </FormItem>
+              <FormItem label="推荐排序" {...formItemLayout3}>
+                {getFieldDecorator("addnewSorts", {
+                  initialValue: undefined,
+                  rules: [{ required: true, message: "请输入排序序号" }]
+                })(<InputNumber placeholder="请输入排序序号" style={{width:'172px'}}/> )}
               </FormItem>
               <FormItem label="服务站图片上传(最多3张)" {...formItemLayout3} labelCol={{ span: 10 }} wrapperCol={{ span: 16 }}>
                 <Upload
@@ -1419,26 +1684,26 @@ class Category extends React.Component {
                 })(<InputNumber placeholder="请输入员工数量" style={{width:'172px'}}/>)}
               </FormItem>
               <FormItem label="自定义栏目" {...formItemLayout3} style={{width:'800px',height:'230px'}}>
-                {getFieldDecorator("addnewCount", {
-                  initialValue: undefined,
-                })(
-                 <div>
-                    <Button
-                        icon="plus-circle-o"
-                        type="primary"
-                        onClick={() => this.onAddColumnShow()}
-                    >
-                      添加栏目
-                    </Button>
-                    <div className="system-table">
-                      <Table
-                        columns={this.makeColumnsSmall()}
-                        dataSource={this.makeData2(this.state.data2)}
-                        width={{ x: 900 }}
-                      />
+                  {getFieldDecorator("addnewCount", {
+                    initialValue: undefined,
+                  })(
+                    <div>
+                      <Button
+                          icon="plus-circle-o"
+                          type="primary"
+                          onClick={() => this.onAddColumnShow()}
+                      >
+                        添加栏目
+                      </Button>
+                      <div className="system-table">
+                        <Table
+                          columns={this.makeColumnsSmall()}
+                          dataSource={this.makeData2(this.state.data2)}
+                          width={{ x: 900 }}
+                        />
+                      </div>
                     </div>
-                 </div>
-                )}
+                  )}
               </FormItem>
             </Form>
           </div>
@@ -1482,6 +1747,8 @@ export default connect(
         addColumnCount,
         findProductLine,
         addProductLine,
+        deleteColumnCount,
+        updateColumnCount,
         findColumnCount,
         warning,
         onOk,

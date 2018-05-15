@@ -94,6 +94,58 @@ export function LiveVideo(params = {}) {
   };
 }
 
+//直播发布添加
+export function addLiveType(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/liveType/save", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//直播发布修改
+export function updateLiveType(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/liveType/update", params,'post',true)
+        .then(msg => {
+          return msg;
+        })
+        .catch(() => {
+          message.error("网络错误，请重试");
+        });
+  };
+}
+
+//直播分类
+export function LiveType(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/liveType/list", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//拉取视频
+export function allPullVideo(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/live/getLiveById", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
 //发布或取消视频
 export function UpdateVideo(params = {}) {
   return dispatch => {

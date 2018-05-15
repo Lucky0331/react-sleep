@@ -721,21 +721,21 @@ class Category extends React.Component {
       <div>
         <div className="system-search">
           <ul className="search-ul more-ul">
-            {/*<li>*/}
-            {/*<span>产品类型</span>*/}
-            {/*<Select allowClear placeholder="全部" style={{ width: '172px' }} onChange={(e) => this.searchProductType(e)}>*/}
-            {/*{this.state.productTypes.map((item, index) => {*/}
-            {/*return <Option key={index} value={item.id}>{ item.name }</Option>*/}
-            {/*})}*/}
-            {/*</Select>*/}
-            {/*</li>*/}
-            {/*<li>*/}
-            {/*<span>标题</span>*/}
-            {/*<Input style={{ width: '172px' }} onChange = {(e) =>this.searchTitleChange(e)}/>*/}
-            {/*</li>*/}
-            {/*<li style={{marginLeft:'40px',marginRight:'15px'}}>*/}
-            {/*<Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button>*/}
-            {/*</li>*/}
+            <li>
+            <span>代言卡分类</span>
+            <Select allowClear placeholder="全部" style={{ width: '172px' }} onChange={(e) => this.searchProductType(e)}>
+              {this.state.productTypes.map((item, index) => {
+              return <Option key={index} value={item.id}>{ item.name }</Option>
+              })}
+            </Select>
+            </li>
+            <li>
+              <span>标题</span>
+              <Input style={{ width: '172px' }} onChange = {(e) =>this.searchTitleChange(e)}/>
+            </li>
+            <li style={{marginLeft:'40px',marginRight:'15px'}}>
+            <Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button>
+            </li>
             <ul className="search-func">
               <li style={{ marginTop: "2px" }}>
                 <Button

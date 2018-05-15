@@ -60,7 +60,7 @@ class Category extends React.Component {
       data: [], // 当前页面全部数据
       data2:[],//净水服务全部数据
       data3:[],//健康食品全部数据
-      data4:[],//生物理疗全部数据
+      data4:[],//生物科技全部数据
       data5:[],//优惠卡全部数据
       data6:[],//健康评估全部数据
       productTypes: [], //所有的产品类型
@@ -92,7 +92,7 @@ class Category extends React.Component {
       total: 0, // 数据库总共数据
       total2: 0, // 净水服务总共数据
       total3:0,//健康食品总共数据
-      total4:0,//生物理疗总共数据
+      total4:0,//生物科技总共数据
       total5:0,//优惠卡总共数据
       total6:0,//健康评估总共数据
       citys: [] // 符合Cascader组件的城市数据
@@ -227,7 +227,7 @@ class Category extends React.Component {
     });
   }
   
-  // 查询当前页面所需列表数据 - 生物理疗
+  // 查询当前页面所需列表数据 - 生物科技
   onGetData4(pageNum, pageSize) {
     const params = {
       pageNum,
@@ -672,7 +672,7 @@ class Category extends React.Component {
     this.onGetData3(1, this.state.pageSize);
   }
   
-  // 搜索 - 生物理疗
+  // 搜索 - 生物科技
   onSearch4() {
     this.onGetData4(1, this.state.pageSize);
   }
@@ -1118,12 +1118,12 @@ class Category extends React.Component {
     form.submit();
   }
   
-  //导出 - 生物理疗
+  //导出 - 生物科技
   onExport4() {
     this.onExportData4(this.state.pageNum, this.state.pageSize);
   }
   
-  // 导出订单对账列表数据 - 生物理疗
+  // 导出订单对账列表数据 - 生物科技
   onExportData4(pageNum, pageSize) {
     const params = {
       pageNum,
@@ -1582,7 +1582,7 @@ class Category extends React.Component {
     this.onGetData3(page, pageSize);
   }
   
-  // 表单页码改变 - 生物理疗
+  // 表单页码改变 - 生物科技
   onTablePageChange4(page, pageSize) {
     console.log("页码改变：", page, pageSize);
     this.onGetData4(page, pageSize);
@@ -1953,7 +1953,7 @@ class Category extends React.Component {
     return columns;
   }
   
-  // 构建字段 - 健康食品、生物理疗
+  // 构建字段 - 健康食品、生物科技
   makeColumns5() {
     const columns = [
       {
@@ -2801,7 +2801,7 @@ class Category extends React.Component {
                 </Form>
               </Modal>
             </TabPane>
-            <TabPane tab="生物理疗" key="4">
+            <TabPane tab="生物科技" key="4">
               <div className="system-table">
                 <ul className="search-ul more-ul">
                   <li>
