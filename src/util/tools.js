@@ -119,9 +119,9 @@ const tools = {
     }
     const m = `${date.getMonth() + 1}`.padStart(2, "0");
     const d = date
-        .getDate()
-        .toString()
-        .padStart(2, "0");
+      .getDate()
+      .toString()
+      .padStart(2, "0");
     return `${date.getFullYear()}-${m}-${d}`;
   },
   

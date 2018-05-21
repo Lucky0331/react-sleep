@@ -247,12 +247,12 @@ class Category extends React.Component {
       region: this.state.searchAddress[2]
     };
     this.props.actions.fBIncome(tools.clearNull(params)).then(res => {
-      if (res.status === 200) {
+      if (res.returnCode === "0") {
         this.setState({
-          data2: res.data.result || [],
+          data2: res.messsageBody.result || [],
           pageNum,
           pageSize,
-          total: res.data.total
+          total: res.messsageBody.total
         });
       } else {
         message.error(res.returnMessaage || "获取数据失败，请重试");
@@ -1149,6 +1149,7 @@ class Category extends React.Component {
                 onChange={v => this.onSearchAddress(v)}
                 options={this.state.citys}
                 loadData={e => this.getAllCitySon(e)}
+                changeOnSelect
               />
             </li>
             <li>

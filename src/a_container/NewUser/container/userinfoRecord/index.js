@@ -125,6 +125,7 @@ class Manager extends React.Component {
      this.props.detail2.nickName,
      this.props.detail2.mobile2,
      this.props.detail2.mobile3,
+     this.props.detail2.bindPhoneTime,
      this.props.detail2.nickName2,
      this.props.detail2.nickName3,
      this.props.detail2.userType,
@@ -222,12 +223,12 @@ class Manager extends React.Component {
     };
 
     this.props.actions.findUserInfo(tools.clearNull(params)).then(res => {
-      if (res.status === 200) {
+      if (res.returnCode === "0") {
         this.setState({
-          data: res.data.result || [],
+          data: res.messsageBody.result || [],
           pageNum,
           pageSize,
-          total: res.data.total
+          total: res.messsageBody.total
         });
       } else {
         message.error(res.returnMessaage || "获取数据失败，请重试");
@@ -322,6 +323,7 @@ class Manager extends React.Component {
     nickName3: this.props.detail2.nickName3,
     realName3: this.props.detail2.realName3,
     mobile3: this.props.detail2.mobile3,
+    bindPhoneTime:this.props.detail2.bindPhoneTime,
     userType3: this.getListByModelId(this.props.detail2.userType3),
     userName3: this.props.detail2.userName3
     };
@@ -423,8 +425,8 @@ class Manager extends React.Component {
             <FormItem label="用户手机号" {...formItemLayout} style={{paddingLeft:'15px'}}>
               <span style={{marginLeft:'-12px'}}>{ this.props.detail2.mobile } </span>
             </FormItem>
-
-            <FormItem  {...formItemLayout} style={{height:'40px'}}>
+            <FormItem label="绑定手机号时间" {...formItemLayout} style={{marginLeft:'-12px'}}>
+              <span style={{marginLeft:'6px'}}>{ this.props.detail2.bindPhoneTime } </span>
             </FormItem>
             <FormItem label="健康大使昵称" {...formItemLayout}>
               <span>{ this.props.detail2.nickName2 }</span>

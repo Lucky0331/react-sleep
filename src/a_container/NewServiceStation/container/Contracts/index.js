@@ -90,6 +90,7 @@ class Category extends React.Component {
       searchBeginTime:'',//承包开始时间
       searchEndTime:'',//承包结束时间
       addOrUp: "add", // 当前操作是新增还是修改
+      upOrDown:'up', //承包信息录入还是编辑
       upModalShow: false, // 修改承包信息录入模态框是否显示
       addnewLoading: false, // 是否正在添加新用户中
       maskClose:false,//蒙层是否关闭
@@ -181,6 +182,11 @@ class Category extends React.Component {
     });
   }
   
+  //搜索 -
+  onSearchStation(e){
+  
+  }
+  
   //搜索 - 承包上下线状态输入框值改变时触发
   searchNameChange(e) {
     this.setState({
@@ -205,8 +211,12 @@ class Category extends React.Component {
       region: this.state.searchAddress[2],
       stationName: this.state.searchStationName,
       companyName: this.state.searchCompanyName,
-      minContractTime:this.state.searchBeginTime,
-      maxContractTime:this.state.searchEndTime,
+      minContractTime:this.state.searchBeginTime
+        ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)}`
+        : "",
+      maxContractTime:this.state.searchEndTime
+        ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)}`
+        : "",
     };
     this.props.actions.ContractList(tools.clearNull(params)).then(res => {
       if (res.returnCode === "0") {
@@ -244,14 +254,14 @@ class Category extends React.Component {
   searchBeginTime(v) {
     console.log("是什么：", v);
     this.setState({
-      searchBeginTime: v
+      searchBeginTime: _.cloneDeep(v)
     });
   }
   
   // 搜索 - 承包结束时间变化
   searchEndTime(v) {
     this.setState({
-      searchEndTime: v
+      searchEndTime: _.cloneDeep(v)
     });
   }
   
@@ -357,20 +367,41 @@ class Category extends React.Component {
     const me = this;
     const { form } = me.props;
     form.resetFields([
-      "addnewName",
-      "addnewMobile",
-      "addnewContractorIdentityNumber",
-      "addnewTime",
-      "addnewConditions"
+      "addnewName",  //承包人姓名
+      "addnewMobile",  //承包人手机号
+      "addnewContractorIdentityNumber", //承包人身份证号
+      "addnewBeginTime", //承包开始时间
+      "addnewEndTime",  //承包结束时间
     ]);
     this.setState({
-      addOrUp: "add",
+      upOrDown: "up",
       updateModalShow: true,
       nowData:record
     });
   }
   
-  // 承包或者不承包
+  //修改承包信息录入问题
+  onUpNewShow(record){
+    const me = this;
+    const { form } = me.props;
+    console.log("是什么：", record);
+    form.setFieldsValue({
+      addnewName: record.contractor,//承包人姓名
+      addnewMobile: record.contractorPhone,// 承包人手机号
+      addnewContractorIdentityNumber: record.contractorIdentityNumber ,//承包人身份证号
+      addnewBeginTime:new moment(record.contractStartTime),//承包开始时间 (因为时间组件接受的是moment形式，不是字符串形式，所以需要转化)
+      addnewEndTime: new moment(record.contractEndTime), //承包结束时间
+    });
+    console.log("是什么：", record);
+    me.setState({
+      nowData: record,
+      // pullnowData:record,
+      upOrDown: "down",
+      updateModalShow: true,
+    });
+  }
+  
+  // 承包信息录入或者修改承包信息
   onAddNewOk(record) {
     // console.log("id是什么:",record.id);
     const me = this;
@@ -380,8 +411,8 @@ class Category extends React.Component {
         "addnewName",
         "addnewMobile",
         "addnewContractorIdentityNumber",
-        "addnewTime",
-        "addnewConditions",
+        "addnewBeginTime",
+        "addnewEndTime",
       ],
       (err, values) => {
         if (err) {
@@ -390,15 +421,16 @@ class Category extends React.Component {
         const params = {
           stationId:Number(this.state.nowData.id),
           contractorPhone:Number(values.addnewMobile),
-          contractTime: `${tools.dateToStr2(values.addnewTime._d)}`,
+          contractStartTime: `${tools.dateToStr(values.addnewBeginTime.utc()._d)}`, //开始时间
+          contractEndTime: `${tools.dateToStr(values.addnewEndTime.utc()._d)}`,   //结束时间
           contractorIdentityNumber: String(values.addnewContractorIdentityNumber),
           contractor:values.addnewName,
         };
-        if (this.state.addOrUp === "add") {   //录入承包信息
+        if (this.state.upOrDown === "up") {   //录入承包信息
           me.props.actions
             .updateContract(params)
             .then(res => {
-              console.log("添加用户返回数据：",res);
+              console.log("录入承包信息返回数据：",res);
               me.setState({
                 addnewLoading: false
               });
@@ -410,11 +442,12 @@ class Category extends React.Component {
                 addnewLoading: false
               });
             });
-          } else if (this.state.addOrUp === "up"){   //修改承包信息
-          params.id = this.state.nowData.id;
+          } else if (this.state.upOrDown === "down"){   //修改承包信息
+          // params.id = this.state.nowData.id;
           me.props.actions
             .updateContract(params)
             .then(res => {
+              console.log('这个是什么：',res)
               me.setState({
                 addnewLoading: false
               });
@@ -429,10 +462,8 @@ class Category extends React.Component {
         }
       }
     );
-    console.log('shishenme :',record)
+    console.log('是什么啊:',record)
   }
-  
-  
   
   // 关闭模态框
   onAddNewClose() {
@@ -563,7 +594,7 @@ class Category extends React.Component {
           recommended: values.addnewRecommended,  // 是否推荐
           sorts:values.addnewSorts,//排序位置
           imgs: this.state.fileList.map(item => item.url).join(","), //服务站图片
-          establishedTime: `${tools.dateToStr2(values.addnewEstablishedTime._d)}`, //成立时间
+          establishedTime: `${tools.dateToStr(values.addnewEstablishedTime.utc()._d)}`, //成立时间
           storeArea: values.addnewStoreArea,//门店规模
           employeeNum: values.addnewEmployeeNum,//员工数量
           businessHoursStart: `${tools.dateToStrHM(values.addnewBusinesHoursStart._d)}`,//营业开始时间
@@ -860,7 +891,7 @@ class Category extends React.Component {
         dataIndex: "contract",
         key: "contract",
         render: text =>
-          String(text) === "true" ? (
+          Boolean(text) === true ? (
             <span style={{color: "green"}}>已承包</span>
           ) : (
             <span style={{color: "red"}}>未承包</span>
@@ -868,13 +899,13 @@ class Category extends React.Component {
       },
       {
         title:'承包时间',
-        dataIndex:'contractTime',
-        key:'contractTime'
+        dataIndex:'contractAllTime',
+        key:'contractAllTime',
       },
       {
         title: "HRA设备上线状态",
-        dataIndex: "contract",
-        key: "contract",
+        dataIndex: "hraIsOnline",
+        key: "hraIsOnline",
         render: text =>
           Boolean(text) === true ? (
             <span style={{color: "green"}}>已上线</span>
@@ -896,6 +927,8 @@ class Category extends React.Component {
       {
         title: "操作",
         key: "control",
+        fixed:"right",
+        width:150,
         render: (text,record) => {
           const controls = [];
           controls.push(
@@ -911,7 +944,7 @@ class Category extends React.Component {
           );
           record.contract === true &&
           controls.push(
-            <span className="control-btn blue" onClick={() => this.onAddNewShow(record)}>
+            <span className="control-btn blue" key="1" onClick={() => this.onUpNewShow(record)}>
               <Tooltip placement="top" title="修改承包信息">
                 <Icon type="setting"/>
               </Tooltip>
@@ -919,7 +952,7 @@ class Category extends React.Component {
           );
           record.contract === false &&
           controls.push(
-            <span className="control-btn blue" onClick={() => this.onAddNewShow(record)}>
+            <span className="control-btn blue" key="2" onClick={() => this.onAddNewShow(record)}>
               <Tooltip placement="top" title="承包上线">
                 <Icon type="caret-up"/>
               </Tooltip>
@@ -928,13 +961,13 @@ class Category extends React.Component {
           record.contract === true &&
           controls.push(
             <span className="control-btn red">
-              <Tooltip placement="top" title="承包下线" onClick={() => this.onUpdateDown(record)}>
+              <Tooltip placement="top" title="承包下线" key="3" onClick={() => this.onUpdateDown(record)}>
                 <Icon type="caret-down"/>
               </Tooltip>
             </span>
           );
           controls.push(
-            <span className="control-btn blue" onClick={() => this.onUpdateClick(record)}>
+            <span className="control-btn blue" key="4" onClick={() => this.onUpdateClick(record)}>
             <Tooltip placement="top" title="编辑">
               <Icon type="edit"/>
             </Tooltip>
@@ -990,12 +1023,12 @@ class Category extends React.Component {
       {
         title: "操作",
         key: "control",
-        width: 200,
+        width: 150,
         render: (text, record) => {
           const controls = [];
           controls.push(
             <span
-              key="1"
+              key="5"
               className="control-btn blue"
               onClick={() => this.onUpdateColumnClick(record)}
             >
@@ -1006,7 +1039,7 @@ class Category extends React.Component {
           );
           controls.push(
             <Popconfirm
-              key="3"
+              key="6"
               title="确定删除吗?"
               onConfirm={() => this.onRemoveClick(record.id)}
               okText="确定"
@@ -1053,24 +1086,28 @@ class Category extends React.Component {
         station: item.station,
         name: item.name,
         person: item.person,
-        recommended:item.recommended,
+        recommended:item.recommended ? item.recommended : "",
         phone: item.phone,
         companyName: item.companyName,
         stationTel: item.stationTel,
         city: item.city,
         address:item.address,
         region: item.region,
-        contactPhone: item.contactPhone,
+        contactPhone: item.contactPhone ? item.contactPhone :'',
         dayCount: item.dayCount,
+        hraIsOnline:item.hraIsOnline,
         state: item.state,
         contract: item.contract,
-        deviceStatus: item.deviceStatus,
-        contractTime: item.contractTime ,
-        contractor:item.contractor ,
-        contractorPhone:item.contractorPhone ,
-        contractorIdentityNumber:item.contractorIdentityNumber,
-        createTime: item.createTime,
-        productType: item.productType,
+        deviceStatus: item.deviceStatus ? item.deviceStatus : '',
+        contractEndTime: item.contractEndTime,
+        contractStartTime:item.contractStartTime,
+        contractAllTime:item.contractEndTime ? `${item.contractStartTime}-${item.contractEndTime}` : '',
+        contractor:item.contractor,
+        contractorPhone:item.contractorPhone ? item.contractorPhone :"",
+        contractorIdentityNumber:item.contractorIdentityNumber ? item.contractorIdentityNumber :'',
+        createTime: item.createTime ? item.createTime :'',
+        productType: item.productType ? item.productType : "",
+        person:item.person,
       };
     });
   }
@@ -1161,6 +1198,19 @@ class Category extends React.Component {
                 onChange={v => this.onSearchAddress(v)}
                 options={this.state.citys}
                 loadData={e => this.getAllCitySon(e)}
+                changeOnSelect
+              />
+            </li>
+            <li>
+              <span>服务站地址</span>
+              <Input
+                placeholder="关键字"
+                style={{
+                  width: "160px",
+                  marginRight: "20px",
+                  marginLeft: "10px"
+                }}
+                onChange={e => this.onSearchStation(e)}
               />
             </li>
             <li>
@@ -1200,43 +1250,23 @@ class Category extends React.Component {
               </Select>
             </li>
             <li>
-              <span style={{ marginRight: "10px" }}>承包时间</span>
+              <span style={{ marginRight: "10px", marginLeft: "23px" }}>
+                承包时间
+              </span>
               <DatePicker
-                style={{ width: "130px" }}
-                dateRender={current => {
-                  const style = {};
-                  if (current.date() === 1) {
-                    style.border = "1px solid #1890ff";
-                    style.borderRadius = "45%";
-                  }
-                  return (
-                    <div className="ant-calendar-date" style={style}>
-                      {current.date()}
-                    </div>
-                  );
-                }}
-                format="YYYY-MM-DD"
+                showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
                 placeholder="开始时间"
                 onChange={e => this.searchBeginTime(e)}
+                onOk={onOk}
               />
               --
               <DatePicker
-                style={{ width: "130px" }}
-                dateRender={current => {
-                  const style = {};
-                  if (current.date() === 1) {
-                    style.border = "1px solid #1890ff";
-                    style.borderRadius = "45%";
-                  }
-                  return (
-                    <div className="ant-calendar-date" style={style}>
-                      {current.date()}
-                    </div>
-                  );
-                }}
-                format="YYYY-MM-DD"
+                showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
                 placeholder="结束时间"
                 onChange={e => this.searchEndTime(e)}
+                onOk={onOk}
               />
             </li>
             <li style={{width: "80px",marginRight: "15px"}}>
@@ -1255,6 +1285,7 @@ class Category extends React.Component {
             columns={this.makeColumns()}
             className="my-table"
             dataSource={this.makeData(this.state.data)}
+            scroll={{x:2100}}
             pagination={{
               total: this.state.total,
               current: this.state.pageNum,
@@ -1268,7 +1299,7 @@ class Category extends React.Component {
         </div>
         {/*承包上线信息录入模态框*/}
         <Modal
-          title={this.state.addOrUp === "add" ? "承包相关信息" : "承包相关信息"}
+          title={this.state.upOrDown === "up" ? "添加承包相关信息" : "修改承包相关信息"}
           visible={this.state.updateModalShow}
           onOk={()=>this.onAddNewOk()}
           onCancel={() => this.onAddNewClose()}
@@ -1276,7 +1307,7 @@ class Category extends React.Component {
         >
           <Form>
             <FormItem label="承包时间" {...formItemLayout}>
-              {getFieldDecorator("addnewTime", {
+              {getFieldDecorator("addnewBeginTime", {
                 initialValue: undefined,
                 rules: [
                   {required: true},
@@ -1284,7 +1315,20 @@ class Category extends React.Component {
               })(<DatePicker
                   showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
                   format="YYYY-MM-DD HH:mm:ss"
-                  placeholder="录入时间"
+                  placeholder="开始时间"
+                  style={{width:'200px'}}
+                  onOk={onOk}
+              />)}
+              {getFieldDecorator("addnewEndTime", {
+                initialValue: undefined,
+                rules: [
+                  {required: true},
+                ]
+              })(<DatePicker
+                  showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                  format="YYYY-MM-DD HH:mm:ss"
+                  placeholder="结束时间"
+                  style={{width:'200px'}}
                   onOk={onOk}
               />)}
             </FormItem>
@@ -1368,7 +1412,7 @@ class Category extends React.Component {
               {!!this.state.nowData ? this.state.nowData.createTime : ""}
             </FormItem>
             <FormItem label="承包时间" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.contractTime : ""}
+              {!!this.state.nowData ? this.state.nowData.contractAllTime : ""}
             </FormItem>
             <FormItem label="状态" {...formItemLayout}>
               {!!this.state.nowData ? (
@@ -1548,50 +1592,58 @@ class Category extends React.Component {
           confirmLoading={this.state.addnewLoading}
         >
           <div className="system-table" style={{width:'-webkit-fill-available', display: 'inline-flex',border:'none',padding:'0px 0px 10px 70px',boxShadow:'4px 4px 10px #888888'}}>
-          <Form style={{float:'left',width:'320px'}} className={"FormList"}>
-            <FormItem label="服务站名称" {...formItemLayout2} >
-              {!!this.state.nowData ? this.state.nowData.name : ""}
+          <Form style={{float:'left',width:'430px'}} className={"FormList"}>
+            <FormItem label="服务站名称" {...formItemLayout2} style={{marginLeft:'41px'}}>
+              <span style={{marginLeft:'-28px'}}>{!!this.state.nowData ? this.state.nowData.name : ""}</span>
             </FormItem>
-            <FormItem label="省" {...formItemLayout2}>
-              {!!this.state.nowData ? this.state.nowData.province : ""}
+            <FormItem label="省" {...formItemLayout2} style={{marginLeft:'97px'}}>
+              <span style={{marginLeft:'-64px'}}>{!!this.state.nowData ? this.state.nowData.province : ""}</span>
             </FormItem>
-            <FormItem label="区" {...formItemLayout2}>
-              {!!this.state.nowData ? this.state.nowData.region : ""}
+            <FormItem label="区" {...formItemLayout2} style={{marginLeft:'97px'}}>
+              <span style={{marginLeft:'-64px'}}>{!!this.state.nowData ? this.state.nowData.region : ""}</span>
             </FormItem>
-            <FormItem label="联系方式" {...formItemLayout2}>
-              {!!this.state.nowData ? this.state.nowData.phone : ""}
+            <FormItem label="联系方式" {...formItemLayout2} style={{marginLeft:'57px'}}>
+              <span style={{marginLeft:'-39px'}}>{!!this.state.nowData ? this.state.nowData.phone : ""}</span>
             </FormItem>
-            <FormItem label="HRA设备上线状态" {...formItemLayout2} labelCol={{ span: 13 }} wrapperCol={{ span: 16 }}>
-              {/*{!!this.state.nowData ? this.state.nowData.  : ""}*/}
+            <FormItem label="HRA设备上线状态" {...formItemLayout2}>
+               <span>{!!this.state.nowData ? (
+                  Boolean(this.state.nowData.hraIsOnline) === true ? (
+                      <span style={{color: "green"}}>已上线</span>
+                  ) : (
+                      <span style={{color: "red"}}>未上线</span>
+                  )
+              ) : (
+                  ""
+               )}</span>
             </FormItem>
-            <FormItem label="承包时间" {...formItemLayout2}>
-              {!!this.state.nowData ? this.state.nowData.contractTime : ""}
+            <FormItem label="承包时间" {...formItemLayout2} style={{marginLeft:'57px'}}>
+              <span style={{marginLeft:'-39px'}}>{!!this.state.nowData ? this.state.nowData.contractAllTime : ""}</span>
             </FormItem>
-            <FormItem label="承包人手机号" {...formItemLayout2}>
-              {!!this.state.nowData ? this.state.nowData.contractorPhone : ""}
+            <FormItem label="承包人手机号" {...formItemLayout2} style={{marginLeft:'30px'}}>
+              <span style={{marginLeft:'-20px'}}>{!!this.state.nowData ? this.state.nowData.contractorPhone : ""}</span>
             </FormItem>
-            <FormItem label="承包人身份证号" {...formItemLayout} labelCol={{ span: 11 }} wrapperCol={{ span: 16 }}>
-              {!!this.state.nowData ? this.state.nowData.contractorIdentityNumber : ""}
+            <FormItem label="承包人身份证号" {...formItemLayout} style={{marginLeft:'18px'}}>
+              <span style={{marginLeft:'-10px'}}>{!!this.state.nowData ? this.state.nowData.contractorIdentityNumber : ""}</span>
             </FormItem>
           </Form>
           <Form style={{float:'right',width:'290px'}} className={"FormList"}>
-            <FormItem label="公司名称" {...formItemLayout2}>
-              {!!this.state.nowData ? this.state.nowData.companyName : ""}
+            <FormItem label="公司名称" {...formItemLayout2} style={{marginLeft:'10px'}}>
+              <span style={{marginLeft:'-6px'}}>{!!this.state.nowData ? this.state.nowData.companyName : ""}</span>
             </FormItem>
-            <FormItem label="市" {...formItemLayout2}>
-              {!!this.state.nowData ? this.state.nowData.city : ""}
+            <FormItem label="市" {...formItemLayout2} style={{marginLeft:'53px'}}>
+              <span style={{marginLeft:'-34px'}}>{!!this.state.nowData ? this.state.nowData.city : ""}</span>
             </FormItem>
             <FormItem label="服务站地址" {...formItemLayout2}>
-              {!!this.state.nowData ? this.state.nowData.address : ""}
+              <span>{!!this.state.nowData ? this.state.nowData.address : ""}</span>
             </FormItem>
-            <FormItem label="联系人" {...formItemLayout2}>
-              {/*{!!this.state.nowData ? this.state.nowData.city : ""}*/}
+            <FormItem label="联系人" {...formItemLayout2} style={{marginLeft:'28px'}}>
+              <span style={{marginLeft:'-17px'}}>{!!this.state.nowData ? this.state.nowData.person : ""}</span>
             </FormItem>
-            <FormItem label="上线时间" {...formItemLayout2}>
-              {!!this.state.nowData ? this.state.nowData.createTime : ""}
+            <FormItem label="上线时间" {...formItemLayout2} style={{marginLeft:'10px'}}>
+              <span style={{marginLeft:'-4px'}}>{!!this.state.nowData ? this.state.nowData.createTime : ""}</span>
             </FormItem>
-            <FormItem label="承包状态" {...formItemLayout2}>
-              {!!this.state.nowData ? (
+            <FormItem label="承包状态" {...formItemLayout2} style={{marginLeft:'10px'}}>
+              <span >{!!this.state.nowData ? (
                   Boolean(this.state.nowData.contract) === true ? (
                     <span style={{color: "green"}}>已承包</span>
                   ) : (
@@ -1599,10 +1651,10 @@ class Category extends React.Component {
                   )
               ) : (
                   ""
-              )}
+              )}</span>
             </FormItem>
             <FormItem label="承包人姓名" {...formItemLayout} >
-              {!!this.state.nowData ? this.state.nowData.contractor : ""}
+              <span>{!!this.state.nowData ? this.state.nowData.contractor : ""}</span>
             </FormItem>
           </Form>
          </div>

@@ -247,12 +247,12 @@ class Manager extends React.Component {
     };
 
     this.props.actions.findUserInfo(tools.clearNull(params)).then(res => {
-      if (res.status === 200) {
+      if (res.returnCode === "0") {
         this.setState({
-          data: res.data.result || [],
+          data: res.messsageBody.result || [],
           pageNum,
           pageSize,
-          total: res.data.total
+          total: res.messsageBody.total
         });
       } else {
         message.error(res.returnMessaage || "获取数据失败，请重试");
@@ -689,7 +689,6 @@ class Manager extends React.Component {
         conditions: item.conditions,
         creator: item.creator,
         createTime: item.createTime,
-        bindTime: item.bindTime,
         description: item.description,
         email: item.email,
         orgCode: item.orgType,
@@ -742,7 +741,9 @@ class Manager extends React.Component {
           : "",
         userName3: item.distributorAccount
           ? item.distributorAccount.userName
-          : ""
+          : "",
+        bindTime: item.bindTime,//绑定时间
+        bindPhoneTime: item.bindPhoneTime,//绑定电话时间
       };
     });
   }

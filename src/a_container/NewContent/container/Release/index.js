@@ -201,18 +201,18 @@ class Category extends React.Component {
           mobileUrl:res.messsageBody.mobileUrl,
         });
         form.setFieldsValue({
-          addnewTitle: res.messsageBody.name,
-          addnewTime:res.messsageBody.createTime,
-          watchTimes:res.messsageBody.watchTimes,
-          addnewLabel:res.messsageBody.liveStatus, //标签
-          addnewRecommend:res.messsageBody.recommend ? 1 : 0 ,//是否推荐
-          addnewSorts:res.messsageBody.sorts,//排序
-          addnewClassifyOne:res.messsageBody.liveType.name,//一级分类名称
-          addnewClassifyTwo:res.messsageBody.liveType.subList[0].name,//二级分类名称
-          addnewProduct:res.messsageBody.recommendProductList[0].productName,//推荐产品
-          realWatchTimes:res.messsageBody.realWatchTimes,
-          pcUrl:res.messsageBody.pcUrl,
-          mobileUrl:res.messsageBody.mobileUrl,
+          addnewTitle: res.messsageBody.name ? res.messsageBody.name : '',
+          addnewTime:res.messsageBody.createTime ? res.messsageBody.createTime : '',
+          watchTimes:res.messsageBody.watchTimes ? res.messsageBody.watchTimes : '',
+          addnewLabel:res.messsageBody.liveStatus ? res.messsageBody.liveStatus : "", //标签
+          addnewRecommend:res.messsageBody.recommend ? res.messsageBody.recommend ? 1 : 0 : '' ,//是否推荐
+          addnewSorts:res.messsageBody.sorts ? res.messsageBody.sorts : '',//排序
+          addnewClassifyOne:res.messsageBody.liveType ? res.messsageBody.liveType.name : '',//一级分类名称
+          addnewClassifyTwo:res.messsageBody.liveType ? res.messsageBody.liveType.subList[0].name : '',//二级分类名称
+          // addnewProduct:res.messsageBody.recommendProductList[0].productName,//推荐产品
+          realWatchTimes:res.messsageBody.realWatchTimes ? res.messsageBody.realWatchTimes : '',
+          pcUrl:res.messsageBody.pcUrl ? res.messsageBody.pcUrl : "",
+          mobileUrl:res.messsageBody.mobileUrl ? res.messsageBody.mobileUrl : '',
           coverImage: res.messsageBody.coverImage
             ? res.messsageBody.coverImage
                 .split(",")
@@ -221,10 +221,10 @@ class Category extends React.Component {
         });
         this.setState({
           fileList: res.messsageBody.coverImage
-              ? res.messsageBody.coverImage
-                  .split(",")
-                  .map((item, index) => ({ uid: index, url: item, status: "done" }))
-              : [], // 封面图上传的列表
+            ? res.messsageBody.coverImage
+              .split(",")
+              .map((item, index) => ({ uid: index, url: item, status: "done" }))
+            : [], // 封面图上传的列表
         });
       } 
     });
@@ -682,17 +682,17 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
-          controls.push(
-            <span
-              key="1"
-              className="control-btn blue"
-              onClick={() => this.onUpdateClick(record)}
-            >
-              <Tooltip placement="top" title="编辑">
-                <Icon type="edit" />
-              </Tooltip>
-            </span>
-          );
+          // controls.push(
+          //   <span
+          //     key="1"
+          //     className="control-btn blue"
+          //     onClick={() => this.onUpdateClick(record)}
+          //   >
+          //     <Tooltip placement="top" title="编辑">
+          //       <Icon type="edit" />
+          //     </Tooltip>
+          //   </span>
+          // );
           record.deleteFlag === false &&
           controls.push(
             <span
@@ -756,6 +756,7 @@ class Category extends React.Component {
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         coverImage: item.coverImage,
         liveStatus: item.liveStatus,
+        recommendProductList:item.recommendProductList,
         name2: item.liveType ? item.liveType.name : '', //一级分类
         name3:item.liveType &&  item.liveType.subList[0] ? item.liveType.subList[0].name :'', //二级分类
         createTime: item.createTime,
@@ -904,7 +905,7 @@ class Category extends React.Component {
         />
         {/* 添加模态框 */}
         <Modal
-          title={this.state.addOrUp === "add" ? "添加直播发布" : "修改直播发布"}
+          title={this.state.addOrUp === "add" ? "直播发布" : "修改直播发布"}
           visible={this.state.addnewModalShow}
           onOk={() => this.onAddNewOk()}
           onCancel={() => this.onAddNewClose()}
@@ -1004,7 +1005,6 @@ class Category extends React.Component {
             <FormItem label="推荐产品" {...formItemLayout}>
               {getFieldDecorator('addnewProduct',{
                 initialValue: undefined,
-                rules: [{ required: true, message: "请选择所要推荐产品" }]
               })(
                 <Select
                   mode="multiple"
@@ -1014,7 +1014,7 @@ class Category extends React.Component {
                 {
                   this.state.productModels.map((item) => {
                     return (
-                        <Option key={String(item.id)}>{item.name}</Option>
+                      <Option key={String(item.id)}>{item.name}</Option>
                     );
                   })
                 }

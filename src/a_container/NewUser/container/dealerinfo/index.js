@@ -251,12 +251,12 @@ class Manager extends React.Component {
     };
 
     this.props.actions.findUserInfo(tools.clearNull(params)).then(res => {
-      if (res.status === 200) {
+      if (res.returnCode === "0") {
         this.setState({
-          data: res.data.result || [],
+          data: res.messsageBody.result || [],
           pageNum,
           pageSize,
-          total: res.data.total
+          total: res.messsageBody.total
         });
       } else {
         message.error(res.returnMessaage || "获取数据失败，请重试");
@@ -814,6 +814,7 @@ class Manager extends React.Component {
         userName2: item.userName,
         mid2: item.id,
         bindTime: item.bindTime,
+        bindPhoneTime:item.bindPhoneTime,
         province2: item.distributorAccount
           ? item.distributorAccount.province
           : "",

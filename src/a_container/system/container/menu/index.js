@@ -172,6 +172,7 @@ class Menu extends React.Component {
 
   // 构建树结构
   makeTreeDom(data, key = "") {
+    console.log('data是什么：',data)
     return data.map((item, index) => {
       const k = key ? `${key}-${item.id}` : `${item.id}`;
       if (item.children) {

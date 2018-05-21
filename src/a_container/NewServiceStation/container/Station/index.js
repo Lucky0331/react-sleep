@@ -16,6 +16,7 @@ import {
   Input,
   Popconfirm,
   Table,
+  DatePicker,
   message,
   Modal,
   Radio,
@@ -25,6 +26,7 @@ import {
   Cascader
 } from "antd";
 import "./index.scss";
+import moment from "moment";
 import tools from "../../../../util/tools"; // 工具
 import Power from "../../../../util/power"; // 权限
 import { power } from "../../../../util/data";
@@ -49,7 +51,8 @@ import {
   updateProductLine,
   deleteStation,
   editProductLine,
-  warning
+  warning,
+  onOk
 } from "../../../../a_action/shop-action";
 // ==================
 // Definition
@@ -70,6 +73,8 @@ class Category extends React.Component {
       searchId: "", // 搜索 - 体检仪型号
       searchDeviceId: "", // 搜索 - 设备id
       addOrUp: "add", // 当前操作是新增还是修改
+      searchBeginTime: "", // 搜索 - 开始时间
+      searchEndTime: "", // 搜索- 结束时间
       addnewModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
       addnewLoading: false, // 是否正在添加新用户中
       nowData: null, // 当前选中用户的信息，用于查看详情、修改、分配菜单
@@ -190,6 +195,24 @@ class Category extends React.Component {
       searchAddress: c
     });
   }
+  
+  // 搜索 - 开始时间变化
+  searchBeginTime(v) {
+    console.log("是什么：", v);
+    this.setState({
+      searchBeginTime: v,
+      searchTime: undefined
+    });
+  }
+  
+  // 搜索 - 结束时间变化
+  searchEndTime(v) {
+    console.log("触发：", v);
+    this.setState({
+      searchEndTime: v,
+      searchTime: undefined
+    });
+  }
 
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
@@ -202,7 +225,13 @@ class Category extends React.Component {
       region: this.state.searchAddress[2],
       hraDeviceType: this.state.searchId,
       productType: this.state.searchTypeId,
-      deviceId: this.state.searchDeviceId
+      deviceId: this.state.searchDeviceId,
+      minTime: this.state.searchBeginTime
+        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        : "",
+      maxTime: this.state.searchEndTime
+        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        : "",
     };
     this.props.actions.findProductLine(tools.clearNull(params)).then(res => {
       if (res.returnCode === "0") {
@@ -318,7 +347,122 @@ class Category extends React.Component {
   }
   // 导出
   onExport() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onExportData(this.state.pageNum, this.state.pageSize);
+  }
+  
+  // 导出订单对账列表数据
+  onExportData(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      online: this.state.searchName,
+      province: this.state.searchAddress[0],
+      city: this.state.searchAddress[1],
+      region: this.state.searchAddress[2],
+      hraDeviceType: this.state.searchId,
+      productType: this.state.searchTypeId,
+      deviceId: this.state.searchDeviceId,
+      minTime: this.state.searchBeginTime
+        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        : "",
+      maxTime: this.state.searchEndTime
+        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        : "",
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/product/online/export`;
+    form.method = "post";
+    console.log("FORM:", params);
+    
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+    
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+    
+    const newElement3 = document.createElement("input");
+    if (params.online) {
+      newElement3.setAttribute("name", "online");
+      newElement3.setAttribute("type", "hidden");
+      newElement3.setAttribute("value", params.online);
+      form.appendChild(newElement3);
+    }
+    
+    const newElement4 = document.createElement("input");
+    if (params.province) {
+      newElement4.setAttribute("name", "province");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.province);
+      form.appendChild(newElement4);
+    }
+    
+    const newElement5 = document.createElement("input");
+    if (params.city) {
+      newElement5.setAttribute("name", "city");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.city);
+      form.appendChild(newElement5);
+    }
+    
+    const newElement6 = document.createElement("input");
+    if (params.region) {
+      newElement6.setAttribute("name", "region");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.region);
+      form.appendChild(newElement6);
+    }
+    
+    const newElement7 = document.createElement("input");
+    if (params.hraDeviceType) {
+      newElement7.setAttribute("name", "hraDeviceType");
+      newElement7.setAttribute("type", "hidden");
+      newElement7.setAttribute("value", params.hraDeviceType);
+      form.appendChild(newElement7);
+    }
+    
+    const newElement8 = document.createElement("input");
+    if (params.productType) {
+      newElement8.setAttribute("name", "productType");
+      newElement8.setAttribute("type", "hidden");
+      newElement8.setAttribute("value", params.productType);
+      form.appendChild(newElement8);
+    }
+    
+    const newElement9 = document.createElement("input");
+    if (params.deviceId) {
+      newElement9.setAttribute("name", "deviceId");
+      newElement9.setAttribute("type", "hidden");
+      newElement9.setAttribute("value", params.deviceId);
+      form.appendChild(newElement9);
+    }
+    
+    const newElement10 = document.createElement("input");
+    if (params.minTime) {
+      newElement10.setAttribute("name", "minTime");
+      newElement10.setAttribute("type", "hidden");
+      newElement10.setAttribute("value", params.minTime);
+      form.appendChild(newElement10);
+    }
+    
+    const newElement11 = document.createElement("input");
+    if (params.maxTime) {
+      newElement11.setAttribute("name", "maxTime");
+      newElement11.setAttribute("type", "hidden");
+      newElement11.setAttribute("value", params.maxTime);
+      form.appendChild(newElement11);
+    }
+    form.submit();
   }
 
   // 表单页码改变
@@ -704,13 +848,13 @@ class Category extends React.Component {
     return (
       <div style={{ width: "100%" }}>
         <div className="system-search">
-          <ul className="search-ul">
+          <ul className="search-ul more-ul">
             <li>
               <span style={{ marginRight: "10px" }}>产品类型</span>
               <Select
                 allowClear
                 placeholder="全部"
-                style={{ width: "200px" }}
+                style={{ width: "172px" }}
                 onChange={e => this.onSearchTypeId(e)}
               >
                 {this.state.productTypes.map((item, index) => {
@@ -722,13 +866,14 @@ class Category extends React.Component {
                 })}
               </Select>
             </li>
-            <li style={{ marginRight: "20px" }}>
+            <li>
               <span style={{ marginRight: "10px" }}>服务站地区</span>
               <Cascader
                 placeholder="请选择服务区域"
                 onChange={v => this.onSearchAddress(v)}
                 options={this.state.citys}
                 loadData={e => this.getAllCitySon(e)}
+                changeOnSelect
               />
             </li>
             <li>
@@ -736,7 +881,7 @@ class Category extends React.Component {
               <Select
                 placeholder="全部"
                 allowClear
-                style={{ width: "120px", marginRight: "15px" }}
+                style={{ width: "172px", marginRight: "10px" }}
                 onChange={e => this.searchIdChange(e)}
               >
                 <Option value={1}>体检仪一号</Option>
@@ -748,7 +893,7 @@ class Category extends React.Component {
               <Select
                 placeholder="全部"
                 allowClear
-                style={{ width: "130px", marginRight: "25px" }}
+                style={{ width: "172px", marginRight: "10px" }}
                 onChange={e => this.searchNameChange(e)}
               >
                 <Option value={2}>未上线</Option>
@@ -758,9 +903,28 @@ class Category extends React.Component {
             <li>
               <span style={{ marginRight: "10px" }}>设备id</span>
               <Input
-                style={{ width: "140px", marginRight: "15px" }}
+                style={{ width: "172px", marginRight: "10px" }}
                 placeholder="请输入设备id"
                 onChange={e => this.searchDeviceIdChange(e)}
+              />
+            </li>
+            <li>
+              <span style={{ marginRight: "10px" }}>上线时间</span>
+              <DatePicker
+                showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
+                placeholder="开始时间"
+                onChange={e => this.searchBeginTime(e)}
+                onOk={onOk}
+              />
+              --
+              <DatePicker
+                showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
+                placeholder="结束时间"
+                value={this.state.searchEndTime}
+                onChange={e => this.searchEndTime(e)}
+                onOk={onOk}
               />
             </li>
             <li style={{ width: "80px", marginRight: "15px" }}>
@@ -773,25 +937,19 @@ class Category extends React.Component {
               </Button>
             </li>
             <li>
-              <Button
-                icon="download"
-                style={{
-                  color: "#fff",
-                  backgroundColor: "#108ee9",
-                  borderColor: "#108ee9"
-                }}
-                onClick={warning}
-              >
+              <Button icon="download" type="primary" onClick={()=>this.onExport()}>
                 导出
               </Button>
             </li>
-          </ul>
-          <ul className="search-func">
-            <li style={{ marginLeft: "10px" }}>
-              <Button type="primary" onClick={() => this.onAddNewShow()}>
-                产品上线
-              </Button>
-            </li>
+            <li>
+              <ul className="search-func">
+                <li style={{ marginLeft: "10px" }}>
+                  <Button type="primary" onClick={() => this.onAddNewShow()}>
+                    产品上线
+                  </Button>
+                </li>
+              </ul>
+             </li>
           </ul>
         </div>
         <div className="system-table">

@@ -221,13 +221,13 @@ class Manager extends React.Component {
     };
 
     this.props.actions.CardList(tools.clearNull(params)).then(res => {
-      if (res.status === 200) {
+      if (res.returnCode === "0") {
         this.setState({
-          data: res.data.htlcBasePage.result || [],
+          data: res.messsageBody.htlcBasePage.result || [],
           pageNum,
           pageSize,
-          ticketCount:res.data.ticketCount || 0,   //累计持有的优惠卡数
-          total: res.data.htlcBasePage.total || 0  //赠送总数
+          ticketCount:res.messsageBody.ticketCount || 0,   //累计持有的优惠卡数
+          total: res.messsageBody.htlcBasePage.total || 0  //赠送总数
         });
       } else {
         message.error(res.returnMessaage || "获取数据失败，请重试");

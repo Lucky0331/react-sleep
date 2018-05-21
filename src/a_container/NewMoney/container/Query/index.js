@@ -185,13 +185,13 @@ class Category extends React.Component {
     this.props.actions
       .getSupplierIncomeMain(tools.clearNull(params))
       .then(res => {
-        if (res.status === 200) {
-          console.log("到底是什么：", res.data);
+        if (res.returnCode === "0") {
+          console.log("到底是什么：", res.messsageBody);
           this.setState({
-            dataHQ: res.data || [],
+            dataHQ: res.messsageBody || [],
             pageNumHQ: pageNum,
             pageSizeHQ: pageSize,
-            totalHQ: res.data.total
+            totalHQ: res.messsageBody.total
           });
         } else {
           message.error(res.message || "获取数据失败，请重试");
@@ -778,13 +778,13 @@ class Category extends React.Component {
     this.props.actions
       .getStationIncomeMain(tools.clearNull(params))
       .then(res => {
-        if (res.status === 200) {
-          console.log("到底是什么：", res.data.result);
+        if (res.returnCode === "0") {
+          console.log("到底是什么：", res.messsageBody.result);
           this.setState({
-            dataSE: res.data || [],
+            dataSE: res.messsageBody || [],
             pageNumSE: pageNum,
             pageSizeSE: pageSize,
-            totalSE: res.data.total
+            totalSE: res.messsageBody.total
           });
         } else {
           message.error(res.message || "获取数据失败，请重试");

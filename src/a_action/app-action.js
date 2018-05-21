@@ -13,7 +13,7 @@ export function onTestAdd(num) {
 // 用户登录
 export function onLogin(params) {
   return dispatch => {
-    return Fetchapi.newPost("/admin/submitLogin", params, "post", true)
+    return Fetchapi.newPost("/manager/submitLogin", params, "post", true)
       .then(msg => {
         console.log("axios返回的是：", msg);
         dispatch({

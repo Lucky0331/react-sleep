@@ -231,12 +231,12 @@ class Manager extends React.Component {
     };
 
     this.props.actions.findUserInfo(tools.clearNull(params)).then(res => {
-      if (res.status === 200) {
+      if (res.returnCode === "0") {
         this.setState({
-          data: res.data.result || [],
+          data: res.messsageBody.result || [],
           pageNum,
           pageSize,
-          total: res.data.total
+          total: res.messsageBody.total
         });
       } else {
         message.error(res.returnMessaage || "获取数据失败，请重试");
@@ -676,16 +676,16 @@ class Manager extends React.Component {
       userId: record.eId
     };
     this.props.actions.myCustomers(tools.clearNull(params)).then(res => {
-      if (res.status === 200) {
+      if (res.returnCode === "0") {
         this.setState({
-          Tdata: res.data || [],
+          Tdata: res.messsageBody || [],
           TnowData: record,
           extensionShow: true
         });
       } else {
         message.error(res.returnMessaage || "获取数据失败，请重试");
       }
-      console.log("推广客户信息是：", res.data);
+      console.log("推广客户信息是：", res.messsageBody);
     });
   }
   // 关闭我的推广客户列表

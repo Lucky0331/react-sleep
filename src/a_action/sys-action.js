@@ -26,7 +26,7 @@ export function findAllMenu() {
 export function submitLogin(params = {}) {
   return dispatch => {
     return Fetchapi.newPost(
-      "/manager/admin/submitLogin",
+      "/manager/submitLogin",
       Object.assign({}, params, {})
     )
       .then(msg => {

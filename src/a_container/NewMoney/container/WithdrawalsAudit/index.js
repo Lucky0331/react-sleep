@@ -143,12 +143,12 @@ class Category extends React.Component {
     };
     this.props.actions.WithdrawalsAudit(tools.clearNull(params)).then(res => {
       console.log("返回的什么：", res.messsageBody);
-      if (res.status === 200) {
+      if (res.returnCode === "0") {
         this.setState({
-          data: res.data.result || [],
+          data: res.messsageBody.result || [],
           pageNum,
           pageSize,
-          total: res.data.total
+          total: res.messsageBody.total
         });
       } else if (res.status === 400) {
         this.setState({
@@ -702,7 +702,7 @@ class Category extends React.Component {
     this.props.actions
       .WithdrawalsAuditEgis(params)
       .then(res => {
-        if (res.status === 200) {
+        if (res.returnCode === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else if (res.status === 400) {
@@ -727,7 +727,7 @@ class Category extends React.Component {
     this.props.actions
       .WithdrawalsAuditEgis(params)
       .then(res => {
-        if (res.status === 200) {
+        if (res.returnCode === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
@@ -755,7 +755,7 @@ class Category extends React.Component {
     this.props.actions
       .WithdrawalsAuditEgis(params)
       .then(res => {
-        if (res.status === 200) {
+        if (res.returnCode === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
@@ -781,7 +781,7 @@ class Category extends React.Component {
     this.props.actions
       .WithdrawalsAuditEgis(params)
       .then(res => {
-        if (res.status === 200) {
+        if (res.returnCode === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {

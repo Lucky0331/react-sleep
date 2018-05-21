@@ -22,7 +22,7 @@ import {
   Select,
   Divider,
   Popover,
-  AutoComplete,
+  InputNumber,
   Upload
 } from "antd";
 import "./index.scss";
@@ -38,71 +38,61 @@ import { power } from "../../../../util/data";
 // ==================
 
 import {
-  NewActivityList,
-  upDateActivityList,
-  deleteActivity,
   onChange,
   onOk,
-  ActivityList,
-  findProductByWhere,
-  upDateOnlineList,
 } from "../../../../a_action/shop-action";
+import {
+  assistantList,
+  AddassistantList,
+  UpassistantList,
+  DelateassistantList,
+  assistantTypeList,
+}from "../../../../a_action/card-action"
 
 // ==================
 // Definition
 // ==================
 const FormItem = Form.Item;
 const Option = Select.Option;
+const { TextArea } = Input;
 class Category extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       data: [], // 当前页面全部数据
-      productModels: [], // 所有的产品型号
-      searchName: "", // 搜索 - 发布状态
-      searchTitle:"" ,//搜索 - 活动名称
+      productTypes: [], // 所有的产品类型
+      assistants:[],//所有的问答分类名称
+      titleList: [], // 所有的标题位置
+      titles: [], //所有的标题
+      searchTitle: "", //搜索 - 问题查询
+      searchTypeCode:'',//搜索 - 问题分类
       nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
       addnewModalShow: false, // 查看地区模态框是否显示
       upModalShow: false, // 修改模态框是否显示
       upLoading: false, // 是否正在修改用户中
-      searchLiveStatus:'', //搜索 - 标签
+      fileList: [], // 缩略图已上传的列表
+      fileLoading: false, // 缩略图片正在上传
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
-      total: 0, // 数据库总共多少条数据
-      fileList:[] ,//活动图片上传列表
+      total: 0 // 数据库总共多少条数据
     };
   }
 
   componentDidMount() {
-    this.getAllProductModel(); // 获取所有的产品型号
+    this.getAllAssistant(); //获取所有的分类名称，当前也可用
     this.onGetData(this.state.pageNum, this.state.pageSize);
   }
-
-  // 获取所有产品型号，当前页要用
-  getAllProductModel() {
-    this.props.actions
-      .findProductByWhere({ pageNum: 0, pageSize: 9999 })
-      .then(res => {
-        if (res.returnCode === "0") {
-          this.setState({
-            productModels: res.messsageBody.result || []
-          });
-        }
-      });
-  }
-
 
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
     const params = {
       pageNum,
       pageSize,
-      deleteFlag: this.state.searchName,
-      title: this.state.searchTitle,
-      apId: this.state.searchBanner
+      typeCode: this.state.searchTypeCode,
+      questions: this.state.searchTitle,
     };
-    this.props.actions.ActivityList(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody.result.recommendProductList);
+    this.props.actions.assistantList(tools.clearNull(params)).then(res => {
+      console.log("返回的什么：", res.messsageBody);
       if (res.returnCode === "0") {
         this.setState({
           data: res.messsageBody.result || [],
@@ -113,121 +103,66 @@ class Category extends React.Component {
       } else {
         message.error(res.returnMessaage || "获取数据失败，请重试");
       }
-      console.log("啥活动：", res.messsageBody.result);
+      console.log("问答列表有了么：", res.messsageBody.result);
     });
   }
-
-  //搜索 - 发布状态输入框值改变时触发
-  searchNameChange(e) {
+  
+  // 获取所有问答分类，当前页要用
+  getAllAssistant() {
+    this.props.actions
+      .assistantTypeList({ pageNum: 0, pageSize: 9999 })
+      .then(res => {
+        if (res.returnCode === "0") {
+          this.setState({
+            assistants: res.messsageBody.result || []
+          });
+        }
+      });
+  }
+  
+  // 工具 - 根据问题分类ID获取问题分类名称
+  getNameTypeCode(typeCode) {
+    const t = this.state.assistants.find(
+      item => String(item.typeCode) === String(typeCode)
+    );
+    return t ? t.typeName : "";
+  }
+  
+  //搜索 - 问题分类输入框值改变时触发
+  searchTypeCodeChange(e) {
     this.setState({
-      searchName: e
+      searchTypeCode: e
     });
   }
 
-  //搜索 - 活动名称输入框值改变时触发
+  //搜索 - 问题查询输入框值改变时触发
   searchTitleChange(e) {
     this.setState({
       searchTitle: e.target.value
     });
   }
-
-  // 工具 - 根据产品型号ID获取产品型号名称
-  getNameByModelId(id) {
-    const t = this.state.productModels.find(
-      item => String(item.id) === String(id)
-    );
-    return t ? t.name : "";
+  
+  // 搜索
+  onSearch() {
+    this.onGetData(this.state.pageNum, this.state.pageSize);
   }
   
-  // banner图 - 上传中、上传成功、上传失败的回调
-  onUpLoadChange(obj) {
-    // console.log('图片上传：', obj);
-    if (obj.file.status === "done") {
-      // 上传成功后调用,将新的地址加进原list
-      if (obj.file.response.messsageBody) {
-        const list = _.cloneDeep(this.state.fileList);
-        const t = list.find(item => item.uid === obj.file.uid);
-        t.url = obj.file.response.messsageBody;
-        this.setState({
-          fileList: list,
-          fileLoading: false
-        });
-      } else {
-        const list = _.cloneDeep(this.state.fileList);
-        this.setState({
-          fileList: list.filter(item => item.uid !== obj.file.uid),
-          fileLoading: false
-        });
-        message.error("图片上传失败");
-      }
-    } else if (obj.file.status === "uploading") {
-      this.setState({
-        fileLoading: true
-      });
-    } else if (obj.file.status === "error") {
-      const list = _.cloneDeep(this.state.fileList);
-      this.setState({
-        fileList: list.filter(item => item.uid !== obj.file.uid),
-        fileLoading: false
-      });
-      message.error("图片上传失败");
-    }
-  }
-  
-  // banner图 - 上传前
-  onUploadBefore(f, fl) {
-    console.log("上传前：", f, fl);
-    if (
-        ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
-    ) {
-      message.error("只能上传jpg、jpeg、png、bmp、gif格式的图片");
-      return false;
-    } else {
-      const newList = _.cloneDeep(this.state.fileList);
-      newList.push(f);
-      this.setState({
-        fileList: newList
-      });
-      return true;
-    }
-  }
-  
-  // banner图 - 删除一个图片
-  onUpLoadRemove(f) {
-    console.log("删除；", f);
-    this.deleteImg(f.url);
-    const list = _.cloneDeep(this.state.fileList);
-    this.setState({
-      fileList: list.filter(item => item.uid !== f.uid)
-    });
-  }
-  
-  // 真正从服务端删除商品的图片
-  deleteImg(uri) {
-    const temp = uri.split("/");
-    const fileName = temp.splice(-1, 1);
-    const params = {
-      path: temp.join("/"),
-      fileName
-    };
-    console.log("删除后的是啥？", temp.join("/"), fileName);
-    this.props.actions.deleteImage(params);
-  }
-
-  // 添加新活动模态框出现
+  // 添加新回答模态框出现
   onAddNewShow() {
     const me = this;
     const { form } = me.props;
     form.resetFields([
       "addnewTitle",
-      "addnewUrl",
-      "addnewProduct",
-      "addnewDeletFlag",
-      "addnewSorts"
+      "addnewConditions",
+      "addnewTypeCode",
+      "addnewSorts",
+      "addnewQuestion",
+      "addnewProductImg"
     ]);
     this.setState({
       addOrUp: "add",
       fileList: [],
+      fileListDetail: [],
       addnewModalShow: true,
       nowData: null
     });
@@ -245,14 +180,19 @@ class Category extends React.Component {
     // console.log('AAAAAAAA');
     const me = this;
     const { form } = me.props;
+    if (me.state.fileLoading || me.state.fileDetailLoading) {
+      message.warning("有图片正在上传...");
+      return;
+    }
 
     form.validateFields(
       [
         "addnewTitle",
-        "addnewProduct",
-        "addnewUrl",
-        "addnewDeletFlag",
-        "addnewSorts"
+        "addnewConditions",
+        "addnewTypeCode",
+        "addnewSorts",
+        "addnewQuestion",
+        "addnewProductImg"
       ],
       (err, values) => {
         if (err) {
@@ -263,17 +203,16 @@ class Category extends React.Component {
         });
 
         const params = {
-          title: values.addnewTitle,
-          acUrl: values.addnewUrl,
-          deleteFlag:values.addnewDeletFlag,
-          recommend:String(values.addnewProduct),
-          sorts:Number(values.addnewSorts),
-          acImg: this.state.fileList.map(item => item.url).join(","),
+          questions: values.addnewTitle,//问题
+          typeCode:values.addnewTypeCode,//随机typeCode值
+          deleteFlag: values.addnewConditions ? 0 : 1,//是否发布
+          sorts: values.addnewSorts, //排序
+          answers: values.addnewQuestion,//回答
         };
         if (this.state.addOrUp === "add") {
           // 新增
           me.props.actions
-            .NewActivityList(tools.clearNull(params))
+            .AddassistantList(tools.clearNull(params))
             .then(res => {
               me.setState({
                 addnewLoading: false
@@ -289,7 +228,7 @@ class Category extends React.Component {
         } else {
           params.id = this.state.nowData.id;
           me.props.actions
-            .upDateActivityList(params)
+            .UpassistantList(params)
             .then(res => {
               // 修改
               me.setState({
@@ -314,33 +253,27 @@ class Category extends React.Component {
     const { form } = me.props;
     console.log("是什么：", record);
     form.setFieldsValue({
-      addnewTitle: String(record.title),
-      addnewUrl: record.acUrl,
-      addnewProduct: record.productName ? record.productName : undefined,
-      addnewDeletFlag:record.deleteFlag ? 1 : 0,
-      addnewSorts:record.sorts,
-      addnewacImg: record.acImg
+      addnewTitle: String(record.questions),
+      addnewConditions: record.deleteFlag ? 0 : 1,
+      addnewSorts: record.sorts,
+      addnewQuestion: record.answers,
+      addnewTypeCode: String(record.typeCode),
     });
     console.log("是什么：", record);
     me.setState({
       nowData: record,
       addOrUp: "up",
       addnewModalShow: true,
-      fileList: record.acImg
-        ? record.acImg
-          .split(",")
-          .map((item, index) => ({ uid: index, url: item, status: "done" }))
-        : [], // 活动图上传的列表
     });
   }
 
   // 发布或回撤
   onUpdateClick2(record) {
     const params = {
-      id: Number(record.id)
+      adId: Number(record.id)
     };
     this.props.actions
-      .upDateOnlineList(params)
+      .UpdateOnline(params)
       .then(res => {
         if (res.returnCode === "0") {
           message.success("修改成功");
@@ -356,9 +289,9 @@ class Category extends React.Component {
 
   // 删除某一条数据
   onRemoveClick(id) {
-    this.props.actions.deleteActivity({ id: id }).then(res => {
+    this.props.actions.DelateassistantList({ id: id }).then(res => {
       if (res.returnCode === "0") {
-        message.success(res.returnMessaage );
+        message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
         message.error(res.returnMessaage || "删除失败，请重试");
@@ -404,13 +337,6 @@ class Category extends React.Component {
     this.onGetData(page, pageSize);
   }
 
-  //Input中的删除按钮所删除的条件
-  emitEmpty() {
-    this.setState({
-      searchTitle: ""
-    });
-  }
-
   // 构建字段
   makeColumns() {
     const columns = [
@@ -422,40 +348,28 @@ class Category extends React.Component {
         width: 100
       },
       {
-        title: "活动名称",
-        dataIndex: "title",
-        key: "title"
+        title: "问答分类",
+        dataIndex: "typeCode",
+        key: "typeCode",
+        render:text => this.getNameTypeCode(text)
       },
       {
-        title: "活动链接",
-        dataIndex: "acUrl",
-        key: "acUrl"
+        title: "问题",
+        dataIndex: "questions",
+        key: "questions"
       },
       {
-        title:'发布时间',
-        dataIndex:'updateTime',
-        key:'updateTime'
+        title: "回答",
+        dataIndex: "answers",
+        key: "answers",
+        // width: 200 ,
+        // overflow:hidden ,
+        // whiteSpace:nowrap ,
+        // textOverflow:ellipsis
       },
-      {
-        title:"活动图片",
-        dataIndex:'acImg',
-        key:'acImg',
-        render: (text, index) => {
-          if (text) {
-            const img = text.split(",");
-            return (
-              <Popover
-                key={index}
-                placement="right"
-                content={<img className="table-img-big" src={img[0]} />}
-              >
-                <img className="table-img" src={img[0]} />
-              </Popover>
-            );
-          }
-          return "";
-        }
-      },
+      // {
+      //   title: "是否设为热门资讯",
+      // },
       {
         title: "是否发布",
         dataIndex: "deleteFlag",
@@ -468,7 +382,10 @@ class Category extends React.Component {
           )
       },
       {
-        title:'排序',
+        title:'最新发布时间',
+      },
+      {
+        title:"排序",
         dataIndex:'sorts',
         key:'sorts'
       },
@@ -501,6 +418,7 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
+          record.deleteFlag === false &&
           controls.push(
             <span
               key="2"
@@ -559,26 +477,25 @@ class Category extends React.Component {
   makeData(data) {
     return data.map((item, index) => {
       return {
-        id: item.id,
         key: index,
-        title: item.title,//活动名称
+        addrId: item.addrId,
+        count: item.count,
+        title: item.title,
         orderNo: item.id,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
-        updateTime: item.updateTime,//发布时间
-        deleteFlag: item.deleteFlag,//是否发布
-        acUrl: item.acUrl,  //链接地址
-        sorts:item.sorts,
-        acImg:item.acImg, //活动图片
-        productId:item.recommendProductList && item.recommendProductList[0] ? item.recommendProductList[0].productId : '',
-        productName:item.recommendProductList && item.recommendProductList[0] ? item.recommendProductList[0].productName : '',
-        productName2:item.recommendProductList && item.recommendProductList[1]? item.recommendProductList[1].productName : '',
-        productName3:item.recommendProductList && item.recommendProductList[2]? item.recommendProductList[2].productName : '',
-        productName4:item.recommendProductList && item.recommendProductList[3]? item.recommendProductList[3].productName : '',
+        createTime: item.createTime,
+        deleteFlag: item.deleteFlag,
+        url: item.url,
+        adImg: item.adImg,
+        sorts: item.sorts,
+        adId: item.adId,
+        id: item.id,
+        typeCode:item.typeCode,
+        questions: item.questions, //问题
+        answers: item.answers,//回答
       };
     });
   }
-
-
 
   render() {
     const me = this;
@@ -595,37 +512,35 @@ class Category extends React.Component {
       }
     };
 
-    const { searchTitle } = this.state;
-    const suffix = searchTitle ? (
-        <Icon type="close-circle" onClick={() => this.emitEmpty()} />
-    ) : null;
-    console.log('这是什么：', this.state.productModels);
     return (
       <div>
         <div className="system-search">
           <ul className="search-ul more-ul">
             <li>
-              <span>活动名称</span>
+              <span>问题分类</span>
+              <Select
+                allowClear
+                placeholder="全部"
+                style={{ width: '172px' }}
+                onChange={e => this.searchTypeCodeChange(e)}
+              >
+                {
+                this.state.assistants.map((item) => {
+                  return (
+                    <Option key={String(item.typeCode)}>{item.typeName}</Option>
+                  );
+                })
+                }
+              </Select>
+            </li>
+            <li>
+              <span>问题查询</span>
               <Input
-                style={{ width:"172px" }}
-                suffix={suffix}
-                value={searchTitle}
+                style={{ width: "190px" }}
                 onChange={e => this.searchTitleChange(e)}
               />
             </li>
-            <li>
-              <span>是否发布</span>
-              <Select
-                placeholder="全部"
-                allowClear
-                style={{ width: "172px" }}
-                onChange={e => this.searchNameChange(e)}
-              >
-                <Option value={1}>已发布</Option>
-                <Option value={0}>未发布</Option>
-              </Select>
-            </li>
-            <li style={{ marginLeft: "40px", marginRight: "15px" }}>
+            <li style={{ marginRight: "10px" }}>
               <Button
                 icon="search"
                 type="primary"
@@ -641,7 +556,7 @@ class Category extends React.Component {
                   type="primary"
                   onClick={() => this.onAddNewShow()}
                 >
-                  添加
+                  添加回答
                 </Button>
               </li>
             </ul>
@@ -664,92 +579,88 @@ class Category extends React.Component {
         </div>
         {/* 添加模态框 */}
         <Modal
-          title={this.state.addOrUp === "add" ? "添加活动" : "修改活动"}
+          title={this.state.addOrUp === "add" ? "添加回答" : "修改回答"}
           visible={this.state.addnewModalShow}
           onOk={() => this.onAddNewOk()}
           onCancel={() => this.onAddNewClose()}
           confirmLoading={this.state.addnewLoading}
         >
           <Form>
-            <FormItem label="活动名称" {...formItemLayout}>
+            <FormItem label="问答分类" {...formItemLayout}>
+              {getFieldDecorator("addnewTypeCode", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择问答分类" }]
+              })(
+                <Select
+                  allowClear
+                  placeholder="全部"
+                  style={{ width: '200px' }}
+                >
+                {
+                  this.state.assistants.map((item) => {
+                  return (
+                    <Option key={String(item.typeCode)}>{item.typeName}</Option>
+                  );
+                })
+                }
+                </Select>
+              )}
+            </FormItem>
+            <FormItem label="问题" {...formItemLayout}>
               {getFieldDecorator("addnewTitle", {
                 initialValue: undefined,
                 rules: [
-                  { required: true, message: "请输入活动名称" },
+                  { required: true, message: "请输入问题" },
                   {
                     validator: (rule, value, callback) => {
                       const v = tools.trim(value);
                       if (v) {
-                        if (v.length > 20) {
-                          callback("最多输入20个字");
+                        if (v.length > 18) {
+                          callback("最多输入18个字");
                         }
                       }
                       callback();
                     }
                   }
                 ]
-              })(<Input placeholder="请输入活动名称" />)}
+              })(<Input placeholder="请输入问题" />)}
             </FormItem>
-            <FormItem label="活动链接" {...formItemLayout}>
-              {getFieldDecorator("addnewUrl", {
+            <FormItem label="回答" {...formItemLayout}>
+              {getFieldDecorator("addnewQuestion", {
                 initialValue: undefined,
-                rules: [{ required: true, message: "请输入链接地址" }]
-              })(<Input placeholder="请输入链接地址" />)}
+                rules: [{ required: true, message: "请输入回答" }]
+              })(<TextArea
+                  placeholder="请输入回答"
+                  autosize={{ minRows: 1, maxRows: 4 }}
+              />)}
             </FormItem>
-            <FormItem label="推荐产品" {...formItemLayout}>
-              {getFieldDecorator("addnewProduct",{
-                initialValue: undefined,
-              })(
-              <Select
-                mode="multiple"
-                style={{ width: '100%' }}
-                placeholder="请选择所要推荐产品"
-              >
-              {
-                this.state.productModels.map((item) => {
-                  return (
-                    <Option key={String(item.id)}>{item.name}</Option>
-                  );
-                })
-              }
-              </Select>
-               )}
-            </FormItem>
-            <FormItem label="活动图片" {...formItemLayout}>
-              <Upload
-                name="pImg"
-                action={`${Config.baseURL}/manager/product/uploadImage`}
-                listType="picture-card"
-                withCredentials={true}
-                fileList={this.state.fileList}
-                beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
-                onChange={f => this.onUpLoadChange(f)}
-                onRemove={f => this.onUpLoadRemove(f)}
-              >
-                {this.state.fileList.length >= 1 ? null : (
-                  <div>
-                    <Icon type="plus" />
-                    <div className="ant-upload-text">选择文件</div>
-                  </div>
-                )}
-              </Upload>
-            </FormItem>
+            {/*<FormItem label="是否设为热门资讯" {...formItemLayout}>*/}
+              {/*{getFieldDecorator("addnewHot", {*/}
+                {/*initialValue: undefined,*/}
+                {/*rules: [{ required: true, message: "请选择是否设为热门资讯" }]*/}
+              {/*})(*/}
+                {/*<Select placeholder="请选择是否设为热门资讯">*/}
+                  {/*<Option value={0}>否</Option>*/}
+                  {/*<Option value={1}>是</Option>*/}
+                {/*</Select>*/}
+              {/*)}*/}
+            {/*</FormItem>*/}
             <FormItem label="是否发布" {...formItemLayout}>
-                {getFieldDecorator("addnewDeletFlag", {
+              {getFieldDecorator("addnewConditions", {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请选择是否发布" }]
-                })(
+              })(
                 <Select placeholder="请选择是否发布">
-                  <Option value={1}>否</Option>
-                  <Option value={0}>是</Option>
+                  <Option value={0}>否</Option>
+                  <Option value={1}>是</Option>
                 </Select>
-                )}
+              )}
             </FormItem>
-            <FormItem label="排序" {...formItemLayout}>
+            <FormItem label="推荐排序" {...formItemLayout}>
               {getFieldDecorator("addnewSorts", {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请输入排序序号" }]
-              })(<Input placeholder="请输入排序序号" />)}
+              })(<InputNumber placeholder="请输入排序序号" style={{width:'315px'}}/> )}
             </FormItem>
           </Form>
         </Modal>
@@ -761,49 +672,28 @@ class Category extends React.Component {
           onCancel={() => this.onQueryModalClose()}
         >
           <Form>
-            <FormItem label="活动名称" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.title : ""}
+            <FormItem label="问答分类" {...formItemLayout}>
+              {!!this.state.nowData ? this.getNameTypeCode(this.state.nowData.typeCode) : ""}
             </FormItem>
-            <FormItem label="活动链接" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.acUrl : ""}
+            <FormItem label="问题" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.questions: ""}
             </FormItem>
-            <FormItem label="发布时间" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.updateTime : ""}
+            <FormItem label="回答" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.answers: ""}
             </FormItem>
-            <FormItem label="活动图片" {...formItemLayout}>
-              {!!this.state.nowData && this.state.nowData.acImg
-                ? this.state.nowData.acImg.split(",").map((item, index) => {
-                  return (
-                    <Popover
-                      key={index}
-                      placement="right"
-                      content={<img className="table-img-big" src={item} />}
-                    >
-                      <img className="small-img" src={item} />
-                    </Popover>
-                  );
-                })
-              : ""}
-            </FormItem>
-            <FormItem label="推荐产品" {...formItemLayout} >
-              <p>{!!this.state.nowData ? this.state.nowData.productName : ""}</p>
-              <p>{!!this.state.nowData ? this.state.nowData.productName2 : ""}</p>
-              <p>{!!this.state.nowData ? this.state.nowData.productName3 : ""}</p>
-              <p>{!!this.state.nowData ? this.state.nowData.productName4 : ""}</p>
+            <FormItem label="排序" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.sorts : ""}
             </FormItem>
             <FormItem label="发布状态" {...formItemLayout}>
               {!!this.state.nowData ? (
-                Boolean(this.state.nowData.deleteFlag) === true ? (
-                  <span style={{ color: "green" }}>已发布</span>
-                ) : (
+                Boolean(this.state.nowData.conditions) === true ? (
                   <span style={{ color: "red" }}>未发布</span>
+                ) : (
+                  <span style={{ color: "green" }}>已发布</span>
                 )
               ) : (
                 ""
               )}
-            </FormItem>
-            <FormItem label="排序" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.sorts : ""}
             </FormItem>
           </Form>
         </Modal>
@@ -831,14 +721,13 @@ export default connect(
   dispatch => ({
     actions: bindActionCreators(
       {
-        NewActivityList,
-        upDateActivityList,
-        deleteActivity,
         onChange,
         onOk,
-        findProductByWhere,
-        ActivityList,
-        upDateOnlineList
+        assistantList,
+        AddassistantList,
+        UpassistantList,
+        DelateassistantList,
+        assistantTypeList
       },
       dispatch
     )

@@ -41,7 +41,6 @@ import {
   deleteImage,
   onChange,
   onOk,
-  advertPositionList,
   findProductModelByWhere,
   findProductTypeByWhere
 } from "../../../../a_action/shop-action";
@@ -50,7 +49,8 @@ import {
   deleteCard,
   addCard,
   UpdateCard,
-  UpdateOnline
+  UpdateOnline,
+  CardTypelist,
 } from "../../../../a_action/card-action";
 
 // ==================
@@ -68,7 +68,7 @@ class Category extends React.Component {
       titles: [], //所有的标题
       searchTitle: "", //搜索 - 标题
       searchDeleteStatus: "", //搜索 - 是否发布
-      searchTypeCode: "", //搜索 - 产品类型
+      searchTypeCode: "", //搜索 - 代言卡分类
       nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
       addnewModalShow: false, // 查看地区模态框是否显示
       upModalShow: false, // 修改模态框是否显示
@@ -83,8 +83,7 @@ class Category extends React.Component {
   }
 
   componentDidMount() {
-    this.getAllAdvertPosition(); // 获取所有代言卡列表
-    this.getAllProductType(); // 获取所有的产品类型
+    this.getAllCardType(); // 获取所有的代言卡类型
     this.onGetData(this.state.pageNum, this.state.pageSize);
   }
 
@@ -93,43 +92,31 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
+      cardCategory:1,
       deleteStatus: this.state.searchDeleteStatus,
       title: this.state.searchTitle,
-      productTypeCode: this.state.searchTypeCode
+      cardTypeCode: this.state.searchTypeCode
     };
     this.props.actions.Cardlist(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.data.result);
-      if (res.status === 200) {
+      console.log("返回的什么：", res.messsageBody.result);
+      if (res.returnCode === "0") {
         this.setState({
-          data: res.data.result || [],
+          data: res.messsageBody.result || [],
           pageNum,
           pageSize,
-          total: res.data.total || []
+          total: res.messsageBody.total || []
         });
       } else {
         message.error(res.returnMessaage || "获取数据失败，请重试");
       }
-      console.log("啥代言卡信息：", res.data.result);
+      console.log("啥代言卡信息：", res.messsageBody.result);
     });
   }
 
-  // 获取代言卡信息
-  getAllAdvertPosition() {
+  // 获取所有的代言卡类型，当前页要用
+  getAllCardType() {
     this.props.actions
-      .advertPositionList({ pageNum: 0, pageSize: 10 })
-      .then(res => {
-        if (res.returnCode === "0") {
-          this.setState({
-            titleList: res.messsageBody.result
-          });
-        }
-      });
-  }
-
-  // 获取所有的产品类型，当前页要用
-  getAllProductType() {
-    this.props.actions
-      .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
+      .CardTypelist({ pageNum: 0, pageSize: 9999 ,})
       .then(res => {
         if (res.returnCode === "0") {
           this.setState({
@@ -139,12 +126,12 @@ class Category extends React.Component {
       });
   }
 
-  // 工具 - 根据产品类型ID查产品类型名称
+  // 工具 - 根据代言卡类型ID查代言卡类型名称
   findProductNameById(id) {
     const t = this.state.productTypes.find(
       item => String(item.id) === String(id)
     );
-    return t ? t.name : "";
+    return t ? t.typeName : "";
   }
 
   //搜索 - 发布状态输入框值改变时触发
@@ -210,7 +197,7 @@ class Category extends React.Component {
 
     form.validateFields(
       [
-        "addnewTypeId", //添加产品类型
+        "addnewTypeId", //添加代言卡类型
         "addnewTitle", // 添加标题
         "addnewSlogan", //添加标语
         "addnewContent", //添加分享文案的内容
@@ -229,8 +216,9 @@ class Category extends React.Component {
         });
 
         const params = {
-          productTypeCode: values.addnewTypeId, //添加产品类型
-          productTypeName: this.findProductNameById(values.addnewTypeId), //添加产品名称
+          cardCategory:values.addnewTypeId === 6 || values.addnewTypeId === 7 ? 2 :1,//代言卡型号
+          cardTypeCode: values.addnewTypeId, //添加代言卡类型
+          cardTypeName:this.findProductNameById(values.addnewTypeId), //添加代言卡类型名称
           name: values.addnewTitle, // 添加标题
           title: values.addnewSlogan, //添加标语
           content: values.addnewContent, //添加分享文案
@@ -286,14 +274,14 @@ class Category extends React.Component {
     const { form } = me.props;
     console.log("是什么：", record);
     form.setFieldsValue({
-      addnewTypeId: record.productTypeCode,
+      addnewTypeId: record.cardTypeName,//代言卡类型
       addnewTitle: String(record.name),
       addnewSlogan: String(record.title),
       addnewContent: String(record.content),
       addnewConditions: Boolean(record.deleteStatus) ? false : true,
       addnewBtnColor: String(record.colorTwo),
       addnewColor: String(record.colorOne),
-      addnewSorts: Number(record.sorts)
+      addnewSorts: Number(record.sorts),
     });
     console.log("是什么：", record);
     me.setState({
@@ -322,7 +310,7 @@ class Category extends React.Component {
     this.props.actions
       .UpdateOnline(params)
       .then(res => {
-        if (res.status === 200) {
+        if (res.returnCode === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
@@ -337,7 +325,7 @@ class Category extends React.Component {
   // 删除某一条数据
   onRemoveClick(id) {
     this.props.actions.deleteCard({ id: id }).then(res => {
-      if (res.status === 200) {
+      if (res.returnCode === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
@@ -524,10 +512,9 @@ class Category extends React.Component {
         width: 100
       },
       {
-        title: "产品类型",
-        dataIndex: "productTypeCode",
-        key: "productTypeCode",
-        render: text => this.findProductNameById(text)
+        title: "代言卡类型",
+        dataIndex: "cardTypeName",
+        key: "cardTypeName",
       },
       {
         title: "标题",
@@ -694,6 +681,7 @@ class Category extends React.Component {
         colorOne: item.colorOne,
         colorTwo: item.colorTwo,
         content: item.content,
+        cardTypeName:item.cardTypeName,//代言卡类型
         id: item.id,
         deleteStatus: item.deleteStatus,
         sorts: item.sorts,
@@ -725,13 +713,25 @@ class Category extends React.Component {
             <span>代言卡分类</span>
             <Select allowClear placeholder="全部" style={{ width: '172px' }} onChange={(e) => this.searchProductType(e)}>
               {this.state.productTypes.map((item, index) => {
-              return <Option key={index} value={item.id}>{ item.name }</Option>
+              return <Option key={index} value={item.id}>{ item.typeName }</Option>
               })}
             </Select>
             </li>
             <li>
               <span>标题</span>
               <Input style={{ width: '172px' }} onChange = {(e) =>this.searchTitleChange(e)}/>
+            </li>
+            <li>
+              <span>是否发布</span>
+              <Select
+                placeholder="全部"
+                allowClear
+                style={{ width: "172px" }}
+                onChange={e => this.searchNameChange(e)}
+              >
+                <Option value={0}>已发布</Option>
+                <Option value={1}>未发布</Option>
+              </Select>
             </li>
             <li style={{marginLeft:'40px',marginRight:'15px'}}>
             <Button icon="search" type="primary" onClick={() => this.onSearch()}>搜索</Button>
@@ -773,15 +773,15 @@ class Category extends React.Component {
           confirmLoading={this.state.addnewLoading}
         >
           <Form>
-            <FormItem label="产品类型" {...formItemLayout}>
+            <FormItem label="代言卡类型" {...formItemLayout}>
               {getFieldDecorator("addnewTypeId", {
                 initialValue: undefined,
-                rules: [{ required: true, message: "请选择产品类型" }]
+                rules: [{ required: true, message: "请选择代言卡类型" }]
               })(
-                <Select placeholder="请选择产品类型">
+                <Select placeholder="请选择代言卡类型">
                   {this.state.productTypes.map((item, index) => (
                     <Option key={index} value={item.id}>
-                      {item.name}
+                      {item.typeName}
                     </Option>
                   ))}
                 </Select>
@@ -876,10 +876,10 @@ class Category extends React.Component {
             <FormItem label="位置排序" {...formItemLayout}>
               {getFieldDecorator("addnewSorts", {
                 initialValue: undefined,
-                rules: [{ required: true, message: "请选择排序位置" }]
+                rules: [{ required: true, message: "请输入排序序号" }]
               })(
                 <InputNumber
-                  placeholder="请选择排序位置"
+                  placeholder="请输入排序序号"
                   style={{ width: "314px" }}
                 />
               )}
@@ -894,10 +894,8 @@ class Category extends React.Component {
           onCancel={() => this.onQueryModalClose()}
         >
           <Form>
-            <FormItem label="产品类型" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.findProductNameById(this.state.nowData.productTypeCode)
-                : ""}
+            <FormItem label="代言卡类型" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.cardTypeName : ""}
             </FormItem>
             <FormItem label="标题" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.name : ""}
@@ -990,13 +988,13 @@ export default connect(
         deleteImage,
         onOk,
         Cardlist,
-        advertPositionList,
         findProductModelByWhere,
         findProductTypeByWhere,
         deleteCard,
         addCard,
         UpdateCard,
-        UpdateOnline
+        UpdateOnline,
+        CardTypelist
       },
       dispatch
     )

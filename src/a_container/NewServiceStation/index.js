@@ -15,7 +15,6 @@ import "./index.scss";
 // 所需的所有组件
 // ==================
 
-import List from "./container/List";
 import Station from "./container/Station";
 import Contracts from "./container/Contracts";
 

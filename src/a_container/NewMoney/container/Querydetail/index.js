@@ -176,13 +176,13 @@ class Category extends React.Component {
     this.props.actions
       .getSupplierIncomeList(tools.clearNull(params))
       .then(res => {
-        if (res.status === 200) {
-          console.log("到底是什么：", res.data);
+        if (res.returnCode === "0") {
+          console.log("到底是什么：", res.messsageBody);
           this.setState({
             year,
             month,
             company,
-            dataHQ: res.data || []
+            dataHQ: res.messsageBody || []
           });
         } else {
           message.error(res.message || "获取数据失败，请重试");
@@ -396,9 +396,9 @@ class Category extends React.Component {
     this.props.actions
       .searchCompanyIncome(tools.clearNull(params))
       .then(res => {
-        if (res.status === 200) {
+        if (res.returnCode === "0") {
           this.setState({
-            dataSEMain: res.data || []
+            dataSEMain: res.messsageBody || []
           });
         }
       });

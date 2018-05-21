@@ -17,6 +17,7 @@ import {
   InputNumber,
   Table,
   message,
+  Cascader,
   Popconfirm,
   Popover,
   Modal,
@@ -40,6 +41,12 @@ import moment from "moment";
 // ==================
 
 import {
+  findAllProvince,
+  findCityOrCounty,
+  findStationByArea,
+} from "../../../../a_action/sys-action";
+
+import {
   ticketList,
   ticketSave,
   ticketUpdate
@@ -59,6 +66,8 @@ class Category extends React.Component {
       data: [], // 当前页面全部数据
       productTypes: [], // 所有的产品类型
       productModels: [], // 所有的产品型号
+      citys: [], // 所有的省
+      stations: [], // 当前服务站地区所对应的服务站
       searchMobile: "", // 搜索 - 手机号
       searchTicketNo: "", // 搜索 - 体检卡号
       searchDate: undefined, // 搜索 - 预约体检日期
@@ -74,12 +83,39 @@ class Category extends React.Component {
       queryModalShow: false, // 查看详情模态框是否显示
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
-      total: 0 // 数据库总共多少条数据
+      total: 0 ,// 数据库总共多少条数据
+      searchAddress: [] // 搜索 - 服务站地区地址
     };
   }
 
   componentDidMount() {
+    if (!this.props.citys.length) {
+      // 获取所有省，全局缓存
+      this.getAllCity0();
+    } else {
+      this.setState({
+        citys: this.props.citys.map((item, index) => ({
+        id: item.id,
+        value: item.areaName,
+        label: item.areaName,
+        isLeaf: false
+        }))
+      });
+    }
     this.onGetData(this.state.pageNum, this.state.pageSize);
+  }
+  
+  componentWillReceiveProps(nextP) {
+    if (nextP.citys !== this.props.citys) {
+      this.setState({
+        citys: nextP.citys.map((item, index) => ({
+          id: item.id,
+          value: item.areaName,
+          label: item.areaName,
+          isLeaf: false
+        }))
+      });
+    }
   }
 
   // 查询当前页面所需列表数据
@@ -91,6 +127,9 @@ class Category extends React.Component {
       ticketNo: this.state.searchTicketNo,
       state: this.state.searchState,
       userSource: this.state.searchUserSource,
+      province: this.state.searchAddress[0],
+      city: this.state.searchAddress[1],
+      region: this.state.searchAddress[2],
       beginTime: this.state.searchBeginTime
         ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
         : "",
@@ -122,6 +161,39 @@ class Category extends React.Component {
             productTypes: res.messsageBody.result
           });
         }
+      });
+  }
+  
+  // 获取所有的省
+  getAllCity0() {
+    this.props.actions.findAllProvince();
+  }
+  
+  // 根据上级区域找下级区域  获取省下面所有的市
+  getAllCitySon(selectedOptions) {
+    console.log("SSS", selectedOptions);
+    const targetOption = selectedOptions[selectedOptions.length - 1];
+    targetOption.loading = true;
+    this.props.actions
+      .findCityOrCounty({
+        parentId: selectedOptions[selectedOptions.length - 1].id
+      })
+      .then(res => {
+        if (res.returnCode === "0") {
+          targetOption.children = res.messsageBody.map((item, index) => {
+            return {
+              id: item.id,
+              value: item.areaName,
+              label: item.areaName,
+              isLeaf: item.level === 2,
+              key: index
+            };
+          });
+        }
+        targetOption.loading = false;
+        this.setState({
+          citys: [...this.state.citys]
+        });
       });
   }
 
@@ -197,6 +269,13 @@ class Category extends React.Component {
   searchUserSourceChange(e) {
     this.setState({
       searchUserSource: e
+    });
+  }
+  
+  // 搜索 - 服务站地区输入框值改变时触发
+  onSearchAddress(c) {
+    this.setState({
+      searchAddress: c
     });
   }
 
@@ -602,40 +681,35 @@ class Category extends React.Component {
         <div className="system-search">
           <ul className="search-ul">
             <li>
-              <span>用户来源：</span>
-              <Select
-                placeholder="全部"
-                allowClear
-                style={{ width: "172px", marginRight: "10px" }}
-                onChange={e => this.searchUserSourceChange(e)}
-              >
-                <Option value={1}>终端用户app</Option>
-                <Option value={2}>微信公众号</Option>
-                <Option value={3}>体检系统</Option>
-                <Option value={4}>经销商APP </Option>
-                <Option value={5}>后台管理系统</Option>
-              </Select>
+              <span style={{marginRight:'10px'}}>服务站地区</span>
+              <Cascader
+                style={{ width: "172px" }}
+                placeholder="请选择服务区域"
+                onChange={v => this.onSearchAddress(v)}
+                options={this.state.citys}
+                loadData={e => this.getAllCitySon(e)}
+                changeOnSelect
+              />
             </li>
             <li>
-              <span>体检卡号状态：</span>
+              <span>服务站名称：</span>
+              <Input
+                style={{ width: "172px", marginRight: "10px" }}
+                onChange={e => this.searchTicketNoChange(e)}
+              />
+            </li>
+            <li>
+              <span>体检卡型号：</span>
               <Select
                 placeholder="全部"
                 allowClear
                 style={{ width: "172px", marginRight: "10px" }}
                 onChange={e => this.searchStateChange(e)}
               >
-                <Option value={1}>未使用</Option>
-                <Option value={2}>已使用</Option>
-                <Option value={3}>已禁用</Option>
-                <Option value={4}>已过期</Option>
+                <Option value={1}>Y</Option>
+                <Option value={2}>F</Option>
+                <Option value={3}>M</Option>
               </Select>
-            </li>
-            <li>
-              <span>手机号：</span>
-              <InputNumber
-                style={{ width: "172px", marginRight: "10px" }}
-                onChange={e => this.searchMobileChange(e)}
-              />
             </li>
             <li>
               <span>体检卡号：</span>
@@ -644,8 +718,15 @@ class Category extends React.Component {
                 onChange={e => this.searchTicketNoChange(e)}
               />
             </li>
+            <li>
+              <span>手机号：</span>
+              <InputNumber
+                style={{ width: "172px", marginRight: "10px" }}
+                onChange={e => this.searchMobileChange(e)}
+              />
+            </li>
             <li style={{ marginRight: "20px" }}>
-              <span style={{ marginRight: "10px" }}>下单时间: </span>
+              <span style={{ marginRight: "10px" }}>体检时间: </span>
               <DatePicker
                 style={{ width: "180px" }}
                 dateRender={current => {
@@ -1092,7 +1173,8 @@ Category.propTypes = {
   location: P.any,
   history: P.any,
   actions: P.any,
-  form: P.any
+  form: P.any,
+  citys: P.array
 };
 
 // ==================
@@ -1100,10 +1182,12 @@ Category.propTypes = {
 // ==================
 const WrappedHorizontalRole = Form.create()(Category);
 export default connect(
-  state => ({}),
+  state => ({
+    citys: state.sys.citys
+  }),
   dispatch => ({
     actions: bindActionCreators(
-      { ticketList, ticketSave, ticketUpdate, onChange, onOk },
+      { ticketList, ticketSave, ticketUpdate, onChange, onOk ,findAllProvince,findCityOrCounty,findStationByArea},
       dispatch
     )
   })

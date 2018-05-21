@@ -1,6 +1,19 @@
 import Fetchapi from "../util/fetch-api";
 import { message } from "antd";
 
+//代言卡类型
+export function CardTypelist(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/productSpeakType/list", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
 //代言卡列表查询
 export function Cardlist(params = {}) {
   return dispatch => {
@@ -111,12 +124,12 @@ export function addLiveType(params = {}) {
 export function updateLiveType(params = {}) {
   return dispatch => {
     return Fetchapi.newPost("/manager/liveType/update", params,'post',true)
-        .then(msg => {
-          return msg;
-        })
-        .catch(() => {
-          message.error("网络错误，请重试");
-        });
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
   };
 }
 
@@ -163,6 +176,162 @@ export function UpdateVideo(params = {}) {
 export function DeleteVideo(params = {}) {
   return dispatch => {
     return Fetchapi.newPost("/manager/live/delete", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//直播栏目列表查询
+export function Columnlist(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/liveType/list", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//直播栏目列表添加
+export function addColumnlist(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/liveType/save", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//直播栏目列表修改
+export function updateColumnlist(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/liveType/update", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//直播栏目列表删除
+export function delateColumnlist(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/liveType/delete", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//客服问答分类列表
+export function assistantTypeList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/assistantType/list", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//客服问答分类列表添加
+export function AddassistantTypeList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/assistantType/save", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//客服问答分类列表修改
+export function UpassistantTypeList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/assistantType/update", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//客服问答分类列表删除
+export function DelateassistantTypeList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/assistantType/delete", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//客服问答列表
+export function assistantList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/assistant/list", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//客服问答列表添加
+export function AddassistantList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/assistant/save", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//客服问答列表修改
+export function UpassistantList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/assistant/update", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//客服问答列表删除
+export function DelateassistantList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/assistant/delete", params,'post',true)
       .then(msg => {
         return msg;
       })

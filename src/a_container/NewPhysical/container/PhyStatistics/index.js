@@ -172,7 +172,6 @@ class Category extends React.Component {
     this.props.actions.StatisticsList(tools.clearNull(params)).then(res => {
       console.log("what hell:", res.messsageBody.data);
       if (res.returnCode === "0") {
-
         this.setState({
           data: res.messsageBody.data || [],
           pageNum,

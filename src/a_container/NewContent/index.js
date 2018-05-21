@@ -17,9 +17,13 @@ import "./index.scss";
 
 import Banner from "./container/Banner";
 import Cardlist from "./container/Cardlist";
-import Column from "./container/Column";
 import Release from "./container/Release";
 import Activity from "./container/Activity";
+import H5Card from "./container/H5Card";
+import assistantType from "./container/assistantType";
+import assistant from "./container/assistant";
+import ColumnZB from "./container/ColumnZB";  //直播栏目
+
 
 // ==================
 // 本页面所需action
@@ -64,8 +68,8 @@ class TheContainer extends React.Component {
           />
           <Route
             exact
-            path={`${this.props.match.path}/consulting/Column`}   //直播栏目
-            component={Column}
+            path={`${this.props.match.path}/consulting/ColumnZB`}   //直播栏目
+            component={ColumnZB}
           />
           <Route
             exact
@@ -74,8 +78,23 @@ class TheContainer extends React.Component {
           />
           <Route
             exact
+            path={`${this.props.match.path}/question/assistantType`}  //智能客服-问答分类
+            component={assistantType}
+          />
+          <Route
+            exact
+            path={`${this.props.match.path}/question/assistant`}   //智能客服-问答列表
+            component={assistant}
+          />
+          <Route
+            exact
             path={`${this.props.match.path}/activity`}
             component={Activity}
+          />
+          <Route
+            exact
+            path={`${this.props.match.path}/H5Card`}
+            component={H5Card}
           />
         </Switch>
       </div>

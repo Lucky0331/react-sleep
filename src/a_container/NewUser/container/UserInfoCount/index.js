@@ -45,17 +45,23 @@ class Manager extends React.Component {
     this.state = {
       data: {}, // 当前页面全部数据
       dataCookie: [
-          {list: [], list2:[], all: 0, title: '经销商绑定总数'},   // 经销商绑定总数
-          {list: [], list2:[], all: 0, title: '分销用户发展总数'},   // 分销用户发展总数
-          {list: [], list2:[], all: 0, title: '分享用户发展总数'},   // 分享用户发展总数
-          {list: [], list2:[], all: 0, title: '经销商优惠卡持有总数'},   // 经销商优惠卡持有总数
-          {list: [], list2:[], all: 0, title: '经销商优惠卡增出总数'},   // 经销商优惠卡增出总数
+        {list: [], list2:[], all: 0, title: '经销商绑定总数'},   // 经销商绑定总数
+        {list: [], list2:[], all: 0, title: '分销用户发展总数'},   // 分销用户发展总数
+        {list: [], list2:[], all: 0, title: '分享用户发展总数'},   // 分享用户发展总数
+        {list: [], list2:[], all: 0, title: '经销商优惠卡持有总数'},   // 经销商优惠卡持有总数
+        {list: [], list2:[], all: 0, title: '经销商优惠卡增出总数'},   // 经销商优惠卡增出总数
       ], // 缓存的分类数据
       barType: 0, // 下方分类选的哪一个
       searchType: "", //搜索 - 用户类型
-        searchRadio: 0, // 当前radio选择的哪一个
-        searchBeginTime: undefined, // 开始日期
-        searchEndTime: undefined,   // 结束日期
+      searchRadio: 1, // 当前radio选择的哪一个
+      searchBeginTime: undefined, // 开始日期
+      searchEndTime: moment(
+        (() => {
+          const d = new Date();
+          d.setMonth(d.getMonth() + 1);
+          return d;
+        })()
+      ),   // 结束日期
     };
       this.echartsDom1 = null; // Echarts实例
       this.echartsDom2 = null; // Echarts实例
@@ -231,10 +237,9 @@ class Manager extends React.Component {
    *  must: 强制请求，无视缓存
    * */
   onGetData(barType, must) {
-
-        if (!must && this.state.dataCookie[barType].list.length) { // 已经有缓存
-            return;
-        }
+      if (!must && this.state.dataCookie[barType].list.length) { // 已经有缓存
+        return;
+      }
 
       // 处理查询条件
       let beginTime = null;
@@ -245,42 +250,44 @@ class Manager extends React.Component {
           beginTime = tools.dateToStr(now);
       }
       if(r === 1) { // 7天内
-           endTime = tools.dateToStr(new Date(new Date().setDate(now.getDate() + 7)));
+       beginTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 7 )))} 00:00:00`;
+       endTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
       } else if (r === 2) { // 30天内
-          endTime = tools.dateToStr(new Date(new Date().setDate(now.getDate() + 7)));
+        beginTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
+        endTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
       } else if (r === 3) { // 自定义的时间
-          beginTime = this.state.searchBeginTime ? tools.dateToStr(this.state.searchBeginTime._d) : null;
-          endTime = this.state.searchEndTime ? tools.dateToStr(this.state.searchEndTime._d) : null;
+        beginTime = this.state.searchBeginTime ? tools.dateToStr(this.state.searchBeginTime._d) : null;
+        endTime = this.state.searchEndTime ? tools.dateToStr(this.state.searchEndTime._d) : null;
       }
     const params = {
-        beginTime,
-        endTime,
-        category: barType + 1,
+      beginTime,
+      endTime,
+      category: barType + 1,
     };
 
     this.props.actions.findUserInfoCount(tools.clearNull(params)).then(res => {
-      if (res.status === 200) {
-          let cookie;
-          if (must) {
-              cookie = [
-                  {list: [], list2:[], all: 0, title: '经销商绑定总数'},   // 经销商绑定总数
-                  {list: [], list2:[], all: 0, title: '分销用户发展总数'},   // 分销用户发展总数
-                  {list: [], list2:[], all: 0, title: '分享用户发展总数'},   // 分享用户发展总数
-                  {list: [], list2:[], all: 0, title: '经销商优惠卡持有总数'},   // 经销商优惠卡持有总数
-                  {list: [], list2:[], all: 0, title: '经销商优惠卡增出总数'},   // 经销商优惠卡增出总数
-              ]
-          } else {
-              cookie = _.cloneDeep(this.state.dataCookie);
-          }
+      if (res.returnCode === "0") {
+        let cookie;
+        if (must) {
+          cookie = [
+            {list: [], list2:[], all: 0, title: '经销商绑定总数'},   // 经销商绑定总数
+            {list: [], list2:[], all: 0, title: '分销用户发展总数'},   // 分销用户发展总数
+            {list: [], list2:[], all: 0, title: '分享用户发展总数'},   // 分享用户发展总数
+            {list: [], list2:[], all: 0, title: '经销商优惠卡持有总数'},   // 经销商优惠卡持有总数
+            {list: [], list2:[], all: 0, title: '经销商优惠卡增出总数'},   // 经销商优惠卡增出总数
+          ]
+        } else {
+          cookie = _.cloneDeep(this.state.dataCookie);
+        }
 
-          cookie[barType].list = res.data.bdbyCount;
-          cookie[barType].list2 = res.data.bindDistributorCount;
-          cookie[barType].all = res.data.bdbyCount.reduce((res, item) => {
-              return Number(item.disBindProvinceCount) + res;
-          },0);
-          console.log('这不多啊：', cookie[barType].all);
+        cookie[barType].list = res.messsageBody.bdbyCount;
+        cookie[barType].list2 = res.messsageBody.bindDistributorCount;
+        cookie[barType].all = res.messsageBody.bdbyCount.reduce((res, item) => {
+          return Number(item.disBindProvinceCount) + res;
+        },0);
+        console.log('这不多啊：', cookie[barType].all);
         this.setState({
-          data: res.data || {},
+          data: res.messsageBody || {},
           dataCookie: cookie,
         });
       } else {

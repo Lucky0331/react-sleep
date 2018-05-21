@@ -1,0 +1,22 @@
+.menu-tree-signle {
+  .ant-tree-checkbox {
+    width: 200px;
+    z-index: 2;
+  }
+  .ant-tree-node-content-wrapper {
+    transform: translateX(-185px);
+  }
+}
+.menu-tree-more {
+  .btn-doms {
+    label {
+    }
+  }
+}
+
+.menu-tree-table {
+  .ant-checkbox-wrapper {
+    margin-left: 0;
+    margin-right: 8px;
+  }
+}

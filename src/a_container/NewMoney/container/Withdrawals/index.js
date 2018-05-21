@@ -160,12 +160,12 @@ class Category extends React.Component {
         : ""
     };
     this.props.actions.cashRecord(tools.clearNull(params)).then(res => {
-      if (res.status === 200) {
+      if (res.returnCode === "0") {
         this.setState({
-          data: res.data.result || [],
+          data: res.messsageBody.result || [],
           pageNum,
           pageSize,
-          total: res.data.total
+          total: res.messsageBody.total
         });
       } else if (res.status === 400) {
         this.setState({
@@ -210,12 +210,12 @@ class Category extends React.Component {
         : ""
     };
     this.props.actions.RecordDetail(tools.clearNull(params)).then(res => {
-      if (res.status === 200) {
+      if (res.returnCode === "0") {
         this.setState({
-          data2: res.data.result || [],
+          data2: res.messsageBody.result || [],
           pageNum,
           pageSize,
-          total2: res.data.total
+          total2: res.messsageBody.total
         });
       } else if (res.status === 400) {
         this.setState({
@@ -1000,7 +1000,7 @@ class Category extends React.Component {
     this.props.actions
       .WithdrawalsRevoke(params)
       .then(res => {
-        if (res.status === 200) {
+        if (res.returnCode === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {

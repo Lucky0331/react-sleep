@@ -38,6 +38,7 @@ class Category extends React.Component {
       productModels: [], // 所有的产品型号
       productprice: "", //产品的价格
       searchTypeId: undefined, // 搜索 - 类型名
+      searchNewProduct:'',//搜索 - 推荐状态
       searchName: "", // 搜索 - 名称
       addOrUp: "add", // 当前操作是新增add还是修改up,还是查看look
       modalShow: false, // 模态框是否显示
@@ -46,7 +47,7 @@ class Category extends React.Component {
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
       code: undefined, // 当前选择的产品 - 产品类型所对应的code值
-        loading: false, // 正在获取列表数据、修改、新增数据
+      loading: false, // 正在获取列表数据、修改、新增数据
       fileList: [], // 产品图片已上传的列表
       fileListDetail: [], // 列表封面图片已上传的列表
       formCoverVideo: [],  // 表单 - 当前数据的封面视频
@@ -69,8 +70,9 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      onShelf: this.state.searchName,
-      productType: this.state.searchTypeId
+      onShelf: this.state.searchName,//产品状态
+      productType: this.state.searchTypeId,//产品类型
+      newProduct:this.state.searchNewProduct,//推荐查询
     };
     this.props.actions.findProductByWhere(tools.clearNull(params)).then(res => {
       if (res.returnCode === "0") {
@@ -169,6 +171,13 @@ class Category extends React.Component {
       searchName: e
     });
   }
+  
+  //搜索 - 推荐状态输入框值改变时触发
+  searchNewProduct(e){
+    this.setState({
+      searchNewProduct: e
+    });
+  }
 
   // 删除某一条数据
   onRemoveClick(id) {
@@ -218,19 +227,19 @@ class Category extends React.Component {
               formTypeId: String(record.typeId),    // 产品类型ID
               formTypeCode: String(record.typeCode),    // 产品型号ID
               formActivityType: record.activityType,    // 活动方式ID
-              formConditions: record.conditions,    // 是否是推荐ID
-              formSort: 0,  // 排序
+              formConditions: record.newProduct ? 0 : 1,    // 是否是推荐
+              formSort: record.sorts,  // 排序
           });
           setTimeout(()=> { // 产品详情内容
               console.log('详细内容：', record.productDetail);
               this.editor && record.productDetail && this.editor.setContent(record.productDetail);
           }, 16);
           this.setState({
-              nowData: record,
-              code: record.typeId,
-              fileList: record.productImg ? record.productImg.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })) : [], // 产品图片已上传的列表
-              fileListDetail: record.detailImg ? record.detailImg.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })): [], // 产品列表封面图片已上传的列表
-              formCoverVideo: record.coverVideo ? record.coverVideo.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })): [], // 封面视频
+            nowData: record,
+            code: record.typeId,
+            fileListDetail: record.productImg ? record.productImg.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })) : [], // 产品图片已上传的列表
+            fileList: record.detailImg ? record.detailImg.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })): [], // 列表封面图片已上传的列表
+            formCoverVideo: record.coverVideo ? record.coverVideo.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })): [], // 封面视频
           });
       }
 
@@ -326,7 +335,8 @@ class Category extends React.Component {
           typeId: Number(values.formTypeId), // 产品类型ID
           typeCode: Number(values.formTypeCode), // 产品型号ID
           activityType: values.formActivityType, // 活动方式ID
-          productImg: this.state.fileList.map(item => item.url).join(","), // 封面图片们
+          detailImg: this.state.fileList.map(item => item.url).join(","), // 产品封面图片们
+          productImg: this.state.fileListDetail.map(item => item.url).join(","), // 列表封面图片们
           productDetail: this.editor.getHTMLContent(), // 详情图片们
           coverVideo: this.state.formCoverVideo.map(item => item.url).join(","), // 视频
           conditions: values.formConditions, // 是否是推荐
@@ -432,9 +442,9 @@ class Category extends React.Component {
 
   // 产品图片 - 上传前
   onUploadBefore(f, fl) {
-      if(this.state.addOrUp === 'look'){
-          return false;
-      }
+    if(this.state.addOrUp === 'look'){
+      return false;
+    }
     if (
       ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
     ) {
@@ -452,9 +462,9 @@ class Category extends React.Component {
 
   // 产品图片 - 删除一个图片
   onUpLoadRemove(f) {
-      if(this.state.addOrUp === 'look'){
-          return false;
-      }
+    if(this.state.addOrUp === 'look'){
+      return false;
+    }
     this.deleteImg(f.url);
     const list = _.cloneDeep(this.state.fileList);
     this.setState({
@@ -470,9 +480,9 @@ class Category extends React.Component {
      * **/
   // 列表封面图片 - 上传前
   onUploadDetailBefore(f) {
-      if(this.state.addOrUp === 'look'){
-          return false;
-      }
+    if(this.state.addOrUp === 'look'){
+      return false;
+    }
     if (
       ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
     ) {
@@ -594,13 +604,13 @@ class Category extends React.Component {
 
     // 产品视频 - 删除
     onUpLoadVideoRemove(f) {
-        if(this.state.addOrUp === 'look'){
-            return false;
-        }
-        const list = [...this.state.formCoverVideo];
-        this.setState({
-            formCoverVideo: list.filter(item => item.uid !== f.uid)
-        });
+      if(this.state.addOrUp === 'look'){
+        return false;
+      }
+      const list = [...this.state.formCoverVideo];
+      this.setState({
+        formCoverVideo: list.filter(item => item.uid !== f.uid)
+      });
     }
 
   //根据code值不同显示的字段不同
@@ -645,13 +655,31 @@ class Category extends React.Component {
         key: "serial",
         width: 100
       },
-      // {
-      //   title:'列表缩略图'
-      // },
       {
-        title: "缩略图",
+        title:'列表缩略图',
         dataIndex: "productImg",
         key: "productImg",
+        width: 200,
+        render: (text, index) => {
+          if (text) {
+            const img = text.split(",");
+            return (
+              <Popover
+                key={index}
+                placement="right"
+                content={<img className="table-img-big" src={img[0]} />}
+              >
+                <img className="table-img" src={img[0]} />
+              </Popover>
+            );
+          }
+          return "";
+        }
+      },
+      {
+        title: "缩略图",
+        dataIndex: "detailImg",
+        key: "detailImg",
         width: 200,
         render: (text, index) => {
           if (text) {
@@ -716,8 +744,8 @@ class Category extends React.Component {
       },
       {
         title:'排序',
-        dataIndex:'sort',
-        key:'sort'
+        dataIndex:'sorts',
+        key:'sorts'
       },
       {
         title:'操作',
@@ -842,15 +870,16 @@ class Category extends React.Component {
         buyCount: item.buyCount,    // 总共卖出了多少
         createTime: item.createTime,    // 创建时间
         creator: item.creator,  // 创建人
-        detailImg: item.detailImg,  // 详细图片src
+        detailImg: item.detailImg,  // 列表图片src
         itemNum: item.itemNum,  // 不知道什么东西
         newProduct: item.newProduct,    // 
         offShelfTime: item.offShelfTime,
         onShelf: item.onShelf,  // 上架状态
         onShelfTime: item.onShelfTime,  // 上架时间
         price: item.typeModel ? item.typeModel.price : "",
-        productImg: item.productImg,
-          productDetail: item.productDetail,
+        sorts:item.sorts,
+        productImg: item.productImg,//产品图片
+        productDetail: item.productDetail,
         saleMode: item.saleMode,
         typeId: item.typeId,
         updateTime: item.updateTime,
@@ -976,6 +1005,18 @@ class Category extends React.Component {
               >
                 <Option value={0}>未上架</Option>
                 <Option value={1}>已上架</Option>
+              </Select>
+            </li>
+            <li>
+              <span style={{ marginRight: "10px" }}>是否设为推荐</span>
+              <Select
+                allowClear
+                placeholder="全部"
+                style={{ width: "120px", marginRight: "25px" }}
+                onChange={e => this.searchNewProduct(e)}
+              >
+                <Option value={0}>已推荐</Option>
+                <Option value={1}>未推荐</Option>
               </Select>
             </li>
             <li>
@@ -1203,8 +1244,8 @@ class Category extends React.Component {
                 rules: [{ required: true, message: "请选择是否设为推荐" }]
               })(
                 <Select disabled={this.state.addOrUp === "look"} placeholder="请选择是否设为推荐">
-                  <Option value={0}>否</Option>
-                  <Option value={-1}>是</Option>
+                  <Option value={1}>否</Option>
+                  <Option value={0}>是</Option>
                 </Select>
               )}
             </FormItem>
