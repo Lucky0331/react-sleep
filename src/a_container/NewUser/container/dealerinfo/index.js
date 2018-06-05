@@ -56,7 +56,7 @@ import {
   findCityOrCounty,
   findStationByArea
 } from "../../../../a_action/sys-action";
-import { findUserInfo, detailRecord ,recordCard} from "../../../../a_action/info-action";
+import { findUserInfo, detailRecord ,recordCard,ExportdealerList,ExportCardList} from "../../../../a_action/info-action";
 import { onOk } from "../../../../a_action/shop-action";
 // ==================
 // Definition
@@ -96,8 +96,8 @@ class Manager extends React.Component {
       searchUserName: "", //搜索 - 经销商账户
       searchBeginTime: "", // 搜索 - 开始时间
       searchEndTime: "", // 搜索- 结束时间
-      searchBindingBeginTime: "", //搜索 - 开始绑定时间
-      searchBindingEndTime: "", //搜搜 - 结束绑定时间
+      searchBindingBeginTime: "", //搜索 - 开始绑定上级关系时间
+      searchBindingEndTime: "", //搜搜 - 结束绑定上级关系时间
       searchAmbassadorUserType: "", //搜索 - 健康大使身份类型
       searchAmbassadorNickName: "", //搜索 - 健康大使昵称
       searchAmbassadorRealName: "", //搜索 - 健康大使真实姓名
@@ -156,8 +156,8 @@ class Manager extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -212,36 +212,14 @@ class Manager extends React.Component {
       pageNum,
       pageSize,
       category: 1,
-      userName: this.state.searchUserName,
-      conditions: this.state.searchConditions,
       userType: this.state.searchType,
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2],
-      mobile: this.state.searchMobile ? this.state.searchMobile : "",
-      realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 用户姓名
-      nickName: this.state.searchNickName ? this.state.searchNickName : "", //搜索 - 用户昵称
-      userId: this.state.searchEId ? this.state.searchEId : "",
-      ambassadorUserType: this.state.searchAmbassadorUserType,
-      ambassadorId: this.state.searchId ? this.state.searchId : "", //搜索 - 健康大使id
-      distributorId: this.state.searchDistributorId
-        ? this.state.searchDistributorId
-        : "", //搜索 - 经销商id
-      ambassadorNickName: this.state.searchAmbassadorNickName
-        ? this.state.searchAmbassadorNickName
-        : "", //搜索 - 健康大使昵称
-      ambassadorRealName: this.state.searchAmbassadorRealName
-        ? this.state.searchAmbassadorRealName
-        : "", //搜索 - 健康大使真实姓名
-      ambassadorMobile: this.state.searchAmbassadorMobile
-        ? this.state.searchAmbassadorMobile
-        : "", // 搜索 - 健康大使手机号
-      beginTime: this.state.searchBeginTime
-        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
-        : "",
-      endTime: this.state.searchEndTime
-        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59 `
-        : "",
+      realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 经销商姓名
+      userName: this.state.searchUserName, //经销商账户
+      mobile: this.state.searchAmbassadorMobile ? this.state.searchAmbassadorMobile : "", // 搜索 - 经销商手机号
+      userId: this.state.searchEId ? this.state.searchEId : "", //经销商id
       bindBeginTime: this.state.searchBindingBeginTime
         ? `${tools.dateToStrD(this.state.searchBindingBeginTime._d)} 00:00:00`
         : "",
@@ -251,15 +229,15 @@ class Manager extends React.Component {
     };
 
     this.props.actions.findUserInfo(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -285,26 +263,28 @@ class Manager extends React.Component {
       pageNum,
       pageSize,
       category: 1,
-      userType: this.state.searchType ? this.state.searchType : "",//搜索 - 经销商身份
+      userType: this.state.searchType,
+      province: this.state.searchAddress[0],
+      city: this.state.searchAddress[1],
+      region: this.state.searchAddress[2],
       realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 经销商姓名
-      userId: this.state.searchEId ? this.state.searchEId : "",   //经销商id
-      distributorId: this.state.searchDistributorId
-        ? this.state.searchDistributorId
-        : "", //搜索 - 经销商id
+      userName: this.state.searchUserName, //经销商账户
+      mobile: this.state.searchAmbassadorMobile ? this.state.searchAmbassadorMobile : "", // 搜索 - 经销商手机号
+      userId: this.state.searchEId ? this.state.searchEId : "", //经销商id
       bindBeginTime: this.state.searchBindingBeginTime
         ? `${tools.dateToStrD(this.state.searchBindingBeginTime._d)} 00:00:00`
         : "",
       bindEndTime: this.state.searchBindingEndTime
         ? `${tools.dateToStrD(this.state.searchBindingEndTime._d)} 23:59:59`
-        : "",
+        : ""
     };
     let form = document.getElementById("download-form");
     if (!form) {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/userInfo/listExport`;
+    else { form.innerHTML="";} form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/export/userInfo/list`;
     form.method = "post";
     console.log("FORM:", params);
 
@@ -320,11 +300,11 @@ class Manager extends React.Component {
     newElement2.setAttribute("value", pageSize);
     form.appendChild(newElement2);
 
-    const newElement10 = document.createElement("input");
-    newElement10.setAttribute("name", "category");
-    newElement10.setAttribute("type", "hidden");
-    newElement10.setAttribute("value",'1');
-    form.appendChild(newElement10);
+    const newElement7 = document.createElement("input");
+    newElement7.setAttribute("name", "category");
+    newElement7.setAttribute("type", "hidden");
+    newElement7.setAttribute("value",'1');
+    form.appendChild(newElement7);
 
     const newElement3 = document.createElement("input");
     if (params.userType) {
@@ -358,14 +338,6 @@ class Manager extends React.Component {
       form.appendChild(newElement6);
     }
 
-    const newElement7 = document.createElement("input");
-    if (params.mobile) {
-      newElement7.setAttribute("name", "mobile");
-      newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.mobile);
-      form.appendChild(newElement7);
-    }
-
     const newElement8 = document.createElement("input");
     if (params.bindBeginTime) {
       newElement8.setAttribute("name", "bindBeginTime");
@@ -381,8 +353,47 @@ class Manager extends React.Component {
       newElement9.setAttribute("value", params.bindEndTime);
       form.appendChild(newElement9);
     }
-
-    form.submit();
+  
+    const newElement10 = document.createElement("input");
+    if (params.province) {
+      newElement10.setAttribute("name", "province");
+      newElement10.setAttribute("type", "hidden");
+      newElement10.setAttribute("value", params.province);
+      form.appendChild(newElement10);
+    }
+  
+    const newElement11 = document.createElement("input");
+    if (params.city) {
+      newElement11.setAttribute("name", "city");
+      newElement11.setAttribute("type", "hidden");
+      newElement11.setAttribute("value", params.city);
+      form.appendChild(newElement11);
+    }
+  
+    const newElement12 = document.createElement("input");
+    if (params.region) {
+      newElement12.setAttribute("name", "region");
+      newElement12.setAttribute("type", "hidden");
+      newElement12.setAttribute("value", params.region);
+      form.appendChild(newElement12);
+    }
+  
+    const newElement13 = document.createElement("input");
+    if (params.userName) {
+      newElement13.setAttribute("name", "userName");
+      newElement13.setAttribute("type", "hidden");
+      newElement13.setAttribute("value", params.userName);
+      form.appendChild(newElement13);
+    }
+  
+    this.props.actions.ExportdealerList(tools.clearNull(params)).then(res => {
+      if (res.status != '1') {
+        form.submit();
+      } else if(res.status === "1"){
+        alert('当月无经销商绑定记录！')
+      }
+    });
+    
   }
 
   // 导出优惠卡详情数据
@@ -409,8 +420,8 @@ class Manager extends React.Component {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/userInfo/listTicketsExport`;
+    else { form.innerHTML="";} form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/export/ticket/list`;
     form.method = "post";
     console.log("FORM:", params);
 
@@ -425,8 +436,20 @@ class Manager extends React.Component {
     newElement2.setAttribute("type", "hidden");
     newElement2.setAttribute("value", pageSize);
     form.appendChild(newElement2);
-
-    form.submit();
+  
+    const newElement3 = document.createElement("input");
+    newElement3.setAttribute("name", "category");
+    newElement3.setAttribute("type", "hidden");
+    newElement3.setAttribute("value",'1');
+    form.appendChild(newElement3);
+  
+    this.props.actions.ExportCardList(tools.clearNull(params)).then(res => {
+      if (res.status != '1') {
+        form.submit();
+      } else if(res.status === "1"){
+        alert('当月无经销商优惠卡赠送记录！')
+      }
+    });
 }
 
   //Input中的删除按钮所删除的条件
@@ -492,7 +515,7 @@ class Manager extends React.Component {
       // queryModalShow: true
     });
     this.props.actions.detailRecord(d);
-    this.props.history.push("../NewUser/dealerinfoDetail");
+    // this.props.history.push("../NewUser/dealerinfoDetail");
     console.log("跳转页面的record带了哪些参数：", d);
   }
 
@@ -503,7 +526,7 @@ class Manager extends React.Component {
       nowData: d,
     });
     this.props.actions.recordCard(d);
-    this.props.history.push("../NewUser/CouponCard");
+    // this.props.history.push("../NewUser/CouponCard");
     console.log("优惠卡带啥参数了：", d);
   }
 
@@ -564,7 +587,7 @@ class Manager extends React.Component {
     });
   }
 
-  //搜索 - 健康大使手机号
+  //搜索 - 经销商手机号
   onSearchAmbassadorMobile(e) {
     this.setState({
       searchAmbassadorMobile: e.target.value
@@ -606,7 +629,7 @@ class Manager extends React.Component {
     });
   }
 
-  //搜索 - 开始绑定时间
+  //搜索 - 开始绑定上级关系时间
   searchBindingBeginTimeChange(v) {
     this.setState({
       searchBindingBeginTime: v
@@ -614,7 +637,7 @@ class Manager extends React.Component {
     console.log("这是什么：", v);
   }
 
-  //搜索 - 结束绑定时间
+  //搜索 - 结束绑定上级关系时间
   searchBindingEndTimeChange(v) {
     this.setState({
       searchBindingEndTime: v
@@ -643,8 +666,8 @@ class Manager extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -722,9 +745,24 @@ class Manager extends React.Component {
         key: "region",
        },
       {
-        title: "绑定时间",
-        dataIndex: "bindTime",
-        key: "bindTime"
+        title:'创建时间',
+        dataIndex:'createTime',
+        key:'createTime'
+      },
+      {
+        title:'绑定手机号时间',
+        dataIndex:'bindPhoneTime',
+        key:'bindPhoneTime',
+      },
+      {
+        title:'绑定经销商账号时间',
+        dataIndex:'bindTime',
+        key:'bindTime',
+      },
+      {
+        title: "绑定上级关系时间",
+        dataIndex: "bindTime2",
+        key: "bindTime2"
       },
       {
         title: "操作",
@@ -751,7 +789,7 @@ class Manager extends React.Component {
               onClick={() => this.CardList(record)}
             >
               <a href="#/usermanage/CouponCard"><Tooltip placement="top" title="查看优惠卡详情">
-              <Icon type="idcard"/>
+                <Icon type="idcard"/>
               </Tooltip></a>
             </span>
           );
@@ -814,6 +852,7 @@ class Manager extends React.Component {
         userName2: item.userName,
         mid2: item.id,
         bindTime: item.bindTime,
+        bindTime2: item.bindTime,
         bindPhoneTime:item.bindPhoneTime,
         province2: item.distributorAccount
           ? item.distributorAccount.province
@@ -853,9 +892,9 @@ class Manager extends React.Component {
         pageSize: 9999
       })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            stations: res.messsageBody.result
+            stations: res.data.result
           });
         }
       });
@@ -960,6 +999,17 @@ class Manager extends React.Component {
               />
             </li>
             <li>
+              <span style={{ marginRight: "4px", marginLeft: "13px" }}>
+                经销商手机号
+              </span>
+              <Input
+                style={{ width: "172px" }}
+                suffix={suffix7}
+                value={searchAmbassadorMobile}
+                onChange={e => this.onSearchAmbassadorMobile(e)}
+              />
+            </li>
+            <li>
               <span style={{ marginRight: "4px", marginLeft: "15px" }}>
                 经销商身份
               </span>
@@ -991,7 +1041,7 @@ class Manager extends React.Component {
             </li>
             <li>
               <span style={{ marginRight: "10px", marginLeft: "7px" }}>
-                绑定时间
+                绑定上级关系时间
               </span>
               <DatePicker
                 showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
@@ -1109,7 +1159,7 @@ class Manager extends React.Component {
             <FormItem label="创建时间" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.createTime : ""}
             </FormItem>
-            <FormItem label="绑定时间" {...formItemLayout}>
+            <FormItem label="绑定上级关系时间" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.bindTime : ""}
             </FormItem>
             <FormItem label="健康大使id" {...formItemLayout}>
@@ -1188,7 +1238,9 @@ export default connect(
         findUserInfo,
         onOk,
         detailRecord,
-        recordCard
+        recordCard,
+        ExportdealerList,
+        ExportCardList
       },
       dispatch
     )

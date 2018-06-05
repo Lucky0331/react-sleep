@@ -25,7 +25,7 @@ export default class ApiService {
         data: JSON.stringify(bodyObj),
         type: "json"
       }).then(res => {
-        const msg = res.returnMessaage || res.message || "";
+        const msg = res.message || res.message || "";
         if (msg.indexOf("过期") >= 0) {
           sessionStorage.clear();
           message.error(msg);
@@ -44,7 +44,7 @@ export default class ApiService {
         withCredentials: true,
         data: bodyObj
       }).then(res => {
-        const msg = res.returnMessaage || res.message || "";
+        const msg = res.message || res.message || "";
         if (msg.indexOf("过期") >= 0) {
           sessionStorage.clear();
           message.error(msg);

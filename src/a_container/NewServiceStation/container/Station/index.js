@@ -200,17 +200,14 @@ class Category extends React.Component {
   searchBeginTime(v) {
     console.log("是什么：", v);
     this.setState({
-      searchBeginTime: v,
-      searchTime: undefined
+      searchBeginTime: _.cloneDeep(v),
     });
   }
   
   // 搜索 - 结束时间变化
   searchEndTime(v) {
-    console.log("触发：", v);
     this.setState({
-      searchEndTime: v,
-      searchTime: undefined
+      searchEndTime: _.cloneDeep(v)
     });
   }
 
@@ -227,25 +224,25 @@ class Category extends React.Component {
       productType: this.state.searchTypeId,
       deviceId: this.state.searchDeviceId,
       minTime: this.state.searchBeginTime
-        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)}`
         : "",
       maxTime: this.state.searchEndTime
-        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)}`
         : "",
     };
     this.props.actions.findProductLine(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.soPage.result || [],
-          productTypes: res.messsageBody.ptList,
+          data: res.data.soPage.result || [],
+          productTypes: res.data.ptList,
           pageNum,
           pageSize,
-          total: res.messsageBody.soPage.total
+          total: res.data.soPage.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
-      console.log("是谁:", res.messsageBody.ptList);
+      console.log("是谁:", res.data.ptList);
     });
   }
 
@@ -264,8 +261,8 @@ class Category extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -295,9 +292,9 @@ class Category extends React.Component {
       name: ""
     };
     this.props.actions.findStationByArea(params).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          stations: res.messsageBody.result
+          stations: res.data.result
         });
       }
     });
@@ -313,11 +310,11 @@ class Category extends React.Component {
     this.props.actions
       .updateProductLine(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -332,11 +329,11 @@ class Category extends React.Component {
       deviceStatus: record.deviceStatus ? 2 : 1
     };
     this.props.actions.deleteStation(params).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error(res.returnMessaage || "删除失败，请重试");
+        message.error(res.message || "删除失败，请重试");
       }
     });
   }
@@ -363,10 +360,10 @@ class Category extends React.Component {
       productType: this.state.searchTypeId,
       deviceId: this.state.searchDeviceId,
       minTime: this.state.searchBeginTime
-        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)}`
         : "",
       maxTime: this.state.searchEndTime
-        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)}`
         : "",
     };
     let form = document.getElementById("download-form");
@@ -374,7 +371,7 @@ class Category extends React.Component {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/product/online/export`;
     form.method = "post";
     console.log("FORM:", params);
@@ -577,14 +574,14 @@ class Category extends React.Component {
           me.props.actions
             .addProductLine(tools.clearNull(params))
             .then(res => {
-              if (res.returnCode === "0") {
+              if (res.status === "0") {
                 me.setState({
                   addnewLoading: false
                 });
                 this.onGetData(this.state.pageNum, this.state.pageSize);
                 this.onAddNewClose();
               } else {
-                message.error(res.returnMessaage || "操作失败");
+                message.error(res.message || "操作失败");
                 this.onAddNewClose();
               }
             })
@@ -597,14 +594,14 @@ class Category extends React.Component {
             .editProductLine(params)
             .then(res => {
               //修改
-              if (res.returnCode === "0") {
+              if (res.status === "0") {
                 me.setState({
                   addnewLoading: false
                 });
                 this.onGetData(this.state.pageNum, this.state.pageSize);
                 this.onAddNewClose();
               } else {
-                message.error(res.returnMessaage || "操作失败");
+                message.error(res.message || "操作失败");
                 this.onAddNewClose();
               }
             })
@@ -922,7 +919,6 @@ class Category extends React.Component {
                 showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
                 format="YYYY-MM-DD HH:mm:ss"
                 placeholder="结束时间"
-                value={this.state.searchEndTime}
                 onChange={e => this.searchEndTime(e)}
                 onOk={onOk}
               />

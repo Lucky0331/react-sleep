@@ -88,6 +88,8 @@ class Category extends React.Component {
       searchPresentNumber:"", //搜索 - 提现单号
       searchOperationBegin:"",//搜索 - 操作开始时间
       searchOperationEnd:"", //搜索 - 操作结束时间
+      searchRefundEndTime:'',//搜索 - 提现审核结束时间
+      searchRefundTime:'',//搜索 - 提现审核开始时间
       searchMinTime:"", //搜索 - 操作开始时间-操作日志
       searchMaxTime:"", //搜索 - 操作结束时间-操作日志
       nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
@@ -157,17 +159,23 @@ class Category extends React.Component {
         : "",
       maxPaymentTime: this.state.searchEndTime
         ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
-        : ""
+        : "",
+      minAuditTime: this.state.searchRefundTime
+          ? `${tools.dateToStr(this.state.searchRefundTime.utc()._d)} `
+          : "",
+      maxAuditTime: this.state.searchRefundEndTime
+          ? `${tools.dateToStr(this.state.searchRefundEndTime.utc()._d)} `
+          : "",
     };
     this.props.actions.cashRecord(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
-      } else if (res.status === 400) {
+      } else if (res.status === "1") {
         this.setState({
           data: []
         });
@@ -207,17 +215,23 @@ class Category extends React.Component {
         : "",
       maxPaymentTime: this.state.searchEndTime
         ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
-        : ""
+        : "",
+      minAuditTime: this.state.searchRefundTime
+        ? `${tools.dateToStr(this.state.searchRefundTime.utc()._d)} `
+        : "",
+      maxAuditTime: this.state.searchRefundEndTime
+        ? `${tools.dateToStr(this.state.searchRefundEndTime.utc()._d)} `
+        : "",
     };
     this.props.actions.RecordDetail(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data2: res.messsageBody.result || [],
+          data2: res.data.result || [],
           pageNum,
           pageSize,
-          total2: res.messsageBody.total
+          total2: res.data.total
         });
-      } else if (res.status === 400) {
+      } else if (res.status === "1") {
         this.setState({
           data2: []
         });
@@ -242,13 +256,13 @@ class Category extends React.Component {
         : ""
     };
     this.props.actions.WithdrawLog(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         console.log('data:', res);
         this.setState({
-          data3: res.messsageBody.result || [],
+          data3: res.data.result || [],
           pageNum,
           pageSize,
-          total3: res.messsageBody.total
+          total3: res.data.total
         });
       }
     });
@@ -287,9 +301,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productTypes: res.messsageBody.result
+            productTypes: res.data.result
           });
         }
       });
@@ -571,11 +585,6 @@ class Category extends React.Component {
   // 搜索 - 提现到账结束时间变化
   searchEndTime(v) {
     console.log("触发：", v);
-    // let date = v;
-    // const now = new Date();
-    // if (v._d.getFullYear() === now.getFullYear() && v._d.getMonth() === now.getMonth() && v._d.getDate() === now.getDate()) {
-    //     v = moment();
-    // }
     this.setState({
       searchEndTime: _.cloneDeep(v)
     });
@@ -592,6 +601,20 @@ class Category extends React.Component {
   searchOperationEnd(v) {
     this.setState({
       searchOperationEnd: _.cloneDeep(v)
+    });
+  }
+  
+  //搜索 - 提现审核开始时间
+  searchRefundTime(v) {
+    this.setState({
+      searchRefundTime: _.cloneDeep(v)
+    });
+  }
+  
+  //搜索 - 提现结束结束时间
+  searchRefundEndTime(v) {
+    this.setState({
+      searchRefundEndTime: _.cloneDeep(v)
     });
   }
 
@@ -624,11 +647,6 @@ class Category extends React.Component {
     this.onGetDataJournal(1, this.state.pageSize);
   }
 
-  //点击操作日志时发起请求
-  auditList(){
-    this.onGetDataJournal(this.state.pageNum, this.state.pageSize)
-  }
-
   //导出
   onExport() {
     this.onExportData(this.state.pageNum, this.state.pageSize);
@@ -659,24 +677,30 @@ class Category extends React.Component {
       userId: this.state.searchUserMallId,
       partnerTradeNo: this.state.searchPartnerTradeNo,
       minApplyTime: this.state.searchApplyBeginTime
-          ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
-          : "",
+        ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
+        : "",
       maxApplyTime: this.state.searchApplyEndTime
-          ? `${tools.dateToStr(this.state.searchApplyEndTime.utc()._d)} `
-          : "",
+        ? `${tools.dateToStr(this.state.searchApplyEndTime.utc()._d)} `
+        : "",
       minPaymentTime: this.state.searchBeginTime
-          ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)} `
-          : "",
+        ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)} `
+        : "",
       maxPaymentTime: this.state.searchEndTime
-          ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
-          : ""
+        ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
+        : "",
+      minAuditTime: this.state.searchRefundTime
+        ? `${tools.dateToStr(this.state.searchRefundTime.utc()._d)} `
+        : "",
+      maxAuditTime: this.state.searchRefundEndTime
+        ? `${tools.dateToStr(this.state.searchRefundEndTime.utc()._d)} `
+        : "",
     };
     let form = document.getElementById("download-form");
     if (!form) {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/export/withdraw/record`;
     form.method = "post";
     console.log("FORM:", params);
@@ -694,107 +718,163 @@ class Category extends React.Component {
     form.appendChild(newElement2);
     
     const newElement3 = document.createElement("input");
-    if (params.conditions) {
-      newElement3.setAttribute("name", "conditions");
+    if (params.userType) {
+      newElement3.setAttribute("name", "userType");
       newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.conditions);
+      newElement3.setAttribute("value", params.userType);
       form.appendChild(newElement3);
     }
     
     const newElement4 = document.createElement("input");
-    if (params.userId) {
-      newElement4.setAttribute("name", "userId");
+    if (params.id) {
+      newElement4.setAttribute("name", "id");
       newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.userId);
+      newElement4.setAttribute("value", params.id);
       form.appendChild(newElement4);
     }
     
     const newElement5 = document.createElement("input");
-    if (params.productType) {
-      newElement5.setAttribute("name", "productType");
+    if (params.withdrawType) {
+      newElement5.setAttribute("name", "withdrawType");
       newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.productType);
+      newElement5.setAttribute("value", params.withdrawType);
       form.appendChild(newElement5);
     }
     
     const newElement6 = document.createElement("input");
-    if (params.refundEndTime) {
-      newElement6.setAttribute("name", "refundEndTime");
+    if (params.nickName) {
+      newElement6.setAttribute("name", "nickName");
       newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.refundEndTime);
+      newElement6.setAttribute("value", params.nickName);
       form.appendChild(newElement6);
     }
     
     const newElement7 = document.createElement("input");
-    if (params.orderNo) {
-      newElement7.setAttribute("name", "orderNo");
+    if (params.username) {
+      newElement7.setAttribute("name", "username");
       newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.orderNo);
+      newElement7.setAttribute("value", params.username);
       form.appendChild(newElement7);
     }
     
     const newElement8 = document.createElement("input");
-    if (params.minPrice) {
-      newElement8.setAttribute("name", "minPrice");
+    if (params.ambassadorName) {
+      newElement8.setAttribute("name", "ambassadorName");
       newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.minPrice);
+      newElement8.setAttribute("value", params.ambassadorName);
       form.appendChild(newElement8);
     }
     
     const newElement9 = document.createElement("input");
-    if (params.maxPrice) {
-      newElement9.setAttribute("name", "maxPrice");
+    if (params.paymentNo) {
+      newElement9.setAttribute("name", "paymentNo");
       newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.maxPrice);
+      newElement9.setAttribute("value", params.paymentNo);
       form.appendChild(newElement9);
     }
     
     const newElement10 = document.createElement("input");
-    if (params.mchOrderId) {
-      newElement10.setAttribute("name", "mchOrderId");
+    if (params.flag) {
+      newElement10.setAttribute("name", "flag");
       newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.mchOrderId);
+      newElement10.setAttribute("value", params.flag);
       form.appendChild(newElement10);
     }
     
     const newElement11 = document.createElement("input");
-    if (params.userType) {
-      newElement11.setAttribute("name", "userType");
+    if (params.phone) {
+      newElement11.setAttribute("name", "phone");
       newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.userType);
+      newElement11.setAttribute("value", params.phone);
       form.appendChild(newElement11);
     }
     
     const newElement12 = document.createElement("input");
-    if (params.activityType) {
-      newElement12.setAttribute("name", "activityType");
+    if (params.minAmount) {
+      newElement12.setAttribute("name", "minAmount");
       newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", params.activityType);
+      newElement12.setAttribute("value", params.minAmount);
       form.appendChild(newElement12);
     }
     
     const newElement13 = document.createElement("input");
-    if (params.refundBeginTime) {
-      newElement13.setAttribute("name", "refundBeginTime");
+    if (params.maxAmount) {
+      newElement13.setAttribute("name", "maxAmount");
       newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.refundBeginTime);
+      newElement13.setAttribute("value", params.maxAmount);
       form.appendChild(newElement13);
     }
     
     const newElement14 = document.createElement("input");
-    if (params.beginTime) {
-      newElement14.setAttribute("name", "beginTime");
+    if (params.productType) {
+      newElement14.setAttribute("name", "productType");
       newElement14.setAttribute("type", "hidden");
-      newElement14.setAttribute("value", params.beginTime);
+      newElement14.setAttribute("value", params.productType);
       form.appendChild(newElement14);
     }
     
     const newElement15 = document.createElement("input");
-    if (params.endTime) {
-      newElement15.setAttribute("name", "endTime");
+    if (params.userId) {
+      newElement15.setAttribute("name", "userId");
       newElement15.setAttribute("type", "hidden");
-      newElement15.setAttribute("value", params.endTime);
+      newElement15.setAttribute("value", params.userId);
       form.appendChild(newElement15);
+    }
+  
+    const newElement16 = document.createElement("input");
+    if (params.partnerTradeNo) {
+      newElement16.setAttribute("name", "partnerTradeNo");
+      newElement16.setAttribute("type", "hidden");
+      newElement16.setAttribute("value", params.partnerTradeNo);
+      form.appendChild(newElement16);
+    }
+  
+    const newElement17 = document.createElement("input");
+    if (params.minApplyTime) {
+      newElement17.setAttribute("name", "minApplyTime");
+      newElement17.setAttribute("type", "hidden");
+      newElement17.setAttribute("value", params.minApplyTime);
+      form.appendChild(newElement17);
+    }
+  
+    const newElement18 = document.createElement("input");
+    if (params.maxApplyTime) {
+      newElement18.setAttribute("name", "maxApplyTime");
+      newElement18.setAttribute("type", "hidden");
+      newElement18.setAttribute("value", params.maxApplyTime);
+      form.appendChild(newElement18);
+    }
+  
+    const newElement19 = document.createElement("input");
+    if (params.minPaymentTime) {
+      newElement19.setAttribute("name", "minPaymentTime");
+      newElement19.setAttribute("type", "hidden");
+      newElement19.setAttribute("value", params.minPaymentTime);
+      form.appendChild(newElement19);
+    }
+  
+    const newElement20 = document.createElement("input");
+    if (params.maxPaymentTime) {
+      newElement20.setAttribute("name", "maxPaymentTime");
+      newElement20.setAttribute("type", "hidden");
+      newElement20.setAttribute("value", params.maxPaymentTime);
+      form.appendChild(newElement20);
+    }
+  
+    const newElement21 = document.createElement("input");
+    if (params.minAuditTime) {
+      newElement21.setAttribute("name", "minAuditTime");
+      newElement21.setAttribute("type", "hidden");
+      newElement21.setAttribute("value", params.minAuditTime);
+      form.appendChild(newElement21);
+    }
+  
+    const newElement22 = document.createElement("input");
+    if (params.maxAuditTime) {
+      newElement22.setAttribute("name", "maxAuditTime");
+      newElement22.setAttribute("type", "hidden");
+      newElement22.setAttribute("value", params.maxAuditTime);
+      form.appendChild(newElement22);
     }
     
     form.submit();
@@ -821,24 +901,30 @@ class Category extends React.Component {
       userId: this.state.searchUserMallId,
       partnerTradeNo: this.state.searchPartnerTradeNo,
       minApplyTime: this.state.searchApplyBeginTime
-          ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
-          : "",
+        ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
+        : "",
       maxApplyTime: this.state.searchApplyEndTime
-          ? `${tools.dateToStr(this.state.searchApplyEndTime.utc()._d)} `
-          : "",
+        ? `${tools.dateToStr(this.state.searchApplyEndTime.utc()._d)} `
+        : "",
       minPaymentTime: this.state.searchBeginTime
-          ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)} `
-          : "",
+        ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)} `
+        : "",
       maxPaymentTime: this.state.searchEndTime
-          ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
-          : ""
+        ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
+        : "",
+      minAuditTime: this.state.searchRefundTime
+        ? `${tools.dateToStr(this.state.searchRefundTime.utc()._d)} `
+        : "",
+      maxAuditTime: this.state.searchRefundEndTime
+        ? `${tools.dateToStr(this.state.searchRefundEndTime.utc()._d)} `
+        : "",
     };
     let form = document.getElementById("download-form");
     if (!form) {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/export/withdraw/detail`;
     form.method = "post";
     console.log("FORM:", params);
@@ -854,109 +940,165 @@ class Category extends React.Component {
     newElement2.setAttribute("type", "hidden");
     newElement2.setAttribute("value", pageSize);
     form.appendChild(newElement2);
-    
+  
     const newElement3 = document.createElement("input");
-    if (params.conditions) {
-      newElement3.setAttribute("name", "conditions");
+    if (params.userType) {
+      newElement3.setAttribute("name", "userType");
       newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.conditions);
+      newElement3.setAttribute("value", params.userType);
       form.appendChild(newElement3);
     }
-    
+  
     const newElement4 = document.createElement("input");
-    if (params.userId) {
-      newElement4.setAttribute("name", "userId");
+    if (params.id) {
+      newElement4.setAttribute("name", "id");
       newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.userId);
+      newElement4.setAttribute("value", params.id);
       form.appendChild(newElement4);
     }
-    
+  
     const newElement5 = document.createElement("input");
-    if (params.productType) {
-      newElement5.setAttribute("name", "productType");
+    if (params.withdrawType) {
+      newElement5.setAttribute("name", "withdrawType");
       newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.productType);
+      newElement5.setAttribute("value", params.withdrawType);
       form.appendChild(newElement5);
     }
-    
+  
     const newElement6 = document.createElement("input");
-    if (params.refundEndTime) {
-      newElement6.setAttribute("name", "refundEndTime");
+    if (params.nickName) {
+      newElement6.setAttribute("name", "nickName");
       newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.refundEndTime);
+      newElement6.setAttribute("value", params.nickName);
       form.appendChild(newElement6);
     }
-    
+  
     const newElement7 = document.createElement("input");
-    if (params.orderNo) {
-      newElement7.setAttribute("name", "orderNo");
+    if (params.username) {
+      newElement7.setAttribute("name", "username");
       newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.orderNo);
+      newElement7.setAttribute("value", params.username);
       form.appendChild(newElement7);
     }
-    
+  
     const newElement8 = document.createElement("input");
-    if (params.minPrice) {
-      newElement8.setAttribute("name", "minPrice");
+    if (params.ambassadorName) {
+      newElement8.setAttribute("name", "ambassadorName");
       newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.minPrice);
+      newElement8.setAttribute("value", params.ambassadorName);
       form.appendChild(newElement8);
     }
-    
+  
     const newElement9 = document.createElement("input");
-    if (params.maxPrice) {
-      newElement9.setAttribute("name", "maxPrice");
+    if (params.paymentNo) {
+      newElement9.setAttribute("name", "paymentNo");
       newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.maxPrice);
+      newElement9.setAttribute("value", params.paymentNo);
       form.appendChild(newElement9);
     }
-    
+  
     const newElement10 = document.createElement("input");
-    if (params.mchOrderId) {
-      newElement10.setAttribute("name", "mchOrderId");
+    if (params.flag) {
+      newElement10.setAttribute("name", "flag");
       newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.mchOrderId);
+      newElement10.setAttribute("value", params.flag);
       form.appendChild(newElement10);
     }
-    
+  
     const newElement11 = document.createElement("input");
-    if (params.userType) {
-      newElement11.setAttribute("name", "userType");
+    if (params.phone) {
+      newElement11.setAttribute("name", "phone");
       newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.userType);
+      newElement11.setAttribute("value", params.phone);
       form.appendChild(newElement11);
     }
-    
+  
     const newElement12 = document.createElement("input");
-    if (params.activityType) {
-      newElement12.setAttribute("name", "activityType");
+    if (params.minAmount) {
+      newElement12.setAttribute("name", "minAmount");
       newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", params.activityType);
+      newElement12.setAttribute("value", params.minAmount);
       form.appendChild(newElement12);
     }
-    
+  
     const newElement13 = document.createElement("input");
-    if (params.refundBeginTime) {
-      newElement13.setAttribute("name", "refundBeginTime");
+    if (params.maxAmount) {
+      newElement13.setAttribute("name", "maxAmount");
       newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.refundBeginTime);
+      newElement13.setAttribute("value", params.maxAmount);
       form.appendChild(newElement13);
     }
-    
+  
     const newElement14 = document.createElement("input");
-    if (params.beginTime) {
-      newElement14.setAttribute("name", "beginTime");
+    if (params.productType) {
+      newElement14.setAttribute("name", "productType");
       newElement14.setAttribute("type", "hidden");
-      newElement14.setAttribute("value", params.beginTime);
+      newElement14.setAttribute("value", params.productType);
       form.appendChild(newElement14);
     }
-    
+  
     const newElement15 = document.createElement("input");
-    if (params.endTime) {
-      newElement15.setAttribute("name", "endTime");
+    if (params.userId) {
+      newElement15.setAttribute("name", "userId");
       newElement15.setAttribute("type", "hidden");
-      newElement15.setAttribute("value", params.endTime);
+      newElement15.setAttribute("value", params.userId);
       form.appendChild(newElement15);
+    }
+  
+    const newElement16 = document.createElement("input");
+    if (params.partnerTradeNo) {
+      newElement16.setAttribute("name", "partnerTradeNo");
+      newElement16.setAttribute("type", "hidden");
+      newElement16.setAttribute("value", params.partnerTradeNo);
+      form.appendChild(newElement16);
+    }
+  
+    const newElement17 = document.createElement("input");
+    if (params.minApplyTime) {
+      newElement17.setAttribute("name", "minApplyTime");
+      newElement17.setAttribute("type", "hidden");
+      newElement17.setAttribute("value", params.minApplyTime);
+      form.appendChild(newElement17);
+    }
+  
+    const newElement18 = document.createElement("input");
+    if (params.maxApplyTime) {
+      newElement18.setAttribute("name", "maxApplyTime");
+      newElement18.setAttribute("type", "hidden");
+      newElement18.setAttribute("value", params.maxApplyTime);
+      form.appendChild(newElement18);
+    }
+  
+    const newElement19 = document.createElement("input");
+    if (params.minPaymentTime) {
+      newElement19.setAttribute("name", "minPaymentTime");
+      newElement19.setAttribute("type", "hidden");
+      newElement19.setAttribute("value", params.minPaymentTime);
+      form.appendChild(newElement19);
+    }
+  
+    const newElement20 = document.createElement("input");
+    if (params.maxPaymentTime) {
+      newElement20.setAttribute("name", "maxPaymentTime");
+      newElement20.setAttribute("type", "hidden");
+      newElement20.setAttribute("value", params.maxPaymentTime);
+      form.appendChild(newElement20);
+    }
+  
+    const newElement21 = document.createElement("input");
+    if (params.minAuditTime) {
+      newElement21.setAttribute("name", "minAuditTime");
+      newElement21.setAttribute("type", "hidden");
+      newElement21.setAttribute("value", params.minAuditTime);
+      form.appendChild(newElement21);
+    }
+  
+    const newElement22 = document.createElement("input");
+    if (params.maxAuditTime) {
+      newElement22.setAttribute("name", "maxAuditTime");
+      newElement22.setAttribute("type", "hidden");
+      newElement22.setAttribute("value", params.maxAuditTime);
+      form.appendChild(newElement22);
     }
     
     form.submit();
@@ -1000,11 +1142,11 @@ class Category extends React.Component {
     this.props.actions
       .WithdrawalsRevoke(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -1077,6 +1219,11 @@ class Category extends React.Component {
         title: "提现到账时间",
         dataIndex: "paymentTime",
         key: "paymentTime"
+      },
+      {
+        title: "提现审核时间",
+        dataIndex: "auditTime",
+        key: "auditTime"
       },
       {
         title: "用户身份",
@@ -1187,6 +1334,11 @@ class Category extends React.Component {
         title: "提现到账时间",
         dataIndex: "paymentTime",
         key: "paymentTime"
+      },
+      {
+        title: "提现审核时间",
+        // dataIndex: "paymentTime",
+        // key: "paymentTime"
       },
       {
         title: "产品类型",
@@ -1616,6 +1768,28 @@ class Category extends React.Component {
                         suffix={suffix5}
                       />
                     </li>
+                    <li>
+                      <span style={{ marginRight: "10px" }}>提现审核时间</span>
+                      <DatePicker
+                        showTime={{
+                          defaultValue: moment("00:00:00", "HH:mm:ss")
+                        }}
+                        format="YYYY-MM-DD HH:mm:ss"
+                        placeholder="开始时间"
+                        onChange={e => this.searchRefundTime(e)}
+                        onOk={onOk}
+                      />
+                      --
+                      <DatePicker
+                        showTime={{
+                          defaultValue: moment("23:59:59", "HH:mm:ss")
+                        }}
+                        format="YYYY-MM-DD HH:mm:ss"
+                        placeholder="结束时间"
+                        onChange={e => this.searchRefundEndTime(e)}
+                        onOk={onOk}
+                      />
+                    </li>
                     <li style={{ marginLeft: "40px" }}>
                       <Button
                         icon="search"
@@ -1703,18 +1877,10 @@ class Category extends React.Component {
                     {!!this.state.nowData ? this.state.nowData.phone : ""}
                   </FormItem>
                   <FormItem
-                      label="审核时间"
-                      {...formItemLayout}
-                      className={this.state.flag == 2 ? "hide" : ""}
+                    label="提现审核时间"
+                    {...formItemLayout}
                   >
-                      {!!this.state.nowData ? this.state.nowData.auditTime : ""}
-                  </FormItem>
-                  <FormItem
-                      label="审核时间"
-                      {...formItemLayout}
-                      className={this.state.flag == 1 ? "hide" : ""}
-                  >
-                      {!!this.state.nowData ? this.state.nowData.auditTime : ""}
+                    {!!this.state.nowData ? this.state.nowData.auditTime : ""}
                   </FormItem>
                   <FormItem
                     label="提现失败理由"
@@ -1914,6 +2080,28 @@ class Category extends React.Component {
                         suffix={suffix5}
                       />
                     </li>
+                    <li>
+                      <span style={{ marginRight: "10px" }}>提现审核时间</span>
+                      <DatePicker
+                          showTime={{
+                            defaultValue: moment("00:00:00", "HH:mm:ss")
+                          }}
+                          format="YYYY-MM-DD HH:mm:ss"
+                          placeholder="开始时间"
+                          onChange={e => this.searchRefundTime(e)}
+                          onOk={onOk}
+                      />
+                      --
+                      <DatePicker
+                          showTime={{
+                            defaultValue: moment("23:59:59", "HH:mm:ss")
+                          }}
+                          format="YYYY-MM-DD HH:mm:ss"
+                          placeholder="结束时间"
+                          onChange={e => this.searchRefundTime(e)}
+                          onOk={onOk}
+                      />
+                    </li>
                     <li style={{ marginLeft: "40px" }}>
                       <Button
                         icon="search"
@@ -2012,6 +2200,9 @@ class Category extends React.Component {
                   </FormItem>
                   <FormItem label="用户手机号" {...formItemLayout}>
                     {!!this.state.nowData ? this.state.nowData.phone : ""}
+                  </FormItem>
+                  <FormItem label="提现审核时间" {...formItemLayout}>
+                    {/*{!!this.state.nowData ? this.state.nowData.phone : ""}*/}
                   </FormItem>
                   <FormItem
                     label="审核时间"

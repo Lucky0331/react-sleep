@@ -46,10 +46,10 @@ class RoleTree extends React.Component {
     this.props.actions
       .findAllRoleByUserId({ userId: id })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           const defaultCheckedKeys = [];
           const defaultChecked = [];
-          res.messsageBody.result
+          res.data.result
             .filter(item => item.roleAfiliation === "Y")
             .forEach(item => {
               defaultCheckedKeys.push(`${item.id}`);
@@ -62,7 +62,7 @@ class RoleTree extends React.Component {
 
           console.log("默认选中：", defaultCheckedKeys);
           this.setState({
-            nowRoles: res.messsageBody.result,
+            nowRoles: res.data.result,
             checked: defaultChecked,
             checkedKeys: defaultCheckedKeys
           });

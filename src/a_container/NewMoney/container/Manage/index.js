@@ -100,15 +100,15 @@ class Category extends React.Component {
       productType: this.state.searchTypeId
     };
     this.props.actions.findProductByWhere(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result,
+          data: res.data.result,
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -118,9 +118,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productTypes: res.messsageBody.result
+            productTypes: res.data.result
           });
         }
       });
@@ -131,9 +131,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductModelByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productModels: res.messsageBody.result
+            productModels: res.data.result
           });
         }
       });
@@ -200,18 +200,18 @@ class Category extends React.Component {
   // 删除某一条数据
   onRemoveClick(id) {
     this.props.actions.removeProduct({ id: id }).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error(res.returnMessaage || "删除失败，请重试");
+        message.error(res.message || "删除失败，请重试");
       }
     });
   }
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
 
   // 查询某一条数据的详情

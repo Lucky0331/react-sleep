@@ -15,6 +15,19 @@ export function ticketList(params) {
   };
 }
 
+// 获取预约列表
+export function listReserve(params) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/ticket/listReserve", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
 // 新增体检人信息
 export function ticketSave(params) {
   return dispatch => {

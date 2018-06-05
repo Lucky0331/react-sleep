@@ -21,7 +21,6 @@ import {
   Popconfirm,
   Popover,
   Modal,
-  Radio,
   Tooltip,
   Select,
   DatePicker,
@@ -45,18 +44,17 @@ import {
   findCityOrCounty,
   findStationByArea,
 } from "../../../../a_action/sys-action";
-
 import {
   ticketList,
   ticketSave,
-  ticketUpdate
+  ticketUpdate,
+  listReserve
 } from "../../../../a_action/phy-action";
 import { onChange, onOk } from "../../../../a_action/shop-action";
 // ==================
 // Definition
 // ==================
 const FormItem = Form.Item;
-const RadioGroup = Radio.Group;
 const Option = Select.Option;
 const { RangePicker } = DatePicker;
 class Category extends React.Component {
@@ -71,11 +69,28 @@ class Category extends React.Component {
       searchMobile: "", // 搜索 - 手机号
       searchTicketNo: "", // 搜索 - 体检卡号
       searchDate: undefined, // 搜索 - 预约体检日期
-      searchBeginTime: "", // 搜索 - 开始时间
-      searchEndTime: "", // 搜索- 结束时间
-      searchStation:'',//服务站关键字
+      // searchBeginTime: "", // 搜索 - 开始时间
+      // searchEndTime: "", // 搜索- 结束时间
+      searchBeginTime: moment(
+        (() => {
+          const d = new Date();
+          d.setMonth(d.getMonth());
+          return d;
+        })()
+      ), // 搜索 - 开始时间
+      searchEndTime: moment(
+        (() => {
+          const d = new Date();
+          d.setMonth(d.getMonth());
+          return d;
+        })()
+      ), // 搜索- 结束时间
       searchUserSource: "", //搜索 - 用户来源
       searchState: "", //搜索 - 体检卡状态
+      searchticketType:'',//搜索- 体检卡型号
+      searchStation:'',//搜索 - 服务站名称
+      searchticketState:"",//搜索 - 预约状态
+      searchuserSource:"",//搜索- 预约来源
       addnewPersonShow: false, // 添加体检人模态框是否显示
       addnewLoading: false, // 是否正在添加体检人
       upModalShow: false, // 修改体检人模态框是否显示
@@ -127,11 +142,13 @@ class Category extends React.Component {
       mobile: this.state.searchMobile.trim(),
       ticketNo: this.state.searchTicketNo.trim(),
       state: this.state.searchState,
-      userSource: this.state.searchUserSource,
-      stationName:this.state.searchStation,//服务站名称
+      userSource: this.state.searchuserSource,
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2],
+      reserveStatus:this.state.searchticketState,
+      stationName:this.state.searchStation,//服务站名称
+      ticketType:this.state.searchticketType,//体检卡型号
       beginTime: this.state.searchBeginTime
         ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
         : "",
@@ -139,7 +156,7 @@ class Category extends React.Component {
         ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
         : ""
     };
-    this.props.actions.ticketList(tools.clearNull(params)).then(res => {
+    this.props.actions.listReserve(tools.clearNull(params)).then(res => {
       if (res.status === "0") {
         this.setState({
           data: res.data.result || [],
@@ -245,6 +262,20 @@ class Category extends React.Component {
         return "";
     }
   }
+  
+  // 工具 - 根据type获取状态名称
+  getticketStatusByType(type) {
+    switch (String(type)) {
+      case "1":
+        return "已预约";
+      case "2":
+        return "已过期";
+      case "3":
+        return "已禁用";
+      default:
+        return "";
+    }
+  }
 
   // 搜索 - 手机号输入框值改变时触发
   searchMobileChange(e) {
@@ -259,19 +290,12 @@ class Category extends React.Component {
       searchTicketNo: e.target.value
     });
   }
-
-  // 搜索 - 体检卡状态
-  searchStateChange(e) {
+  
+  //服务站名称搜索
+  searchStationChange(e){
     this.setState({
-      searchState: e
-    });
-  }
-
-  // 搜索 - 用户来源
-  searchUserSourceChange(e) {
-    this.setState({
-      searchUserSource: e
-    });
+      searchStation:e.target.value
+    })
   }
   
   // 搜索 - 服务站地区输入框值改变时触发
@@ -309,10 +333,24 @@ class Category extends React.Component {
     });
   }
   
-  //服务站名称搜索
-  searchStationChange(e){
+  //体检卡型号
+  searchCardChange(e){
     this.setState({
-      searchStation:e.target.value
+      searchticketType:e
+    })
+  }
+  
+  //预约状态
+  searchticketStateChange(e){
+    this.setState({
+      searchticketState:e
+    })
+  }
+  
+  //预约来源
+  searchuserSourceChange(e){
+    this.setState({
+      searchuserSource:e
     })
   }
 
@@ -323,6 +361,193 @@ class Category extends React.Component {
     });
   }
 
+  // 添加体检人模态框出现
+  onAddNewShow() {
+    const me = this;
+    const { form } = me.props;
+    form.resetFields([
+      "addnewCode",
+      "addnewName",
+      "addnewIdCard",
+      "addnewMobile",
+      "addnewSex",
+      "addnewHeight",
+      "addnewWeight",
+      "addnewReserveTime",
+      "addnewReserveFrom",
+      "addnewBirthDate"
+    ]);
+    this.setState({
+      nowData: null,
+      addnewPersonShow: true
+    });
+  }
+
+  // 添加的确定
+  onAddNewOk() {
+    const me = this;
+    const { form } = me.props;
+
+    form.validateFields(
+      [
+        "addnewCode",
+        "addnewName",
+        "addnewIdCard",
+        "addnewMobile",
+        "addnewSex",
+        "addnewHeight",
+        "addnewWeight",
+        "addnewReserveTime",
+        "addnewReserveFrom",
+        "addnewBirthDate"
+      ],
+      (err, values) => {
+        if (err) {
+          return false;
+        }
+        me.setState({
+          addnewLoading: true
+        });
+        console.log("获取到的值：", values);
+        const params = {
+          ticketNo: values.addnewCode,
+          userName: values.addnewName,
+          idCard: values.addnewIdCard,
+          phone: values.addnewMobile,
+          sex: values.addnewSex,
+          height: values.addnewHeight,
+          weight: values.addnewWeight,
+          reserveTime: values.addnewReserveTime
+            ? tools.dateToStr2(values.addnewReserveTime._d)
+            : null,
+          birthDate: values.addnewBirthDate
+            ? tools.dateforNull(values.addnewBirthDate._d)
+            : null,
+          reserveFrom: 5
+        };
+        me.props.actions.ticketSave(params)
+          .then(res => {
+            // 新增
+            me.setState({
+              addnewLoading: false
+            });
+            this.onGetData(this.state.pageNum, this.state.pageSize);
+            this.onAddNewClose();
+          })
+          .catch(() => {
+            me.setState({
+              addnewLoading: false
+            });
+          });
+      }
+    );
+  }
+
+  // 关闭模态框
+  onAddNewClose() {
+    this.setState({
+      addnewPersonShow: false
+    });
+  }
+
+  // 修改某一条数据 模态框出现
+  onUpdateClick(record) {
+    const me = this;
+    const { form } = me.props;
+    console.log("Record:", record);
+    form.setFieldsValue({
+      upTicketNo: record.ticketNo,
+      upUserName: record.username,
+      upIdCard: record.idCard,
+      upMobile: record.phone,
+      upSex:record.sex === 1 ? '男':'女',
+      upHeight: record.height,
+      upWeight: record.weight,
+      upReserveForm: record.reserveFrom,
+      upReserveTime: record.reserveTime
+        ? new moment(record.reserveTime)
+        : undefined,
+      upBirthDate: record.birthdate ? moment(record.birthdate) : undefined
+    });
+    me.setState({
+      nowData: record,
+      upModalShow: true
+    });
+  }
+
+  // 确定修改某一条数据
+  onUpOk() {
+    const me = this;
+    const { form } = me.props;
+    form.validateFields(
+      [
+        "upTicketNo",
+        "upUserName",
+        "upIdCard",
+        "upMobile",
+        "upSex",
+        "upHeight",
+        "upWeight",
+        "upReserveForm",
+        "upReserveTime",
+        "upBirthDate"
+      ],
+      (err, values) => {
+        if (err) {
+          return;
+        }
+
+        me.setState({
+          upLoading: true
+        });
+        const params = {
+          // id: me.state.nowData.id,
+          custId: me.state.nowData.customerId,
+          ticketNo: me.state.nowData.ticketNo,
+          idCard: values.upIdCard,
+          userName: values.upUserName,
+          phone: values.upMobile,
+          sex: String(values.upSex),
+          height: values.upHeight,
+          weight: values.upWeight,
+          reserveFrom: me.state.nowData.reserveFrom,
+          birthDate: values.upBirthDate
+            ? `${tools.dateforNull(values.upBirthDate._d)}`
+            : "",
+          reserveTime: values.upReserveTime
+            ? `${tools.dateToStr2(values.upReserveTime._d)}`
+            : ""
+        };
+
+        me.props.actions
+          .ticketUpdate(params)
+          .then(res => {
+            // 修改
+            me.setState({
+              addnewLoading: false
+            });
+            this.onGetData(this.state.pageNum, this.state.pageSize);
+            this.onAddNewClose();
+          })
+          .catch(() => {
+            me.setState({
+              addnewLoading: false
+            });
+          });
+        console.log(
+          "什么时间：",
+          `${tools.dateToStr2(values.upReserveTime._d)}`
+        );
+      }
+    );
+  }
+  // 关闭修改某一条数据
+  onUpClose() {
+    this.setState({
+      upModalShow: false
+    });
+  }
+
   // 构建字段
   makeColumns() {
     const columns = [
@@ -330,13 +555,17 @@ class Category extends React.Component {
         title: "序号",
         dataIndex: "serial",
         key: "serial",
-        width: 90
+      },
+      {
+        title:'服务站地区',
+        dataIndex:'citys',
+        key:'citys'
       },
       {
         title: "服务站名称",
         dataIndex: "name",
         key: "name",
-        width: 180
+        width: 220
       },
       {
         title: "体检卡号",
@@ -348,10 +577,10 @@ class Category extends React.Component {
         title: "体检人",
         dataIndex: "username",
         key: "username",
-        width: 90
+        width: 120
       },
       {
-        title: "身份证",
+        title: "身份证号",
         dataIndex: "idCard",
         key: "idCard",
         width: 200
@@ -371,26 +600,19 @@ class Category extends React.Component {
           String(text) === "0" ? <span>女</span> : <span>男</span>
       },
       {
-        title: "预约体检日期",
+        title: "预约时间",
         dataIndex: "reserveTime",
         key: "reserveTime",
         width: 200
       },
       {
-        title: "实际体检日期",
-        dataIndex: "createTime",
-        key: "createTime",
-        width: 200
+        title: "预约状态",
+        dataIndex:'ticketStatus',
+        key:'ticketStatus',
+        // render:text=>this.getticketStatusByType(text)
       },
       {
-        title: "体检卡状态 ",
-        dataIndex: "conditions",
-        key: "conditions",
-        width: 130,
-        render: text => this.getNameByType(text)
-      },
-      {
-        title: "用户来源",
+        title: "预约来源",
         dataIndex: "userSource",
         key: "userSource",
         width: 130,
@@ -399,10 +621,11 @@ class Category extends React.Component {
       {
         title: "操作",
         key: "control",
-        width: 150,
         fixed: "right",
+        width: 120,
         render: (text, record) => {
           const controls = [];
+
           controls.push(
             <span
               key="0"
@@ -425,19 +648,18 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
-          record.ticketStatus === 1 &&
-            controls.push(
-              <span
-                key="3"
-                className="control-btn red"
-                onClick={() => this.onUpdateClick(record)}
-              >
-                <Tooltip placement="top" title="再次体检">
-                  <Icon type="medicine-box" />
-                </Tooltip>
-              </span>
-            );
-
+          // record.ticketStatus === 1 &&
+          //   controls.push(
+          //     <span
+          //       key="3"
+          //       className="control-btn red"
+          //       onClick={() => this.onUpdateClick(record)}
+          //     >
+          //       <Tooltip placement="top" title="再次体检">
+          //         <Icon type="medicine-box" />
+          //       </Tooltip>
+          //     </span>
+          //   );
           const result = [];
           controls.forEach((item, index) => {
             if (index) {
@@ -460,25 +682,40 @@ class Category extends React.Component {
         key: index,
         id: item.id,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
+        citys:
+          item.station.province && item.station.city && item.station.region
+            ? `${item.station.province}/${item.station.city}/${item.station.region}`
+            : "",
+        province:item.station ? item.station.province : '',
+        city:item.station ? item.station.city : '',
+        region:item.station ? item.station.region : '',
         arriveTime: item.useTime,
         ticketNo: item.ticketNo,
-        conditions: item.ticketStatus,
         createTime: item.createTime,
         creator: item.creator,
+        customerId:item.customerId,
         idCard: item.hraCustomer ? item.hraCustomer.idcard : null,
         phone: item.hraCustomer ? item.hraCustomer.phone : null,
         username: item.hraCustomer ? item.hraCustomer.username : null,
         birthdate: item.hraCustomer ? item.hraCustomer.birthdate : null,
+        sex: item.hraCustomer ? item.hraCustomer.sex : '',
         height: item.hraCustomer ? item.hraCustomer.height : "XXX",
         weight: item.hraCustomer ? item.hraCustomer.weight : "XX",
-        reserveTime: item.reserveTime,
         reserveFrom: item.reserveFrom,
-        sex: item.hraCustomer ? item.hraCustomer.sex : null,
         stationId: item.stationId,
         name: item.station ? item.station.name : null,
         updateTime: item.updateTime,
         updater: item.updater,
-        userSource: item.reserveFrom
+        userSource: item.reserveFrom,
+        reserveTime: item.reserveTime,
+        reserveTimeBig:moment(
+          (() => {
+            const d = new Date();
+            d.setMonth(d.getMonth());
+            return d;
+          })()
+        ),
+        ticketStatus:new moment(item.reserveTime) > new moment(item.reserveTimeBig) ? '已预约' : '已过期',
       };
     });
   }
@@ -526,11 +763,11 @@ class Category extends React.Component {
                 placeholder="全部"
                 allowClear
                 style={{ width: "172px", marginRight: "10px" }}
-                onChange={e => this.searchStateChange(e)}
+                onChange={e => this.searchCardChange(e)}
               >
-                <Option value={1}>Y</Option>
-                <Option value={2}>F</Option>
-                <Option value={3}>M</Option>
+                <Option value="Y">Y</Option>
+                <Option value="F">F</Option>
+                <Option value="M">M</Option>
               </Select>
             </li>
             <li>
@@ -548,7 +785,7 @@ class Category extends React.Component {
               />
             </li>
             <li style={{ marginRight: "20px" }}>
-              <span style={{ marginRight: "10px" }}>体检时间: </span>
+              <span style={{ marginRight: "10px" }}>预约时间: </span>
               <DatePicker
                 style={{ width: "180px" }}
                 dateRender={current => {
@@ -565,6 +802,7 @@ class Category extends React.Component {
                 }}
                 format="YYYY-MM-DD"
                 placeholder="开始时间"
+                value={this.state.searchBeginTime}
                 onChange={e => this.searchBeginTime(e)}
               />
               --
@@ -584,19 +822,35 @@ class Category extends React.Component {
                 }}
                 format="YYYY-MM-DD"
                 placeholder="结束时间"
+                value={this.state.searchEndTime}
                 onChange={e => this.searchEndTime(e)}
               />
             </li>
             <li>
-              <span>体检报告是否上传：</span>
+              <span>预约状态：</span>
               <Select
                 placeholder="全部"
                 allowClear
                 style={{ width: "172px", marginRight: "10px" }}
-                onChange={e => this.searchStateChange(e)}
+                onChange={e => this.searchticketStateChange(e)}
               >
-                <Option value={1}>是</Option>
-                <Option value={2}>否</Option>
+                <Option value={1}>已预约</Option>
+                <Option value={2}>已过期</Option>
+              </Select>
+            </li>
+            <li>
+              <span>预约来源：</span>
+              <Select
+                placeholder="全部"
+                allowClear
+                style={{ width: "172px", marginRight: "10px" }}
+                onChange={e => this.searchuserSourceChange(e)}
+              >
+                <Option value={1}>终端用户app</Option>
+                <Option value={2}>微信公众号</Option>
+                <Option value={3}>体检系统</Option>
+                <Option value={4}>经销商APP</Option>
+                <Option value={5}>后台管理系统</Option>
               </Select>
             </li>
             <li>
@@ -609,14 +863,21 @@ class Category extends React.Component {
                 查询
               </Button>
             </li>
+            <ul className="search-func">
+              <li>
+                <Button type="primary" onClick={() => this.onAddNewShow()}>
+                  <Icon type="plus-circle-o" />新增预约
+                </Button>
+              </li>
+            </ul>
           </ul>
         </div>
         <div className="system-table">
           <Table
             columns={this.makeColumns()}
             className="my-table"
-            dataSource={this.makeData(this.state.data)}
             scroll={{ x: 2000 }}
+            dataSource={this.makeData(this.state.data)}
             pagination={{
               total: this.state.total,
               current: this.state.pageNum,
@@ -630,7 +891,7 @@ class Category extends React.Component {
         </div>
         {/* 添加模态框 */}
         <Modal
-          title="请录入体检人信息"
+          title="新增预约信息"
           visible={this.state.addnewPersonShow}
           onOk={() => this.onAddNewOk()}
           onCancel={() => this.onAddNewClose()}
@@ -701,10 +962,10 @@ class Category extends React.Component {
                 initialValue: true,
                 rules: [{ required: true, message: "请选择性别" }]
               })(
-                <RadioGroup>
-                  <Radio value={1}>男</Radio>
-                  <Radio value={0}>女</Radio>
-                </RadioGroup>
+                <Select>
+                  <Option value="男">男</Option>
+                  <Option value="女">女</Option>
+                </Select>
               )}
             </FormItem>
             <FormItem label="身高" {...formItemLayout}>
@@ -714,7 +975,7 @@ class Category extends React.Component {
               })(
                 <InputNumber
                   min={0}
-                  max={300}
+                  max={250}
                   placeholder="请输入身高(cm)"
                   style={{ width: "100%" }}
                 />
@@ -752,7 +1013,7 @@ class Category extends React.Component {
         </Modal>
         {/* 查看详情模态框 */}
         <Modal
-          title="查看详情"
+          title="查看预约详情"
           visible={this.state.queryModalShow}
           onOk={() => this.onQueryModalClose()}
           onCancel={() => this.onQueryModalClose()}
@@ -823,7 +1084,7 @@ class Category extends React.Component {
               {!!this.state.nowData ? `${this.state.nowData.weight}kg` : ""}
             </FormItem>
             <FormItem
-              label="用户来源"
+              label="预约来源"
               {...formItemLayout}
               style={{ marginLeft: "20px" }}
             >
@@ -839,29 +1100,6 @@ class Category extends React.Component {
               {!!this.state.nowData ? this.state.nowData.reserveTime : ""}
             </FormItem>
             <FormItem
-              label="实际体检日期"
-              {...formItemLayout}
-              style={{ marginLeft: "20px" }}
-            >
-              {!!this.state.nowData ? this.state.nowData.createTime : ""}
-            </FormItem>
-            <FormItem
-              label="体检卡号状态"
-              {...formItemLayout}
-              style={{ marginLeft: "20px" }}
-            >
-              {!!this.state.nowData
-                ? this.getNameByType(this.state.nowData.conditions)
-                : ""}
-            </FormItem>
-            <FormItem
-              label="操作人"
-              {...formItemLayout}
-              style={{ marginLeft: "20px" }}
-            >
-              {!!this.state.nowData ? this.state.nowData.updater : ""}
-            </FormItem>
-            <FormItem
               label="操作时间"
               {...formItemLayout}
               style={{ marginLeft: "20px" }}
@@ -872,7 +1110,7 @@ class Category extends React.Component {
         </Modal>
         {/* 修改用户模态框 */}
         <Modal
-          title="修改体检人信息"
+          title="编辑预约信息"
           visible={this.state.upModalShow}
           onOk={() => this.onUpOk()}
           onCancel={() => this.onUpClose()}
@@ -938,10 +1176,10 @@ class Category extends React.Component {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请选择性别" }]
               })(
-                <RadioGroup>
-                  <Radio value={1}>男</Radio>
-                  <Radio value={0}>女</Radio>
-                </RadioGroup>
+                <Select>
+                  <Option value="男">男</Option>
+                  <Option value="女">女</Option>
+                </Select>
               )}
             </FormItem>
             <FormItem label="身高" {...formItemLayout}>
@@ -1015,7 +1253,7 @@ export default connect(
   }),
   dispatch => ({
     actions: bindActionCreators(
-      { ticketList, ticketSave, ticketUpdate, onChange, onOk ,findAllProvince,findCityOrCounty,findStationByArea},
+      { ticketList, ticketSave, ticketUpdate, onChange, onOk ,findAllProvince,findCityOrCounty,findStationByArea,listReserve},
       dispatch
     )
   })

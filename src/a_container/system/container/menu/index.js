@@ -109,9 +109,9 @@ class Menu extends React.Component {
       menuId: id
     };
     this.props.actions.findMenuByMainMenu(params).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody
+          data: res.data
         });
       } else {
         this.setState({
@@ -123,12 +123,12 @@ class Menu extends React.Component {
   // 确定删除当前菜单
   onDeleteClick(id) {
     this.props.actions.deleteMenuInfo({ menuId: id }).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
         this.getAllMenus();
         this.getData();
       } else {
-        message.error(res.returnMessaage || "删除失败");
+        message.error(res.message || "删除失败");
       }
     });
   }
@@ -229,7 +229,7 @@ class Menu extends React.Component {
         me.props.actions
           .addMenuInfo(tools.clearNull(params))
           .then(res => {
-            if (res.returnCode === "0") {
+            if (res.status === "0") {
               message.success("添加成功");
               this.getAllMenus(); // 重新获取菜单
               this.getData();
@@ -297,7 +297,7 @@ class Menu extends React.Component {
         this.props.actions
           .updateMenuInfo(params)
           .then(res => {
-            if (res.returnCode === "0") {
+            if (res.status === "0") {
               message.success("修改成功");
               this.getAllMenus(); // 重新获取菜单
               this.getData(me.state.nowData.parentId);

@@ -21,7 +21,7 @@ const actDefault = state => state;
 const findAllMenu = (state, action) => {
   const { payload } = action;
   return Object.assign({}, state, {
-    allMenu: payload.messsageBody ? payload.messsageBody.result : []
+    allMenu: payload.data ? payload.data.result : []
   });
 };
 

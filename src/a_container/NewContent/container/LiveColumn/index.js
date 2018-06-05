@@ -153,8 +153,8 @@ class Manager extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -226,12 +226,12 @@ class Manager extends React.Component {
         this.props.actions
           .updateProduct(params)
           .then(res => {
-            if (res.returnCode === "0") {
+            if (res.status === "0") {
               message.success("修改成功");
               this.onGetData(this.state.pageNum, this.state.pageSize);
               this.onUpClose();
             } else {
-              message.error(res.returnMessaage || "修改失败，请重试");
+              message.error(res.message || "修改失败，请重试");
             }
             me.setState({
               upLoading: false
@@ -318,7 +318,7 @@ class Manager extends React.Component {
     //       total: res.data.total
     //     });
     //   } else {
-    //     message.error(res.returnMessaage || "获取数据失败，请重试");
+    //     message.error(res.message || "获取数据失败，请重试");
     //   }
     // });
   }

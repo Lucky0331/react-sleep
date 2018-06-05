@@ -127,7 +127,7 @@ class Category extends React.Component {
       nowData: d
     });
     this.props.actions.saveTest(d);
-    this.props.history.push("../NewMoney/Querydetail");
+    // this.props.history.push("../NewMoney/Querydetail");
     console.log("跳转页面的record带了哪些参数：", d);
   }
 
@@ -185,13 +185,13 @@ class Category extends React.Component {
     this.props.actions
       .getSupplierIncomeMain(tools.clearNull(params))
       .then(res => {
-        if (res.returnCode === "0") {
-          console.log("到底是什么：", res.messsageBody);
+        if (res.status === "0") {
+          console.log("到底是什么：", res.data);
           this.setState({
-            dataHQ: res.messsageBody || [],
+            dataHQ: res.data || [],
             pageNumHQ: pageNum,
             pageSizeHQ: pageSize,
-            totalHQ: res.messsageBody.total
+            totalHQ: res.data.total
           });
         } else {
           message.error(res.message || "获取数据失败，请重试");
@@ -727,9 +727,9 @@ class Category extends React.Component {
     this.props.actions
       .findAllProvince({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            citys: res.messsageBody || []
+            citys: res.data || []
           });
         }
       });
@@ -745,8 +745,8 @@ class Category extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -778,13 +778,13 @@ class Category extends React.Component {
     this.props.actions
       .getStationIncomeMain(tools.clearNull(params))
       .then(res => {
-        if (res.returnCode === "0") {
-          console.log("到底是什么：", res.messsageBody.result);
+        if (res.status === "0") {
+          console.log("到底是什么：", res.data.result);
           this.setState({
-            dataSE: res.messsageBody || [],
+            dataSE: res.data || [],
             pageNumSE: pageNum,
             pageSizeSE: pageSize,
-            totalSE: res.messsageBody.total
+            totalSE: res.data.total
           });
         } else {
           message.error(res.message || "获取数据失败，请重试");
@@ -802,9 +802,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 1, pageSize: 999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            typesProduct: res.messsageBody.result
+            typesProduct: res.data.result
           });
         }
       });
@@ -821,7 +821,7 @@ class Category extends React.Component {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/capital/earnedIncome/export`;
     form.method = "post";
     console.log("FORM:", form);

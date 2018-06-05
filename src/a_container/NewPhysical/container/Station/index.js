@@ -92,14 +92,14 @@ class Category extends React.Component {
         : ""
     };
     this.props.actions.findReserveList(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -502,7 +502,7 @@ class Category extends React.Component {
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
 
   // 构建字段

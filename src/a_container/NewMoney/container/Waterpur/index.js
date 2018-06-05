@@ -84,7 +84,7 @@ class Category extends React.Component {
       searchPayMonth: moment(
         (() => {
           const d = new Date();
-          d.setMonth(d.getMonth() + 1);
+          d.setMonth(d.getMonth());
           return d;
         })()
       ), //搜索 - 结算月份
@@ -226,14 +226,14 @@ class Category extends React.Component {
       userType: this.state.searchUserType,
       serialNumber: this.state.searchSerialNumber,
       distributionType: this.state.searchDistributionType,
-      minPayTime: this.state.searchMinPayTime
+      minCompleteTime: this.state.searchMinPayTime
         ? `${tools.dateToStrD(this.state.searchMinPayTime._d)} 00:00:00`
         : "",
-      maxPayTime: this.state.searchMaxPayTime
+      maxCompleteTime: this.state.searchMaxPayTime
         ? `${tools.dateToStrD(this.state.searchMaxPayTime._d)} 23:59:59`
         : "",
       balanceMonth: this.state.searchPayMonth
-        ? `${tools.dateToStrD(this.state.searchPayMonth._d)} 00:00:00`
+        ? `${tools.dateToStrDetail(this.state.searchPayMonth._d)} 00:00:00`
         : "",
       minOrderFee: this.state.searchMinOrderFee,
       maxOrderFee: this.state.searchMaxOrderFee,
@@ -247,15 +247,18 @@ class Category extends React.Component {
       region: this.state.searchAddress[2]
     };
     this.props.actions.fBIncome(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data2: res.messsageBody.result || [],
+          data2: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
-      } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+      } else if(res.status === "1") {
+        this.setState({
+          data2:[],
+        })
+        message.error(res.message || "获取数据失败，请重试" , 1.5);
       }
     });
   }
@@ -296,7 +299,7 @@ class Category extends React.Component {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/export/settleAccounts/record`;
     form.method = "post";
     console.log("FORM:", form);
@@ -593,7 +596,7 @@ class Category extends React.Component {
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
 
   //导出
@@ -661,9 +664,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productTypes: res.messsageBody.result
+            productTypes: res.data.result
           });
         }
       });
@@ -718,9 +721,9 @@ class Category extends React.Component {
     this.props.actions
       .findSaleRuleByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            distributionTypes: res.messsageBody.result
+            distributionTypes: res.data.result
           });
         }
       });
@@ -731,9 +734,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductModelByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productModels: res.messsageBody.result
+            productModels: res.data.result
           });
         }
       });
@@ -754,8 +757,8 @@ class Category extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,

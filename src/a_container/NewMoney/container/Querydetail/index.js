@@ -158,9 +158,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productTypes: res.messsageBody.result
+            productTypes: res.data.result
           });
         }
       });
@@ -176,13 +176,13 @@ class Category extends React.Component {
     this.props.actions
       .getSupplierIncomeList(tools.clearNull(params))
       .then(res => {
-        if (res.returnCode === "0") {
-          console.log("到底是什么：", res.messsageBody);
+        if (res.status === "0") {
+          console.log("到底是什么：", res.data);
           this.setState({
             year,
             month,
             company,
-            dataHQ: res.messsageBody || []
+            dataHQ: res.data || []
           });
         } else {
           message.error(res.message || "获取数据失败，请重试");
@@ -321,8 +321,8 @@ class Category extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -396,9 +396,9 @@ class Category extends React.Component {
     this.props.actions
       .searchCompanyIncome(tools.clearNull(params))
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            dataSEMain: res.messsageBody || []
+            dataSEMain: res.data || []
           });
         }
       });
@@ -410,9 +410,9 @@ class Category extends React.Component {
     this.props.actions
       .findSaleRuleByWhere({ pageNum: 1, pageSize: 999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            typesAllot: res.messsageBody.result
+            typesAllot: res.data.result
           });
         }
       });
@@ -433,9 +433,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 1, pageSize: 999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            typesProduct: res.messsageBody.result
+            typesProduct: res.data.result
           });
         }
       });
@@ -452,7 +452,7 @@ class Category extends React.Component {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/capital/earnedIncome/export`;
     form.method = "post";
     console.log("FORM:", form);

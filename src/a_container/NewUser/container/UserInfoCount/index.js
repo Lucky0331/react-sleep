@@ -49,7 +49,7 @@ class Manager extends React.Component {
         {list: [], list2:[], all: 0, title: '分销用户发展总数'},   // 分销用户发展总数
         {list: [], list2:[], all: 0, title: '分享用户发展总数'},   // 分享用户发展总数
         {list: [], list2:[], all: 0, title: '经销商优惠卡持有总数'},   // 经销商优惠卡持有总数
-        {list: [], list2:[], all: 0, title: '经销商优惠卡增出总数'},   // 经销商优惠卡增出总数
+        {list: [], list2:[], all: 0, title: '经销商优惠卡赠出总数'},   // 经销商优惠卡增出总数
       ], // 缓存的分类数据
       barType: 0, // 下方分类选的哪一个
       searchType: "", //搜索 - 用户类型
@@ -179,8 +179,12 @@ class Manager extends React.Component {
 
     /** 第2个图表处理 **/
     makeOption2(dataCookie, dataType) {
-        const d = dataCookie[dataType].list2;
-        const seriesData = [];
+      const d = dataCookie[dataType].list2;
+      const t = dataCookie[dataType];
+      console.log('这个有东西么:', d);
+      console.log('t有东西么:', t);
+      let titleText = t.title.replace('总数', '趋势');
+      const seriesData = [];
         d.map((item, index) => {    // 问我为什么要这样处理？因为数据中disBindTime有可能是null!
             if (item.disBindTime) {
                 seriesData.push({
@@ -191,7 +195,7 @@ class Manager extends React.Component {
         });
         const option = {
             title: {
-                text: '新增绑定经销商趋势',
+                text: titleText ,
                 left: 'center',
                 top: 'top',
             },
@@ -266,7 +270,7 @@ class Manager extends React.Component {
     };
 
     this.props.actions.findUserInfoCount(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         let cookie;
         if (must) {
           cookie = [
@@ -274,20 +278,20 @@ class Manager extends React.Component {
             {list: [], list2:[], all: 0, title: '分销用户发展总数'},   // 分销用户发展总数
             {list: [], list2:[], all: 0, title: '分享用户发展总数'},   // 分享用户发展总数
             {list: [], list2:[], all: 0, title: '经销商优惠卡持有总数'},   // 经销商优惠卡持有总数
-            {list: [], list2:[], all: 0, title: '经销商优惠卡增出总数'},   // 经销商优惠卡增出总数
+            {list: [], list2:[], all: 0, title: '经销商优惠卡赠出总数'},   // 经销商优惠卡增出总数
           ]
         } else {
           cookie = _.cloneDeep(this.state.dataCookie);
         }
 
-        cookie[barType].list = res.messsageBody.bdbyCount;
-        cookie[barType].list2 = res.messsageBody.bindDistributorCount;
-        cookie[barType].all = res.messsageBody.bdbyCount.reduce((res, item) => {
+        cookie[barType].list = res.data.bdbyCount;
+        cookie[barType].list2 = res.data.bindDistributorCount;
+        cookie[barType].all = res.data.bdbyCount.reduce((res, item) => {
           return Number(item.disBindProvinceCount) + res;
         },0);
         console.log('这不多啊：', cookie[barType].all);
         this.setState({
-          data: res.messsageBody || {},
+          data: res.data || {},
           dataCookie: cookie,
         });
       } else {
@@ -302,16 +306,28 @@ class Manager extends React.Component {
   }
 
   // 工具 - 根据bar选择的得到对应的名字
-    getNameByBarId(id) {
-        switch(id) {
-            case 0: return '经销商绑定总数';
-            case 1: return '分销用户发展总数';
-            case 2: return '分享用户发展总数';
-            case 3: return '经销商优惠卡持有总数';
-            case 4: return '经销商优惠卡增出总数';
-            default: return '数量';
-        }
+  getNameByBarId(id) {
+      switch(id) {
+        case 0: return '经销商绑定总数';
+        case 1: return '分销用户发展总数';
+        case 2: return '分享用户发展总数';
+        case 3: return '经销商优惠卡持有总数';
+        case 4: return '经销商优惠卡赠出总数';
+        default: return '数量';
+      }
+  }
+  
+  // 工具 - 根据选择的不同得到下方图标对应的名字
+  getNameBindId(id) {
+    switch(id) {
+      case 0: return '新增绑定经销商数';
+      case 1: return '新增分销用户发展数';
+      case 2: return '新增分享用户发展数';
+      case 3: return '新增经销商优惠卡持有数';
+      case 4: return '新增经销商优惠卡赠出数';
+      default: return '数量';
     }
+  }
 
   // radio改变时触发
     onRadioChange(e) {
@@ -506,7 +522,7 @@ class Manager extends React.Component {
                           }}
                           columns={[
                               { title: '日期 ', name: 'date', dataIndex: 'date', width: 150},
-                              { title: '新增绑定经销商数', name: 'num', dataIndex: 'num'},
+                              { title: this.getNameBindId(this.state.barType), name: 'num', dataIndex: 'num'},
                           ]}
                           dataSource={
                               (() => {

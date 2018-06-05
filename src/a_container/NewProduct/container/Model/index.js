@@ -70,7 +70,8 @@ class Category extends React.Component {
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
       code: undefined, //产品类型所对应的code值
-      feeType: [] //计费方式的数组
+      feeType: [] ,//计费方式的数组
+      disabled:true,//是否可编辑
     };
   }
 
@@ -90,16 +91,16 @@ class Category extends React.Component {
       .findProductModelByWhere(tools.clearNull(params))
       .then(res => {
         console.log("返回的什么：", res);
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            data: res.messsageBody.modelList.result || [],
-            chargeTypes: res.messsageBody.chargeTypeList,
+            data: res.data.modelList.result || [],
+            chargeTypes: res.data.chargeTypeList,
             pageNum,
             pageSize,
-            total: res.messsageBody.modelList.total
+            total: res.data.modelList.total
           });
         } else {
-          message.error(res.returnMessaage || "获取数据失败，请重试");
+          message.error(res.message || "获取数据失败，请重试");
         }
       });
   }
@@ -109,9 +110,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productTypes: res.messsageBody.result
+            productTypes: res.data.result
           });
         }
       });
@@ -174,7 +175,7 @@ class Category extends React.Component {
       upOpenAccountFee: record.openAccountFee,
       upBuildCount: record.buildCount,
       upInDate: record.inDate,
-      upModelDetail: `${record.modelDetail}`,
+      upModelDetail:record.modelDetail,
       upTimeLimitNum: record.timeLimitNum,
       upTimeLimitType: record.timeLimitType,
       upCharges: record.chargeTypes
@@ -238,12 +239,12 @@ class Category extends React.Component {
       this.props.actions
         .upProductModel(params)
         .then(res => {
-          if (res.returnCode === "0") {
+          if (res.status === "0") {
             message.success("修改成功");
             this.onGetData(this.state.pageNum, this.state.pageSize);
             this.onUpClose();
           } else {
-            message.error(res.returnMessaage || "修改失败，请重试");
+            message.error(res.message || "修改失败，请重试");
           }
           me.setState({
             upLoading: false
@@ -266,18 +267,18 @@ class Category extends React.Component {
   // 删除某一条数据
   onDeleteClick(id) {
     this.props.actions.delProductModel({ id: id }).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error(res.returnMessaage || "删除失败，请重试");
+        message.error(res.message || "删除失败，请重试");
       }
     });
   }
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
 
   // 查询某一条数据的详情
@@ -357,7 +358,7 @@ class Category extends React.Component {
         nickName:values.addnewNickName,
         typeId: Number(values.addnewTypeId),
         price: Number(values.addnewPrice),
-        charges: String(values.addnewCharges),
+        charges:String(values.addnewCharges),
         useCount: Number(values.addnewUseCount),
         buildCount: Number(values.addnewBuildCount),
         inDate: Number(values.addnewInDate),
@@ -423,7 +424,7 @@ class Category extends React.Component {
         render: text => this.getNameByTypeId(text)
       },
       {
-        title:'类型别名',
+        title:'型号别名',
         dataIndex:'nickName',
         key:'nickName'
       },
@@ -508,8 +509,8 @@ class Category extends React.Component {
         key: index,
         id: item.id,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
-        name: item.name,
-        typeId: item.typeId,
+        name: item.name, //产品型号
+        typeId: item.typeId, //产品类型
         price: item.price,
         shipFee: item.shipFee,
         useCount: item.useCount,
@@ -634,7 +635,7 @@ class Category extends React.Component {
                     whitespace: true,
                     message: "请输入产品型号名称"
                   },
-                  { max: 12, message: "最多输入12字符" }
+                  { max: 30, message: "最多输入30个字" }
                 ]
               })(<Input style={{ width: "80%" }} />)}
             </FormItem>
@@ -825,22 +826,23 @@ class Category extends React.Component {
                     validator: (rule, value, callback) => {
                       const v = tools.trim(value);
                       if (v) {
-                        if (v.length > 12) {
-                          callback("最多输入12位字符");
+                        if (v.length > 30) {
+                          callback("最多输入30个字");
                         }
                       }
                       callback();
                     }
                   }
                 ]
-              })(<Input placeholder="请输入产品型号名称" />)}
+              })(<Input placeholder="请输入产品型号名称" disabled={this.state.disabled}/>)}
+              {/*{!!this.state.nowData ? this.state.nowData.name : ""}*/}
             </FormItem>
             <FormItem label="产品类型" {...formItemLayout}>
               {getFieldDecorator("upTypeId", {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请选择产品类型" }]
               })(
-                <Select onChange={e => this.Newproduct(e)}>
+                <Select onChange={e => this.Newproduct(e)} disabled={this.state.disabled}>
                   {this.state.productTypes.map((item, index) => {
                     return (
                       <Option key={index} value={item.id}>
@@ -850,15 +852,18 @@ class Category extends React.Component {
                   })}
                 </Select>
               )}
+              {/*{!!this.state.nowData*/}
+                {/*? this.getNameByTypeId(this.state.nowData.typeId)*/}
+                {/*: ""}*/}
             </FormItem>
-            <FormItem label="类型别名" {...formItemLayout}>
+            <FormItem label="型号别名" {...formItemLayout}>
               {getFieldDecorator("upNickName", {
                 initialValue: undefined,
                 rules: [
                   {
                     required: true,
                     whitespace: true,
-                    message: "请输入产品类型别名"
+                    message: "请输入产品型号别名"
                   },
                   {
                     validator: (rule, value, callback) => {
@@ -872,7 +877,13 @@ class Category extends React.Component {
                     }
                   }
                 ]
-              })(<Input placeholder="请输入产品类型别名" />)}
+              })(<Input placeholder="请输入产品型号别名" />)}
+            </FormItem>
+            <FormItem label="描述" {...formItemLayout}>
+              {getFieldDecorator("upModelDetail", {
+                initialValue: undefined,
+                rules: [{ whitespace: true, message: "请对产品进行描述" }]
+              })(<Input style={{ width: "80%" }} />)}
             </FormItem>
             <FormItem label="价格" {...formItemLayout}>
               {getFieldDecorator("upPrice", {

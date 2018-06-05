@@ -6,6 +6,7 @@
 
 import React from "react";
 import { connect } from "react-redux";
+import moment from "moment";
 import { bindActionCreators } from "redux";
 import P from "prop-types";
 import {
@@ -77,6 +78,7 @@ class Category extends React.Component {
       searchPayType: "", //搜索 - 支付类型
       searchConditions: "", //搜索 - 订单状态
       searchorderNo: "", //搜索 - 订单号
+      searchuserSaleFlag:"",//搜索 - 分销商是否享有收益
       searchUserType: "", //搜索 - 用户类型
       searchUserName: "", //搜索 - 经销商账户
       searchRefer: "", // 搜索 -云平台工单号查询
@@ -138,40 +140,41 @@ class Category extends React.Component {
       payType: this.state.searchPayType,
       activityType: this.state.searchActivity,
       conditions: this.state.searchConditions,
-      distributorId: this.state.searchAmbassadorId,
-      partId: this.state.searchDistributorId,
+      distributorId: this.state.searchAmbassadorId.trim(),
+      partId: this.state.searchDistributorId.trim(),
       userType: this.state.searchUserType,
-      userName: this.state.searchUserName,
+      userSaleFlag:this.state.searchuserSaleFlag,
+      userName: this.state.searchUserName.trim(),
       ambassadorName: this.state.searchambassadorName,
       productName: this.state.searchProductName,
       modelId: this.state.searchModelId,
-      refer: this.state.searchRefer,
+      refer: this.state.searchRefer.trim(),
       typeCode: this.state.searchproductType,
       orderFrom: this.state.searchorderFrom,
-      orderNo: this.state.searchorderNo,
+      orderNo: this.state.searchorderNo.trim(),
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2],
       minPrice: this.state.searchMinPrice,
       maxPrice: this.state.searchMaxPrice,
       beginTime: this.state.searchBeginTime
-        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)}`
         : "",
       endTime: this.state.searchEndTime
-        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)}`
         : ""
     };
     this.props.actions.findOrderByWhere(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody);
-      if (res.returnCode === "0") {
+      console.log("返回的什么：", res.data);
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -203,9 +206,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productTypes: res.messsageBody.result
+            productTypes: res.data.result
           });
         }
       });
@@ -215,9 +218,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductModelByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productModels: res.messsageBody.modelList.result || []
+            productModels: res.data.modelList.result || []
           });
         }
       });
@@ -475,8 +478,8 @@ class Category extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -539,15 +542,22 @@ class Category extends React.Component {
   searchBeginTime(v) {
     console.log("是什么：", v);
     this.setState({
-      searchBeginTime: v
+      searchBeginTime: _.cloneDeep(v)
     });
   }
 
   // 搜索 - 结束时间变化
   searchEndTime(v) {
     this.setState({
-      searchEndTime: v
+      searchEndTime: _.cloneDeep(v)
     });
+  }
+  
+  //分销商是否享受收益
+  searchuserSaleFlagChange(e){
+    this.setState({
+      searchuserSaleFlag:e
+    })
   }
 
   // 确定修改某一条数据
@@ -570,12 +580,12 @@ class Category extends React.Component {
       this.props.actions
         .updateProductType(params)
         .then(res => {
-          if (res.returnCode === "0") {
+          if (res.status === "0") {
             message.success("修改成功");
             this.onGetData(this.state.pageNum, this.state.pageSize);
             this.onUpClose();
           } else {
-            message.error(res.returnMessaage || "修改失败，请重试");
+            message.error(res.message || "修改失败，请重试");
           }
           me.setState({
             upLoading: false
@@ -608,15 +618,42 @@ class Category extends React.Component {
   onExportData(pageNum, pageSize) {
     const params = {
       pageNum,
-      pageSize
+      pageSize,
+      isPay: this.state.searchName,
+      payType: this.state.searchPayType,
+      activityType: this.state.searchActivity,
+      conditions: this.state.searchConditions,
+      distributorId: this.state.searchAmbassadorId,
+      partId: this.state.searchDistributorId,
+      userType: this.state.searchUserType,
+      userSaleFlag:this.state.searchuserSaleFlag,
+      userName: this.state.searchUserName,
+      ambassadorName: this.state.searchambassadorName,
+      productName: this.state.searchProductName,
+      modelId: this.state.searchModelId,
+      refer: this.state.searchRefer,
+      typeCode: this.state.searchproductType,
+      orderFrom: this.state.searchorderFrom,
+      orderNo: this.state.searchorderNo.trim(),
+      province: this.state.searchAddress[0],
+      city: this.state.searchAddress[1],
+      region: this.state.searchAddress[2],
+      minPrice: this.state.searchMinPrice,
+      maxPrice: this.state.searchMaxPrice,
+      beginTime: this.state.searchBeginTime
+        ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)}`
+        : "",
+      endTime: this.state.searchEndTime
+        ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)}`
+        : ""
     };
     let form = document.getElementById("download-form");
     if (!form) {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/order/listExport`;
+    else { form.innerHTML="";} form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/export/order/list`;
     form.method = "post";
     console.log("FORM:", params);
 
@@ -631,7 +668,199 @@ class Category extends React.Component {
     newElement2.setAttribute("type", "hidden");
     newElement2.setAttribute("value", pageSize);
     form.appendChild(newElement2);
-
+  
+    const newElement3 = document.createElement("input");
+    if (params.isPay || params.isPay === 0) {
+      newElement3.setAttribute("name", "isPay");
+      newElement3.setAttribute("type", "hidden");
+      newElement3.setAttribute("value", params.isPay);
+      form.appendChild(newElement3);
+    }
+  
+    const newElement4 = document.createElement("input");
+    if (params.payType) {
+      newElement4.setAttribute("name", "payType");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.payType);
+      form.appendChild(newElement4);
+    }
+  
+    const newElement5 = document.createElement("input");
+    if (params.activityType) {
+      newElement5.setAttribute("name", "activityType");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.activityType);
+      form.appendChild(newElement5);
+    }
+  
+    const newElement6 = document.createElement("input");
+    if (params.conditions) {
+      newElement6.setAttribute("name", "conditions");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.conditions);
+      form.appendChild(newElement6);
+    }
+  
+    const newElement7 = document.createElement("input");
+    if (params.distributorId) {
+      newElement7.setAttribute("name", "distributorId");
+      newElement7.setAttribute("type", "hidden");
+      newElement7.setAttribute("value", params.distributorId);
+      form.appendChild(newElement7);
+    }
+  
+    const newElement8 = document.createElement("input");
+    if (params.partId) {
+      newElement8.setAttribute("name", "partId");
+      newElement8.setAttribute("type", "hidden");
+      newElement8.setAttribute("value", params.partId);
+      form.appendChild(newElement8);
+    }
+  
+    const newElement9 = document.createElement("input");
+    if (params.userType) {
+      newElement9.setAttribute("name", "userType");
+      newElement9.setAttribute("type", "hidden");
+      newElement9.setAttribute("value", params.userType);
+      form.appendChild(newElement9);
+    }
+  
+    const newElement10 = document.createElement("input");
+    if (params.userSaleFlag) {
+      newElement10.setAttribute("name", "userSaleFlag");
+      newElement10.setAttribute("type", "hidden");
+      newElement10.setAttribute("value", params.userSaleFlag);
+      form.appendChild(newElement10);
+    }
+  
+    const newElement11 = document.createElement("input");
+    if (params.userType) {
+      newElement11.setAttribute("name", "userType");
+      newElement11.setAttribute("type", "hidden");
+      newElement11.setAttribute("value", params.userType);
+      form.appendChild(newElement11);
+    }
+  
+    const newElement12 = document.createElement("input");
+    if (params.ambassadorName) {
+      newElement12.setAttribute("name", "ambassadorName");
+      newElement12.setAttribute("type", "hidden");
+      newElement12.setAttribute("value", params.ambassadorName);
+      form.appendChild(newElement12);
+    }
+  
+    const newElement13 = document.createElement("input");
+    if (params.userName) {
+      newElement13.setAttribute("name", "userName");
+      newElement13.setAttribute("type", "hidden");
+      newElement13.setAttribute("value", params.userName);
+      form.appendChild(newElement13);
+    }
+  
+    const newElement14 = document.createElement("input");
+    if (params.productName) {
+      newElement14.setAttribute("name", "productName");
+      newElement14.setAttribute("type", "hidden");
+      newElement14.setAttribute("value", params.productName);
+      form.appendChild(newElement14);
+    }
+  
+    const newElement15 = document.createElement("input");
+    if (params.modelId) {
+      newElement15.setAttribute("name", "modelId");
+      newElement15.setAttribute("type", "hidden");
+      newElement15.setAttribute("value", params.modelId);
+      form.appendChild(newElement15);
+    }
+  
+    const newElement16 = document.createElement("input");
+    if (params.refer) {
+      newElement16.setAttribute("name", "refer");
+      newElement16.setAttribute("type", "hidden");
+      newElement16.setAttribute("value", params.refer);
+      form.appendChild(newElement16);
+    }
+  
+    const newElement17 = document.createElement("input");
+    if (params.typeCode) {
+      newElement17.setAttribute("name", "typeCode");
+      newElement17.setAttribute("type", "hidden");
+      newElement17.setAttribute("value", params.typeCode);
+      form.appendChild(newElement17);
+    }
+  
+    const newElement18 = document.createElement("input");
+    if (params.orderFrom) {
+      newElement18.setAttribute("name", "orderFrom");
+      newElement18.setAttribute("type", "hidden");
+      newElement18.setAttribute("value", params.orderFrom);
+      form.appendChild(newElement18);
+    }
+  
+    const newElement19 = document.createElement("input");
+    if (params.province) {
+      newElement19.setAttribute("name", "province");
+      newElement19.setAttribute("type", "hidden");
+      newElement19.setAttribute("value", params.province);
+      form.appendChild(newElement19);
+    }
+  
+    const newElement20 = document.createElement("input");
+    if (params.city) {
+      newElement20.setAttribute("name", "city");
+      newElement20.setAttribute("type", "hidden");
+      newElement20.setAttribute("value", params.city);
+      form.appendChild(newElement20);
+    }
+  
+    const newElement21 = document.createElement("input");
+    if (params.region) {
+      newElement21.setAttribute("name", "region");
+      newElement21.setAttribute("type", "hidden");
+      newElement21.setAttribute("value", params.region);
+      form.appendChild(newElement21);
+    }
+  
+    const newElement22 = document.createElement("input");
+    if (params.orderNo) {
+      newElement22.setAttribute("name", "orderNo");
+      newElement22.setAttribute("type", "hidden");
+      newElement22.setAttribute("value", params.orderNo);
+      form.appendChild(newElement22);
+    }
+  
+    const newElement23 = document.createElement("input");
+    if (params.minPrice) {
+      newElement23.setAttribute("name", "minPrice");
+      newElement23.setAttribute("type", "hidden");
+      newElement23.setAttribute("value", params.minPrice);
+      form.appendChild(newElement23);
+    }
+  
+    const newElement24 = document.createElement("input");
+    if (params.maxPrice) {
+      newElement24.setAttribute("name", "maxPrice");
+      newElement24.setAttribute("type", "hidden");
+      newElement24.setAttribute("value", params.maxPrice);
+      form.appendChild(newElement24);
+    }
+  
+    const newElement25 = document.createElement("input");
+    if (params.beginTime) {
+      newElement25.setAttribute("name", "beginTime");
+      newElement25.setAttribute("type", "hidden");
+      newElement25.setAttribute("value", params.beginTime);
+      form.appendChild(newElement25);
+    }
+  
+    const newElement26 = document.createElement("input");
+    if (params.endTime) {
+      newElement26.setAttribute("name", "endTime");
+      newElement26.setAttribute("type", "hidden");
+      newElement26.setAttribute("value", params.endTime);
+      form.appendChild(newElement26);
+    }
+    
     form.submit();
   }
 
@@ -641,7 +870,8 @@ class Category extends React.Component {
     this.setState({
       nowData: record,
       queryModalShow: true,
-      typeId: record.typeId
+      typeId: record.typeId,
+      userType:record.userType
     });
   }
 
@@ -758,7 +988,7 @@ class Category extends React.Component {
         dataIndex: "pay",
         key: "pay",
         render: text =>
-          String(text) === "true" ? (
+          Boolean(text) === true ? (
             <span style={{ color: "green" }}>已支付</span>
           ) : (
             <span style={{ color: "red" }}>未支付</span>
@@ -770,22 +1000,37 @@ class Category extends React.Component {
         key: "payType",
         render: text => this.getBypayType(text)
       },
+      // {
+      //   title:'流水号',
+      // },
       {
-        title: "分销商是否有收益",
-        dataIndex: "userSaleFlag",
-        key: "userSaleFlag",
-        render: text =>
-          Boolean(text) === true ? <span>有</span> : <span>无</span>
+        title:'经销商身份',
+        dataIndex:'userType2',
+        key:'userType2',
+        render: text => this.getUserType(text)
       },
+      {
+        title: "经销商id",
+        dataIndex: "id",
+        key: "id"
+      },
+      // {
+      //   title:'是否有子账号'
+      // },
+      // {
+      //   title:'子账号id',
+      // },
       {
         title: "分销商id",
         dataIndex: "distributorId",
         key: "distributorId"
       },
       {
-        title: "经销商id",
-        dataIndex: "id",
-        key: "id"
+        title: "分销商是否享有收益",
+        dataIndex: "userSaleFlag",
+        key: "userSaleFlag",
+        render: text =>
+          Boolean(text) === true ? <span>是</span> : <span>否</span>
       },
       {
         title: "操作",
@@ -837,7 +1082,7 @@ class Category extends React.Component {
         openAccountFee: item.openAccountFee,
         orderType: item.orderType,
         payTime: item.payTime,
-        payType: item.payRecord ? item.payRecord.payType : "",
+        payType: item.payType,
         orderNo: item.id,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         createTime: item.createTime,
@@ -850,12 +1095,14 @@ class Category extends React.Component {
         mobile: item.shopAddress ? item.shopAddress.mobile : "",
         refer: item.refer,
         userType: item.userInfo ? item.userInfo.userType : "",
+        userType2: item.distributor ? item.distributor.userType : "", //经销商身份
         shipCode: item.shipCode,
         activityType: item.activityType,
         shipPrice: item.shipPrice,
         transport: item.transport,
         userName: item.userId,
-        customerName: item.customer ? item.customer.realName : "",
+        customerName: item.customer ? item.customer.realName || item.customer.name  : "",
+        // customerName: item.customer ? item.customer.realName: "",
         customerPhone: item.customer ? item.customer.phone : "",
         orderFrom: item.orderFrom,
         realName: item.distributor ? item.distributor.realName : "",
@@ -865,7 +1112,7 @@ class Category extends React.Component {
         city: item.shopAddress ? item.shopAddress.city : "",
         region: item.shopAddress ? item.shopAddress.region : "",
         street: item.shopAddress ? item.shopAddress.street : "",
-        mchOrderId: item.payRecord ? item.payRecord.mchOrderId : "",
+        mainOrderId: item.mainOrderId,
         id: item.distributor ? item.distributor.id : "",
         station: item.station,
         typeId: item.product ? item.product.typeId : "",
@@ -1007,6 +1254,7 @@ class Category extends React.Component {
                 onChange={v => this.onSearchAddress(v)}
                 options={this.state.citys}
                 loadData={e => this.getAllCitySon(e)}
+                changeOnSelect
               />
             </li>
             <li>
@@ -1068,8 +1316,8 @@ class Category extends React.Component {
                 style={{ width: "172px" }}
                 onChange={e => this.searchNameChange(e)}
               >
-                <Option value={0}>未支付</Option>
                 <Option value={1}>已支付</Option>
+                <Option value={0}>未支付</Option>
               </Select>
             </li>
             <li>
@@ -1105,42 +1353,32 @@ class Category extends React.Component {
             <li>
               <span style={{ marginRight: "10px" }}>下单时间</span>
               <DatePicker
-                style={{ width: "130px" }}
-                dateRender={current => {
-                  const style = {};
-                  if (current.date() === 1) {
-                    style.border = "1px solid #1890ff";
-                    style.borderRadius = "45%";
-                  }
-                  return (
-                    <div className="ant-calendar-date" style={style}>
-                      {current.date()}
-                    </div>
-                  );
-                }}
-                format="YYYY-MM-DD"
+                showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
                 placeholder="开始时间"
                 onChange={e => this.searchBeginTime(e)}
+                onOk={onOk}
               />
               --
               <DatePicker
-                style={{ width: "130px" }}
-                dateRender={current => {
-                  const style = {};
-                  if (current.date() === 1) {
-                    style.border = "1px solid #1890ff";
-                    style.borderRadius = "45%";
-                  }
-                  return (
-                    <div className="ant-calendar-date" style={style}>
-                      {current.date()}
-                    </div>
-                  );
-                }}
-                format="YYYY-MM-DD"
+                showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
                 placeholder="结束时间"
                 onChange={e => this.searchEndTime(e)}
+                onOk={onOk}
               />
+            </li>
+            <li>
+              <span>分销商是否享有收益</span>
+              <Select
+                placeholder="全部"
+                allowClear
+                style={{ width: "172px" }}
+                onChange={e => this.searchuserSaleFlagChange(e)}
+              >
+                <Option value={1}>是</Option>
+                <Option value={0}>否</Option>
+              </Select>
             </li>
             <li style={{ marginLeft: "40px" }}>
               <Button
@@ -1162,7 +1400,7 @@ class Category extends React.Component {
           <Table
             columns={this.makeColumns()}
             dataSource={this.makeData(this.state.data)}
-            scroll={{ x: 3000 }}
+            scroll={{ x: 3300 }}
             pagination={{
               total: this.state.total,
               current: this.state.pageNum,
@@ -1313,7 +1551,7 @@ class Category extends React.Component {
             </FormItem>
             <FormItem label="支付状态" {...formItemLayout}>
               {!!this.state.nowData ? (
-                String(this.state.nowData.pay) === "true" ? (
+                Boolean(this.state.nowData.pay) === true ? (
                   <span style={{ color: "green" }}>已支付</span>
                 ) : (
                   <span style={{ color: "red" }}>未支付</span>
@@ -1325,25 +1563,36 @@ class Category extends React.Component {
             <FormItem label="支付时间" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.payTime : ""}
             </FormItem>
-            <FormItem label="流水号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.mchOrderId : ""}
+            {/*<FormItem label="流水号" {...formItemLayout}>*/}
+              {/*/!*{!!this.state.nowData ? this.state.nowData.mainOrderId : ""}*!/*/}
+            {/*</FormItem>*/}
+            <FormItem label="经销商身份" {...formItemLayout}>
+              {!!this.state.nowData
+                ? this.getUserType(this.state.nowData.userType2)
+                : ""}
+            </FormItem>
+            <FormItem label="经销商id" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.id : ""}
+            </FormItem>
+            {/*<FormItem label="是否有子账号" {...formItemLayout}>*/}
+              {/*/!*{!!this.state.nowData ? this.state.nowData.id : ""}*!/*/}
+            {/*</FormItem>*/}
+            {/*<FormItem label="子账号id" {...formItemLayout}>*/}
+              {/*/!*{!!this.state.nowData ? this.state.nowData.id : ""}*!/*/}
+            {/*</FormItem>*/}
+            <FormItem label="分销商id" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.distributorId : ""}
             </FormItem>
             <FormItem label="分销商是否有收益" {...formItemLayout}>
               {!!this.state.nowData ? (
                 Boolean(this.state.nowData.userSaleFlag) === true ? (
-                  <span>有</span>
+                  <span>是</span>
                 ) : (
-                  <span>无</span>
+                  <span>否</span>
                 )
               ) : (
                 ""
               )}
-            </FormItem>
-            <FormItem label="分销商id" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.distributorId : ""}
-            </FormItem>
-            <FormItem label="经销商id" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.id : ""}
             </FormItem>
             <FormItem
               label="安装工姓名"

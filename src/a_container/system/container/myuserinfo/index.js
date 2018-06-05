@@ -143,8 +143,8 @@ class Manager extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -231,15 +231,15 @@ class Manager extends React.Component {
     };
 
     this.props.actions.findUserInfo(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -367,11 +367,11 @@ class Manager extends React.Component {
         .addAdminUserInfo(tools.clearNull(params))
         .then(res => {
           console.log("添加用户返回数据：", res);
-          if (res.returnCode === "0") {
+          if (res.status === "0") {
             this.onGetData(this.state.pageNum, this.state.pageSize);
             this.onAddNewClose();
           } else {
-            message.error(res.returnMessaage || "添加失败，请重试");
+            message.error(res.message || "添加失败，请重试");
           }
           me.setState({
             addnewLoading: false
@@ -676,16 +676,16 @@ class Manager extends React.Component {
       userId: record.eId
     };
     this.props.actions.myCustomers(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          Tdata: res.messsageBody || [],
+          Tdata: res.data || [],
           TnowData: record,
           extensionShow: true
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
-      console.log("推广客户信息是：", res.messsageBody);
+      console.log("推广客户信息是：", res.data);
     });
   }
   // 关闭我的推广客户列表
@@ -710,9 +710,9 @@ class Manager extends React.Component {
         pageSize: 9999
       })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            stations: res.messsageBody.result
+            stations: res.data.result
           });
         }
       });

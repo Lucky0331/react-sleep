@@ -145,10 +145,10 @@ export function findAllRole() {
       pageSize: 9999
     })
       .then(msg => {
-        if (msg.returnCode === "0") {
+        if (msg.status === "0") {
           dispatch({
             type: "SYS::findAllRole",
-            payload: msg.messsageBody.result
+            payload: msg.data.result
           });
         }
         return msg;
@@ -468,10 +468,10 @@ export function findAllOrganizer() {
       dicType: "orgType"
     })
       .then(msg => {
-        if (msg.returnCode === "0") {
+        if (msg.status === "0") {
           dispatch({
             type: "SYS::findAllOrganizer",
-            payload: msg.messsageBody.result
+            payload: msg.data.result
           });
         }
         return msg;
@@ -557,10 +557,10 @@ export function findAllProvince(params = {}) {
       true
     )
       .then(msg => {
-        if (msg.returnCode === "0") {
+        if (msg.status === "0") {
           dispatch({
             type: "SYS::findAllProvince",
-            payload: msg.messsageBody
+            payload: msg.data
           });
         }
         return msg;

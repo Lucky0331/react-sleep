@@ -95,7 +95,8 @@ class Category extends React.Component {
       total4:0,//生物科技总共数据
       total5:0,//优惠卡总共数据
       total6:0,//健康评估总共数据
-      citys: [] // 符合Cascader组件的城市数据
+      citys: [], // 符合Cascader组件的城市数据
+      exportLoading: false, // 控制导出状态，导出需要时间加载
     };
   }
 
@@ -125,11 +126,11 @@ class Category extends React.Component {
       id: this.state.searchId,
       payType: this.state.searchPayType,
       orderStatus: this.state.searchConditions, //订单状态
-      userId: this.state.searchUserName, //用户id
-      modelType: this.state.searchProductType, //产品类型
-      orderId: this.state.searchorderNo,  //订单号查询
-      paymentNo: this.state.searchmchOrderIdChange, //流水号
-      refer: this.state.searchRefer, //云平台工单号
+      userId: this.state.searchUserName.trim(), //用户id
+      orderType: this.state.searchProductType, //产品类型
+      orderId: this.state.searchorderNo.trim(),  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange.trim(), //流水号
+      refer: this.state.searchRefer.trim(), //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
         ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
@@ -139,16 +140,16 @@ class Category extends React.Component {
         : "",
     };
     this.props.actions.statementList(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody);
-      if (res.returnCode === "0") {
+      console.log("返回的什么：", res.data);
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -162,30 +163,30 @@ class Category extends React.Component {
       id: this.state.searchId,
       payType: this.state.searchPayType,
       orderStatus: this.state.searchConditions, //订单状态
-      userId: this.state.searchUserName, //用户id
+      userId: this.state.searchUserName.trim(), //用户id
       modelType:this.state.searchType,//产品型号
-      orderId: this.state.searchorderNo,  //订单号查询
-      paymentNo: this.state.searchmchOrderIdChange, //流水号
-      refer: this.state.searchRefer, //云平台工单号
+      orderId: this.state.searchorderNo.trim(),  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange.trim(), //流水号
+      refer: this.state.searchRefer.trim(), //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
-          : "",
+        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        : "",
       maxTime: this.state.searchEndTime
-          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
-          : "",
+        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        : "",
     };
     this.props.actions.statementList(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody);
-      if (res.returnCode === "0") {
+      console.log("返回的什么：", res.data);
+      if (res.status === "0") {
         this.setState({
-          data2: res.messsageBody.result || [],
+          data2: res.data.result || [],
           pageNum,
           pageSize,
-          total2: res.messsageBody.total
+          total2: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -199,30 +200,30 @@ class Category extends React.Component {
       id: this.state.searchId,
       payType: this.state.searchPayType,
       orderStatus: this.state.searchConditions, //订单状态
-      userId: this.state.searchUserName, //用户id
+      userId: this.state.searchUserName.trim(), //用户id
       modelType:this.state.searchType,//产品型号
-      orderId: this.state.searchorderNo,  //订单号查询
-      paymentNo: this.state.searchmchOrderIdChange, //流水号
-      refer: this.state.searchRefer, //云平台工单号
+      orderId: this.state.searchorderNo.trim(),  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange.trim(), //流水号
+      refer: this.state.searchRefer.trim(), //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
-          : "",
+        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        : "",
       maxTime: this.state.searchEndTime
-          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
-          : "",
+        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        : "",
     };
     this.props.actions.statementList(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody);
-      if (res.returnCode === "0") {
+      console.log("返回的什么：", res.data);
+      if (res.status === "0") {
         this.setState({
-          data3: res.messsageBody.result || [],
+          data3: res.data.result || [],
           pageNum,
           pageSize,
-          total3: res.messsageBody.total
+          total3: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -236,11 +237,11 @@ class Category extends React.Component {
       id: this.state.searchId,
       payType: this.state.searchPayType,
       orderStatus: this.state.searchConditions, //订单状态
-      userId: this.state.searchUserName, //用户id
+      userId: this.state.searchUserName.trim(), //用户id
       modelType:this.state.searchType,//产品型号
-      orderId: this.state.searchorderNo,  //订单号查询
-      paymentNo: this.state.searchmchOrderIdChange, //流水号
-      refer: this.state.searchRefer, //云平台工单号
+      orderId: this.state.searchorderNo.trim(),  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange.trim(), //流水号
+      refer: this.state.searchRefer.trim(), //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
           ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
@@ -250,16 +251,16 @@ class Category extends React.Component {
           : "",
     };
     this.props.actions.statementList(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody);
-      if (res.returnCode === "0") {
+      console.log("返回的什么：", res.data);
+      if (res.status === "0") {
         this.setState({
-          data4: res.messsageBody.result || [],
+          data4: res.data.result || [],
           pageNum,
           pageSize,
-          total4: res.messsageBody.total
+          total4: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -274,10 +275,10 @@ class Category extends React.Component {
       id: this.state.searchId,
       payType: this.state.searchPayType,
       orderStatus: this.state.searchConditions, //订单状态
-      userId: this.state.searchUserName, //用户id
-      ticketNo: this.state.searchTicketNo, //体检卡号
-      orderId: this.state.searchorderNo,  //订单号查询
-      paymentNo: this.state.searchmchOrderIdChange, //流水号
+      userId: this.state.searchUserName.trim(), //用户id
+      ticketNo: this.state.searchTicketNo.trim(), //体检卡号
+      orderId: this.state.searchorderNo.trim(),  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange.trim(), //流水号
       refer: this.state.searchRefer, //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
@@ -288,16 +289,16 @@ class Category extends React.Component {
           : "",
     };
     this.props.actions.statementList(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody);
-      if (res.returnCode === "0") {
+      console.log("返回的什么：", res.data);
+      if (res.status === "0") {
         this.setState({
-          data5: res.messsageBody.result || [],
+          data5: res.data.result || [],
           pageNum,
           pageSize,
-          total5: res.messsageBody.total
+          total5: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -311,11 +312,11 @@ class Category extends React.Component {
       id: this.state.searchId,
       payType: this.state.searchPayType,
       orderStatus: this.state.searchConditions, //订单状态
-      userId: this.state.searchUserName, //用户id
+      userId: this.state.searchUserName.trim(), //用户id
       modelType:this.state.searchType,//产品型号
-      orderId: this.state.searchorderNo,  //订单号查询
-      paymentNo: this.state.searchmchOrderIdChange, //流水号
-      refer: this.state.searchRefer, //云平台工单号
+      orderId: this.state.searchorderNo.trim(),  //订单号查询
+      paymentNo: this.state.searchmchOrderIdChange.trim(), //流水号
+      refer: this.state.searchRefer.trim(), //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
           ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
@@ -325,16 +326,16 @@ class Category extends React.Component {
           : "",
     };
     this.props.actions.statementList(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody);
-      if (res.returnCode === "0") {
+      console.log("返回的什么：", res.data);
+      if (res.status === "0") {
         this.setState({
-          data6: res.messsageBody.result || [],
+          data6: res.data.result || [],
           pageNum,
           pageSize,
-          total6: res.messsageBody.total
+          total6: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -372,9 +373,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productTypes: res.messsageBody.result || []
+            productTypes: res.data.result || []
           });
         }
       });
@@ -517,20 +518,12 @@ class Category extends React.Component {
     }
     return `${s}${c}${q}`;
   }
-
-  //搜索 - 对账时间的变化
-  searchTime(v) {
-    this.setState({
-      searchTime: v,
-      searchEndTime: undefined,
-      searchBeginTime: undefined
-    });
-  }
+  
 
   //搜索 - 支付状态输入框值改变时触发
   searchNameChange(e) {
     this.setState({
-      searchName: e
+      searchName: e,
     });
   }
   
@@ -538,7 +531,8 @@ class Category extends React.Component {
   //搜索 - 订单状态改变时触发
   searchConditionsChange(e) {
     this.setState({
-      searchConditions: e
+      searchConditions: e,
+      innerHTML:''
     });
   }
 
@@ -585,38 +579,61 @@ class Category extends React.Component {
     });
   }
   
+  //搜索 -体检卡号
+  searchticketChange(v){
+    this.setState({
+      searchTicketNo: v.target.value
+    });
+  }
+  
+  
   //搜索 - 产品型号
   searchTypeChange(e){
     this.setState({
-      searchType: e
+      searchType: e.target.value
     });
   }
   
 
-  // 搜索 - 开始时间变化
+  // // 搜索 - 开始时间变化
+  // searchBeginTime(v) {
+  //   console.log("是什么：", v);
+  //   this.setState({
+  //     searchBeginTime: v,
+  //     searchTime: undefined
+  //   });
+  // }
+  //
+  // // 搜索 - 结束时间变化
+  // searchEndTime(v) {
+  //   console.log("触发：", v);
+  //   let date = v;
+  //   const now = new Date();
+  //   if (
+  //     v._d.getFullYear() === now.getFullYear() &&
+  //     v._d.getMonth() === now.getMonth() &&
+  //     v._d.getDate() === now.getDate()
+  //   ) {
+  //     date = moment();
+  //   }
+  //   this.setState({
+  //     searchEndTime: date,
+  //     searchTime: undefined
+  //   });
+  // }
+  
+  // 搜索 - 开始时间
   searchBeginTime(v) {
     console.log("是什么：", v);
     this.setState({
-      searchBeginTime: v,
-      searchTime: undefined
+      searchBeginTime: _.cloneDeep(v)
     });
   }
-
-  // 搜索 - 结束时间变化
+  
+  // 搜索 - 结束时间
   searchEndTime(v) {
-    console.log("触发：", v);
-    let date = v;
-    const now = new Date();
-    if (
-      v._d.getFullYear() === now.getFullYear() &&
-      v._d.getMonth() === now.getMonth() &&
-      v._d.getDate() === now.getDate()
-    ) {
-      date = moment();
-    }
     this.setState({
-      searchEndTime: date,
-      searchTime: undefined
+      searchEndTime: _.cloneDeep(v)
     });
   }
 
@@ -720,24 +737,24 @@ class Category extends React.Component {
       payType: this.state.searchPayType,
       orderStatus: this.state.searchConditions, //订单状态
       userId: this.state.searchUserName, //用户id
-      modelType: this.state.searchProductType, //产品类型
+      orderType: this.state.searchProductType, //产品类型
       orderId: this.state.searchorderNo,  //订单号查询
       paymentNo: this.state.searchmchOrderIdChange, //流水号
       refer: this.state.searchRefer, //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
-          : "",
+        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        : "",
       maxTime: this.state.searchEndTime
-          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
-          : "",
+        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        : "",
     };
     let form = document.getElementById("download-form");
     if (!form) {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
     form.method = "post";
     console.log("FORM:", params);
@@ -755,83 +772,90 @@ class Category extends React.Component {
     form.appendChild(newElement2);
 
     const newElement3 = document.createElement("input");
-    if (params.orderStatus) {
-      newElement3.setAttribute("name", "orderStatus");
+    if (params.id) {
+      newElement3.setAttribute("name", "id");
       newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.orderStatus);
+      newElement3.setAttribute("value", params.id);
       form.appendChild(newElement3);
     }
 
     const newElement4 = document.createElement("input");
-    if (params.userType) {
-      newElement4.setAttribute("name", "userType");
+    if (params.payType) {
+      newElement4.setAttribute("name", "payType");
       newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.userType);
+      newElement4.setAttribute("value", params.payType);
       form.appendChild(newElement4);
     }
 
     const newElement5 = document.createElement("input");
-    if (params.minTime) {
-      newElement5.setAttribute("name", "minTime");
+    if (params.orderStatus) {
+      newElement5.setAttribute("name", "orderStatus");
       newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.minTime);
+      newElement5.setAttribute("value", params.orderStatus);
       form.appendChild(newElement5);
     }
 
     const newElement6 = document.createElement("input");
-    if (params.maxTime) {
-      newElement6.setAttribute("name", "maxTime");
+    if (params.userId) {
+      newElement6.setAttribute("name", "userId");
       newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.maxTime);
+      newElement6.setAttribute("value", params.userId);
       form.appendChild(newElement6);
     }
 
     const newElement7 = document.createElement("input");
-    if (params.conditions) {
-      newElement7.setAttribute("name", "conditions");
+    if (params.orderType) {
+      newElement7.setAttribute("name", "orderType");
       newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.conditions);
+      newElement7.setAttribute("value", params.orderType);
       form.appendChild(newElement7);
     }
 
     const newElement8 = document.createElement("input");
-    if (params.payType) {
-      newElement8.setAttribute("name", "payType");
+    if (params.orderId) {
+      newElement8.setAttribute("name", "orderId");
       newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.payType);
+      newElement8.setAttribute("value", params.orderId);
       form.appendChild(newElement8);
     }
 
     const newElement9 = document.createElement("input");
-    if (params.userId) {
-      newElement9.setAttribute("name", "userId");
+    if (params.paymentNo) {
+      newElement9.setAttribute("name", "paymentNo");
       newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.userId);
+      newElement9.setAttribute("value", params.paymentNo);
       form.appendChild(newElement9);
     }
 
     const newElement10 = document.createElement("input");
-    if (params.productType) {
-      newElement10.setAttribute("name", "productType");
+    if (params.refer) {
+      newElement10.setAttribute("name", "refer");
       newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.productType);
+      newElement10.setAttribute("value", params.refer);
       form.appendChild(newElement10);
     }
 
     const newElement11 = document.createElement("input");
-    if (params.orderId) {
-      newElement11.setAttribute("name", "orderId");
+    if (params.activityType) {
+      newElement11.setAttribute("name", "activityType");
       newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.orderId);
+      newElement11.setAttribute("value", params.activityType);
       form.appendChild(newElement11);
     }
+  
+    const newElement12 = document.createElement("input");
+    if (params.maxTime) {
+      newElement12.setAttribute("name", "maxTime");
+      newElement12.setAttribute("type", "hidden");
+      newElement12.setAttribute("value", params.maxTime);
+      form.appendChild(newElement12);
+    }
     
-
     const newElement13 = document.createElement("input");
-    if (params.paymentNo) {
-      newElement13.setAttribute("name", "paymentNo");
+    if (params.minTime) {
+      newElement13.setAttribute("name", "minTime");
       newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.paymentNo);
+      newElement13.setAttribute("value", params.minTime);
       form.appendChild(newElement13);
     }
 
@@ -859,18 +883,18 @@ class Category extends React.Component {
       refer: this.state.searchRefer, //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
-          : "",
+        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        : "",
       maxTime: this.state.searchEndTime
-          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
-          : "",
+        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        : "",
     };
     let form = document.getElementById("download-form");
     if (!form) {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
     form.method = "post";
     console.log("FORM:", params);
@@ -886,93 +910,101 @@ class Category extends React.Component {
     newElement2.setAttribute("type", "hidden");
     newElement2.setAttribute("value", pageSize);
     form.appendChild(newElement2);
-    
+  
     const newElement3 = document.createElement("input");
-    if (params.orderStatus) {
-      newElement3.setAttribute("name", "orderStatus");
+    if (params.id) {
+      newElement3.setAttribute("name", "id");
       newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.orderStatus);
+      newElement3.setAttribute("value", params.id);
       form.appendChild(newElement3);
     }
-    
+  
     const newElement4 = document.createElement("input");
-    if (params.userType) {
-      newElement4.setAttribute("name", "userType");
+    if (params.payType) {
+      newElement4.setAttribute("name", "payType");
       newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.userType);
+      newElement4.setAttribute("value", params.payType);
       form.appendChild(newElement4);
     }
-    
+  
     const newElement5 = document.createElement("input");
-    if (params.minTime) {
-      newElement5.setAttribute("name", "minTime");
+    if (params.orderStatus) {
+      newElement5.setAttribute("name", "orderStatus");
       newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.minTime);
+      newElement5.setAttribute("value", params.orderStatus);
       form.appendChild(newElement5);
     }
-    
+  
     const newElement6 = document.createElement("input");
-    if (params.maxTime) {
-      newElement6.setAttribute("name", "maxTime");
+    if (params.userId) {
+      newElement6.setAttribute("name", "userId");
       newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.maxTime);
+      newElement6.setAttribute("value", params.userId);
       form.appendChild(newElement6);
     }
-    
+  
     const newElement7 = document.createElement("input");
-    if (params.conditions) {
-      newElement7.setAttribute("name", "conditions");
+    if (params.orderType) {
+      newElement7.setAttribute("name", "orderType");
       newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.conditions);
+      newElement7.setAttribute("value", "1");
       form.appendChild(newElement7);
     }
-    
+  
     const newElement8 = document.createElement("input");
-    if (params.payType) {
-      newElement8.setAttribute("name", "payType");
+    if (params.orderId) {
+      newElement8.setAttribute("name", "orderId");
       newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.payType);
+      newElement8.setAttribute("value", params.orderId);
       form.appendChild(newElement8);
     }
-    
+  
     const newElement9 = document.createElement("input");
-    if (params.userId) {
-      newElement9.setAttribute("name", "userId");
+    if (params.paymentNo) {
+      newElement9.setAttribute("name", "paymentNo");
       newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.userId);
+      newElement9.setAttribute("value", params.paymentNo);
       form.appendChild(newElement9);
     }
-    
+  
     const newElement10 = document.createElement("input");
-    if (params.productType) {
-      newElement10.setAttribute("name", "productType");
+    if (params.refer) {
+      newElement10.setAttribute("name", "refer");
       newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.productType);
+      newElement10.setAttribute("value", params.refer);
       form.appendChild(newElement10);
     }
-    
+  
     const newElement11 = document.createElement("input");
-    if (params.orderId) {
-      newElement11.setAttribute("name", "orderId");
+    if (params.activityType) {
+      newElement11.setAttribute("name", "activityType");
       newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.orderId);
+      newElement11.setAttribute("value", params.activityType);
       form.appendChild(newElement11);
     }
   
     const newElement12 = document.createElement("input");
-    if (params.orderType) {
-      newElement12.setAttribute("name", "orderType");
+    if (params.maxTime) {
+      newElement12.setAttribute("name", "maxTime");
       newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", "1");
+      newElement12.setAttribute("value", params.maxTime);
       form.appendChild(newElement12);
     }
-    
+  
     const newElement13 = document.createElement("input");
-    if (params.paymentNo) {
-      newElement13.setAttribute("name", "paymentNo");
+    if (params.minTime) {
+      newElement13.setAttribute("name", "minTime");
       newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.paymentNo);
+      newElement13.setAttribute("value", params.minTime);
       form.appendChild(newElement13);
+    }
+  
+    const newElement14 = document.createElement("input");
+    if (params.modelType) {
+      newElement14.setAttribute("name", "modelType");
+      newElement14.setAttribute("type", "hidden");
+      newElement14.setAttribute("value", params.modelType);
+      form.appendChild(newElement14);
     }
     
     form.submit();
@@ -1010,7 +1042,7 @@ class Category extends React.Component {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
     form.method = "post";
     console.log("FORM:", params);
@@ -1026,93 +1058,101 @@ class Category extends React.Component {
     newElement2.setAttribute("type", "hidden");
     newElement2.setAttribute("value", pageSize);
     form.appendChild(newElement2);
-    
+  
     const newElement3 = document.createElement("input");
-    if (params.orderStatus) {
-      newElement3.setAttribute("name", "orderStatus");
+    if (params.id) {
+      newElement3.setAttribute("name", "id");
       newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.orderStatus);
+      newElement3.setAttribute("value", params.id);
       form.appendChild(newElement3);
     }
-    
+  
     const newElement4 = document.createElement("input");
-    if (params.userType) {
-      newElement4.setAttribute("name", "userType");
+    if (params.payType) {
+      newElement4.setAttribute("name", "payType");
       newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.userType);
+      newElement4.setAttribute("value", params.payType);
       form.appendChild(newElement4);
     }
-    
+  
     const newElement5 = document.createElement("input");
-    if (params.minTime) {
-      newElement5.setAttribute("name", "minTime");
+    if (params.orderStatus) {
+      newElement5.setAttribute("name", "orderStatus");
       newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.minTime);
+      newElement5.setAttribute("value", params.orderStatus);
       form.appendChild(newElement5);
     }
-    
+  
     const newElement6 = document.createElement("input");
-    if (params.maxTime) {
-      newElement6.setAttribute("name", "maxTime");
+    if (params.userId) {
+      newElement6.setAttribute("name", "userId");
       newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.maxTime);
+      newElement6.setAttribute("value", params.userId);
       form.appendChild(newElement6);
     }
-    
+  
     const newElement7 = document.createElement("input");
-    if (params.conditions) {
-      newElement7.setAttribute("name", "conditions");
+    if (params.orderType) {
+      newElement7.setAttribute("name", "orderType");
       newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.conditions);
+      newElement7.setAttribute("value", "2");
       form.appendChild(newElement7);
     }
-    
+  
     const newElement8 = document.createElement("input");
-    if (params.payType) {
-      newElement8.setAttribute("name", "payType");
+    if (params.orderId) {
+      newElement8.setAttribute("name", "orderId");
       newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.payType);
+      newElement8.setAttribute("value", params.orderId);
       form.appendChild(newElement8);
     }
-    
+  
     const newElement9 = document.createElement("input");
-    if (params.userId) {
-      newElement9.setAttribute("name", "userId");
+    if (params.paymentNo) {
+      newElement9.setAttribute("name", "paymentNo");
       newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.userId);
+      newElement9.setAttribute("value", params.paymentNo);
       form.appendChild(newElement9);
     }
-    
+  
     const newElement10 = document.createElement("input");
-    if (params.productType) {
-      newElement10.setAttribute("name", "productType");
+    if (params.refer) {
+      newElement10.setAttribute("name", "refer");
       newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.productType);
+      newElement10.setAttribute("value", params.refer);
       form.appendChild(newElement10);
     }
-    
+  
     const newElement11 = document.createElement("input");
-    if (params.orderId) {
-      newElement11.setAttribute("name", "orderId");
+    if (params.activityType) {
+      newElement11.setAttribute("name", "activityType");
       newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.orderId);
+      newElement11.setAttribute("value", params.activityType);
       form.appendChild(newElement11);
     }
-    
+  
     const newElement12 = document.createElement("input");
-    if (params.orderType) {
-      newElement12.setAttribute("name", "orderType");
+    if (params.maxTime) {
+      newElement12.setAttribute("name", "maxTime");
       newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", "2");
+      newElement12.setAttribute("value", params.maxTime);
       form.appendChild(newElement12);
     }
-    
+  
     const newElement13 = document.createElement("input");
-    if (params.paymentNo) {
-      newElement13.setAttribute("name", "paymentNo");
+    if (params.minTime) {
+      newElement13.setAttribute("name", "minTime");
       newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.paymentNo);
+      newElement13.setAttribute("value", params.minTime);
       form.appendChild(newElement13);
+    }
+  
+    const newElement14 = document.createElement("input");
+    if (params.modelType) {
+      newElement14.setAttribute("name", "modelType");
+      newElement14.setAttribute("type", "hidden");
+      newElement14.setAttribute("value", params.modelType);
+      form.appendChild(newElement14);
     }
     
     form.submit();
@@ -1150,7 +1190,7 @@ class Category extends React.Component {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
     form.method = "post";
     console.log("FORM:", params);
@@ -1166,93 +1206,101 @@ class Category extends React.Component {
     newElement2.setAttribute("type", "hidden");
     newElement2.setAttribute("value", pageSize);
     form.appendChild(newElement2);
-    
+  
     const newElement3 = document.createElement("input");
-    if (params.orderStatus) {
-      newElement3.setAttribute("name", "orderStatus");
+    if (params.id) {
+      newElement3.setAttribute("name", "id");
       newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.orderStatus);
+      newElement3.setAttribute("value", params.id);
       form.appendChild(newElement3);
     }
-    
+  
     const newElement4 = document.createElement("input");
-    if (params.userType) {
-      newElement4.setAttribute("name", "userType");
+    if (params.payType) {
+      newElement4.setAttribute("name", "payType");
       newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.userType);
+      newElement4.setAttribute("value", params.payType);
       form.appendChild(newElement4);
     }
-    
+  
     const newElement5 = document.createElement("input");
-    if (params.minTime) {
-      newElement5.setAttribute("name", "minTime");
+    if (params.orderStatus) {
+      newElement5.setAttribute("name", "orderStatus");
       newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.minTime);
+      newElement5.setAttribute("value", params.orderStatus);
       form.appendChild(newElement5);
     }
-    
+  
     const newElement6 = document.createElement("input");
-    if (params.maxTime) {
-      newElement6.setAttribute("name", "maxTime");
+    if (params.userId) {
+      newElement6.setAttribute("name", "userId");
       newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.maxTime);
+      newElement6.setAttribute("value", params.userId);
       form.appendChild(newElement6);
     }
-    
+  
     const newElement7 = document.createElement("input");
-    if (params.conditions) {
-      newElement7.setAttribute("name", "conditions");
+    if (params.orderType) {
+      newElement7.setAttribute("name", "orderType");
       newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.conditions);
+      newElement7.setAttribute("value", "3");
       form.appendChild(newElement7);
     }
-    
+  
     const newElement8 = document.createElement("input");
-    if (params.payType) {
-      newElement8.setAttribute("name", "payType");
+    if (params.orderId) {
+      newElement8.setAttribute("name", "orderId");
       newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.payType);
+      newElement8.setAttribute("value", params.orderId);
       form.appendChild(newElement8);
     }
-    
+  
     const newElement9 = document.createElement("input");
-    if (params.userId) {
-      newElement9.setAttribute("name", "userId");
+    if (params.paymentNo) {
+      newElement9.setAttribute("name", "paymentNo");
       newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.userId);
+      newElement9.setAttribute("value", params.paymentNo);
       form.appendChild(newElement9);
     }
-    
+  
     const newElement10 = document.createElement("input");
-    if (params.productType) {
-      newElement10.setAttribute("name", "productType");
+    if (params.refer) {
+      newElement10.setAttribute("name", "refer");
       newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.productType);
+      newElement10.setAttribute("value", params.refer);
       form.appendChild(newElement10);
     }
-    
+  
     const newElement11 = document.createElement("input");
-    if (params.orderId) {
-      newElement11.setAttribute("name", "orderId");
+    if (params.activityType) {
+      newElement11.setAttribute("name", "activityType");
       newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.orderId);
+      newElement11.setAttribute("value", params.activityType);
       form.appendChild(newElement11);
     }
-    
+  
     const newElement12 = document.createElement("input");
-    if (params.orderType) {
-      newElement12.setAttribute("name", "orderType");
+    if (params.maxTime) {
+      newElement12.setAttribute("name", "maxTime");
       newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", "3");
+      newElement12.setAttribute("value", params.maxTime);
       form.appendChild(newElement12);
     }
-    
+  
     const newElement13 = document.createElement("input");
-    if (params.paymentNo) {
-      newElement13.setAttribute("name", "paymentNo");
+    if (params.minTime) {
+      newElement13.setAttribute("name", "minTime");
       newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.paymentNo);
+      newElement13.setAttribute("value", params.minTime);
       form.appendChild(newElement13);
+    }
+  
+    const newElement14 = document.createElement("input");
+    if (params.modelType) {
+      newElement14.setAttribute("name", "modelType");
+      newElement14.setAttribute("type", "hidden");
+      newElement14.setAttribute("value", params.modelType);
+      form.appendChild(newElement14);
     }
     
     form.submit();
@@ -1271,27 +1319,23 @@ class Category extends React.Component {
       orderType:5,
       modelType:'M',
       id: this.state.searchId,
-      payType: this.state.searchPayType,
-      orderStatus: this.state.searchConditions, //订单状态
       userId: this.state.searchUserName, //用户id
-      modelType:this.state.searchType,//产品型号
       orderId: this.state.searchorderNo,  //订单号查询
       paymentNo: this.state.searchmchOrderIdChange, //流水号
-      refer: this.state.searchRefer, //云平台工单号
-      activityType: this.state.searchActivity,
+      ticketNo: this.state.searchTicketNo, //体检卡号
       minTime: this.state.searchBeginTime
-          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
-          : "",
+        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        : "",
       maxTime: this.state.searchEndTime
-          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
-          : "",
+        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        : "",
     };
     let form = document.getElementById("download-form");
     if (!form) {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
     form.method = "post";
     console.log("FORM:", params);
@@ -1309,99 +1353,75 @@ class Category extends React.Component {
     form.appendChild(newElement2);
     
     const newElement3 = document.createElement("input");
-    if (params.orderStatus) {
-      newElement3.setAttribute("name", "orderStatus");
+    if (params.orderType) {
+      newElement3.setAttribute("name", "orderType");
       newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.orderStatus);
+      newElement3.setAttribute("value", "5");
       form.appendChild(newElement3);
     }
     
     const newElement4 = document.createElement("input");
-    if (params.userType) {
-      newElement4.setAttribute("name", "userType");
+    if (params.modelType) {
+      newElement4.setAttribute("name", "modelType");
       newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.userType);
+      newElement4.setAttribute("value", "M");
       form.appendChild(newElement4);
     }
     
     const newElement5 = document.createElement("input");
-    if (params.minTime) {
-      newElement5.setAttribute("name", "minTime");
+    if (params.id) {
+      newElement5.setAttribute("name", "id");
       newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.minTime);
+      newElement5.setAttribute("value", params.id);
       form.appendChild(newElement5);
     }
     
     const newElement6 = document.createElement("input");
-    if (params.maxTime) {
-      newElement6.setAttribute("name", "maxTime");
+    if (params.userId) {
+      newElement6.setAttribute("name", "userId");
       newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.maxTime);
+      newElement6.setAttribute("value", params.userId);
       form.appendChild(newElement6);
     }
     
     const newElement7 = document.createElement("input");
-    if (params.conditions) {
-      newElement7.setAttribute("name", "conditions");
+    if (params.orderId) {
+      newElement7.setAttribute("name", "orderId");
       newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.conditions);
+      newElement7.setAttribute("value", params.orderId);
       form.appendChild(newElement7);
     }
     
     const newElement8 = document.createElement("input");
-    if (params.payType) {
-      newElement8.setAttribute("name", "payType");
+    if (params.paymentNo) {
+      newElement8.setAttribute("name", "paymentNo");
       newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.payType);
+      newElement8.setAttribute("value", params.paymentNo);
       form.appendChild(newElement8);
     }
     
     const newElement9 = document.createElement("input");
-    if (params.userId) {
-      newElement9.setAttribute("name", "userId");
+    if (params.ticketNo) {
+      newElement9.setAttribute("name", "ticketNo");
       newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.userId);
+      newElement9.setAttribute("value", params.ticketNo);
       form.appendChild(newElement9);
     }
-    
+  
     const newElement10 = document.createElement("input");
-    if (params.productType) {
-      newElement10.setAttribute("name", "productType");
+    if (params.maxTime) {
+      newElement10.setAttribute("name", "maxTime");
       newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.productType);
+      newElement10.setAttribute("value", params.maxTime);
       form.appendChild(newElement10);
     }
-    
-    const newElement11 = document.createElement("input");
-    if (params.orderId) {
-      newElement11.setAttribute("name", "orderId");
-      newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.orderId);
-      form.appendChild(newElement11);
-    }
-    
-    const newElement12 = document.createElement("input");
-    if (params.orderType) {
-      newElement12.setAttribute("name", "orderType");
-      newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", "5");
-      form.appendChild(newElement12);
-    }
-    
-    const newElement13 = document.createElement("input");
-    if (params.paymentNo) {
-      newElement13.setAttribute("name", "paymentNo");
-      newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.paymentNo);
-      form.appendChild(newElement13);
-    }
   
-    const newElement14 = document.createElement("input");
-    if (params.modelType) {
-      newElement14.setAttribute("name", "modelType");
-      newElement14.setAttribute("type", "hidden");
-      newElement14.setAttribute("value", "M");
-      form.appendChild(newElement14);
+    const newElement11 = document.createElement("input");
+    if (params.minTime) {
+      newElement11.setAttribute("name", "minTime");
+      newElement11.setAttribute("type", "hidden");
+      newElement11.setAttribute("value", params.minTime);
+      form.appendChild(newElement11);
     }
     
     form.submit();
@@ -1419,27 +1439,23 @@ class Category extends React.Component {
       pageSize,
       orderType:5,
       id: this.state.searchId,
-      payType: this.state.searchPayType,
-      orderStatus: this.state.searchConditions, //订单状态
       userId: this.state.searchUserName, //用户id
       modelType:this.state.searchType,//产品型号
       orderId: this.state.searchorderNo,  //订单号查询
       paymentNo: this.state.searchmchOrderIdChange, //流水号
-      refer: this.state.searchRefer, //云平台工单号
-      activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
-          : "",
+        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        : "",
       maxTime: this.state.searchEndTime
-          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
-          : "",
+        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        : "",
     };
     let form = document.getElementById("download-form");
     if (!form) {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
     form.method = "post";
     console.log("FORM:", params);
@@ -1457,18 +1473,18 @@ class Category extends React.Component {
     form.appendChild(newElement2);
     
     const newElement3 = document.createElement("input");
-    if (params.orderStatus) {
-      newElement3.setAttribute("name", "orderStatus");
+    if (params.id) {
+      newElement3.setAttribute("name", "id");
       newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.orderStatus);
+      newElement3.setAttribute("value", params.id);
       form.appendChild(newElement3);
     }
     
     const newElement4 = document.createElement("input");
-    if (params.userType) {
-      newElement4.setAttribute("name", "userType");
+    if (params.modelType) {
+      newElement4.setAttribute("name", "modelType");
       newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.userType);
+      newElement4.setAttribute("value", params.modelType);
       form.appendChild(newElement4);
     }
     
@@ -1488,22 +1504,6 @@ class Category extends React.Component {
       form.appendChild(newElement6);
     }
     
-    const newElement7 = document.createElement("input");
-    if (params.conditions) {
-      newElement7.setAttribute("name", "conditions");
-      newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.conditions);
-      form.appendChild(newElement7);
-    }
-    
-    const newElement8 = document.createElement("input");
-    if (params.payType) {
-      newElement8.setAttribute("name", "payType");
-      newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.payType);
-      form.appendChild(newElement8);
-    }
-    
     const newElement9 = document.createElement("input");
     if (params.userId) {
       newElement9.setAttribute("name", "userId");
@@ -1513,10 +1513,10 @@ class Category extends React.Component {
     }
     
     const newElement10 = document.createElement("input");
-    if (params.productType) {
-      newElement10.setAttribute("name", "productType");
+    if (params.paymentNo) {
+      newElement10.setAttribute("name", "paymentNo");
       newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.productType);
+      newElement10.setAttribute("value", params.paymentNo);
       form.appendChild(newElement10);
     }
     
@@ -1529,20 +1529,11 @@ class Category extends React.Component {
     }
     
     const newElement12 = document.createElement("input");
-    if (params.orderType) {
       newElement12.setAttribute("name", "orderType");
       newElement12.setAttribute("type", "hidden");
       newElement12.setAttribute("value", "5");
       form.appendChild(newElement12);
-    }
     
-    const newElement13 = document.createElement("input");
-    if (params.paymentNo) {
-      newElement13.setAttribute("name", "paymentNo");
-      newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.paymentNo);
-      form.appendChild(newElement13);
-    }
       form.submit();
   }
 
@@ -1652,8 +1643,8 @@ class Category extends React.Component {
       },
       {
         title: "支付时间",
-        dataIndex: "createTime",
-        key: "createTime"
+        dataIndex: "payTime",
+        key: "payTime"
       },
       {
         title: "流水号",
@@ -1734,8 +1725,8 @@ class Category extends React.Component {
       },
       {
         title: "支付时间",
-        dataIndex: "createTime",
-        key: "createTime"
+        dataIndex: "payTime",
+        key: "payTime"
       },
       {
         title: "流水号",
@@ -1821,8 +1812,8 @@ class Category extends React.Component {
       },
       {
         title: "支付时间",
-        dataIndex: "createTime",
-        key: "createTime"
+        dataIndex: "payTime",
+        key: "payTime"
       },
       {
         title: "流水号",
@@ -1908,8 +1899,8 @@ class Category extends React.Component {
       },
       {
         title: "支付时间",
-        dataIndex: "createTime",
-        key: "createTime"
+        dataIndex: "payTime",
+        key: "payTime"
       },
       {
         title: "流水号",
@@ -1929,15 +1920,15 @@ class Category extends React.Component {
         render: (text, record) => {
           const controls = [];
           controls.push(
-              <span
-                  key="0"
-                  className="control-btn green"
-                  onClick={() => this.onQueryClick(record)}
-              >
-            <Tooltip placement="top" title="详情">
-              <Icon type="eye" />
-            </Tooltip>
-            </span>
+            <span
+              key="0"
+              className="control-btn green"
+              onClick={() => this.onQueryClick(record)}
+            >
+          <Tooltip placement="top" title="详情">
+            <Icon type="eye" />
+          </Tooltip>
+          </span>
           );
           const result = [];
           controls.forEach((item, index) => {
@@ -1995,8 +1986,8 @@ class Category extends React.Component {
       },
       {
         title: "支付时间",
-        dataIndex: "createTime",
-        key: "createTime"
+        dataIndex: "payTime",
+        key: "payTime"
       },
       {
         title: "流水号",
@@ -2056,7 +2047,7 @@ class Category extends React.Component {
         payType: item.payType,
         orderNo: item.orderId,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
-        createTime: item.payTime, //支付时间
+        createTime: item.orderTime, //下单时间
         name: item.product ? item.product.name : "",
         modelId: item.product ? item.product.typeCode : "",
         typeId: item.productType,
@@ -2250,6 +2241,7 @@ class Category extends React.Component {
                       icon="download"
                       type="primary"
                       onClick={() => this.onExport()}
+                      // initloading={this.state.exportLoading}
                     >
                       导出
                     </Button>
@@ -2318,9 +2310,9 @@ class Category extends React.Component {
                   <FormItem label="流水号" {...formItemLayout}>
                     {!!this.state.nowData ? this.state.nowData.mchOrderId : ""}
                   </FormItem>
-                  {/*<FormItem label="下单时间" {...formItemLayout}>*/}
-                    {/*{!!this.state.nowData ? this.state.nowData.createTime : ""}*/}
-                  {/*</FormItem>*/}
+                  <FormItem label="下单时间" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.createTime : ""}
+                  </FormItem>
                   <FormItem label="支付方式" {...formItemLayout}>
                     {!!this.state.nowData ? this.state.nowData.payType : ""}
                   </FormItem>
@@ -2345,10 +2337,10 @@ class Category extends React.Component {
                   <li>
                     <span>订单号查询</span>
                     <Input
-                        style={{ width: "172px" }}
-                        suffix={suffix}
-                        value={searchorderNo}
-                        onChange={e => this.searchOrderNoChange(e)}
+                      style={{ width: "172px" }}
+                      suffix={suffix}
+                      value={searchorderNo}
+                      onChange={e => this.searchOrderNoChange(e)}
                     />
                   </li>
                   <li>
@@ -2897,7 +2889,7 @@ class Category extends React.Component {
                     <Button
                         icon="search"
                         type="primary"
-                        onClick={() => this.onSearch5()}
+                        onClick={() => this.onSearch4()}
                     >
                       搜索
                     </Button>
@@ -3058,9 +3050,9 @@ class Category extends React.Component {
                     <span>体检卡号</span>
                     <Input
                       style={{ width: "172px" }}
-                      suffix={suffix4}
-                      value={searchRefer}
-                      onChange={e => this.searchReferChange(e)}
+                      // suffix={suffix4}
+                      // value={searchticketNo}
+                      onChange={v => this.searchticketChange(v)}
                     />
                   </li>
                   <li>
@@ -3104,7 +3096,7 @@ class Category extends React.Component {
                     <Button
                       icon="search"
                       type="primary"
-                      onClick={() => this.onSearch4()}
+                      onClick={() => this.onSearch5()}
                     >
                       搜索
                     </Button>
@@ -3118,8 +3110,6 @@ class Category extends React.Component {
                       导出
                     </Button>
                   </li>
-                  <Spin tip="Loading..." delay="6s">
-                  </Spin>
                 </ul>
               </div>
               <div className="system-table">
@@ -3229,20 +3219,20 @@ class Category extends React.Component {
                   <li>
                     <span style={{ marginRight: "10px" }}>支付时间</span>
                     <DatePicker
-                        showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
-                        format="YYYY-MM-DD HH:mm:ss"
-                        placeholder="开始时间"
-                        onChange={e => this.searchBeginTime(e)}
-                        onOk={onOk}
+                      showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                      format="YYYY-MM-DD HH:mm:ss"
+                      placeholder="开始时间"
+                      onChange={e => this.searchBeginTime(e)}
+                      onOk={onOk}
                     />
                     --
                     <DatePicker
-                        showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
-                        format="YYYY-MM-DD HH:mm:ss"
-                        placeholder="结束时间"
-                        value={this.state.searchEndTime}
-                        onChange={e => this.searchEndTime(e)}
-                        onOk={onOk}
+                      showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                      format="YYYY-MM-DD HH:mm:ss"
+                      placeholder="结束时间"
+                      value={this.state.searchEndTime}
+                      onChange={e => this.searchEndTime(e)}
+                      onOk={onOk}
                     />
                   </li>
                   <li>
@@ -3274,9 +3264,9 @@ class Category extends React.Component {
                   </li>
                   <li>
                     <Button
-                        icon="download"
-                        type="primary"
-                        onClick={() => this.onExport6()}
+                      icon="download"
+                      type="primary"
+                      onClick={() => this.onExport6()}
                     >
                       导出
                     </Button>
@@ -3285,18 +3275,18 @@ class Category extends React.Component {
               </div>
               <div className="system-table">
                 <Table
-                    columns={this.makeColumns4()}
-                    dataSource={this.makeData(this.state.data6)}
-                    scroll={{ x: 1800 }}
-                    pagination={{
-                      total: this.state.total6,
-                      current: this.state.pageNum,
-                      pageSize: this.state.pageSize,
-                      showQuickJumper: true,
-                      showTotal: (total, range) => `共 ${total} 条数据`,
-                      onChange: (page, pageSize) =>
-                          this.onTablePageChange6(page, pageSize)
-                    }}
+                  columns={this.makeColumns4()}
+                  dataSource={this.makeData(this.state.data6)}
+                  scroll={{ x: 1800 }}
+                  pagination={{
+                    total: this.state.total6,
+                    current: this.state.pageNum,
+                    pageSize: this.state.pageSize,
+                    showQuickJumper: true,
+                    showTotal: (total, range) => `共 ${total} 条数据`,
+                    onChange: (page, pageSize) =>
+                      this.onTablePageChange6(page, pageSize)
+                  }}
                 />
               </div>
               {/* 查看详情模态框 */}

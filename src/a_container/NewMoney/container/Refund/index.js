@@ -119,12 +119,12 @@ class Category extends React.Component {
       pageSize,
       id: this.state.searchId,
       conditions: this.state.searchConditions, //退款状态
-      userId: this.state.searchUserName,
+      userId: this.state.searchUserName.trim(),
       productType: this.state.searchProductType,
-      orderNo: this.state.searchorderNo,
+      orderNo: this.state.searchorderNo.trim(),
       minPrice: this.state.searchMinPrice,
       maxPrice: this.state.searchMaxPrice,
-      mchOrderId: this.state.searchmchOrderIdChange,
+      mchOrderId: this.state.searchmchOrderIdChange.trim(),
       userType: this.state.searchType,
       activityType: this.state.searchActivity,
       refundBeginTime: this.state.searchrefundBeginTime
@@ -141,13 +141,13 @@ class Category extends React.Component {
         : ""
     };
     this.props.actions.refundList(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody);
-      if (res.returnCode === "0") {
+      console.log("返回的什么：", res.data);
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       }
     });
@@ -162,7 +162,7 @@ class Category extends React.Component {
       userType: this.state.searchUserType,
       withdrawType: this.state.searchWithdrawType,
       id: this.state.searchId,
-      orderNo: this.state.searchorderNo,
+      orderNo: this.state.searchorderNo.trim(),
       operation:this.state.searchFlagChange,
       partnerTradeNo: this.state.searchPartnerTradeNo,
       beginTime: this.state.searchOperationBegin
@@ -173,12 +173,12 @@ class Category extends React.Component {
         : ""
     };
     this.props.actions.AuditLog(tools.clearNull(params)).then(res => {
-      if (res.returnCode === '0') {
+      if (res.status === '0') {
         this.setState({
-          data2: res.messsageBody.result || [],
+          data2: res.data.result || [],
           pageNum,
           pageSize,
-          total2: res.messsageBody.total
+          total2: res.data.total
         });
       }
     });
@@ -203,9 +203,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productTypes: res.messsageBody.result || []
+            productTypes: res.data.result || []
           });
         }
       });
@@ -500,7 +500,7 @@ class Category extends React.Component {
     this.onExportData(this.state.pageNum, this.state.pageSize);
   }
 
-  // 导出订单对账列表数据
+  // 导出退款记录列表数据
   onExportData(pageNum, pageSize) {
     const params = {
       pageNum,
@@ -509,23 +509,23 @@ class Category extends React.Component {
       conditions: this.state.searchConditions, //退款状态
       userId: this.state.searchUserName,
       productType: this.state.searchProductType,
-      orderNo: this.state.searchorderNo,
+      orderNo: this.state.searchorderNo.trim(),
       minPrice: this.state.searchMinPrice,
       maxPrice: this.state.searchMaxPrice,
       mchOrderId: this.state.searchmchOrderIdChange,
       userType: this.state.searchType,
       activityType: this.state.searchActivity,
       refundBeginTime: this.state.searchrefundBeginTime
-        ? `${tools.dateToStrD(this.state.searchrefundBeginTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)} `
         : "",
       refundEndTime: this.state.searchrefundEndTime
-        ? `${tools.dateToStrD(this.state.searchrefundEndTime._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)} `
         : "",
       beginTime: this.state.searchTime
-        ? `${tools.dateToStrD(this.state.searchTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchTime.utc()._d)}`
         : "",
       endTime: this.state.searchTime2
-        ? `${tools.dateToStrD(this.state.searchTime2._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchTime2.utc()._d)} `
         : ""
     };
     let form = document.getElementById("download-form");
@@ -533,7 +533,7 @@ class Category extends React.Component {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/order/refundExport`;
     form.method = "post";
     console.log("FORM:", params);
@@ -685,11 +685,11 @@ class Category extends React.Component {
     this.props.actions
       .refundAuditEgis(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功", 1);
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -784,6 +784,11 @@ class Category extends React.Component {
         dataIndex: "auditTime",
         key: "auditTime"
       },
+      // {
+      //   title:'退款审核时间',
+      //   dataIndex:'',
+      //   key:'',
+      // },
       {
         title: "流水号",
         dataIndex: "mchOrderId",
@@ -798,6 +803,7 @@ class Category extends React.Component {
         title: "操作",
         key: "control",
         fixed: "right",
+        width: 100 ,
         render: (text, record) => {
           const controls = [];
           record.activityStatus === 5 &&
@@ -1096,6 +1102,24 @@ class Category extends React.Component {
                             onOk={onOk}
                         />
                       </li>
+                      {/*<li>*/}
+                        {/*<span style={{ marginRight: "10px" }}>退款审核时间</span>*/}
+                        {/*<DatePicker*/}
+                          {/*showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}*/}
+                          {/*format="YYYY-MM-DD HH:mm:ss"*/}
+                          {/*placeholder="开始时间"*/}
+                          {/*onChange={e => this.searchRefundBeginTime(e)}*/}
+                          {/*onOk={onOk}*/}
+                        {/*/>*/}
+                        {/*--*/}
+                        {/*<DatePicker*/}
+                          {/*showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}*/}
+                          {/*format="YYYY-MM-DD HH:mm:ss"*/}
+                          {/*placeholder="结束时间"*/}
+                          {/*onChange={e => this.searchRefundEndTime(e)}*/}
+                          {/*onOk={onOk}*/}
+                        {/*/>*/}
+                      {/*</li>*/}
                       <li>
                         <span>流水号查询</span>
                         <Input
@@ -1133,25 +1157,25 @@ class Category extends React.Component {
                           搜索
                         </Button>
                       </li>
-                      <Button icon="download" type="primary" onClick={()=>this.onExport()}>
+                      <Button icon="download" type="primary" onClick={()=>this.onExport()} style={{marginTop:'2px'}}>
                         导出
                       </Button>
                     </ul>
                   </div>
                   <div className="system-table">
                     <Table
-                        columns={this.makeColumns()}
-                        dataSource={this.makeData(this.state.data)}
-                        scroll={{ x: 2000 }}
-                        pagination={{
-                            total: this.state.total,
-                            current: this.state.pageNum,
-                            pageSize: this.state.pageSize,
-                            showQuickJumper: true,
-                            showTotal: (total, range) => `共 ${total} 条数据`,
-                            onChange: (page, pageSize) =>
-                                this.onTablePageChange(page, pageSize)
-                        }}
+                      columns={this.makeColumns()}
+                      dataSource={this.makeData(this.state.data)}
+                      scroll={{ x: 2500 }}
+                      pagination={{
+                        total: this.state.total,
+                        current: this.state.pageNum,
+                        pageSize: this.state.pageSize,
+                        showQuickJumper: true,
+                        showTotal: (total, range) => `共 ${total} 条数据`,
+                        onChange: (page, pageSize) =>
+                          this.onTablePageChange(page, pageSize)
+                      }}
                     />
                   </div>
                 </div>
@@ -1212,10 +1236,13 @@ class Category extends React.Component {
                         {!!this.state.nowData ? this.state.nowData.mchOrderId : ""}
                     </FormItem>
                     <FormItem label="申请退款时间" {...formItemLayout}>
-                        {!!this.state.nowData ? this.state.nowData.auditTime : ""}
+                      {!!this.state.nowData ? this.state.nowData.auditTime : ""}
                     </FormItem>
+                    {/*<FormItem label="退款审核时间" {...formItemLayout}>*/}
+                      {/*/!*{!!this.state.nowData ? this.state.nowData.auditTime : ""}*!/*/}
+                    {/*</FormItem>*/}
                     <FormItem label="退款到账时间" {...formItemLayout}>
-                        {!!this.state.nowData ? this.state.nowData.theAccountTime : ""}
+                      {!!this.state.nowData ? this.state.nowData.theAccountTime : ""}
                     </FormItem>
                     <FormItem
                         label="审核时间"

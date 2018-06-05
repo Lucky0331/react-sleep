@@ -88,8 +88,8 @@ class Manager extends React.Component {
       addOrUp: "add", // 当前操作是新增还是修改
       citys: [], // 所有的省
       stations: [], // 当前服务站地区所对应的服务站
-      searchBindingBeginTime: "", //搜索 - 开始绑定时间
-      searchBindingEndTime: "", //搜搜 - 结束绑定时间
+      searchBeginTime: "", //搜索 - 领取开始时间
+      searchEndTime: "", //搜搜 - 领取结束时间
       searchCashId: "", //搜索 - 领取人id
       ticketCount:'' ,  //总共持有多少张优惠卡
       total:'',   //赠送出去多少张优惠卡
@@ -146,8 +146,8 @@ class Manager extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -212,25 +212,19 @@ class Manager extends React.Component {
       endTime: this.state.searchEndTime
         ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59 `
         : "",
-      bindBeginTime: this.state.searchBindingBeginTime
-        ? `${tools.dateToStrD(this.state.searchBindingBeginTime._d)} 00:00:00`
-        : "",
-      bindEndTime: this.state.searchBindingEndTime
-        ? `${tools.dateToStrD(this.state.searchBindingEndTime._d)} 23:59:59`
-        : ""
     };
 
     this.props.actions.CardList(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.htlcBasePage.result || [],
+          data: res.data.htlcBasePage.result || [],
           pageNum,
           pageSize,
-          ticketCount:res.messsageBody.ticketCount || 0,   //累计持有的优惠卡数
-          total: res.messsageBody.htlcBasePage.total || 0  //赠送总数
+          ticketCount:res.data.ticketCount || 0,   //累计持有的优惠卡数
+          total: res.data.htlcBasePage.total || 0  //赠送总数
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -253,18 +247,19 @@ class Manager extends React.Component {
       queryModalShow: false
     });
   }
-
-  // 搜索 - 开始时间变化
-  searchBeginTime(v) {
+  
+  // 搜索 - 开始时间
+  searchBeginChange(v) {
+    console.log("是什么：", v);
     this.setState({
-      searchBeginTime: v
+      searchBeginTime: _.cloneDeep(v)
     });
   }
-
-  // 搜索 - 结束时间变化
-  searchEndTime(v) {
+  
+  // 搜索 - 结束时间
+  searchEndChange(v) {
     this.setState({
-      searchEndTime: v
+      searchEndTime: _.cloneDeep(v)
     });
   }
 
@@ -406,8 +401,8 @@ class Manager extends React.Component {
               </span>
               <Input
                 style={{ width: "172px" }}
-                // suffix={suffix}
-                // value={searchCashId}
+                suffix={suffix}
+                value={searchCashId}
                 onChange={e => this.onSearchCashId(e)}
               />
             </li>
@@ -419,7 +414,7 @@ class Manager extends React.Component {
                 showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
                 format="YYYY-MM-DD HH:mm:ss"
                 placeholder="开始时间"
-                // onChange={e => this.searchBindingBeginTimeChange(e)}
+                onChange={e => this.searchBeginChange(e)}
                 onOk={onOk}
               />
               --
@@ -427,7 +422,7 @@ class Manager extends React.Component {
                 showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
                 format="YYYY-MM-DD HH:mm:ss"
                 placeholder="结束时间"
-                // onChange={e => this.searchBindingEndTimeChange(e)}
+                onChange={e => this.searchEndChange(e)}
                 onOk={onOk}
               />
             </li>

@@ -22,7 +22,7 @@ const tools = {
    * 标准日期转字符串年月日，时分秒
    * */
   dateToStr(date) {
-      console.log('穿进来：', `${date.getMonth() + 1}`);
+    console.log('穿进来：', `${date.getMonth() + 1}`);
     if (!date) {
       return "";
     }
@@ -108,6 +108,26 @@ const tools = {
     }
     return `${date.getFullYear()}-${m}-${d}`;
   },
+  
+  /** 将标准格式字符串进行日期格式化 预约体检传生日的**/
+  dateforNull(str) {
+    if (!str) {
+      return "";
+    }
+    let date = str;
+    if (!(str instanceof Date)) {
+      date = new Date(str);
+    }
+    let m = date.getMonth() + 1;
+    let d = date.getDate();
+    if (m < 10) {
+      m = `0${m}`;
+    }
+    if (d < 10) {
+      d = `0${d}`;
+    }
+    return `${date.getFullYear()}${m}${d}`;
+  },
 
   /**
    * 标准日期转字符串年月日，时分秒
@@ -123,6 +143,34 @@ const tools = {
       .toString()
       .padStart(2, "0");
     return `${date.getFullYear()}-${m}-${d}`;
+  },
+  
+  /**
+   * 标准日期转字符串年月日，时分秒
+   * 返回年月日 结算月份要比平时多一个月
+   * */
+  dateToStrDetail(date) {
+    if (!date) {
+      return "";
+    }
+    const m = `${date.getMonth()}`.padStart(2, "0");
+    const d = date
+      .getDate()
+      .toString()
+      .padStart(2, "0");
+    return `${date.getFullYear()}-${m}-${d}`;
+  },
+  
+  /**
+   * 标准日期转字符串年月日，时分秒
+   * 返回年月
+   * */
+  dateToStrYM(date) {
+    if (!date) {
+      return "";
+    }
+    const m = `${date.getMonth() + 1}`.padStart(2, "0");
+    return `${date.getFullYear()}-${m}`;
   },
   
   /**

@@ -65,9 +65,9 @@ class Category extends React.Component {
   // 获取当前服务站基本信息
   onGetStationData() {
     this.props.actions.finStationByLogin().then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          stationData: res.messsageBody
+          stationData: res.data
         });
       }
     });
@@ -79,10 +79,10 @@ class Category extends React.Component {
     this.props.actions
       .physicalSetOpenOrClose({ id: this.state.stationData.id, dayCount: e })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.onGetStationData();
         } else {
-          message.error(res.returnMessaage || "操作失败");
+          message.error(res.message || "操作失败");
         }
         this.endLoading();
       })
@@ -100,20 +100,20 @@ class Category extends React.Component {
     this.props.actions
       .reserveSettingList({ pageNum: 0, pageSize: 1 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            data: res.messsageBody.ptPage.ReserveSetting,
-            times: res.messsageBody.ptPage.reserveTime
+            data: res.data.ptPage.ReserveSetting,
+            times: res.data.ptPage.reserveTime
           });
           setFieldsValue({
-            startTime: Number(res.messsageBody.ptPage.ReserveSetting.beginTime),
-            endTime: Number(res.messsageBody.ptPage.ReserveSetting.endTime),
+            startTime: Number(res.data.ptPage.ReserveSetting.beginTime),
+            endTime: Number(res.data.ptPage.ReserveSetting.endTime),
             reserveInterval:
-              res.messsageBody.ptPage.ReserveSetting.reserveInterval || 1,
-            count: res.messsageBody.ptPage.ReserveSetting.count || "1"
+              res.data.ptPage.ReserveSetting.reserveInterval || 1,
+            count: res.data.ptPage.ReserveSetting.count || "1"
           });
         } else {
-          message.error(res.returnMessaage || "获取数据失败，请重试");
+          message.error(res.message || "获取数据失败，请重试");
         }
       });
   }
@@ -141,7 +141,7 @@ class Category extends React.Component {
         this.props.actions
           .reserveSettingUpdate(params)
           .then(res => {
-            if (res.returnCode === "0") {
+            if (res.status === "0") {
               this.onGetData();
               message.success("保存成功");
             } else {
@@ -176,11 +176,11 @@ class Category extends React.Component {
         state: bool ? 0 : -1
       })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.onGetStationData();
           message.success("修改成功");
         } else {
-          message.error(res.returnMessaage || "操作失败");
+          message.error(res.message || "操作失败");
         }
         this.endLoading();
       })

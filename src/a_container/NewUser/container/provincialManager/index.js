@@ -49,7 +49,14 @@ import {
   findCityOrCounty,
   findStationByArea
 } from "../../../../a_action/sys-action";
-import { findUserInfo, myCustomers,userinfoRecord } from "../../../../a_action/info-action";
+import {
+  findUserInfo,
+  myCustomers,
+  userinfoRecord ,
+  AreaManagerList,
+  AddAreaManagerList,
+  UpAreaManagerList
+} from "../../../../a_action/info-action";
 import { onOk } from "../../../../a_action/shop-action";
 // ==================
 // Definition
@@ -63,7 +70,6 @@ class Manager extends React.Component {
     super(props);
     this.state = {
       data: [], // 当前页面全部数据
-      Tdata: [], //推广客户所有信息
       searchUserName: "",
       searchConditions: null,
       addnewModalShow: false, // 添加省级经理信息 或 修改省级经理信息 模态框是否显示
@@ -72,6 +78,7 @@ class Manager extends React.Component {
       queryModalShow: false, // 查看详情模态框是否显示
       upModalShow: false, // 修改用户模态框是否显示
       upLoading: false, // 是否正在修改用户中
+      searchName:"", //搜索省市
       roleTreeShow: false, // 角色树是否显示
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
@@ -86,46 +93,93 @@ class Manager extends React.Component {
   }
 
   componentDidMount() {
-    if (!this.props.citys.length) {
-      // 获取所有省，全局缓存
-      this.getAllCity0();
-    } else {
-      this.setState({
-        citys: this.props.citys.map((item, index) => ({
-          id: item.id,
-          value: item.areaName,
-          label: item.areaName,
-          isLeaf: false
-        }))
-      });
-    }
+    this.getAllCity0();
     this.onGetData(this.state.pageNum, this.state.pageSize);
   }
-
-  componentWillReceiveProps(nextP) {
-    if (nextP.citys !== this.props.citys) {
-      this.setState({
-        citys: nextP.citys.map((item, index) => ({
-          id: item.id,
-          value: item.areaName,
-          label: item.areaName,
-          isLeaf: false
-        }))
+  
+  //所有的省份，当前页可用
+  getAllCity0(){
+    this.props.actions
+      .findAllProvince({ pageNum: 0, pageSize: 9999 })
+      .then(res => {
+        if (res.status === "0") {
+          this.setState({
+            citys: res.data || []
+          });
+        }
       });
-    }
   }
-
-  //工具
-  getCity(s, c, q) {
-    if (!s) {
-      return "";
-    }
-    return `${s}/${c}/${q}`;
-  }
-
-  // 获取所有的省
-  getAllCity0() {
-    this.props.actions.findAllProvince();
+  
+  // 添加或修改确定
+  onAddNewOk() {
+    const me = this;
+    const { form } = me.props;
+    form.validateFields(
+      [
+        "addnewID",
+        "addnewProvince",
+        "addnewTechnicalName",
+        "addnewMobile",
+      ],
+      (err, values) => {
+        if (err) {
+          return false;
+        }
+        me.setState({
+          addnewLoading: false
+        });
+        const params = {
+          technicalArea:`${values.addnewProvince}${"省级经理"}`,
+          province: values.addnewProvince, //添加省份
+          technicalName: values.addnewTechnicalName, //添加省级经理姓名
+          mobile: values.addnewMobile,  //省级经理手机号
+          id:values.addnewID,
+        };
+        if (this.state.addOrUp === "add") {
+          // 新增
+          me.props.actions
+            .AddAreaManagerList(tools.clearNull(params))
+            .then(res => {
+              if (res.status === "0") {
+                message.success(res.message || "添加成功");
+                this.onGetData(1, this.state.pageSize);
+                this.onAddNewClose();
+              } else {
+                message.error(res.message || "添加失败，请重试");
+              }
+              me.setState({
+                upLoading: false
+              });
+            })
+            .catch(() => {
+              me.setState({
+                addnewLoading: false
+              });
+            });
+        } else {
+          params.id = this.state.nowData.id;
+          me.props.actions
+            .UpAreaManagerList(params)
+            .then(res => {
+              // 修改
+              if (res.status === "0") {
+                message.success(res.message || "修改成功");
+                this.onGetData(1, this.state.pageSize);
+                this.onAddNewClose();
+              } else {
+                message.error(res.message || "修改失败，请重试");
+              }
+              this.onGetData(this.state.pageNum, this.state.pageSize);
+              this.onAddNewClose();
+            })
+            .catch(() => {
+              me.setState({
+                addnewLoading: false
+              });
+            });
+        }
+      }
+    );
   }
 
   // 修改某一条数据 模态框出现
@@ -134,118 +188,43 @@ class Manager extends React.Component {
     const { form } = me.props;
     console.log("是什么：", record);
     form.setFieldsValue({
-      addnewName: record.name,
-      addnewTypeId: `${record.typeId}`,
-      addnewTypeCode: String(record.typeCode),
+      addnewID:record.id,
+      addnewProvince: record.province,
+      addnewTechnicalName: record.technicalName,
+      addnewMobile: record.mobile,
     });
     console.log("是什么：", record);
     me.setState({
       nowData: record,
-      upModalShow: true,
-      code: record.typeId,
-    });
-  }
-
-  // 确定修改某一条数据
-  onUpOk() {
-    const me = this;
-    const { form } = me.props;
-    form.validateFields(
-      [
-        "addnewName",
-        "addnewTypeId",
-        "addnewTypeCode",
-      ],
-      (err, values) => {
-        if (err) {
-          return;
-        }
-        me.setState({
-          upLoading: true
-        });
-        const params = {
-          id: me.state.nowData.id,
-          name: values.addnewName,
-          typeId: values.addnewTypeId,
-          typeCode: values.addnewTypeCode,
-        };
-
-        this.props.actions
-          .updateProduct(params)
-          .then(res => {
-            if (res.returnCode === "0") {
-              message.success("修改成功");
-              this.onGetData(this.state.pageNum, this.state.pageSize);
-              this.onUpClose();
-            } else {
-              message.error(res.returnMessaage || "修改失败，请重试");
-            }
-            me.setState({
-              upLoading: false
-            });
-          })
-          .catch(() => {
-            me.setState({
-              upLoading: false
-            });
-          });
-      }
-    );
-  }
-
-  // 关闭修改某一条数据
-  onUpClose() {
-    this.setState({
-      upModalShow: false
+      addOrUp: "up",
+      addnewModalShow: true,
     });
   }
   
-
-  //工具 - 省市区的拼接
-  getCity(s, c, q) {
-    if (!s) {
-      return "";
-    }
-    return `${s}${c}${q}`;
-  }
-
-
-
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
     const params = {
       pageNum,
       pageSize,
-      userType: this.state.searchType,
-      mobile: this.state.searchMobile ? this.state.searchMobile : "",
-      realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 用户姓名
-      userId: this.state.searchEId ? this.state.searchEId : "",
+      province: this.state.searchName,
     };
-
-    // this.props.actions.findUserInfo(tools.clearNull(params)).then(res => {
-    //   if (res.status === 200) {
-    //     this.setState({
-    //       data: res.data.result || [],
-    //       pageNum,
-    //       pageSize,
-    //       total: res.data.total
-    //     });
-    //   } else {
-    //     message.error(res.returnMessaage || "获取数据失败，请重试");
-    //   }
-    // });
+    this.props.actions.AreaManagerList(tools.clearNull(params)).then(res => {
+      if (res.status === "0") {
+        this.setState({
+          data: res.data.result || [],
+          pageNum,
+          pageSize,
+          total: res.data.total
+        });
+      } else {
+        message.error(res.message || "获取数据失败，请重试");
+      }
+    });
   }
 
   // 搜索
   onSearch() {
     this.onGetData(1, this.state.pageSize);
-  }
-
-  // 搜索 - 服务站地区输入框值改变时触发
-  onSearchAddress(c) {
-    this.setState({
-      searchAddress: c
-    });
   }
   
   // 添加新活动模态框出现
@@ -253,10 +232,9 @@ class Manager extends React.Component {
     const me = this;
     const { form } = me.props;
     form.resetFields([
-      "addnewTitle",
-      "addnewUrl",
-      "addnewProduct",
-      "addnewDeletFlag"
+      "addnewProvince",
+      "addnewTechnicalName",
+      "addnewMobile",
     ]);
     this.setState({
       addOrUp: "add",
@@ -276,7 +254,6 @@ class Manager extends React.Component {
   onQueryClick(record) {
     this.setState({
       nowData: record,
-      userType: record.userType,
       queryModalShow: true
     });
   }
@@ -287,11 +264,11 @@ class Manager extends React.Component {
       queryModalShow: false
     });
   }
-
-  //搜索 - 用户类型
-  onSearchType(v) {
+  
+  //搜索 - 省份框值改变时触发
+  searchNameChange(e) {
     this.setState({
-      searchType: v
+      searchName: e.target.value,
     });
   }
 
@@ -312,18 +289,24 @@ class Manager extends React.Component {
       },
       {
         title: "省份",
+        dataIndex:'province',
+        key:'province'
       },
       {
         title: "省级经理姓氏",
+        dataIndex:'technicalName',
+        key:'technicalName'
       },
       {
         title: "省级经理联系电话",
+        dataIndex:'mobile',
+        key:'mobile'
       },
       {
         title: "操作",
         key: "control",
         fixed: "right",
-        width: 60,
+        width: 100,
         render: (text, record) => {
           let controls = [];
           controls.push(
@@ -332,11 +315,9 @@ class Manager extends React.Component {
               className="control-btn green"
               onClick={() => this.onQueryClick(record)}
             >
-              <a href="#/usermanage/userinfoRecord">
-                <Tooltip placement="top" title="查看">
-                  <Icon type="eye" />
-                </Tooltip>
-              </a>
+              <Tooltip placement="top" title="查看">
+                <Icon type="eye" />
+              </Tooltip>
             </span>
           );
           controls.push(
@@ -373,25 +354,16 @@ class Manager extends React.Component {
     return data.map((item, index) => {
       return {
         key: index,
-        adminIp: item.adminIp,
-        password: item.password,
-        eId: item.id,
         citys:
           item.province && item.city && item.region
             ? `${item.province}/${item.city}/${item.region}`
             : "",
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
-        age: item.age,
-        conditions: item.conditions,
-        creator: item.creator,
-        createTime: item.createTime,
-        bindTime: item.bindTime,
-        description: item.description,
-        email: item.email,
-        orgCode: item.orgType,
-        mobile: item.mobile,
-        headImg: item.headImg,
-        updateTime: item.updateTime,
+        id:item.id,
+        mobile:item.mobile,
+        province:item.province,
+        technicalArea:item.technicalArea,
+        technicalName:item.technicalName,
       };
     });
   }
@@ -421,6 +393,7 @@ class Manager extends React.Component {
               </span>
               <Input
                 style={{ width: "172px" }}
+                onChange={e => this.searchNameChange(e)}
               />
             </li>
             <li style={{ marginLeft: "5px" }}>
@@ -475,24 +448,32 @@ class Manager extends React.Component {
                 this.state.addOrUp === "up" &&
                 this.state.nowData.province ? `${this.state.nowData.province}` : ''}
               </span>
-              {getFieldDecorator("addnewCitys", {
+              {getFieldDecorator("addnewProvince", {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请选择区域" }]
               })(
-                <Cascader
+                <Select
+                  style={{ width: '100%' }}
                   placeholder="请选择服务区域"
-                  options={this.state.citys}
-                />
+                >
+                  {
+                    this.state.citys.map((item) => {
+                    return (
+                    <Option key={String(item.areaName)}>{item.areaName}</Option>
+                    );
+                  })
+                  }
+                </Select>
               )}
             </FormItem>
             <FormItem label="省级经理姓氏" {...formItemLayout}>
-              {getFieldDecorator("addnewName", {
+              {getFieldDecorator("addnewTechnicalName", {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请输入省级经理姓氏" }]
               })(<Input placeholder="请输入省级经理姓氏" />)}
             </FormItem>
             <FormItem label="省级经理联系电话" {...formItemLayout}>
-              {getFieldDecorator("addnewPhone", {
+              {getFieldDecorator("addnewMobile", {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请输入省级经理联系电话" }]
               })(<Input placeholder="请输入省级经理联系电话" />)}
@@ -509,13 +490,13 @@ class Manager extends React.Component {
         >
           <Form>
             <FormItem label="省份" {...formItemLayout}>
-              {/*{!!this.state.nowData ? this.state.nowData.eId : ""}*/}
+              {!!this.state.nowData ? this.state.nowData.province : ""}
             </FormItem>
             <FormItem label="省级经理姓氏" {...formItemLayout}>
-              {/*{!!this.state.nowData ? this.state.nowData.nickName : ""}*/}
+              {!!this.state.nowData ? this.state.nowData.technicalName : ""}
             </FormItem>
             <FormItem label="省级经理联系电话" {...formItemLayout}>
-              {/*{!!this.state.nowData ? this.state.nowData.realName : ""}*/}
+              {!!this.state.nowData ? this.state.nowData.mobile : ""}
             </FormItem>
           </Form>
         </Modal>
@@ -556,7 +537,10 @@ export default connect(
         findUserInfo,
         myCustomers,
         onOk,
-        userinfoRecord
+        userinfoRecord,
+        AreaManagerList,
+        AddAreaManagerList,
+        UpAreaManagerList
       },
       dispatch
     )

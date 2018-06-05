@@ -57,7 +57,7 @@ import {
   findCityOrCounty,
   findStationByArea
 } from "../../../../a_action/sys-action";
-import { findUserInfo, myCustomers,userinfoRecord } from "../../../../a_action/info-action";
+import { findUserInfo, myCustomers,userinfoRecord ,ExportList} from "../../../../a_action/info-action";
 import { onOk } from "../../../../a_action/shop-action";
 import { cashRecord } from "../../../../a_action/shop-action";
 // ==================
@@ -101,8 +101,10 @@ class Manager extends React.Component {
       searchEId: "", // 搜索 - 用户id
       searchBeginTime: "", // 搜索 - 开始时间
       searchEndTime: "", // 搜索- 结束时间
-      searchBindingBeginTime: "", //搜索 - 开始绑定时间
-      searchBindingEndTime: "", // 搜索 - 结束绑定时间
+      searchCreatebeginTime:'',//搜索 -创建开始时间
+      searchCreateendTime:'',//搜索 -创建结束时间
+      searchBindingBeginTime: "", //搜索 - 开始绑定上级关系时间
+      searchBindingEndTime: "", // 搜索 - 结束绑定上级关系时间
       searchId: "", //搜索- 健康大使id
       searchAmbassadorMobile: "", //搜索 - 健康大使手机号
       searchDistributorId: "", // 搜索 - 经销商id
@@ -169,8 +171,8 @@ class Manager extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -230,32 +232,38 @@ class Manager extends React.Component {
       pageNum,
       pageSize,
       category: 2,
-      userType: this.state.searchType,
-      mobile: this.state.searchMobile ? this.state.searchMobile : "",
+      userType: this.state.searchType,// 搜索 - 用户身份
+      mobile: this.state.searchMobile ? this.state.searchMobile : "",// 搜索 - 用户手机号
       realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 用户姓名
-      userId: this.state.searchEId ? this.state.searchEId : "",
+      userId: this.state.searchEId ? this.state.searchEId : "",// 搜索 - 用户ID
       ambassadorId:this.state.searchId,     //搜索 - 健康大使id
       distributorId: this.state.searchDistributorId
         ? this.state.searchDistributorId
         : "", //搜索 - 经销商id
       bindBeginTime: this.state.searchBindingBeginTime
-        ? `${tools.dateToStrD(this.state.searchBindingBeginTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchBindingBeginTime.utc()._d)}`
         : "",
       bindEndTime: this.state.searchBindingEndTime
-        ? `${tools.dateToStrD(this.state.searchBindingEndTime._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchBindingEndTime.utc()._d)}`
+        : "",
+      beginTime: this.state.searchCreatebeginTime
+        ? `${tools.dateToStr(this.state.searchCreatebeginTime.utc()._d)}`
+        : "",
+      endTime: this.state.searchCreateendTime
+        ? `${tools.dateToStr(this.state.searchCreateendTime.utc()._d)}`
         : "",
     };
 
     this.props.actions.findUserInfo(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -276,18 +284,25 @@ class Manager extends React.Component {
       pageNum,
       pageSize,
       category: 2,
-      userType: this.state.searchType,
-      mobile: this.state.searchMobile ? this.state.searchMobile : "",
+      userType: this.state.searchType,// 搜索 - 用户身份
+      mobile: this.state.searchMobile ? this.state.searchMobile : "",// 搜索 - 用户手机号
       realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 用户姓名
-      userId: this.state.searchEId ? this.state.searchEId : "",
+      userId: this.state.searchEId ? this.state.searchEId : "",// 搜索 - 用户ID
+      ambassadorId:this.state.searchId,     //搜索 - 健康大使id
       distributorId: this.state.searchDistributorId
         ? this.state.searchDistributorId
         : "", //搜索 - 经销商id
       bindBeginTime: this.state.searchBindingBeginTime
-        ? `${tools.dateToStrD(this.state.searchBindingBeginTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchBindingBeginTime.utc()._d)}`
         : "",
       bindEndTime: this.state.searchBindingEndTime
-        ? `${tools.dateToStrD(this.state.searchBindingEndTime._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchBindingEndTime.utc()._d)}`
+        : "",
+      beginTime: this.state.searchCreatebeginTime
+        ? `${tools.dateToStr(this.state.searchCreatebeginTime.utc()._d)}`
+        : "",
+      endTime: this.state.searchCreateendTime
+        ? `${tools.dateToStr(this.state.searchCreateendTime.utc()._d)}`
         : "",
     };
     let form = document.getElementById("download-form");
@@ -295,10 +310,12 @@ class Manager extends React.Component {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/userInfo/listExport`;
+    else { form.innerHTML="";} form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/export/userInfo/list`;
     form.method = "post";
-    console.log("FORM:", params);
+    
+    console.log("FORM:", form, params);
+    console.log('是message么:',message)
 
     const newElement = document.createElement("input");
     newElement.setAttribute("name", "pageNum");
@@ -350,14 +367,6 @@ class Manager extends React.Component {
       form.appendChild(newElement6);
     }
 
-    const newElement7 = document.createElement("input");
-    if (params.mobile) {
-      newElement7.setAttribute("name", "mobile");
-      newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.mobile);
-      form.appendChild(newElement7);
-    }
-
     const newElement8 = document.createElement("input");
     if (params.bindBeginTime) {
       newElement8.setAttribute("name", "bindBeginTime");
@@ -373,8 +382,40 @@ class Manager extends React.Component {
       newElement9.setAttribute("value", params.bindEndTime);
       form.appendChild(newElement9);
     }
-
-    form.submit();
+  
+    const newElement11 = document.createElement("input");
+    if (params.distributorId) {
+      newElement11.setAttribute("name", "distributorId");
+      newElement11.setAttribute("type", "hidden");
+      newElement11.setAttribute("value", params.distributorId);
+      form.appendChild(newElement11);
+    }
+  
+    const newElement12 = document.createElement("input");
+    if (params.beginTime) {
+      newElement12.setAttribute("name", "beginTime");
+      newElement12.setAttribute("type", "hidden");
+      newElement12.setAttribute("value", params.beginTime);
+      form.appendChild(newElement12);
+    }
+  
+    const newElement13 = document.createElement("input");
+    if (params.endTime) {
+      newElement13.setAttribute("name", "endTime");
+      newElement13.setAttribute("type", "hidden");
+      newElement13.setAttribute("value", params.endTime);
+      form.appendChild(newElement13);
+    }
+  
+    this.props.actions.ExportList(tools.clearNull(params)).then(res => {
+      if (res.status != '1') {
+        form.submit();
+      } else if(res.status === "1"){
+        alert('当月无用户创建记录！')
+      }
+    });
+  
+    // form.submit();
   }
 
   //Input中的删除按钮所删除的条件
@@ -543,18 +584,32 @@ class Manager extends React.Component {
     });
   }
 
-  //搜索 - 开始绑定时间
+  //搜索 - 开始绑定上级关系时间
   searchBindingBeginTimeChange(v) {
     this.setState({
-      searchBindingBeginTime: v
+      searchBindingBeginTime: _.cloneDeep(v)
     });
     console.log("这是什么：", v);
   }
 
-  //搜索 - 结束绑定时间
+  //搜索 - 结束绑定上级关系时间
   searchBindingEndTimeChange(v) {
     this.setState({
-      searchBindingEndTime: v
+      searchBindingEndTime: _.cloneDeep(v)
+    });
+  }
+  
+  //搜索 - 创建开始时间
+  searchCreateBeginChange(v) {
+    this.setState({
+      searchCreatebeginTime: _.cloneDeep(v)
+    });
+  }
+  
+  //搜索 - 创建结束时间
+  searchCreateEndChange(v) {
+    this.setState({
+      searchCreateendTime: _.cloneDeep(v)
     });
   }
 
@@ -599,7 +654,17 @@ class Manager extends React.Component {
         render: text => this.getListByModelId(text)
       },
       {
-        title: "绑定时间",
+        title:'创建时间',
+        dataIndex:'createTime',
+        key:'createTime'
+      },
+      {
+        title:'绑定手机号时间',
+        dataIndex:'bindPhoneTime',
+        key:'bindPhoneTime',
+      },
+      {
+        title: "绑定上级关系时间",
         dataIndex: "bindTime",
         key: "bindTime"
       },
@@ -688,7 +753,6 @@ class Manager extends React.Component {
         age: item.age,
         conditions: item.conditions,
         creator: item.creator,
-        createTime: item.createTime,
         description: item.description,
         email: item.email,
         orgCode: item.orgType,
@@ -742,7 +806,8 @@ class Manager extends React.Component {
         userName3: item.distributorAccount
           ? item.distributorAccount.userName
           : "",
-        bindTime: item.bindTime,//绑定时间
+        createTime: item.createTime,//创建时间
+        bindTime: item.bindTime,//绑定上级关系时间
         bindPhoneTime: item.bindPhoneTime,//绑定电话时间
       };
     });
@@ -763,9 +828,9 @@ class Manager extends React.Component {
         pageSize: 9999
       })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            stations: res.messsageBody.result
+            stations: res.data.result
           });
         }
       });
@@ -886,7 +951,27 @@ class Manager extends React.Component {
             </li>
             <li>
               <span style={{ marginRight: "10px", marginLeft: "23px" }}>
-                绑定时间
+                创建时间
+              </span>
+              <DatePicker
+                showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
+                placeholder="开始时间"
+                onChange={e => this.searchCreateBeginChange(e)}
+                onOk={onOk}
+              />
+              --
+              <DatePicker
+                showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
+                placeholder="结束时间"
+                onChange={e => this.searchCreateEndChange(e)}
+                onOk={onOk}
+              />
+            </li>
+            <li>
+              <span style={{ marginRight: "10px", marginLeft: "23px" }}>
+                绑定上级关系时间
               </span>
               <DatePicker
                 showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
@@ -1001,7 +1086,7 @@ class Manager extends React.Component {
             <FormItem label="创建时间" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.createTime : ""}
             </FormItem>
-            <FormItem label="绑定时间" {...formItemLayout}>
+            <FormItem label="绑定上级关系时间" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.bindTime : ""}
             </FormItem>
             <FormItem label="健康大使id" {...formItemLayout}>
@@ -1182,7 +1267,8 @@ export default connect(
         findUserInfo,
         myCustomers,
         onOk,
-        userinfoRecord
+        userinfoRecord,
+        ExportList
       },
       dispatch
     )

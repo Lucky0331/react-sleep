@@ -92,12 +92,12 @@ class LoginContainer extends React.Component {
     try {
       const userRes = await this.props.actions.onLogin({ userName, password });
       console.log("1.通过帐号密码得到userID：", userRes);
-      if (userRes.returnCode === "0") {
-        userInfo = userRes.messsageBody.adminUser;
-        menusInfo = userRes.messsageBody.adminRole;
-        btnInfo = userRes.messsageBody.adminRole.btnDtoList;
+      if (userRes.status === "0") {
+        userInfo = userRes.data.adminUser;
+        menusInfo = userRes.data.adminRole;
+        btnInfo = userRes.data.adminRole.btnDtoList;
       } else {
-        message.error(userRes.returnMessaage || "登录失败，请重试");
+        message.error(userRes.message || "登录失败，请重试");
       }
     } catch (err) {
       console.log("登陆报错：", err);

@@ -21,7 +21,9 @@ import PhyStatistics from "./container/PhyStatistics";
 import Detail from "./container/Detail";
 import Distribution from "./container/Distribution";
 import Station from "./container/Station";
-import StatisticalList from "./container/StatisticalList"
+import StatisticalList from "./container/StatisticalList";
+import ListReserve from  "./container/ListReserve"
+
 
 // ==================
 // 本页面所需action
@@ -58,6 +60,11 @@ class TheContainer extends React.Component {
             exact
             path={`${this.props.match.path}/checklist`}
             component={List}
+          />
+          <Route
+            exact
+            path={`${this.props.match.path}/listReserve`}
+            component={ListReserve}
           />
           <Route exact path={`${this.props.match.path}/set`} component={Set} />
           <Route

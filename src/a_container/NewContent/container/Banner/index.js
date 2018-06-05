@@ -95,18 +95,18 @@ class Category extends React.Component {
       apId: this.state.searchBanner
     };
     this.props.actions.adList(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody);
-      if (res.returnCode === "0") {
+      console.log("返回的什么：", res.data);
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
-      console.log("啥破广告位：", res.messsageBody.result);
+      console.log("啥破广告位：", res.data.result);
     });
   }
 
@@ -115,9 +115,9 @@ class Category extends React.Component {
     this.props.actions
       .advertPositionList({ pageNum: 0, pageSize: 10 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            titleList: res.messsageBody.result
+            titleList: res.data.result
           });
         }
       });
@@ -280,11 +280,11 @@ class Category extends React.Component {
     this.props.actions
       .UpdateOnline(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -295,11 +295,11 @@ class Category extends React.Component {
   // 删除某一条数据
   onRemoveClick(id) {
     this.props.actions.deletePosition({ id: id }).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error(res.returnMessaage || "删除失败，请重试");
+        message.error(res.message || "删除失败，请重试");
       }
     });
   }
@@ -309,10 +309,10 @@ class Category extends React.Component {
     // console.log('图片上传：', obj);
     if (obj.file.status === "done") {
       // 上传成功后调用,将新的地址加进原list
-      if (obj.file.response.messsageBody) {
+      if (obj.file.response.data) {
         const list = _.cloneDeep(this.state.fileList);
         const t = list.find(item => item.uid === obj.file.uid);
-        t.url = obj.file.response.messsageBody;
+        t.url = obj.file.response.data;
         this.setState({
           fileList: list,
           fileLoading: false
@@ -388,7 +388,7 @@ class Category extends React.Component {
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
   //导出
   onExport() {
@@ -582,7 +582,7 @@ class Category extends React.Component {
         sorts: item.sorts,
         adId: item.adId,
         id: item.id,
-        typeCode: item.advertPosition.title,
+        typeCode: item.advertPosition ? item.advertPosition.title : '',
         orderFrom: item.orderFrom,
         realName: item.distributor ? item.distributor.realName : ""
       };

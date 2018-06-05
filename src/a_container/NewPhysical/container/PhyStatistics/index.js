@@ -8,6 +8,7 @@ import React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import P from "prop-types";
+import Config from "../../../../config/config";
 import Echarts from "echarts";
 import {
   Form,
@@ -65,6 +66,7 @@ class Category extends React.Component {
     super(props);
     this.state = {
       data: [], // 当前页面全部数据
+      dataNum:[],//这个是想要拿到总的那一栏 所使用的的
       searchMobile: "", // 搜索 - 手机号
       searchCode: "", // 搜索 - 体检卡号
       pageNum: 1, // 当前第几页
@@ -72,7 +74,11 @@ class Category extends React.Component {
       total: 0, // 数据库总共多少条数据
       searchAddress: [], // 搜索 - 地址
       searchStationKeyWord:'',  //搜索 - 服务站关键字
-      citys: [] // 符合Cascader组件的城市数据
+      searchrefundBeginTime:'',//搜索 - 开始时间
+      searchrefundEndTime:'',//搜索 - 结束时间
+      citys: [], // 符合Cascader组件的城市数据
+      usedTotalNum:"",//体检预约总数
+      reverseTotalNum:"",//公众号预约总数
     };
     this.echartsDom = null; // Echarts实例
   }
@@ -123,17 +129,13 @@ class Category extends React.Component {
     }
 
   }
-
+  
   // 表单页码改变
   onTablePageChange(page, pageSize) {
+    console.log("页码改变：", page, pageSize);
     this.onGetData(page, pageSize);
   }
-
-  // 页码每页显示多少条展示
-  onShowSizeChange(current, pageSize) {
-    console.log("显示多少条:", current, pageSize);
-    this.onGetData(current, pageSize);
-  }
+  
 
   // 搜索 - 申请退款开始时间
   searchApplyBeginTime(v, v1) {
@@ -156,30 +158,32 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      mobile: this.state.searchMobile,
-      code: this.state.searchCode,
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2],
       stationKeyWord:this.state.searchStationKeyWord,
       minTime: this.state.searchrefundBeginTime
-        ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)} `
+        ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)}`
         : "",
       maxTime: this.state.searchrefundEndTime
         ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)} `
         : ""
     };
     this.props.actions.StatisticsList(tools.clearNull(params)).then(res => {
-      console.log("what hell:", res.messsageBody.data);
-      if (res.returnCode === "0") {
+      console.log("what hell:", res.data.data);
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.data || [],
+          data: res.data.data || [],
           pageNum,
           pageSize,
-          total:res.messsageBody.size,
+          total:res.data.size,
+          dataNum:[res.data] || '',
+          stationData:res.data.stationData || [], //服务站地区
+          usedTotalNum:res.data.usedTotalNum || '',//体检预约总数
+          reverseTotalNum:res.data.reverseTotalNum || '', //公众号预约总数
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -199,8 +203,8 @@ class Category extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -274,7 +278,209 @@ class Category extends React.Component {
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
+  }
+  
+  //导出
+  onExport() {
+    this.onExportData(this.state.pageNum, this.state.pageSize);
+  }
+  
+  //按服务站导出
+  onExportStation() {
+    this.onExportStationData(this.state.pageNum, this.state.pageSize);
+  }
+  
+  //导出的数据字段
+  onExportData(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      type:1,
+      province: this.state.searchAddress[0],
+      city: this.state.searchAddress[1],
+      region: this.state.searchAddress[2],
+      stationKeyWord:this.state.searchStationKeyWord,
+      minTime: this.state.searchrefundBeginTime
+        ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)}`
+        : "",
+      maxTime: this.state.searchrefundEndTime
+        ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)} `
+        : ""
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    else { form.innerHTML="";} form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/export/examination/statistics`;
+    form.method = "post";
+    console.log("FORM:", params);
+    
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+    
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+  
+    const newElement3 = document.createElement("input");
+    newElement3.setAttribute("name", "type");
+    newElement3.setAttribute("type", "hidden");
+    newElement3.setAttribute("value", "1");
+    form.appendChild(newElement3);
+  
+    const newElement4 = document.createElement("input");
+    if (params.province) {
+      newElement4.setAttribute("name", "province");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.province);
+      form.appendChild(newElement4);
+    }
+    
+    const newElement5 = document.createElement("input");
+    if (params.city) {
+      newElement5.setAttribute("name", "city");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.city);
+      form.appendChild(newElement5);
+    }
+  
+    const newElement6 = document.createElement("input");
+    if (params.region) {
+      newElement6.setAttribute("name", "region");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.region);
+      form.appendChild(newElement6);
+    }
+  
+    const newElement7 = document.createElement("input");
+    if (params.stationKeyWord) {
+      newElement7.setAttribute("name", "stationKeyWord");
+      newElement7.setAttribute("type", "hidden");
+      newElement7.setAttribute("value", params.stationKeyWord);
+      form.appendChild(newElement7);
+    }
+  
+    const newElement8 = document.createElement("input");
+    if (params.minTime) {
+      newElement8.setAttribute("name", "minTime");
+      newElement8.setAttribute("type", "hidden");
+      newElement8.setAttribute("value", params.minTime);
+      form.appendChild(newElement8);
+    }
+  
+    const newElement9 = document.createElement("input");
+    if (params.maxTime) {
+      newElement9.setAttribute("name", "maxTime");
+      newElement9.setAttribute("type", "hidden");
+      newElement9.setAttribute("value", params.maxTime);
+      form.appendChild(newElement9);
+    }
+    
+    form.submit();
+  }
+  
+  //按服务站导出
+  onExportStationData(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      type:2,
+      province: this.state.searchAddress[0],
+      city: this.state.searchAddress[1],
+      region: this.state.searchAddress[2],
+      stationKeyWord:this.state.searchStationKeyWord,
+      minTime: this.state.searchrefundBeginTime
+        ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)}`
+        : "",
+      maxTime: this.state.searchrefundEndTime
+        ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)} `
+        : ""
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    else { form.innerHTML="";} form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/export/examination/statistics`;
+    form.method = "post";
+    console.log("FORM:", params);
+  
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+  
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+  
+    const newElement3 = document.createElement("input");
+    newElement3.setAttribute("name", "type");
+    newElement3.setAttribute("type", "hidden");
+    newElement3.setAttribute("value", "2");
+    form.appendChild(newElement3);
+  
+    const newElement4 = document.createElement("input");
+    if (params.province) {
+      newElement4.setAttribute("name", "province");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.province);
+      form.appendChild(newElement4);
+    }
+  
+    const newElement5 = document.createElement("input");
+    if (params.city) {
+      newElement5.setAttribute("name", "city");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.city);
+      form.appendChild(newElement5);
+    }
+  
+    const newElement6 = document.createElement("input");
+    if (params.region) {
+      newElement6.setAttribute("name", "region");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.region);
+      form.appendChild(newElement6);
+    }
+  
+    const newElement7 = document.createElement("input");
+    if (params.stationKeyWord) {
+      newElement7.setAttribute("name", "stationKeyWord");
+      newElement7.setAttribute("type", "hidden");
+      newElement7.setAttribute("value", params.stationKeyWord);
+      form.appendChild(newElement7);
+    }
+  
+    const newElement8 = document.createElement("input");
+    if (params.minTime) {
+      newElement8.setAttribute("name", "minTime");
+      newElement8.setAttribute("type", "hidden");
+      newElement8.setAttribute("value", params.minTime);
+      form.appendChild(newElement8);
+    }
+  
+    const newElement9 = document.createElement("input");
+    if (params.maxTime) {
+      newElement9.setAttribute("name", "maxTime");
+      newElement9.setAttribute("type", "hidden");
+      newElement9.setAttribute("value", params.maxTime);
+      form.appendChild(newElement9);
+    }
+    
+    form.submit();
   }
 
   // 构建字段
@@ -304,9 +510,41 @@ class Category extends React.Component {
       },
       {
         title: "公众号预约用户占比",
-        dataIndex: "ratio",
-        key: "ratio",
+        dataIndex: "reverseRatio",
+        key: "reverseRatio",
       },
+    ];
+    return columns;
+  }
+  
+  // 构建总体字段
+  makeColumnsAll() {
+    const columns = [
+      {
+        title: "服务站地区",
+        dataIndex: "stationArea",
+        key: "stationArea",
+      },
+      {
+        title: "日期",
+        dataIndex: "alltime",
+        key: "alltime",
+      },
+      {
+        title: "体检用户",
+        dataIndex: "usedTotalNum",
+        key: "usedTotalNum",
+      },
+      {
+        title:'公众号预约用户',
+        dataIndex:'reverseTotalNum',
+        key:'reverseTotalNum',
+      },
+      // {
+      //   title:'公众号预约用户占比',
+      //   dataIndex:'ratio',
+      //   key:'ratio'
+      // },
     ];
     return columns;
   }
@@ -322,7 +560,31 @@ class Category extends React.Component {
         date: item.date,
         usedCount: item.usedCount,
         reverseCount: item.reverseCount,
-        ratio:(item.usedCount && item.reverseCount) ? (item.reverseCount)/(item.usedCount) : '',
+        // ratio:(item.usedCount && item.reverseCount) ? (item.reverseCount)/(item.usedCount) : '',
+        reverseRatio:`${((item.reverseRatio)*100).toFixed(3)}%`,
+        citys:
+          item.province && item.city && item.region
+            ? `${item.province}/${item.city}/${item.region}`
+            : ""
+      };
+    });
+  }
+  
+  // 构建体检统计总数的一个显示所需数据
+  makeDataNum(dataNum) {
+    console.log("dataNum是个啥：", dataNum);
+    return dataNum.map((item, index) => {
+      return {
+        key: index,
+        id: item.id,
+        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
+        reverseTotalNum: item.reverseTotalNum,
+        usedTotalNum:item.usedTotalNum, //体检用户
+        reverseCount: item.reverseCount,//公众号预约用户
+        alltime:this.state.searchrefundBeginTime && this.state.searchrefundEndTime? `${tools.dateToStrD(this.state.searchrefundBeginTime._d)} -- ${tools.dateToStrD(this.state.searchrefundEndTime._d)}` : '全部',
+        stationData:item.stationData ? item.stationData : "",
+        stationArea: this.state.searchAddress[0] && this.state.searchAddress[1] && this.state.searchAddress[2] ? `${this.state.searchAddress[0]}/${this.state.searchAddress[1]}/${this.state.searchAddress[2]}` : "全部",
+        ratio:(item.usedTotalNum && item.reverseTotalNum) ? `${((item.reverseTotalNum)/(this.state.usedTotalNum)*100).toFixed(3)}%` : '',
         citys:
           item.province && item.city && item.region
             ? `${item.province}/${item.city}/${item.region}`
@@ -356,34 +618,56 @@ class Category extends React.Component {
                 placeholder="请选择服务区域"
                 onChange={v => this.onSearchAddress(v)}
                 options={this.state.citys}
+                style={{ width: "190px" }}
                 loadData={e => this.getAllCitySon(e)}
               />
             </li>
-            <li>
-              <span style={{ marginRight: "10px" }}>服务站关键字</span>
-              <Input
-                placeholder="服务站关键字搜索"
-                style={{ width: "172px" }}
-                onChange={e => this.searchStationKeyWordChange(e)}
-              />
-            </li>
+            {/*<li>*/}
+              {/*<span style={{ marginRight: "10px" }}>服务站关键字</span>*/}
+              {/*<Input*/}
+                {/*placeholder="服务站关键字搜索"*/}
+                {/*style={{ width: "172px" }}*/}
+                {/*onChange={e => this.searchStationKeyWordChange(e)}*/}
+              {/*/>*/}
+            {/*</li>*/}
             <li>
               <span style={{ marginRight: "10px" }}>选择时间</span>
               <DatePicker
-                showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
-                format="YYYY-MM-DD HH:mm:ss"
+                style={{ width: "130px" }}
+                dateRender={current => {
+                  const style = {};
+                  if (current.date() === 1) {
+                    style.border = "1px solid #1890ff";
+                    style.borderRadius = "45%";
+                  }
+                  return (
+                    <div className="ant-calendar-date" style={style}>
+                      {current.date()}
+                    </div>
+                  );
+                }}
+                format="YYYY-MM-DD"
                 placeholder="开始时间"
-                onChange={(e, s) => this.searchApplyBeginTime(e, s)}
-                onOk={onOk}
+                onChange={e => this.searchApplyBeginTime(e)}
               />
               --
               <DatePicker
-                showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
-                format="YYYY-MM-DD HH:mm:ss"
+                style={{ width: "130px" }}
+                dateRender={current => {
+                  const style = {};
+                  if (current.date() === 1) {
+                    style.border = "1px solid #1890ff";
+                    style.borderRadius = "45%";
+                  }
+                  return (
+                    <div className="ant-calendar-date" style={style}>
+                      {current.date()}
+                    </div>
+                  );
+                }}
+                format="YYYY-MM-DD"
                 placeholder="结束时间"
-                // value={this.state.searchEndTime}
                 onChange={e => this.searchApplyEndTime(e)}
-                onOk={onOk}
               />
             </li>
             <li>
@@ -395,7 +679,24 @@ class Category extends React.Component {
                 搜索
               </Button>
             </li>
+            <li>
+              <Button icon="download" type="primary" onClick={()=>this.onExport()}>
+                导出
+              </Button>
+            </li>
+            <li>
+              <Button icon="download" type="primary" onClick={()=>this.onExportStation()}>
+                按服务站导出
+              </Button>
+            </li>
           </ul>
+        </div>
+        <div className="system-table">
+          <Table
+            columns={this.makeColumnsAll()}
+            className="my-table"
+            dataSource={this.makeDataNum(this.state.dataNum)}
+          />
         </div>
         <div className="charts-box">
           <div id="echarts-1" className="echarts" />
@@ -410,14 +711,11 @@ class Category extends React.Component {
               current: this.state.pageNum,
               pageSize: this.state.pageSize,
               showQuickJumper: true,
-              showSizeChanger: true,
               defaultCurrent: 3,
               pageSizeOptions: ["10", "30", "50"],
-              onShowSizeChange: (current, pageSize) =>
-                this.onShowSizeChange(current, pageSize),
               showTotal: (total, range) => `共 ${total} 条数据`,
               onChange: (page, pageSize) =>
-              this.onTablePageChange(page, pageSize)
+                this.onTablePageChange(page, pageSize)
             }}
           />
         </div>

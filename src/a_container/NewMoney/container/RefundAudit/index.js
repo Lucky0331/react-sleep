@@ -74,9 +74,6 @@ class Category extends React.Component {
       searchrefundEndTime: "", // 搜索- 申请退款结束时间
       searchorderFrom: "", //搜索 - 订单来源
       searchName: "", // 搜索 - 状态
-      searchPayType: "", //搜索 - 支付类型
-      searchmchOrderIdChange: "", // 流水号查询
-      searchConditions: "", //搜索 - 退款状态
       searchorderNo: "", //搜索 - 订单号
       searchUserName: "", //搜索 - 用户id
       searchActivity: "", //搜索 - 活动方式
@@ -116,24 +113,16 @@ class Category extends React.Component {
     }
   }
 
-    warning2 = () =>{
-        message.warning('导出功能尚在开发 敬请期待');
-    };
-
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
     const params = {
       pageNum,
       pageSize,
-      id: this.state.searchId,
-      payType: this.state.searchPayType,
-      activityStatus: this.state.searchConditions, // 退款状态
       userId: this.state.searchUserName, //用户id
       productType: this.state.searchProductType, //产品类型
-      orderNo: this.state.searchorderNo, //订单号查询
+      orderNo: this.state.searchorderNo.trim(), //订单号查询
       minPrice: this.state.searchMinPrice,
       maxPrice: this.state.searchMaxPrice,
-      mchOrderId: this.state.searchmchOrderIdChange,
       userType: this.state.searchType, //用户身份
       activityType: this.state.searchActivity, //活动方式
       beginTime: this.state.searchrefundBeginTime
@@ -144,13 +133,13 @@ class Category extends React.Component {
         : ""
     };
     this.props.actions.refundAudit(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody);
-      if (res.returnCode === "0") {
+      console.log("返回的什么：", res.data);
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       }
     });
@@ -175,9 +164,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productTypes: res.messsageBody.result || []
+            productTypes: res.data.result || []
           });
         }
       });
@@ -286,20 +275,6 @@ class Category extends React.Component {
     return `${s}${c}${q}${x}`;
   }
 
-  //搜索 - 支付方式输入框值改变时触发
-  searchPayTypeChange(e) {
-    this.setState({
-      searchPayType: e
-    });
-  }
-
-  //搜索 - 退款状态改变时触发
-  searchConditionsChange(e) {
-    this.setState({
-      searchConditions: e
-    });
-  }
-
   //搜索 - 订单号
   searchOrderNoChange(e) {
     this.setState({
@@ -361,13 +336,6 @@ class Category extends React.Component {
       case "5":
         return "上海翼猫智能科技有限公司";
     }
-  }
-
-  // 搜索 - 流水号输入框值改变时触发
-  mchOrderIdChange(e) {
-    this.setState({
-      searchmchOrderIdChange: e.target.value
-    });
   }
 
   // 搜索 - 订单来源输入框值改变时触发
@@ -439,12 +407,6 @@ class Category extends React.Component {
     });
   }
 
-  emitEmpty2() {
-    this.setState({
-      searchmchOrderIdChange: ""
-    });
-  }
-
   emitEmpty5() {
     this.setState({
       searchMinPrice: ""
@@ -473,14 +435,11 @@ class Category extends React.Component {
       pageSize,
       activityType: this.state.searchActivity,
       userType: this.state.searchType,
-      payType: this.state.searchPayType,
-      activityStatus: this.state.searchConditions,
       userId: this.state.searchUserName,
       productType: this.state.searchProductType,
-      orderNo: this.state.searchorderNo,
+      orderNo: this.state.searchorderNo.trim(),
       minPrice: this.state.searchMinPrice,
       maxPrice: this.state.searchMaxPrice,
-      mchOrderId: this.state.searchmchOrderIdChange,
       refundBeginTime: this.state.searchrefundBeginTime
         ? `${tools.dateToStrD(this.state.searchrefundBeginTime._d)} 00:00:00`
         : "",
@@ -493,7 +452,7 @@ class Category extends React.Component {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/export/refund/audit`;
     form.method = "post";
     console.log("FORM:", params);
@@ -542,14 +501,6 @@ class Category extends React.Component {
       form.appendChild(newElement6);
     }
 
-    const newElement7 = document.createElement("input");
-    if (params.activityStatus) {
-      newElement7.setAttribute("name", "activityStatus");
-      newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.activityStatus);
-      form.appendChild(newElement7);
-    }
-
     const newElement8 = document.createElement("input");
     if (params.payType) {
       newElement8.setAttribute("name", "payType");
@@ -588,30 +539,6 @@ class Category extends React.Component {
       newElement12.setAttribute("type", "hidden");
       newElement12.setAttribute("value", params.minPrice);
       form.appendChild(newElement12);
-    }
-
-    const newElement13 = document.createElement("input");
-    if (params.mchOrderId) {
-      newElement13.setAttribute("name", "mchOrderId");
-      newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.mchOrderId);
-      form.appendChild(newElement13);
-    }
-
-    const newElement14 = document.createElement("input");
-    if (params.beginTime) {
-      newElement14.setAttribute("name", "beginTime");
-      newElement14.setAttribute("type", "hidden");
-      newElement14.setAttribute("value", params.beginTime);
-      form.appendChild(newElement14);
-    }
-
-    const newElement15 = document.createElement("input");
-    if (params.endTime) {
-      newElement15.setAttribute("name", "endTime");
-      newElement15.setAttribute("type", "hidden");
-      newElement15.setAttribute("value", params.endTime);
-      form.appendChild(newElement15);
     }
 
     form.submit();
@@ -717,7 +644,7 @@ class Category extends React.Component {
     this.props.actions
       .refundAuditEgis(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功", 1);
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
@@ -741,7 +668,7 @@ class Category extends React.Component {
     this.props.actions
       .refundAuditEgis(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功", 1);
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
@@ -772,11 +699,11 @@ class Category extends React.Component {
     this.props.actions
       .refundAuditEgis(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功", 1);
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -798,11 +725,11 @@ class Category extends React.Component {
     this.props.actions
       .refundAuditEgis(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功", 1);
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -819,11 +746,11 @@ class Category extends React.Component {
     this.props.actions
       .refundAuditEgis(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功", 1);
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -1039,7 +966,7 @@ class Category extends React.Component {
         customerName: item.customer ? item.customer.realName : "",
         customerPhone: item.customer ? item.customer.phone : "",
         createTime: item.createTime,
-        detail: item.product.typeName ? item.product.typeName.detail : "",
+        detail: item.product.name ? item.product.name : "",
         auditTime: item.orders ? item.orders.auditTime : "",
         company: item.product ? item.product.typeId : "",
         refundStatus: item.refundStatus,

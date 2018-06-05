@@ -77,10 +77,10 @@ class Category extends React.Component {
       classifyOne:[],  //所有的一级分类
       titleList: [], // 所有的标题位置
       titles: [], //所有的标题
-      searchTitle: "", //搜索 - 标题
+      searchTitle: "", //搜索 - 频道id
       searchDeleteStatus: "", //搜索 - 是否发布
       searchTypeCode: "", //搜索 - 产品类型
-      pullliveId:"", //拉取操作
+      pullliveId:"", //拉取操作/搜索频道id
       nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
       pullnowData:null,//指的是拉取后的数据
       addnewModalShow: false, // 查看地区模态框是否显示
@@ -120,23 +120,23 @@ class Category extends React.Component {
       pageNum,
       pageSize,
       liveStatus: this.state.searchLiveStatus,  //查询标签
-      title: this.state.searchTitle,
-      productTypeCode: this.state.searchTypeCode
+      liveId: this.state.searchTitle, //频道id
+      productTypeCode: this.state.searchTypeCode,
     };
     this.props.actions.LiveVideo(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody.result);
-      if (res.returnCode === '0') {
+      console.log("返回的什么：", res.data.result);
+      if (res.status === '0') {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          // classifyOne:res.messsageBody.result[].liveType || '',
-          total: res.messsageBody.total || []
+          // classifyOne:res.data.result[].liveType || '',
+          total: res.data.total || []
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
-      // console.log("直播列表一级分类：", res.messsageBody.result.liveType);
+      // console.log("直播列表一级分类：", res.data.result.liveType);
     });
   }
 
@@ -163,9 +163,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productModels: res.messsageBody.result || []
+            productModels: res.data.result || []
           });
         }
       });
@@ -176,9 +176,9 @@ class Category extends React.Component {
     this.props.actions
     .LiveType({ pageNum: 0, pageSize: 9999 })
     .then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          liveTypes: res.messsageBody.result || []
+          liveTypes: res.data.result || []
         });
       }
     });
@@ -191,37 +191,37 @@ class Category extends React.Component {
     };
     const form = this.props.form;
     this.props.actions.allPullVideo(tools.clearNull(params)).then(res => {
-      console.log('又没有拉取到:',res.messsageBody)
-      if (res.returnCode === '0') {
+      console.log('又没有拉取到:',res.data)
+      if (res.status === '0') {
         this.setState({
-          datapull: res.messsageBody || [],
-          pcUrl:res.messsageBody.pcUrl,
-          watchTimes:res.messsageBody.watchTimes,
-          realWatchTimes:res.messsageBody.realWatchTimes,
-          mobileUrl:res.messsageBody.mobileUrl,
+          datapull: res.data || [],
+          pcUrl:res.data.pcUrl,
+          watchTimes:res.data.watchTimes,
+          realWatchTimes:res.data.realWatchTimes,
+          mobileUrl:res.data.mobileUrl,
         });
         form.setFieldsValue({
-          addnewTitle: res.messsageBody.name ? res.messsageBody.name : '',
-          addnewTime:res.messsageBody.createTime ? res.messsageBody.createTime : '',
-          watchTimes:res.messsageBody.watchTimes ? res.messsageBody.watchTimes : '',
-          addnewLabel:res.messsageBody.liveStatus ? res.messsageBody.liveStatus : "", //标签
-          addnewRecommend:res.messsageBody.recommend ? res.messsageBody.recommend ? 1 : 0 : '' ,//是否推荐
-          addnewSorts:res.messsageBody.sorts ? res.messsageBody.sorts : '',//排序
-          addnewClassifyOne:res.messsageBody.liveType ? res.messsageBody.liveType.name : '',//一级分类名称
-          addnewClassifyTwo:res.messsageBody.liveType ? res.messsageBody.liveType.subList[0].name : '',//二级分类名称
-          // addnewProduct:res.messsageBody.recommendProductList[0].productName,//推荐产品
-          realWatchTimes:res.messsageBody.realWatchTimes ? res.messsageBody.realWatchTimes : '',
-          pcUrl:res.messsageBody.pcUrl ? res.messsageBody.pcUrl : "",
-          mobileUrl:res.messsageBody.mobileUrl ? res.messsageBody.mobileUrl : '',
-          coverImage: res.messsageBody.coverImage
-            ? res.messsageBody.coverImage
+          addnewTitle: res.data.name ? res.data.name : '',
+          addnewTime:res.data.createTime ? res.data.createTime : '',
+          watchTimes:res.data.watchTimes ? res.data.watchTimes : '',
+          addnewLabel:res.data.liveStatus ? res.data.liveStatus : "", //标签
+          addnewRecommend:res.data.recommend ? res.data.recommend ? 1 : 0 : '' ,//是否推荐
+          addnewSorts:res.data.sorts ? res.data.sorts : '',//排序
+          addnewClassifyOne:res.data.liveType ? res.data.liveType.name : '',//一级分类名称
+          addnewClassifyTwo:res.data.liveType ? res.data.liveType.subList[0].name : '',//二级分类名称
+          // addnewProduct:res.data.recommendProductList[0].productName,//推荐产品
+          realWatchTimes:res.data.realWatchTimes ? res.data.realWatchTimes : '',
+          pcUrl:res.data.pcUrl ? res.data.pcUrl : "",
+          mobileUrl:res.data.mobileUrl ? res.data.mobileUrl : '',
+          coverImage: res.data.coverImage
+            ? res.data.coverImage
                 .split(",")
                 .map((item, index) => ({ uid: index, url: item, status: "done" }))
             : [],
         });
         this.setState({
-          fileList: res.messsageBody.coverImage
-            ? res.messsageBody.coverImage
+          fileList: res.data.coverImage
+            ? res.data.coverImage
               .split(",")
               .map((item, index) => ({ uid: index, url: item, status: "done" }))
             : [], // 封面图上传的列表
@@ -435,11 +435,11 @@ class Category extends React.Component {
     this.props.actions
       .UpdateVideo(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -450,11 +450,11 @@ class Category extends React.Component {
   // 删除某一条数据
   onRemoveClick(liveId) {
     this.props.actions.DeleteVideo({ liveId: liveId }).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error(res.returnMessaage || "删除失败，请重试");
+        message.error(res.message || "删除失败，请重试");
       }
     });
   }
@@ -464,10 +464,10 @@ class Category extends React.Component {
     // console.log('图片上传：', obj);
     if (obj.file.status === "done") {
       // 上传成功后调用,将新的地址加进原list
-      if (obj.file.response.messsageBody) {
+      if (obj.file.response.data) {
         const list = _.cloneDeep(this.state.fileList);
         const t = list.find(item => item.uid === obj.file.uid);
-        t.url = obj.file.response.messsageBody;
+        t.url = obj.file.response.data;
         this.setState({
           fileList: list,
           fileLoading: false
@@ -544,9 +544,17 @@ class Category extends React.Component {
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
-
+  
+  
+  //Input中的删除按钮所删除的条件
+  emitEmpty() {
+    this.setState({
+      searchTitle: ""
+    });
+  }
+  
   //触发拉取操作 - Id改变时
   pullliveId(e){
     this.setState({
@@ -787,6 +795,11 @@ class Category extends React.Component {
         sm: { span: 16 }
       }
     };
+  
+    const { searchTitle } = this.state;
+    const suffix = searchTitle ? (
+        <Icon type="close-circle" onClick={() => this.emitEmpty()} />
+    ) : null;
 
     console.log(
       "是啥直播类型：",
@@ -804,8 +817,8 @@ class Category extends React.Component {
               <span style={{marginRight:'8px'}}>频道ID</span>
               <Input
                 style={{ width:"172px" }}
-                // suffix={suffix}
-                // value={searchTitle}
+                suffix={suffix}
+                value={searchTitle}
                 onChange={e => this.searchTitleChange(e)}
               />
             </li>

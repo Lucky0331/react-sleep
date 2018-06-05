@@ -157,8 +157,8 @@ class Manager extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -220,15 +220,15 @@ class Manager extends React.Component {
     };
 
     this.props.actions.findUserInfo(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -268,8 +268,8 @@ class Manager extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -332,11 +332,11 @@ class Manager extends React.Component {
     const formItemLayout = {
       labelCol: {
         xs: { span: 24 },
-        sm: { span: 8 }
+        sm: { span: 9 }
       },
       wrapperCol: {
         xs: { span: 24 },
-        sm: { span: 16 }
+        sm: { span: 15 }
       }
     };
 
@@ -376,8 +376,8 @@ class Manager extends React.Component {
             <FormItem label="经销商所在区" {...formItemLayout}>
               <span style={{marginLeft:'7px'}}>{ this.props.detail.region }</span>
             </FormItem>
-            <FormItem label="绑定时间" {...formItemLayout} style={{paddingLeft:'29px'}}>
-              <span style={{marginLeft:'-13px'}}>{ this.props.detail.bindTime }</span>
+            <FormItem label="绑定手机号时间" {...formItemLayout} style={{marginLeft:'-13px'}}>
+              <span style={{marginLeft:'13px'}}>{ this.props.detail.bindPhoneTime }</span>
             </FormItem>
             <FormItem label="健康大使id" {...formItemLayout} style={{paddingLeft:'17px'}}>
               <span>{ this.props.detail.mid} </span>
@@ -390,6 +390,9 @@ class Manager extends React.Component {
             </FormItem>
             <FormItem label="推荐人所在市" {...formItemLayout} >
               <span style={{marginLeft:'6px'}}>{ this.props.detail.city2} </span>
+            </FormItem>
+            <FormItem label="推荐人所在区" {...formItemLayout}>
+              <span style={{marginLeft:'6px'}}>{ this.props.detail.region2 }</span>
             </FormItem>
           </Form>
           <Form style={{float:'right',width:'320px'}}>
@@ -408,8 +411,11 @@ class Manager extends React.Component {
             <FormItem label="创建时间" {...formItemLayout} style={{paddingLeft:'28px'}}>
               <span style={{marginLeft:'-19px'}}>{ this.props.detail.createTime }</span>
             </FormItem>
-            <FormItem label="绑定手机号时间" {...formItemLayout} style={{marginLeft:'-13px'}}>
-              <span>{ this.props.detail.bindPhoneTime }</span>
+            <FormItem label="绑定上级关系时间" {...formItemLayout} style={{marginLeft:'-26px'}}>
+              <span style={{marginLeft:'15px'}}>{ this.props.detail.bindTime }</span>
+            </FormItem>
+            <FormItem label="绑定经销商账号时间" {...formItemLayout} style={{marginLeft:'-42px'}}>
+              <span style={{marginLeft:'25px'}}>{ this.props.detail.bindTime }</span>
             </FormItem>
             <FormItem label="健康大使昵称" {...formItemLayout}>
               <span>{ this.props.detail.nickName }</span>
@@ -419,9 +425,6 @@ class Manager extends React.Component {
             </FormItem>
             <FormItem label="推荐人所在省" {...formItemLayout}>
               <span>{ this.props.detail.province2 }</span>
-            </FormItem>
-            <FormItem label="推荐人所在区" {...formItemLayout}>
-              <span>{ this.props.detail.region2 }</span>
             </FormItem>
           </Form>
         </div>

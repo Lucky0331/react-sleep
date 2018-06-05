@@ -91,15 +91,15 @@ class Role extends React.Component {
     };
     this.props.actions.findRolesByKeys(tools.clearNull(params)).then(res => {
       console.log("返回的什么：", res);
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result,
+          data: res.data.result,
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -154,12 +154,12 @@ class Role extends React.Component {
       this.props.actions
         .updateRoleInfo(params)
         .then(res => {
-          if (res.returnCode === "0") {
+          if (res.status === "0") {
             message.success("修改成功");
             this.onGetData(this.state.pageNum, this.state.pageSize);
             this.onUpClose();
           } else {
-            message.error(res.returnMessaage || "修改失败，请重试");
+            message.error(res.message || "修改失败，请重试");
           }
           me.setState({
             upLoading: false
@@ -182,18 +182,18 @@ class Role extends React.Component {
   // 删除某一条数据
   onDeleteClick(id) {
     this.props.actions.deleteRoleInfo({ id: id }).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error(res.returnMessaage || "删除失败，请重试");
+        message.error(res.message || "删除失败，请重试");
       }
     });
   }
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
 
   // 查询某一条数据的详情
@@ -274,9 +274,9 @@ class Role extends React.Component {
     this.props.actions
       .findAllMenuByRoleId({ roleId: record.roleId })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           console.log("当前角色所拥有的菜单：", res, record);
-          const menuDefault = res.messsageBody.result
+          const menuDefault = res.data.result
             .filter(item => item.menuAfiliation === "Y")
             .map(item => ({
               key: `${item.id}`,
@@ -285,7 +285,7 @@ class Role extends React.Component {
               p: item.parentId
             }));
           this.setState({
-            roleTreeData: res.messsageBody.result,
+            roleTreeData: res.data.result,
             menuDefault
           });
         }
@@ -321,11 +321,11 @@ class Role extends React.Component {
     this.props.actions
       .AssigningMenuToRoleId(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("菜单分配成功");
           this.onMenuTreeClose();
         } else {
-          message.error(res.returnMessaage || "菜单分配失败");
+          message.error(res.message || "菜单分配失败");
         }
         this.setState({
           treeOnOkLoading: false

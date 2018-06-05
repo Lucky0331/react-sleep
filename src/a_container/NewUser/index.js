@@ -22,6 +22,7 @@ import CouponCard from "./container/CouponCard";
 import UserInfoRecord from "./container/UserInfoRecord";
 import UserInfoCount from "./container/UserInfoCount";
 import ProvincialManager from "./container/ProvincialManager"
+import Messageboard from "./container/Messageboard"
 
 // ==================
 // 本页面所需action
@@ -88,6 +89,11 @@ class TheContainer extends React.Component {
             exact
             path={`${this.props.match.path}/provincialManager`}
             component={ProvincialManager}
+          />
+          <Route
+            exact
+            path={`${this.props.match.path}/Messageboard`}
+            component={Messageboard}
           />
         </Switch>
       </div>

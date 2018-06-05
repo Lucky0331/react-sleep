@@ -46,6 +46,8 @@ import {
   ActivityList,
   findProductByWhere,
   upDateOnlineList,
+  deleteImage,
+  activityList,
 } from "../../../../a_action/shop-action";
 
 // ==================
@@ -81,17 +83,16 @@ class Category extends React.Component {
   // 获取所有产品型号，当前页要用
   getAllProductModel() {
     this.props.actions
-      .findProductByWhere({ pageNum: 0, pageSize: 9999 })
+      .findProductByWhere({ pageNum: 0, pageSize: 9999 ,onShelf:1})
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productModels: res.messsageBody.result || []
+            productModels: res.data.result || []
           });
         }
       });
   }
-
-
+  
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
     const params = {
@@ -102,18 +103,18 @@ class Category extends React.Component {
       apId: this.state.searchBanner
     };
     this.props.actions.ActivityList(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody.result.recommendProductList);
-      if (res.returnCode === "0") {
+      // console.log("返回的什么：", res.data.result.recommendProductList);
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
-      console.log("啥活动：", res.messsageBody.result);
+      console.log("啥活动：", res.data.result);
     });
   }
 
@@ -144,10 +145,10 @@ class Category extends React.Component {
     // console.log('图片上传：', obj);
     if (obj.file.status === "done") {
       // 上传成功后调用,将新的地址加进原list
-      if (obj.file.response.messsageBody) {
+      if (obj.file.response.data) {
         const list = _.cloneDeep(this.state.fileList);
         const t = list.find(item => item.uid === obj.file.uid);
-        t.url = obj.file.response.messsageBody;
+        t.url = obj.file.response.data;
         this.setState({
           fileList: list,
           fileLoading: false
@@ -266,9 +267,9 @@ class Category extends React.Component {
           title: values.addnewTitle,
           acUrl: values.addnewUrl,
           deleteFlag:values.addnewDeletFlag,
-          recommend:String(values.addnewProduct),
+          recommend: values.addnewProduct ? String(values.addnewProduct) :undefined,
           sorts:Number(values.addnewSorts),
-          acImg: this.state.fileList.map(item => item.url).join(","),
+          acImg:this.state.fileList.map(item => item.url).join(","),
         };
         if (this.state.addOrUp === "add") {
           // 新增
@@ -311,12 +312,24 @@ class Category extends React.Component {
   // 修改某一条数据 模态框出现
   onUpdateClick(record) {
     const me = this;
+    const params = {
+      activityId:record.id,
+    };
+    this.props.actions.activityList(tools.clearNull(params)).then(res => {
+      if (res.status === "0") {
+        this.setState({
+          data2: res.data || [],
+        });
+      } else {
+        message.error(res.message || "获取数据失败，请重试");
+      }
+    });
     const { form } = me.props;
     console.log("是什么：", record);
     form.setFieldsValue({
       addnewTitle: String(record.title),
       addnewUrl: record.acUrl,
-      addnewProduct: record.productName ? record.productName : undefined,
+      addnewProduct: record.recommendProductList ? record.recommendProductList.map((item)=>{return String(item.productId)}) : undefined,
       addnewDeletFlag:record.deleteFlag ? 1 : 0,
       addnewSorts:record.sorts,
       addnewacImg: record.acImg
@@ -342,11 +355,11 @@ class Category extends React.Component {
     this.props.actions
       .upDateOnlineList(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -357,11 +370,11 @@ class Category extends React.Component {
   // 删除某一条数据
   onRemoveClick(id) {
     this.props.actions.deleteActivity({ id: id }).then(res => {
-      if (res.returnCode === "0") {
-        message.success(res.returnMessaage );
+      if (res.status === "0") {
+        message.success(res.message );
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error(res.returnMessaage || "删除失败，请重试");
+        message.error(res.message || "删除失败，请重试");
       }
     });
   }
@@ -375,7 +388,7 @@ class Category extends React.Component {
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
   //导出
   onExport() {
@@ -568,12 +581,21 @@ class Category extends React.Component {
         deleteFlag: item.deleteFlag,//是否发布
         acUrl: item.acUrl,  //链接地址
         sorts:item.sorts,
-        acImg:item.acImg, //活动图片
+        recommendProductList:item.recommendProductList, //推荐产品有哪些
+        acImg:item.acImg ? item.acImg : '', //活动图片
         productId:item.recommendProductList && item.recommendProductList[0] ? item.recommendProductList[0].productId : '',
-        productName:item.recommendProductList && item.recommendProductList[0] ? item.recommendProductList[0].productName : '',
-        productName2:item.recommendProductList && item.recommendProductList[1]? item.recommendProductList[1].productName : '',
-        productName3:item.recommendProductList && item.recommendProductList[2]? item.recommendProductList[2].productName : '',
-        productName4:item.recommendProductList && item.recommendProductList[3]? item.recommendProductList[3].productName : '',
+        // productName:item.recommendProductList ? item.recommendProductList.map((item)=>{ return (item.productId)}).join(",") :'',
+        productName:item.recommendProductList && item.recommendProductList[0] ? item.recommendProductList[0].productId : '',
+        productName2:item.recommendProductList && item.recommendProductList[1] ? item.recommendProductList[1].productId : '',
+        productName3:item.recommendProductList && item.recommendProductList[2] ? item.recommendProductList[2].productId : '',
+        productName4:item.recommendProductList && item.recommendProductList[3] ? item.recommendProductList[3].productId : '',
+        productName5:item.recommendProductList && item.recommendProductList[4] ? item.recommendProductList[4].productId : '',
+        productName6:item.recommendProductList && item.recommendProductList[5] ? item.recommendProductList[5].productId : '',
+        productName7:item.recommendProductList && item.recommendProductList[6] ? item.recommendProductList[6].productId : '',
+        productName8:item.recommendProductList && item.recommendProductList[7] ? item.recommendProductList[7].productId : '',
+        productName9:item.recommendProductList && item.recommendProductList[8]? item.recommendProductList[8].productId : '',
+        productName10:item.recommendProductList && item.recommendProductList[9] ? item.recommendProductList[9].productId : '',
+  
       };
     });
   }
@@ -621,8 +643,8 @@ class Category extends React.Component {
                 style={{ width: "172px" }}
                 onChange={e => this.searchNameChange(e)}
               >
-                <Option value={1}>已发布</Option>
-                <Option value={0}>未发布</Option>
+                <Option value={0}>已发布</Option>
+                <Option value={1}>未发布</Option>
               </Select>
             </li>
             <li style={{ marginLeft: "40px", marginRight: "15px" }}>
@@ -786,17 +808,23 @@ class Category extends React.Component {
               : ""}
             </FormItem>
             <FormItem label="推荐产品" {...formItemLayout} >
-              <p>{!!this.state.nowData ? this.state.nowData.productName : ""}</p>
-              <p>{!!this.state.nowData ? this.state.nowData.productName2 : ""}</p>
-              <p>{!!this.state.nowData ? this.state.nowData.productName3 : ""}</p>
-              <p>{!!this.state.nowData ? this.state.nowData.productName4 : ""}</p>
+              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName) : ''}</p>
+              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName2) : ''}</p>
+              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName3) : ''}</p>
+              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName4) : ''}</p>
+              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName5) : ''}</p>
+              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName6) : ''}</p>
+              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName7) : ''}</p>
+              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName8) : ''}</p>
+              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName9) : ''}</p>
+              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName10) : ''}</p>
             </FormItem>
             <FormItem label="发布状态" {...formItemLayout}>
               {!!this.state.nowData ? (
                 Boolean(this.state.nowData.deleteFlag) === true ? (
-                  <span style={{ color: "green" }}>已发布</span>
-                ) : (
                   <span style={{ color: "red" }}>未发布</span>
+                ) : (
+                  <span style={{ color: "green" }}>已发布</span>
                 )
               ) : (
                 ""
@@ -838,7 +866,9 @@ export default connect(
         onOk,
         findProductByWhere,
         ActivityList,
-        upDateOnlineList
+        upDateOnlineList,
+        deleteImage,
+        activityList,
       },
       dispatch
     )

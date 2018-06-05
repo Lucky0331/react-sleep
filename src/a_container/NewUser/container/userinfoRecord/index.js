@@ -164,8 +164,8 @@ class Manager extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -223,15 +223,15 @@ class Manager extends React.Component {
     };
 
     this.props.actions.findUserInfo(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -271,8 +271,8 @@ class Manager extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -375,7 +375,7 @@ class Manager extends React.Component {
             <FormItem label="用户身份" {...formItemLayout} style={{paddingLeft:'14px'}}>
               <span>{ this.getListByModelId(this.props.detail2.userType)}</span>
             </FormItem>
-            <FormItem label="绑定时间" {...formItemLayout} style={{paddingLeft:'14px'}}>
+            <FormItem label="绑定上级关系时间" {...formItemLayout} style={{marginLeft:'-41px'}}>
               <span>{ this.props.detail2.bindTime }</span>
             </FormItem>
             <FormItem label="健康大使id" {...formItemLayout} style={{paddingLeft:'4px'}}>

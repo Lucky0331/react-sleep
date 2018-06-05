@@ -105,24 +105,24 @@ class Menu extends React.Component {
       pageSize: 9999
     };
     this.props.actions.findOrganizerByParentId(params).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody
+          data: res.data
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败");
+        message.error(res.message || "获取数据失败");
       }
     });
   }
   // 确定删除当前菜单
   onDeleteClick(record) {
     this.props.actions.deleteOrganizer({ id: record.id }).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
         this.getAllOrganizer();
         this.getData(record.parentId);
       } else {
-        message.error(res.returnMessaage || "删除失败");
+        message.error(res.message || "删除失败");
       }
     });
   }
@@ -213,7 +213,7 @@ class Menu extends React.Component {
         me.props.actions
           .addOrganizer(tools.clearNull(params))
           .then(res => {
-            if (res.returnCode === "0") {
+            if (res.status === "0") {
               message.success("添加成功");
               this.getAllOrganizer(); // 重新获取组织结构
               this.getData();
@@ -273,7 +273,7 @@ class Menu extends React.Component {
         this.props.actions
           .updateOrganizer(params)
           .then(res => {
-            if (res.returnCode === "0") {
+            if (res.status === "0") {
               message.success("修改成功");
               this.getAllOrganizer(); // 重新获取所有组织结构
               this.getData(me.state.nowData.parentId);

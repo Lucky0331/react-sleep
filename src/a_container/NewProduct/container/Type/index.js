@@ -103,15 +103,15 @@ class Category extends React.Component {
       .findProductTypeByWhere(tools.clearNull(params))
       .then(res => {
         console.log("返回的什么：", res);
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            data: res.messsageBody.result,
+            data: res.data.result,
             pageNum,
             pageSize,
-            total: res.messsageBody.total
+            total: res.data.total
           });
         } else {
-          message.error(res.returnMessaage || "获取数据失败，请重试");
+          message.error(res.message || "获取数据失败，请重试");
         }
       });
   }
@@ -173,12 +173,12 @@ class Category extends React.Component {
         this.props.actions
           .updateProductType(params)
           .then(res => {
-            if (res.returnCode === "0") {
+            if (res.status === "0") {
               message.success("修改成功");
               this.onGetData(this.state.pageNum, this.state.pageSize);
               this.onUpClose();
             } else {
-              message.error(res.returnMessaage || "修改失败，请重试");
+              message.error(res.message || "修改失败，请重试");
             }
             me.setState({
               upLoading: false
@@ -203,11 +203,11 @@ class Category extends React.Component {
   // 删除某一条数据
   onDeleteClick(id) {
     this.props.actions.deleteProductType({ id: id }).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error(res.returnMessaage || "删除失败，请重试");
+        message.error(res.message || "删除失败，请重试");
       }
     });
   }
@@ -217,10 +217,10 @@ class Category extends React.Component {
     // console.log('图片上传：', obj);
     if (obj.file.status === "done") {
       // 上传成功后调用,将新的地址加进原list
-      if (obj.file.response.messsageBody) {
+      if (obj.file.response.data) {
         const list = _.cloneDeep(this.state.fileList);
         const t = list.find(item => item.uid === obj.file.uid);
-        t.url = obj.file.response.messsageBody;
+        t.url = obj.file.response.data;
         this.setState({
           fileList: list,
           fileLoading: false
@@ -289,7 +289,7 @@ class Category extends React.Component {
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
 
   // 查询某一条数据的详情
@@ -424,51 +424,52 @@ class Category extends React.Component {
         key: "code",
         render: (text, record) => this.getCode(text)
       },
-      {
-        title: "操作",
-        key: "control",
-        width: 200,
-        render: (text, record) => {
-          const controls = [];
-          controls.push(
-            <span
-              key="1"
-              className="control-btn blue"
-              onClick={() => this.onUpdateClick(record)}
-            >
-              <Tooltip placement="top" title="编辑">
-                <Icon type="edit" />
-              </Tooltip>
-            </span>
-          );
-          controls.push(
-            <Popconfirm
-              key="3"
-              title="确定删除吗?"
-              onConfirm={() => this.onDeleteClick(record.id)}
-              okText="确定"
-              cancelText="取消"
-            >
-              <span className="control-btn red">
-                <Tooltip placement="top" title="删除">
-                  <Icon type="delete" />
-                </Tooltip>
-              </span>
-            </Popconfirm>
-          );
-
-          const result = [];
-          controls.forEach((item, index) => {
-            if (index) {
-              result.push(
-                <span key={`line${index}`} className="ant-divider" />
-              );
-            }
-            result.push(item);
-          });
-          return result;
-        }
-      }
+      //组长说取消产品类型的编辑跟删除 我先注释掉
+      // {
+      //   title: "操作",
+      //   key: "control",
+      //   width: 200,
+      //   render: (text, record) => {
+      //     const controls = [];
+      //     controls.push(
+      //       <span
+      //         key="1"
+      //         className="control-btn blue"
+      //         onClick={() => this.onUpdateClick(record)}
+      //       >
+      //         <Tooltip placement="top" title="编辑">
+      //           <Icon type="edit" />
+      //         </Tooltip>
+      //       </span>
+      //     );
+      //     controls.push(
+      //       <Popconfirm
+      //         key="3"
+      //         title="确定删除吗?"
+      //         onConfirm={() => this.onDeleteClick(record.id)}
+      //         okText="确定"
+      //         cancelText="取消"
+      //       >
+      //         <span className="control-btn red">
+      //           <Tooltip placement="top" title="删除">
+      //             <Icon type="delete" />
+      //           </Tooltip>
+      //         </span>
+      //       </Popconfirm>
+      //     );
+      //
+      //     const result = [];
+      //     controls.forEach((item, index) => {
+      //       if (index) {
+      //         result.push(
+      //           <span key={`line${index}`} className="ant-divider" />
+      //         );
+      //       }
+      //       result.push(item);
+      //     });
+      //     return result;
+      //   }
+      // }
     ];
     return columns;
   }
@@ -511,15 +512,15 @@ class Category extends React.Component {
     };
     return (
       <div>
-        <div className="system-search">
-          <ul className="search-func">
-            <li>
-              <Button type="primary" onClick={() => this.onAddNewShow()}>
-                <Icon type="plus-circle-o" />添加产品类型
-              </Button>
-            </li>
-          </ul>
-        </div>
+        {/*<div className="system-search">*/}
+          {/*<ul className="search-func">*/}
+            {/*<li>*/}
+              {/*<Button type="primary" onClick={() => this.onAddNewShow()}>*/}
+                {/*<Icon type="plus-circle-o" />添加产品类型*/}
+              {/*</Button>*/}
+            {/*</li>*/}
+          {/*</ul>*/}
+        {/*</div>*/}
         <div className="system-table">
           <Table
             columns={this.makeColumns()}
@@ -557,8 +558,8 @@ class Category extends React.Component {
                     validator: (rule, value, callback) => {
                       const v = tools.trim(value);
                       if (v) {
-                        if (v.length > 12) {
-                          callback("最多输入12位字符");
+                        if (v.length > 30) {
+                          callback("最多输入30个字");
                         }
                       }
                       callback();
@@ -580,8 +581,8 @@ class Category extends React.Component {
                     validator: (rule, value, callback) => {
                       const v = tools.trim(value);
                       if (v) {
-                        if (v.length > 12) {
-                          callback("最多输入12位字符");
+                        if (v.length > 30) {
+                          callback("最多输入12个字");
                         }
                       }
                       callback();
@@ -651,8 +652,8 @@ class Category extends React.Component {
                     validator: (rule, value, callback) => {
                       const v = tools.trim(value);
                       if (v) {
-                        if (v.length > 12) {
-                          callback("最多输入12位字符");
+                        if (v.length > 30) {
+                          callback("最多输入30个字");
                         }
                       }
                       callback();
@@ -674,8 +675,8 @@ class Category extends React.Component {
                     validator: (rule, value, callback) => {
                       const v = tools.trim(value);
                       if (v) {
-                        if (v.length > 12) {
-                          callback("最多输入12位字符");
+                        if (v.length > 30) {
+                          callback("最多输入30个字");
                         }
                       }
                       callback();

@@ -47,6 +47,8 @@ import {
   UpassistantList,
   DelateassistantList,
   assistantTypeList,
+  DownassistantList,
+  RemoveList
 }from "../../../../a_action/card-action"
 
 // ==================
@@ -66,6 +68,8 @@ class Category extends React.Component {
       titles: [], //所有的标题
       searchTitle: "", //搜索 - 问题查询
       searchTypeCode:'',//搜索 - 问题分类
+      searchRecommend:"",//搜索 - 热门咨询状态
+      searchStatus:'',//搜索 - 是否发布
       nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
       addnewModalShow: false, // 查看地区模态框是否显示
       upModalShow: false, // 修改模态框是否显示
@@ -90,20 +94,22 @@ class Category extends React.Component {
       pageSize,
       typeCode: this.state.searchTypeCode,
       questions: this.state.searchTitle,
+      recommend:this.state.searchRecommend,//在热门咨询状态
+      deleteFlag:this.state.searchStatus,//是否发布
     };
     this.props.actions.assistantList(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody);
-      if (res.returnCode === "0") {
+      console.log("返回的什么：", res.data);
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
-      console.log("问答列表有了么：", res.messsageBody.result);
+      console.log("问答列表有了么：", res.data.result);
     });
   }
   
@@ -112,9 +118,9 @@ class Category extends React.Component {
     this.props.actions
       .assistantTypeList({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            assistants: res.messsageBody.result || []
+            assistants: res.data.result || []
           });
         }
       });
@@ -142,9 +148,30 @@ class Category extends React.Component {
     });
   }
   
+  //Input中的删除按钮所删除的条件
+  emitEmpty() {
+    this.setState({
+      searchTitle: ""
+    });
+  }
+  
+  //热门资讯推荐状态
+  searchRecommendChange(e){
+    this.setState({
+      searchRecommend:e
+    })
+  }
+  
+  //发布状态
+  searchStatusChange(e){
+    this.setState({
+      searchStatus:e
+    })
+  }
+  
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
   
   // 添加新回答模态框出现
@@ -205,7 +232,7 @@ class Category extends React.Component {
         const params = {
           questions: values.addnewTitle,//问题
           typeCode:values.addnewTypeCode,//随机typeCode值
-          deleteFlag: values.addnewConditions ? 0 : 1,//是否发布
+          recommend: values.addnewConditions ? 0 : 1,//是否发布
           sorts: values.addnewSorts, //排序
           answers: values.addnewQuestion,//回答
         };
@@ -254,7 +281,7 @@ class Category extends React.Component {
     console.log("是什么：", record);
     form.setFieldsValue({
       addnewTitle: String(record.questions),
-      addnewConditions: record.deleteFlag ? 0 : 1,
+      addnewConditions: record.recommend ? 0 : 1,
       addnewSorts: record.sorts,
       addnewQuestion: record.answers,
       addnewTypeCode: String(record.typeCode),
@@ -270,16 +297,36 @@ class Category extends React.Component {
   // 发布或回撤
   onUpdateClick2(record) {
     const params = {
-      adId: Number(record.id)
+      id: Number(record.id)
     };
     this.props.actions
-      .UpdateOnline(params)
+      .RemoveList(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
+        }
+      })
+      .catch(() => {
+        message.error("修改失败");
+      });
+  }
+  
+  // 推荐或回撤
+  onUpdateClick3(record) {
+    const params = {
+      id: Number(record.id)
+    };
+    this.props.actions
+      .DownassistantList(params)
+      .then(res => {
+        if (res.status === "0") {
+          message.success("修改成功");
+          this.onGetData(this.state.pageNum, this.state.pageSize);
+        } else {
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -290,11 +337,11 @@ class Category extends React.Component {
   // 删除某一条数据
   onRemoveClick(id) {
     this.props.actions.DelateassistantList({ id: id }).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error(res.returnMessaage || "删除失败，请重试");
+        message.error(res.message || "删除失败，请重试");
       }
     });
   }
@@ -308,7 +355,7 @@ class Category extends React.Component {
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
   //导出
   onExport() {
@@ -362,14 +409,18 @@ class Category extends React.Component {
         title: "回答",
         dataIndex: "answers",
         key: "answers",
-        // width: 200 ,
-        // overflow:hidden ,
-        // whiteSpace:nowrap ,
-        // textOverflow:ellipsis
       },
-      // {
-      //   title: "是否设为热门资讯",
-      // },
+      {
+        title: "是否设为热门资讯",
+        dataIndex: "recommend",
+        key: "recommend",
+        render: text =>
+          Boolean(text) === true ? (
+            <span style={{ color: "green" }}>已推荐</span>
+          ) : (
+            <span style={{ color: "red" }}>未推荐</span>
+          )
+      },
       {
         title: "是否发布",
         dataIndex: "deleteFlag",
@@ -383,6 +434,8 @@ class Category extends React.Component {
       },
       {
         title:'最新发布时间',
+        dataIndex:'creatTime',
+        key:'creatTime',
       },
       {
         title:"排序",
@@ -402,7 +455,7 @@ class Category extends React.Component {
               onClick={() => this.onUpdateClick2(record)}
             >
               <Tooltip placement="top" title="发布">
-                <Icon type="login" />
+                <Icon type="caret-up" />
               </Tooltip>
             </span>
           );
@@ -414,14 +467,37 @@ class Category extends React.Component {
               onClick={() => this.onUpdateClick2(record)}
             >
               <Tooltip placement="top" title="回撤">
-                <Icon type="logout" />
+                <Icon type="caret-down" />
               </Tooltip>
             </span>
           );
-          record.deleteFlag === false &&
+          record.recommend === false &&
           controls.push(
             <span
               key="2"
+              className="control-btn blue"
+              onClick={() => this.onUpdateClick3(record)}
+            >
+            <Tooltip placement="top" title="推荐">
+              <Icon type="login" />
+            </Tooltip>
+          </span>
+          );
+          record.recommend === true &&
+          controls.push(
+            <span
+              key="3"
+              className="control-btn red"
+              onClick={() => this.onUpdateClick3(record)}
+            >
+            <Tooltip placement="top" title="推荐撤回">
+              <Icon type="logout" />
+            </Tooltip>
+          </span>
+          );
+          controls.push(
+            <span
+              key="4"
               className="control-btn green"
               onClick={() => this.onQueryClick(record)}
             >
@@ -433,7 +509,7 @@ class Category extends React.Component {
           record.deleteFlag === true &&
           controls.push(
             <span
-              key="3"
+              key="5"
               className="control-btn blue"
               onClick={() => this.onUpdateClick(record)}
             >
@@ -445,7 +521,7 @@ class Category extends React.Component {
           record.deleteFlag === true &&
           controls.push(
             <Popconfirm
-              key="4"
+              key="6"
               title="确定删除吗?"
               onConfirm={() => this.onRemoveClick(record.id)}
               okText="确定"
@@ -490,9 +566,11 @@ class Category extends React.Component {
         sorts: item.sorts,
         adId: item.adId,
         id: item.id,
+        creatTime:item.creatTime,
         typeCode:item.typeCode,
         questions: item.questions, //问题
         answers: item.answers,//回答
+        recommend:item.recommend,
       };
     });
   }
@@ -511,13 +589,18 @@ class Category extends React.Component {
         sm: { span: 16 }
       }
     };
+  
+    const { searchTitle } = this.state;
+    const suffix = searchTitle ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty()} />
+    ) : null;
 
     return (
       <div>
         <div className="system-search">
           <ul className="search-ul more-ul">
             <li>
-              <span>问题分类</span>
+              <span>问答分类</span>
               <Select
                 allowClear
                 placeholder="全部"
@@ -536,9 +619,35 @@ class Category extends React.Component {
             <li>
               <span>问题查询</span>
               <Input
+                suffix={suffix}
+                value={searchTitle}
                 style={{ width: "190px" }}
                 onChange={e => this.searchTitleChange(e)}
               />
+            </li>
+            <li>
+              <span>是否推荐</span>
+              <Select
+                placeholder="全部"
+                allowClear
+                style={{width: "120px",marginRight: "25px"}}
+                onChange={e => this.searchRecommendChange(e)}
+              >
+                <Option value={1}>已推荐</Option>
+                <Option value={0}>未推荐</Option>
+              </Select>
+            </li>
+            <li>
+              <span>发布状态</span>
+              <Select
+                placeholder="全部"
+                allowClear
+                style={{width: "120px",marginRight: "25px"}}
+                onChange={e => this.searchStatusChange(e)}
+              >
+                <Option value={0}>已发布</Option>
+                <Option value={1}>未发布</Option>
+              </Select>
             </li>
             <li style={{ marginRight: "10px" }}>
               <Button
@@ -615,8 +724,8 @@ class Category extends React.Component {
                     validator: (rule, value, callback) => {
                       const v = tools.trim(value);
                       if (v) {
-                        if (v.length > 18) {
-                          callback("最多输入18个字");
+                        if (v.length > 50) {
+                          callback("最多输入50个字");
                         }
                       }
                       callback();
@@ -631,7 +740,7 @@ class Category extends React.Component {
                 rules: [{ required: true, message: "请输入回答" }]
               })(<TextArea
                   placeholder="请输入回答"
-                  autosize={{ minRows: 1, maxRows: 4 }}
+                  autosize={{ minRows: 1, maxRows: 8 }}
               />)}
             </FormItem>
             {/*<FormItem label="是否设为热门资讯" {...formItemLayout}>*/}
@@ -651,12 +760,12 @@ class Category extends React.Component {
                 rules: [{ required: true, message: "请选择是否发布" }]
               })(
                 <Select placeholder="请选择是否发布">
-                  <Option value={0}>否</Option>
-                  <Option value={1}>是</Option>
+                  <Option value={1}>未发布</Option>
+                  <Option value={0}>已发布</Option>
                 </Select>
               )}
             </FormItem>
-            <FormItem label="推荐排序" {...formItemLayout}>
+            <FormItem label="排序" {...formItemLayout}>
               {getFieldDecorator("addnewSorts", {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请输入排序序号" }]
@@ -683,6 +792,17 @@ class Category extends React.Component {
             </FormItem>
             <FormItem label="排序" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.sorts : ""}
+            </FormItem>
+            <FormItem label="推荐状态" {...formItemLayout}>
+              {!!this.state.nowData ? (
+                Boolean(this.state.nowData.recommend) === true ? (
+                  <span style={{ color: "green" }}>已推荐</span>
+                ) : (
+                  <span style={{ color: "red" }}>未推荐</span>
+                )
+              ) : (
+                ""
+              )}
             </FormItem>
             <FormItem label="发布状态" {...formItemLayout}>
               {!!this.state.nowData ? (
@@ -727,7 +847,9 @@ export default connect(
         AddassistantList,
         UpassistantList,
         DelateassistantList,
-        assistantTypeList
+        assistantTypeList,
+        DownassistantList,
+        RemoveList
       },
       dispatch
     )

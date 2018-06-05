@@ -124,7 +124,6 @@ class Category extends React.Component {
       pageSize,
       userType: this.state.searchUserType,
       withdrawType: this.state.searchWithdrawType,
-      id: this.state.searchId,
       nickName: this.state.searchUserName,
       username: this.state.searchRealName,
       ambassadorName: this.state.searchambassadorName,
@@ -142,15 +141,15 @@ class Category extends React.Component {
         : ""
     };
     this.props.actions.WithdrawalsAudit(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody);
-      if (res.returnCode === "0") {
+      console.log("返回的什么：", res.data);
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
-      } else if (res.status === 400) {
+      } else if (res.status === "1") {
         this.setState({
           data: []
         });
@@ -177,9 +176,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productTypes: res.messsageBody.result
+            productTypes: res.data.result
           });
         }
       });
@@ -462,7 +461,6 @@ class Category extends React.Component {
       pageSize,
       userType: this.state.searchUserType,
       withdrawType: this.state.searchWithdrawType,
-      id: this.state.searchId,
       nickName: this.state.searchUserName,
       username: this.state.searchRealName,
       ambassadorName: this.state.searchambassadorName,
@@ -473,18 +471,18 @@ class Category extends React.Component {
       userId: this.state.searchUserMallId,
       partnerTradeNo: this.state.searchPartnerTradeNo,
       minApplyTime: this.state.searchBeginTime
-          ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)}`
-          : "",
+        ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)}`
+        : "",
       maxApplyTime: this.state.searchEndTime
-          ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
-          : ""
+        ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
+        : ""
     };
     let form = document.getElementById("download-form");
     if (!form) {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/export/withdraw/audit`;
     form.method = "post";
     console.log("FORM:", params);
@@ -518,42 +516,42 @@ class Category extends React.Component {
     }
     
     const newElement5 = document.createElement("input");
-    if (params.productType) {
-      newElement5.setAttribute("name", "productType");
+    if (params.username) {
+      newElement5.setAttribute("name", "username");
       newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.productType);
+      newElement5.setAttribute("value", params.username);
       form.appendChild(newElement5);
     }
     
     const newElement6 = document.createElement("input");
-    if (params.refundEndTime) {
-      newElement6.setAttribute("name", "refundEndTime");
+    if (params.nickName) {
+      newElement6.setAttribute("name", "nickName");
       newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.refundEndTime);
+      newElement6.setAttribute("value", params.nickName);
       form.appendChild(newElement6);
     }
     
     const newElement7 = document.createElement("input");
-    if (params.orderNo) {
-      newElement7.setAttribute("name", "orderNo");
+    if (params.ambassadorName) {
+      newElement7.setAttribute("name", "ambassadorName");
       newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.orderNo);
+      newElement7.setAttribute("value", params.ambassadorName);
       form.appendChild(newElement7);
     }
     
     const newElement8 = document.createElement("input");
-    if (params.minPrice) {
-      newElement8.setAttribute("name", "minPrice");
+    if (params.tradeNo) {
+      newElement8.setAttribute("name", "tradeNo");
       newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.minPrice);
+      newElement8.setAttribute("value", params.tradeNo);
       form.appendChild(newElement8);
     }
     
     const newElement9 = document.createElement("input");
-    if (params.minAmount) {
-      newElement9.setAttribute("name", "minAmount");
+    if (params.phone) {
+      newElement9.setAttribute("name", "phone");
       newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.minAmount);
+      newElement9.setAttribute("value", params.phone);
       form.appendChild(newElement9);
     }
     
@@ -566,18 +564,18 @@ class Category extends React.Component {
     }
     
     const newElement11 = document.createElement("input");
-    if (params.userType) {
-      newElement11.setAttribute("name", "userType");
+    if (params.minAmount) {
+      newElement11.setAttribute("name", "minAmount");
       newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.userType);
+      newElement11.setAttribute("value", params.minAmount);
       form.appendChild(newElement11);
     }
     
     const newElement12 = document.createElement("input");
-    if (params.activityType) {
-      newElement12.setAttribute("name", "activityType");
+    if (params.userId) {
+      newElement12.setAttribute("name", "userId");
       newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", params.activityType);
+      newElement12.setAttribute("value", params.userId);
       form.appendChild(newElement12);
     }
     
@@ -598,10 +596,10 @@ class Category extends React.Component {
     }
     
     const newElement15 = document.createElement("input");
-    if (params.endTime) {
-      newElement15.setAttribute("name", "endTime");
+    if (params.partnerTradeNo) {
+      newElement15.setAttribute("name", "partnerTradeNo");
       newElement15.setAttribute("type", "hidden");
-      newElement15.setAttribute("value", params.endTime);
+      newElement15.setAttribute("value", params.partnerTradeNo);
       form.appendChild(newElement15);
     }
     
@@ -702,10 +700,10 @@ class Category extends React.Component {
     this.props.actions
       .WithdrawalsAuditEgis(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
-        } else if (res.status === 400) {
+        } else if (res.status === "1") {
           message.error(res.message || "修改失败，请重试");
         }
       })
@@ -727,7 +725,7 @@ class Category extends React.Component {
     this.props.actions
       .WithdrawalsAuditEgis(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
@@ -755,7 +753,7 @@ class Category extends React.Component {
     this.props.actions
       .WithdrawalsAuditEgis(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
@@ -781,7 +779,7 @@ class Category extends React.Component {
     this.props.actions
       .WithdrawalsAuditEgis(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {

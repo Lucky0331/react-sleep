@@ -133,8 +133,8 @@ class Manager extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -192,15 +192,15 @@ class Manager extends React.Component {
     this.props.actions
       .findAdminUserByKeys(tools.clearNull(params))
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            data: res.messsageBody.result,
+            data: res.data.result,
             pageNum,
             pageSize,
-            total: res.messsageBody.total
+            total: res.data.total
           });
         } else {
-          message.error(res.returnMessaage || "获取数据失败，请重试");
+          message.error(res.message || "获取数据失败，请重试");
         }
       });
   }
@@ -309,12 +309,12 @@ class Manager extends React.Component {
       this.props.actions
         .updateAdminUserInfo(params)
         .then(res => {
-          if (res.returnCode === "0") {
+          if (res.status === "0") {
             message.success("修改成功");
             this.onGetData(this.state.pageNum, this.state.pageSize);
             this.onUpClose();
           } else {
-            message.error(res.returnMessaage || "修改失败，请重试");
+            message.error(res.message || "修改失败，请重试");
           }
           me.setState({
             upLoading: false
@@ -337,11 +337,11 @@ class Manager extends React.Component {
   // 删除某一条数据
   onDeleteClick(id) {
     this.props.actions.deleteAdminUserInfo({ adminUserId: id }).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error(res.returnMessaage || "删除失败，请重试");
+        message.error(res.message || "删除失败，请重试");
       }
     });
   }
@@ -445,11 +445,11 @@ class Manager extends React.Component {
         .addAdminUserInfo(tools.clearNull(params))
         .then(res => {
           console.log("添加用户返回数据：", res);
-          if (res.returnCode === "0") {
+          if (res.status === "0") {
             this.onGetData(this.state.pageNum, this.state.pageSize);
             this.onAddNewClose();
           } else {
-            message.error(res.returnMessaage || "添加失败，请重试");
+            message.error(res.message || "添加失败，请重试");
           }
           me.setState({
             addnewLoading: false
@@ -669,10 +669,10 @@ class Manager extends React.Component {
       roles: arr.map(item => item.id).join(",")
     };
     this.props.actions.assigningRole(params).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("角色分配成功");
       } else {
-        message.error(res.returnMessaage || "角色分配失败，请重试");
+        message.error(res.message || "角色分配失败，请重试");
       }
     });
     this.onRoleTreeClose();
@@ -693,9 +693,9 @@ class Manager extends React.Component {
         pageSize: 9999
       })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            stations: res.messsageBody.result
+            stations: res.data.result
           });
         }
       });

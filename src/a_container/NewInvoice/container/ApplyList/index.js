@@ -93,7 +93,7 @@ class Category extends React.Component {
       userName: this.state.searchUserName,
       modelId: this.state.searchModelId,
       orderFrom: this.state.searchorderFrom,
-      orderNo: this.state.searchorderNo,
+      orderNo: this.state.searchorderNo.trim(),
       minPrice: this.state.searchMinPrice,
       maxPrice: this.state.searchMaxPrice,
       beginTime: this.state.searchBeginTime
@@ -104,16 +104,16 @@ class Category extends React.Component {
         : ""
     };
     this.props.actions.findOrderByWhere(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody);
-      if (res.returnCode === "0") {
+      console.log("返回的什么：", res.data);
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -137,9 +137,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productTypes: res.messsageBody.result
+            productTypes: res.data.result
           });
         }
       });
@@ -274,12 +274,12 @@ class Category extends React.Component {
       this.props.actions
         .updateProductType(params)
         .then(res => {
-          if (res.returnCode === "0") {
+          if (res.status === "0") {
             message.success("修改成功");
             this.onGetData(this.state.pageNum, this.state.pageSize);
             this.onUpClose();
           } else {
-            message.error(res.returnMessaage || "修改失败，请重试");
+            message.error(res.message || "修改失败，请重试");
           }
           me.setState({
             upLoading: false
@@ -301,7 +301,7 @@ class Category extends React.Component {
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
   //导出
   onExport() {

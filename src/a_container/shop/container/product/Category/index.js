@@ -81,14 +81,14 @@ class Category extends React.Component {
       .findProductTypeByWhere(tools.clearNull(params))
       .then(res => {
         console.log("返回的什么：", res);
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            data: res.messsageBody.result,
+            data: res.data.result,
             pageNum,
             pageSize
           });
         } else {
-          message.error(res.returnMessaage || "获取数据失败，请重试");
+          message.error(res.message || "获取数据失败，请重试");
         }
       });
   }
@@ -144,12 +144,12 @@ class Category extends React.Component {
         this.props.actions
           .updateProductType(params)
           .then(res => {
-            if (res.returnCode === "0") {
+            if (res.status === "0") {
               message.success("修改成功");
               this.onGetData(this.state.pageNum, this.state.pageSize);
               this.onUpClose();
             } else {
-              message.error(res.returnMessaage || "修改失败，请重试");
+              message.error(res.message || "修改失败，请重试");
             }
             me.setState({
               upLoading: false
@@ -173,18 +173,18 @@ class Category extends React.Component {
   // 删除某一条数据
   onDeleteClick(id) {
     this.props.actions.deleteProductType({ id: id }).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error(res.returnMessaage || "删除失败，请重试");
+        message.error(res.message || "删除失败，请重试");
       }
     });
   }
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
 
   // 查询某一条数据的详情

@@ -73,9 +73,9 @@ class Category extends React.Component {
       titles: [], //所有的标题
       searchModelId: "", // 搜索 - 产品型号
       searchBanner: "", //搜索 - banner位置
-      searchName: "", // 搜索 - 发布状态
       searchTitle: "", //搜索 - 标题
-      searchTypeCode: "", //搜索 - banner位置
+      searchName: "", //搜索 - 是否发布
+      searchTypeCode: "", //搜索 - H5分类
       nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
       addnewModalShow: false, // 查看地区模态框是否显示
       upModalShow: false, // 修改模态框是否显示
@@ -89,6 +89,7 @@ class Category extends React.Component {
   }
 
   componentDidMount() {
+    this.getAllCardType(); // 获取所有的宣传卡分类
     this.onGetData(this.state.pageNum, this.state.pageSize);
   }
 
@@ -97,24 +98,44 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      conditions: this.state.searchName,
+      cardCategory:2,
+      deleteStatus: this.state.searchName,
       title: this.state.searchTitle,
-      apId: this.state.searchBanner
+      cardTypeCode: this.state.searchTypeCode
     };
     this.props.actions.Cardlist(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody.result);
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total || []
+          total: res.data.total || []
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
-      console.log("啥代言卡信息：", res.messsageBody.result);
     });
+  }
+  
+  // 获取所有的宣传卡类型，当前页要用
+  getAllCardType() {
+    this.props.actions
+      .CardTypelist({ pageNum: 0, pageSize: 9999 ,cardCategory:2})
+      .then(res => {
+        if (res.status === "0") {
+          this.setState({
+            productTypes: res.data.result || []
+          });
+        }
+      });
+  }
+  
+  // 工具 - 根据宣传卡类型ID查宣传卡类型名称
+  findProductNameById(id) {
+    const t = this.state.productTypes.find(
+      item => String(item.id) === String(id)
+    );
+    return t ? t.typeName : "";
   }
   
   //搜索 - 发布状态输入框值改变时触发
@@ -130,25 +151,21 @@ class Category extends React.Component {
       searchTitle: e.target.value
     });
   }
+  
 
-  //搜索 - Banner位置输入框值改变时触发
-  searchTypeCodeChange(e) {
-    this.setState({
-      searchBanner: e
-    });
-  }
-
-  // 添加新banner模态框出现
+  // 添加宣传卡模态框出现
   onAddNewShow() {
     const me = this;
     const { form } = me.props;
     form.resetFields([
-      "addnewTitle",
-      "addnewConditions",
-      "addnewTypeCode",
-      "addnewSorts",
-      "addnewUrl",
-      "addnewProductImg"
+      "addnewTypeId", //添加宣传卡类型
+      "addnewTitle", // 添加标题
+      "addnewSlogan", //添加标语
+      "addnewContent", //添加分享文案的内容
+      "addnewBtnColor", // 添加按钮颜色
+      "addnewSorts", // 添加排序的顺序
+      "addnewProductImg" ,//添加图标
+      "addnewUrl",//添加H5链接
     ]);
     this.setState({
       addOrUp: "add",
@@ -178,12 +195,14 @@ class Category extends React.Component {
 
     form.validateFields(
       [
-        "addnewTitle",
-        "addnewConditions",
-        "addnewTypeCode",
-        "addnewSorts",
-        "addnewUrl",
-        "addnewProductImg"
+        "addnewTypeId", //添加宣传卡类型
+        "addnewTitle", // 添加标题
+        "addnewSlogan", //添加标语
+        "addnewContent", //添加分享文案的内容
+        "addnewBtnColor", // 添加按钮颜色
+        "addnewSorts", // 添加排序的顺序
+        "addnewProductImg" ,//添加图标
+        "addnewUrl",//添加H5链接
       ],
       (err, values) => {
         if (err) {
@@ -194,17 +213,21 @@ class Category extends React.Component {
         });
 
         const params = {
-          title: values.addnewTitle,
-          conditions: values.addnewConditions ? 0 : -1,
-          apId: Number(values.addnewTypeCode),
-          sorts: values.addnewSorts,
-          url: values.addnewUrl,
-          adImg: this.state.fileList.map(item => item.url).join(",")
+          cardTypeCode:values.addnewTypeId, //添加H5代言卡类型
+          cardCategory:2,//代言卡型号
+          cardTypeName:this.state.addOrUp === "add" ? this.findProductNameById(values.addnewTypeId) : values.addnewTypeName,
+          name: values.addnewTitle,//添加标题
+          title: values.addnewSlogan,//添加标语
+          content: values.addnewContent, //添加分享文案
+          colorTwo: String(values.addnewBtnColor), //添加按钮颜色
+          sorts: values.addnewSorts,// 添加排序的顺序
+          speakCardUrl: values.addnewUrl,//添加H5链接
+          titleImage: this.state.fileList.map(item => item.url).join(",") //添加图标
         };
         if (this.state.addOrUp === "add") {
           // 新增
           me.props.actions
-            .advertPosition(tools.clearNull(params))
+            .addCard(tools.clearNull(params))
             .then(res => {
               me.setState({
                 addnewLoading: false
@@ -220,7 +243,7 @@ class Category extends React.Component {
         } else {
           params.id = this.state.nowData.id;
           me.props.actions
-            .UpdatePosition(params)
+            .UpdateCard(params)
             .then(res => {
               // 修改
               me.setState({
@@ -245,40 +268,41 @@ class Category extends React.Component {
     const { form } = me.props;
     console.log("是什么：", record);
     form.setFieldsValue({
-      addnewTitle: String(record.title),
-      addnewConditions: record.conditions ? 0 : -1,
-      addnewSorts: record.sorts,
-      addnewUrl: record.url,
-      addnewTypeCode: String(record.typeCode),
-      addnewadImg: record.adImg,
-      addnewapId: Number(record.apId)
+      addnewTypeName: record.cardTypeName,//宣传卡类型名称
+      addnewTypeId: record.cardTypeCode,//宣传卡类型
+      addnewTitle: record.name,//添加标题
+      addnewSlogan:record.title,//添加标语
+      addnewContent:record.content, //添加分享文案
+      addnewBtnColor:record.colorTwo,//按钮颜色
+      addnewSorts: record.sorts, //排序
+      addnewUrl: record.speakCardUrl, //链接地址
     });
     console.log("是什么：", record);
     me.setState({
       nowData: record,
       addOrUp: "up",
       addnewModalShow: true,
-      fileList: record.adImg
-        ? record.adImg
+      fileList: record.titleImage
+        ? record.titleImage
             .split(",")
             .map((item, index) => ({ uid: index, url: item, status: "done" }))
-        : [] // banner图上传的列表
+        : [] //图标上传的列表
     });
   }
-
-  // 发布或回撤
+  
+  // 发布或取消发布
   onUpdateClick2(record) {
     const params = {
-      adId: Number(record.id)
+      speakCardId: Number(record.id)
     };
     this.props.actions
       .UpdateOnline(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -288,12 +312,12 @@ class Category extends React.Component {
 
   // 删除某一条数据
   onRemoveClick(id) {
-    this.props.actions.deletePosition({ id: id }).then(res => {
-      if (res.returnCode === "0") {
+    this.props.actions.deleteCard({ id: id }).then(res => {
+      if (res.status === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error(res.returnMessaage || "删除失败，请重试");
+        message.error(res.message || "删除失败，请重试");
       }
     });
   }
@@ -303,10 +327,10 @@ class Category extends React.Component {
     // console.log('图片上传：', obj);
     if (obj.file.status === "done") {
       // 上传成功后调用,将新的地址加进原list
-      if (obj.file.response.messsageBody) {
+      if (obj.file.response.data) {
         const list = _.cloneDeep(this.state.fileList);
         const t = list.find(item => item.uid === obj.file.uid);
-        t.url = obj.file.response.messsageBody;
+        t.url = obj.file.response.data;
         this.setState({
           fileList: list,
           fileLoading: false
@@ -379,10 +403,17 @@ class Category extends React.Component {
       upModalShow: false
     });
   }
+  
+  // 搜索 - 宣传卡类型输入框值改变时触发
+  searchProductType(typeId) {
+    this.setState({
+      searchTypeCode: typeId
+    });
+  }
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
   //导出
   onExport() {
@@ -422,19 +453,20 @@ class Category extends React.Component {
         width: 100
       },
       {
-        title: "宣传分类",
-        dataIndex: "typeCode",
-        key: "typeCode"
+        title: "宣传卡分类",
+        dataIndex: "cardTypeCode",
+        key: "cardTypeCode",
+        render:text => this.findProductNameById(text)
       },
       {
         title: "标题",
-        dataIndex: "title",
-        key: "title"
+        dataIndex: "name",
+        key: "name"
       },
       {
         title: "图标",
-        dataIndex: "adImg",
-        key: "adImg",
+        dataIndex: "titleImage",
+        key: "titleImage",
         width: 200,
         render: (text, index) => {
           if (text) {
@@ -454,8 +486,8 @@ class Category extends React.Component {
       },
       {
         title: "H5链接",
-        dataIndex: "url",
-        key: "url"
+        dataIndex: "speakCardUrl",
+        key: "speakCardUrl"
       },
       {
         title: "排序",
@@ -464,13 +496,13 @@ class Category extends React.Component {
       },
       {
         title: "是否发布",
-        dataIndex: "conditions",
-        key: "conditions",
+        dataIndex: "deleteStatus",
+        key: "deleteStatus",
         render: text =>
-          String(text) === "0" ? (
-            <span style={{ color: "green" }}>已发布</span>
-          ) : (
+          Boolean(text) === true ? (
             <span style={{ color: "red" }}>未发布</span>
+          ) : (
+            <span style={{ color: "green" }}>已发布</span>
           )
       },
       {
@@ -478,7 +510,7 @@ class Category extends React.Component {
         key: "control",
         render: (text, record) => {
           const controls = [];
-          record.conditions === -1 &&
+          record.deleteStatus === true &&
             controls.push(
               <span
                 key="0"
@@ -490,8 +522,8 @@ class Category extends React.Component {
                 </Tooltip>
               </span>
             );
-          record.conditions === 0 &&
-            controls.push(
+          record.deleteStatus === false &&
+          controls.push(
               <span
                 key="1"
                 className="control-btn red"
@@ -513,7 +545,7 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
-          record.conditions === -1 &&
+          record.deleteStatus === true &&
             controls.push(
               <span
                 key="3"
@@ -525,7 +557,7 @@ class Category extends React.Component {
                 </Tooltip>
               </span>
             );
-          record.conditions === -1 &&
+          record.deleteStatus === true &&
             controls.push(
               <Popconfirm
                 key="4"
@@ -567,16 +599,21 @@ class Category extends React.Component {
         title: item.title,
         orderNo: item.id,
         createTime: item.createTime,
-        name: item.product ? item.product.name : "",
+        name: item.name,
+        content:item.content,
         modelId: item.product ? item.product.typeCode : "",
-        typeId: item.product ? item.product.typeId : "",
+        typeId: item.typeId ,
         conditions: item.conditions,
         url: item.url,
-        adImg: item.adImg,
+        titleImage: item.titleImage,
         sorts: item.sorts,
-        adId: item.adId,
+        colorTwo: item.colorTwo,
         id: item.id,
         orderFrom: item.orderFrom,
+        cardTypeName:item.cardTypeName,
+        cardTypeCode:item.cardTypeCode,
+        speakCardUrl:item.speakCardUrl,
+        deleteStatus:item.deleteStatus,
       };
     });
   }
@@ -602,18 +639,9 @@ class Category extends React.Component {
           <ul className="search-ul more-ul">
             <li>
               <span>宣传卡分类</span>
-              <Select
-                allowClear
-                placeholder="全部"
-                style={{ width: "172px" }}
-                onChange={e => this.searchTypeCodeChange(e)}
-              >
-                {this.state.titleList.map((item, index) => {
-                  return (
-                    <Option key={index} value={item.id}>
-                      {item.title}
-                    </Option>
-                  );
+              <Select allowClear placeholder="全部" style={{ width: '172px' }} onChange={(e) => this.searchProductType(e)}>
+                {this.state.productTypes.map((item, index) => {
+                  return <Option key={index} value={item.id}>{ item.typeName }</Option>
                 })}
               </Select>
             </li>
@@ -633,7 +661,7 @@ class Category extends React.Component {
                 onChange={e => this.searchNameChange(e)}
               >
                 <Option value={0}>已发布</Option>
-                <Option value={-1}>未发布</Option>
+                <Option value={1}>未发布</Option>
               </Select>
             </li>
             <li style={{ marginLeft: "40px", marginRight: "15px" }}>
@@ -690,22 +718,16 @@ class Category extends React.Component {
         >
           <Form>
             <FormItem label="宣传卡分类" {...formItemLayout}>
-              {getFieldDecorator("addnewTypeCode", {
+              {getFieldDecorator("addnewTypeId", {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请选择宣传卡分类" }]
               })(
-                <Select
-                  allowClear
-                  placeholder="全部"
-                  style={{ width: "314px" }}
-                >
-                  {this.state.titleList.map((item, index) => {
-                    return (
-                      <Option key={index} value={item.id}>
-                        {item.title}
-                      </Option>
-                    );
-                  })}
+                <Select placeholder="请选择宣传卡分类">
+                  {this.state.productTypes.map((item, index) => (
+                    <Option key={index} value={item.id}>
+                      {item.typeName}
+                    </Option>
+                  ))}
                 </Select>
               )}
             </FormItem>
@@ -718,8 +740,8 @@ class Category extends React.Component {
                     validator: (rule, value, callback) => {
                       const v = tools.trim(value);
                       if (v) {
-                        if (v.length > 18) {
-                          callback("最多输入18个字");
+                        if (v.length > 30) {
+                          callback("最多输入30个字");
                         }
                       }
                       callback();
@@ -797,39 +819,45 @@ class Category extends React.Component {
           onCancel={() => this.onQueryModalClose()}
         >
           <Form>
-            <FormItem label="banner位置" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.typeCode : ""}
+            <FormItem label="宣传卡分类" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.cardTypeName : ""}
             </FormItem>
             <FormItem label="标题" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.title : ""}
+              {!!this.state.nowData ? this.state.nowData.name : ""}
             </FormItem>
-            <FormItem label="banner图" {...formItemLayout}>
-              {!!this.state.nowData && this.state.nowData.adImg
-                ? this.state.nowData.adImg.split(",").map((item, index) => {
-                    return (
-                      <Popover
-                        key={index}
-                        placement="right"
-                        content={<img className="table-img-big" src={item} />}
-                      >
-                        <img className="small-img" src={item} />
-                      </Popover>
+            <FormItem label="图标" {...formItemLayout}>
+              {!!this.state.nowData && this.state.nowData.titleImage
+                ? this.state.nowData.titleImage.split(",").map((item, index) => {
+                  return (
+                    <Popover
+                      key={index}
+                      placement="right"
+                      content={<img className="table-img-big" src={item} />}
+                    >
+                      <img className="small-img" src={item} />
+                    </Popover>
                     );
-                  })
-                : ""}
+                })
+            : ""}
             </FormItem>
-            <FormItem label="链接地址" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.url : ""}
+            <FormItem label="分享文案" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.content : ""}
+            </FormItem>
+            <FormItem label="按钮颜色" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.colorTwo : ""}
+            </FormItem>
+            <FormItem label="H5链接" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.speakCardUrl : ""}
             </FormItem>
             <FormItem label="排序" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.sorts : ""}
             </FormItem>
             <FormItem label="发布状态" {...formItemLayout}>
               {!!this.state.nowData ? (
-                String(this.state.nowData.conditions) === "0" ? (
-                  <span style={{ color: "green" }}>已发布</span>
-                ) : (
+                Boolean(this.state.nowData.deleteStatus) === true ? (
                   <span style={{ color: "red" }}>未发布</span>
+                ) : (
+                  <span style={{ color: "green" }}>已发布</span>
                 )
               ) : (
                 ""

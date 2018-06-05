@@ -89,15 +89,15 @@ class Category extends React.Component {
       typeName: this.state.searchOrderNo,
     };
     this.props.actions.assistantTypeList(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total || []
+          total: res.data.total || []
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -219,11 +219,11 @@ class Category extends React.Component {
   // 删除某一条数据
   onRemoveClick(id) {
     this.props.actions.DelateassistantTypeList({ id: id }).then(res => {
-      if (res.returnCode === "0") {
-        message.success(res.returnMessaage || "删除成功");
+      if (res.status === "0") {
+        message.success(res.message || "删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error("删除失败，请重试");
+        message.error("该问答分类内容已关联问答列表的内容");
       }
     });
   }
@@ -260,7 +260,7 @@ class Category extends React.Component {
   
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
 
   // 分类构建字段

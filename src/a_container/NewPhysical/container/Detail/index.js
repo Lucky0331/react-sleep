@@ -156,15 +156,15 @@ class Category extends React.Component {
         : ""
     };
     this.props.actions.findReserveList(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.ticketPage.result || [],
+          data: res.data.ticketPage.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.ticketPage.total
+          total: res.data.ticketPage.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -174,9 +174,9 @@ class Category extends React.Component {
     this.props.actions
       .findticketModelByWhere({ pageNum: 0, pageSize: 9999, typeId: 5 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productModelIds: res.messsageBody
+            productModelIds: res.data
           });
         }
       });
@@ -213,6 +213,15 @@ class Category extends React.Component {
         return "已预约";
     }
   }
+  //是否禁用
+  ticketStatus(id) {
+    switch (String(id)) {
+      case "1":
+        return "未禁用";
+      case "4":
+        return "已禁用";
+    }
+  }
 
   //工具 - 根据服务站地区返回服务站名称id
   getStationId(id) {
@@ -225,9 +234,9 @@ class Category extends React.Component {
     this.props.actions
       .findticketModelByWhere({ pageNum: 0, pageSize: 9999, typeId: 5 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productModelIds: res.messsageBody
+            productModelIds: res.data
           });
         }
       });
@@ -290,8 +299,8 @@ class Category extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -319,9 +328,9 @@ class Category extends React.Component {
       pageSize: 9999
     };
     this.props.actions.findStationByArea(params).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          stations: res.messsageBody.result
+          stations: res.data.result
         });
       }
     });
@@ -329,7 +338,7 @@ class Category extends React.Component {
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
 
   //Input中的删除按钮所删除的条件
@@ -464,7 +473,7 @@ class Category extends React.Component {
         title: "是否禁用",
         dataIndex: "ticketStatus",
         key: "ticketStatus",
-        render: text => this.Disable(text)
+        render: text => this.ticketStatus(text)
       },
       {
         title: "是否限制仅该服务站使用",
@@ -655,11 +664,11 @@ class Category extends React.Component {
                 style={{ width: "172px" }}
                 onChange={e => this.searchTicketStatusChange(e)}
               >
-                <Option value={1}>未使用</Option>
-                <Option value={2}>已使用</Option>
-                <Option value={3}>已禁用</Option>
-                <Option value={4}>已过期</Option>
-                <Option value={5}>已预约</Option>
+                <Option value={1}>未禁用</Option>
+                {/*<Option value={2}>已使用</Option>*/}
+                {/*<Option value={3}>已禁用</Option>*/}
+                <Option value={4}>已禁用</Option>
+                {/*<Option value={5}>已预约</Option>*/}
               </Select>
             </li>
             <li>
@@ -771,7 +780,7 @@ class Category extends React.Component {
             </FormItem>
             <FormItem label="是否禁用" {...formItemLayout}>
               {!!this.state.nowData
-                ? this.Disable(this.state.nowData.ticketStatus)
+                ? this.ticketStatus(this.state.nowData.ticketStatus)
                 : ""}
             </FormItem>
             <FormItem label="是否限制仅该服务站使用" {...formItemLayout}>

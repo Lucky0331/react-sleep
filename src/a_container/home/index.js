@@ -50,15 +50,15 @@ class HomePageContainer extends React.Component {
     };
     this.props.actions.onLogin(tools.clearNull(params)).then(res => {
       console.log("返回的什么：", res);
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.adminRole.btnDtoList,
+          data: res.data.adminRole.btnDtoList,
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }

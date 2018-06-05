@@ -84,7 +84,7 @@ class Category extends React.Component {
       searchPayMonth: moment(
         (() => {
           const d = new Date();
-          d.setMonth(d.getMonth() + 1);
+          d.setMonth(d.getMonth());
           return d;
         })()
       ), //搜索 - 结算月份
@@ -138,10 +138,10 @@ class Category extends React.Component {
 
   // 查询当前页面所需经营收益列表数据
   onGetData(pageNum, pageSize) {
-    if (!this.state.searchPayMonth) {
-      message.error("请选择需要查询的结算月份", 1);
-      return;
-    }
+    // if (!this.state.searchPayMonth) {
+    //   message.error("请选择需要查询的结算月份", 1);
+    //   return;
+    // }
     const params = {
       pageNum,
       pageSize,
@@ -151,14 +151,14 @@ class Category extends React.Component {
       userId: this.state.searchUserId,
       serialNumber: this.state.searchSerialNumber,
       distributionType: this.state.searchDistributionType,
-      minPayTime: this.state.searchMinPayTime
+      minCompleteTime: this.state.searchMinPayTime
         ? `${tools.dateToStrD(this.state.searchMinPayTime._d)} 00:00:00`
         : "",
-      maxPayTime: this.state.searchMaxPayTime
+      maxCompleteTime: this.state.searchMaxPayTime
         ? `${tools.dateToStrD(this.state.searchMaxPayTime._d)} 23:59:59`
         : "",
       balanceMonth: this.state.searchPayMonth
-        ? `${tools.dateToStrD(this.state.searchPayMonth._d)} 00:00:00`
+        ? `${tools.dateToStrDetail(this.state.searchPayMonth._d)} 00:00:00`
         : "",
       minOrderFee: this.state.searchMinOrderFee,
       maxOrderFee: this.state.searchMaxOrderFee,
@@ -173,20 +173,23 @@ class Category extends React.Component {
       region: this.state.searchAddress[2]
     };
     this.props.actions.fBIncome(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data2: res.messsageBody.result || [],
+          data2: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
-      } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+      } else if(res.status === "1") {
+        this.setState({
+          data2:[],
+        })
+        message.error(res.message || "获取数据失败，请重试" , 1.5);
       }
     });
   }
 
-  // 导出经营收益所需列表数据
+  // 导出健康食品所需列表数据
   onExportData(pageNum, pageSize) {
     const params = {
       pageNum,
@@ -204,9 +207,6 @@ class Category extends React.Component {
       maxCompleteTime: this.state.searchMaxPayTime
         ? `${tools.dateToStrD(this.state.searchMaxPayTime._d)} 23:59:59`
         : "",
-      balanceMonth: this.state.searchPayMonth
-        ? `${tools.dateToStrD(this.state.searchPayMonth._d)} 00:00:00`
-        : "",
       minOrderFee: this.state.searchMinOrderFee,
       maxOrderFee: this.state.searchMaxOrderFee,
       activityType: this.state.searchActivity,
@@ -222,7 +222,7 @@ class Category extends React.Component {
       form = document.createElement("form");
       document.body.appendChild(form);
     }
-    form.id = "download-form";
+    else { form.innerHTML="";} form.id = "download-form";
     form.action = `${Config.baseURL}/manager/export/settleAccounts/record`;
     form.method = "post";
     console.log("FORM:", form);
@@ -279,10 +279,18 @@ class Category extends React.Component {
 
     const newElement8 = document.createElement("input");
     if (params.minCompleteTime) {
-      newElement8.setAttribute("name", "minCompleteTime");
-      newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.minCompleteTime);
+      newElement8.setAttribute("name","minCompleteTime");
+      newElement8.setAttribute("type","hidden");
+      newElement8.setAttribute("value",params.minCompleteTime);
       form.appendChild(newElement8);
+    }
+  
+    const newElement10 = document.createElement("input");
+    if (params.maxCompleteTime) {
+      newElement10.setAttribute("name","maxCompleteTime");
+      newElement10.setAttribute("type","hidden");
+      newElement10.setAttribute("value",params.maxCompleteTime);
+      form.appendChild(newElement10);
     }
 
     const newElement9 = document.createElement("input");
@@ -291,14 +299,6 @@ class Category extends React.Component {
       newElement9.setAttribute("type", "hidden");
       newElement9.setAttribute("value", params.serialNumber);
       form.appendChild(newElement9);
-    }
-
-    const newElement10 = document.createElement("input");
-    if (params.maxCompleteTime) {
-      newElement10.setAttribute("name", "maxCompleteTime");
-      newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.maxCompleteTime);
-      form.appendChild(newElement10);
     }
 
     const newElement11 = document.createElement("input");
@@ -476,6 +476,7 @@ class Category extends React.Component {
 
   // 搜索 - 结算月份
   searchPayMonthChange(v) {
+    console.log('有没有啊：',v)
     this.setState({
       searchPayMonth: v
     });
@@ -518,7 +519,7 @@ class Category extends React.Component {
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
 
   //导出
@@ -676,9 +677,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productTypes: res.messsageBody.result
+            productTypes: res.data.result
           });
         }
       });
@@ -697,9 +698,9 @@ class Category extends React.Component {
     this.props.actions
       .findSaleRuleByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            distributionTypes: res.messsageBody.result
+            distributionTypes: res.data.result
           });
         }
       });
@@ -710,9 +711,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductModelByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productModels: res.messsageBody.result
+            productModels: res.data.result
           });
         }
       });
@@ -733,8 +734,8 @@ class Category extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,

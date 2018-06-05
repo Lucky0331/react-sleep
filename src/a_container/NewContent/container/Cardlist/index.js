@@ -98,29 +98,29 @@ class Category extends React.Component {
       cardTypeCode: this.state.searchTypeCode
     };
     this.props.actions.Cardlist(tools.clearNull(params)).then(res => {
-      console.log("返回的什么：", res.messsageBody.result);
-      if (res.returnCode === "0") {
+      console.log("返回的什么：", res.data.result);
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total || []
+          total: res.data.total || []
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
-      console.log("啥代言卡信息：", res.messsageBody.result);
+      console.log("啥代言卡信息：", res.data.result);
     });
   }
 
   // 获取所有的代言卡类型，当前页要用
   getAllCardType() {
     this.props.actions
-      .CardTypelist({ pageNum: 0, pageSize: 9999 ,})
+      .CardTypelist({ pageNum: 0, pageSize: 9999 ,cardCategory:1})
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productTypes: res.messsageBody.result || []
+            productTypes: res.data.result || []
           });
         }
       });
@@ -148,7 +148,7 @@ class Category extends React.Component {
     });
   }
 
-  // 搜索 - 产品类型输入框值改变时触发
+  // 搜索 - 宣传卡类型输入框值改变时触发
   searchProductType(typeId) {
     this.setState({
       searchTypeCode: typeId
@@ -216,13 +216,13 @@ class Category extends React.Component {
         });
 
         const params = {
-          cardCategory:values.addnewTypeId === 6 || values.addnewTypeId === 7 ? 2 :1,//代言卡型号
-          cardTypeCode: values.addnewTypeId, //添加代言卡类型
-          cardTypeName:this.findProductNameById(values.addnewTypeId), //添加代言卡类型名称
+          cardCategory:1,//代言卡型号
+          cardTypeCode:values.addnewTypeId, //添加代言卡类型
+          cardTypeName:this.state.addOrUp === "add" ? this.findProductNameById(values.addnewTypeId) :values.addnewTypeName ,
           name: values.addnewTitle, // 添加标题
           title: values.addnewSlogan, //添加标语
           content: values.addnewContent, //添加分享文案
-          deleteStatus: values.addnewConditions ? true : false, //添加是否发布
+          // deleteStatus: values.addnewConditions ? true : false, //添加是否发布
           colorTwo: String(values.addnewBtnColor), //添加按钮颜色
           colorOne: String(values.addnewColor), // 添加文字颜色
           sorts: values.addnewSorts, // 添加排序的顺序
@@ -274,11 +274,12 @@ class Category extends React.Component {
     const { form } = me.props;
     console.log("是什么：", record);
     form.setFieldsValue({
-      addnewTypeId: record.cardTypeName,//代言卡类型
+      addnewTypeName: record.cardTypeName,//代言卡类型名称
+      addnewTypeId: record.cardTypeCode,//代言卡类型
       addnewTitle: String(record.name),
       addnewSlogan: String(record.title),
       addnewContent: String(record.content),
-      addnewConditions: Boolean(record.deleteStatus) ? false : true,
+      // addnewConditions: Boolean(record.deleteStatus) ? false : true,
       addnewBtnColor: String(record.colorTwo),
       addnewColor: String(record.colorOne),
       addnewSorts: Number(record.sorts),
@@ -288,7 +289,6 @@ class Category extends React.Component {
       nowData: record,
       addOrUp: "up",
       addnewModalShow: true,
-      // fileList: record.contentImage ? record.contentImage.split(',').map((item, index) => ({ uid: index, url: item, status: 'done' })) : [],   // 标题图上传的列表
       fileList: record.titleImage
         ? record.titleImage
             .split(",")
@@ -310,11 +310,11 @@ class Category extends React.Component {
     this.props.actions
       .UpdateOnline(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -325,11 +325,11 @@ class Category extends React.Component {
   // 删除某一条数据
   onRemoveClick(id) {
     this.props.actions.deleteCard({ id: id }).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error(res.returnMessaage || "删除失败，请重试");
+        message.error(res.message || "删除失败，请重试");
       }
     });
   }
@@ -339,10 +339,10 @@ class Category extends React.Component {
     // console.log('图片上传：', obj);
     if (obj.file.status === "done") {
       // 上传成功后调用,将新的地址加进原list
-      if (obj.file.response.messsageBody) {
+      if (obj.file.response.data) {
         const list = _.cloneDeep(this.state.fileList);
         const t = list.find(item => item.uid === obj.file.uid);
-        t.url = obj.file.response.messsageBody;
+        t.url = obj.file.response.data;
         this.setState({
           fileList: list,
           fileLoading: false
@@ -430,10 +430,10 @@ class Category extends React.Component {
   onUpLoadDetailChange(obj) {
     if (obj.file.status === "done") {
       // 上传成功后调用,将新的地址加进原list
-      if (obj.file.response.messsageBody) {
+      if (obj.file.response.data) {
         const list = _.cloneDeep(this.state.fileListDetail);
         const t = list.find(item => item.uid === obj.file.uid);
-        t.url = obj.file.response.messsageBody;
+        t.url = obj.file.response.data;
         this.setState({
           fileListDetail: list,
           fileDetailLoading: false
@@ -476,7 +476,7 @@ class Category extends React.Component {
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
 
   // 查询某一条数据的详情
@@ -513,8 +513,9 @@ class Category extends React.Component {
       },
       {
         title: "代言卡类型",
-        dataIndex: "cardTypeName",
-        key: "cardTypeName",
+        dataIndex: "cardTypeCode",
+        key: "cardTypeCode",
+        render:text => this.findProductNameById(text)
       },
       {
         title: "标题",
@@ -574,9 +575,9 @@ class Category extends React.Component {
         key: "deleteStatus",
         render: text =>
           Boolean(text) === true ? (
-            <span style={{ color: "green" }}>已发布</span>
-          ) : (
             <span style={{ color: "red" }}>未发布</span>
+          ) : (
+            <span style={{ color: "green" }}>已发布</span>
           )
       },
       {
@@ -595,7 +596,7 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
-          record.deleteStatus === false &&
+          record.deleteStatus === true &&
             controls.push(
               <span
                 key="3"
@@ -607,7 +608,7 @@ class Category extends React.Component {
                 </Tooltip>
               </span>
             );
-          record.deleteStatus === false &&
+          record.deleteStatus === true &&
             controls.push(
               <span
                 key="0"
@@ -619,7 +620,7 @@ class Category extends React.Component {
                 </Tooltip>
               </span>
             );
-          record.deleteStatus === true &&
+          record.deleteStatus === false &&
             controls.push(
               <span
                 key="1"
@@ -631,7 +632,7 @@ class Category extends React.Component {
                 </Tooltip>
               </span>
             );
-          record.deleteStatus === false &&
+          record.deleteStatus === true &&
             controls.push(
               <Popconfirm
                 key="4"
@@ -682,6 +683,7 @@ class Category extends React.Component {
         colorTwo: item.colorTwo,
         content: item.content,
         cardTypeName:item.cardTypeName,//代言卡类型
+        cardTypeCode:item.cardTypeCode,//代言卡类型
         id: item.id,
         deleteStatus: item.deleteStatus,
         sorts: item.sorts,
@@ -950,9 +952,9 @@ class Category extends React.Component {
             <FormItem label="是否发布" {...formItemLayout}>
               {!!this.state.nowData ? (
                 Boolean(this.state.nowData.deleteStatus) === true ? (
-                  <span style={{ color: "green" }}>已发布</span>
-                ) : (
                   <span style={{ color: "red" }}>未发布</span>
+                ) : (
+                  <span style={{ color: "green" }}>已发布</span>
                 )
               ) : (
                 ""

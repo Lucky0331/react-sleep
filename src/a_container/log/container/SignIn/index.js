@@ -80,15 +80,15 @@ class Manager extends React.Component {
       this.props.actions
         .findLoginLogBykeys(tools.clearNull(params))
         .then(res => {
-          if (res.returnCode === "0") {
+          if (res.status === "0") {
             this.setState({
-              data: res.messsageBody.result,
+              data: res.data.result,
               pageNum,
               pageSize,
-              total: res.messsageBody.total
+              total: res.data.total
             });
           } else {
-            message.error(res.returnMessaage || "获取数据失败，请重试");
+            message.error(res.message || "获取数据失败，请重试");
           }
         });
   }

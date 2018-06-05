@@ -39,6 +39,7 @@ class Category extends React.Component {
       productprice: "", //产品的价格
       searchTypeId: undefined, // 搜索 - 类型名
       searchNewProduct:'',//搜索 - 推荐状态
+      searchProduct:"",//搜索 - 活动方式
       searchName: "", // 搜索 - 名称
       addOrUp: "add", // 当前操作是新增add还是修改up,还是查看look
       modalShow: false, // 模态框是否显示
@@ -73,17 +74,18 @@ class Category extends React.Component {
       onShelf: this.state.searchName,//产品状态
       productType: this.state.searchTypeId,//产品类型
       newProduct:this.state.searchNewProduct,//推荐查询
+      activityType:this.state.searchProduct,//活动方式
     };
     this.props.actions.findProductByWhere(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -93,9 +95,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productTypes: res.messsageBody.result
+            productTypes: res.data.result
           });
         }
       });
@@ -106,9 +108,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductModelByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productModels: res.messsageBody.modelList.result
+            productModels: res.data.modelList.result
           });
         }
       });
@@ -178,15 +180,22 @@ class Category extends React.Component {
       searchNewProduct: e
     });
   }
+  
+  //搜索 - 活动方式输入框值改变时触发
+  searchProduct(e){
+    this.setState({
+      searchProduct: e
+    });
+  }
 
   // 删除某一条数据
   onRemoveClick(id) {
     this.props.actions.removeProduct({ id: id }).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error(res.returnMessaage || "删除失败，请重试");
+        message.error(res.message || "删除失败，请重试");
       }
     });
   }
@@ -202,45 +211,45 @@ class Category extends React.Component {
    * @record: 当前选择的数据行
    * **/
   onModalShow(type, record) {
-      const { form } = this.props;
-      this.setState({
-          addOrUp: type,
-          modalShow: true,
-      });
+    const { form } = this.props;
+    this.setState({
+      addOrUp: type,
+      modalShow: true,
+    });
 
-      if (type === "add") {
-          form.resetFields();
-          setTimeout(()=> { // 产品详情内容
-              console.log('EDITOR:', this.editor);
-              this.editor && this.editor.clear();
-          });
-          this.setState({
-              fileList: [],
-              fileListDetail: [],
-              formCoverVideo: [],
-              nowData: null,
-              code: undefined,
-          });
-      } else if (type==="up" || type==="look") {
-          form.setFieldsValue({
-              formName: record.name,    // 产品名称
-              formTypeId: String(record.typeId),    // 产品类型ID
-              formTypeCode: String(record.typeCode),    // 产品型号ID
-              formActivityType: record.activityType,    // 活动方式ID
-              formConditions: record.newProduct ? 0 : 1,    // 是否是推荐
-              formSort: record.sorts,  // 排序
-          });
-          setTimeout(()=> { // 产品详情内容
-              console.log('详细内容：', record.productDetail);
-              this.editor && record.productDetail && this.editor.setContent(record.productDetail);
-          }, 16);
-          this.setState({
-            nowData: record,
-            code: record.typeId,
-            fileListDetail: record.productImg ? record.productImg.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })) : [], // 产品图片已上传的列表
-            fileList: record.detailImg ? record.detailImg.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })): [], // 列表封面图片已上传的列表
-            formCoverVideo: record.coverVideo ? record.coverVideo.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })): [], // 封面视频
-          });
+    if (type === "add") {
+      form.resetFields();
+      setTimeout(()=> { // 产品详情内容
+        console.log('EDITOR:', this.editor);
+        this.editor && this.editor.clear();
+      });
+      this.setState({
+        fileList: [],
+        fileListDetail: [],
+        formCoverVideo: [],
+        nowData: null,
+        code: undefined,
+      });
+    } else if (type==="up" || type==="look") {
+      form.setFieldsValue({
+        formName: record.name,    // 产品名称
+        formTypeId: String(record.typeId),    // 产品类型ID
+        formTypeCode: String(record.typeCode),    // 产品型号ID
+        formActivityType: record.activityType,    // 活动方式ID
+        formConditions: record.newProduct ? 0 : 1,    // 是否是推荐
+        formSort: record.sorts,  // 排序
+      });
+      setTimeout(()=> { // 产品详情内容
+        console.log('详细内容：', record.productDetail);
+        this.editor && record.productDetail && this.editor.setContent(record.productDetail);
+      }, 16);
+      this.setState({
+        nowData: record,
+        code: record.typeId,
+        fileListDetail: record.detailImg ? record.detailImg.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })) : [], // ；列表封面图片已上传的列表
+        fileList: record.productImg ? record.productImg.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })): [], // 产品封面图片已上传的列表
+        formCoverVideo: record.coverVideo ? record.coverVideo.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })): [], // 封面视频
+      });
       }
 
   }
@@ -264,11 +273,11 @@ class Category extends React.Component {
     this.props.actions
       .deleteProduct(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -288,11 +297,11 @@ class Category extends React.Component {
     this.props.actions
       .hasRecommendProductType(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -302,11 +311,11 @@ class Category extends React.Component {
 
   // 查看、添加或修改确定
   onModalOk() {
-      // 查看，直接关闭
-      if (this.state.addOrUp === 'look'){
-          this.onModalClose();
-          return;
-      }
+    // 查看，直接关闭
+    if (this.state.addOrUp === 'look'){
+        this.onModalClose();
+        return;
+    }
 
     const me = this;
     const { form } = me.props;
@@ -335,8 +344,8 @@ class Category extends React.Component {
           typeId: Number(values.formTypeId), // 产品类型ID
           typeCode: Number(values.formTypeCode), // 产品型号ID
           activityType: values.formActivityType, // 活动方式ID
-          detailImg: this.state.fileList.map(item => item.url).join(","), // 产品封面图片们
-          productImg: this.state.fileListDetail.map(item => item.url).join(","), // 列表封面图片们
+          productImg: this.state.fileList.map(item => item.url).join(","), // 产品封面图片们
+          detailImg: this.state.fileListDetail.map(item => item.url).join(","), // 列表封面图片们
           productDetail: this.editor.getHTMLContent(), // 详情图片们
           coverVideo: this.state.formCoverVideo.map(item => item.url).join(","), // 视频
           conditions: values.formConditions, // 是否是推荐
@@ -350,7 +359,7 @@ class Category extends React.Component {
               this.onGetData(this.state.pageNum, this.state.pageSize);
               this.onModalClose();
               me.setState({
-                  loading: false
+                loading: false
               });
             }).catch((e) => {
               me.setState({
@@ -405,19 +414,21 @@ class Category extends React.Component {
    * 2.上传中
    * 3.删除某 个已上传的图片
    * **/
-  // 产品图片 - 上传中、上传成功、上传失败的回调
+  //列表图片 - 上传中、上传成功、上传失败的回调
   onUpLoadChange(obj) {
     console.log("图片上传：", obj);
     if (obj.file.status === "done") {
       // 上传成功后调用,将新的地址加进原list
-      if (obj.file.response.messsageBody) {
+      if (obj.file.response.data) {
         const list = _.cloneDeep(this.state.fileList);
+        console.log('list是什么：',list)
         const t = list.find(item => item.uid === obj.file.uid);
-        t.url = obj.file.response.messsageBody;
+        t.url = obj.file.response.data;
         this.setState({
           fileList: list,
           fileLoading: false
         });
+        console.log('t是什么：',t)
       } else {
         const list = _.cloneDeep(this.state.fileList);
         this.setState({
@@ -472,14 +483,15 @@ class Category extends React.Component {
     });
   }
 
-    /**
-     * 列表封面图片 上传相关 3个方法
-     * 1.上传前的校验
-     * 2.上传中
-     * 3.删除某 个已上传的图片
-     * **/
+  /**
+   * 产品图片 上传相关 3个方法
+   * 1.上传前的校验
+   * 2.上传中
+   * 3.删除某 个已上传的图片
+   * **/
   // 列表封面图片 - 上传前
   onUploadDetailBefore(f) {
+    console.log('触发了没：', f)
     if(this.state.addOrUp === 'look'){
       return false;
     }
@@ -500,12 +512,14 @@ class Category extends React.Component {
 
   // 列表封面图片 - 上传中、成功、失败
   onUpLoadDetailChange(obj) {
+    console.log('触发这个啊：', obj);
     if (obj.file.status === "done") {
       // 上传成功后调用,将新的地址加进原list
-      if (obj.file.response.messsageBody) {
+      if (obj.file.response.data) {
         const list = _.cloneDeep(this.state.fileListDetail);
         const t = list.find(item => item.uid === obj.file.uid);
-        t.url = obj.file.response.messsageBody;
+        console.log('list是什么aaa：',list)
+        t.url = obj.file.response.data;
         this.setState({
           fileListDetail: list,
           fileDetailLoading: false
@@ -533,9 +547,9 @@ class Category extends React.Component {
 
   // 列表封面图片 - 删除
   onUpLoadDetailRemove(f) {
-      if(this.state.addOrUp === 'look'){
-          return false;
-      }
+    if(this.state.addOrUp === 'look'){
+      return false;
+    }
     const list = _.cloneDeep(this.state.fileListDetail);
     this.setState({
       fileListDetail: list.filter(item => item.uid !== f.uid)
@@ -550,44 +564,44 @@ class Category extends React.Component {
      * **/
     // 产品视频 - 上传前
     onUploadVideoBefore(f, fl) {
-        if(this.state.addOrUp === 'look'){
-            return false;
-        }
-        if (
-            ["mp4", "wma", "avi", "rmvb"].indexOf(f.type.split("/")[1]) < 0
-        ) {
-            message.error("只能上传mp4、wma、avi、rmvb格式的视频");
-            return false;
-        } else {
-            const newList = _.cloneDeep(this.state.formCoverVideo);
-            newList.push(f);
-            this.setState({
-                formCoverVideo: newList
-            });
-            return true;
-        }
+      if(this.state.addOrUp === 'look'){
+        return false;
+      }
+      if (
+          ["mp4", "wma", "avi", "rmvb"].indexOf(f.type.split("/")[1]) < 0
+      ) {
+        message.error("只能上传mp4、wma、avi、rmvb格式的视频");
+        return false;
+      } else {
+          const newList = _.cloneDeep(this.state.formCoverVideo);
+          newList.push(f);
+          this.setState({
+              formCoverVideo: newList
+          });
+          return true;
+      }
     }
 
     // 产品视频 - 上传中、上传成功、上传失败的回调
     onUpLoadVideoChange(obj) {
-        if (obj.file.status === "done") {
-            // 上传成功后调用,将新的地址加进原list
-            if (obj.file.response.messsageBody) {
-                const list = [...this.state.formCoverVideo];
-                const t = list.find(item => item.uid === obj.file.uid);
-                t.url = obj.file.response.messsageBody;
-                this.setState({
-                    formCoverVideo: list,
-                    fileVideoLoading: false
-                });
-            } else {
-                const list = [...this.state.formCoverVideo];
-                this.setState({
-                    formCoverVideo: list.filter(item => item.uid !== obj.file.uid),
-                    fileVideoLoading: false
-                });
-                message.error("视频上传失败");
-            }
+      if (obj.file.status === "done") {
+        // 上传成功后调用,将新的地址加进原list
+        if (obj.file.response.data) {
+          const list = [...this.state.formCoverVideo];
+          const t = list.find(item => item.uid === obj.file.uid);
+          t.url = obj.file.response.data;
+          this.setState({
+            formCoverVideo: list,
+            fileVideoLoading: false
+          });
+        } else {
+          const list = [...this.state.formCoverVideo];
+          this.setState({
+            formCoverVideo: list.filter(item => item.uid !== obj.file.uid),
+            fileVideoLoading: false
+          });
+          message.error("视频上传失败");
+        }
         } else if (obj.file.status === "uploading") {
             this.setState({
                 fileVideoLoading: true
@@ -657,8 +671,8 @@ class Category extends React.Component {
       },
       {
         title:'列表缩略图',
-        dataIndex: "productImg",
-        key: "productImg",
+        dataIndex: "detailImg",
+        key: "detailImg",
         width: 200,
         render: (text, index) => {
           if (text) {
@@ -677,9 +691,9 @@ class Category extends React.Component {
         }
       },
       {
-        title: "缩略图",
-        dataIndex: "detailImg",
-        key: "detailImg",
+        title: "封面缩略图",
+        dataIndex: "productImg",
+        key: "productImg",
         width: 200,
         render: (text, index) => {
           if (text) {
@@ -871,6 +885,7 @@ class Category extends React.Component {
         createTime: item.createTime,    // 创建时间
         creator: item.creator,  // 创建人
         detailImg: item.detailImg,  // 列表图片src
+        productImg: item.productImg,//产品图片
         itemNum: item.itemNum,  // 不知道什么东西
         newProduct: item.newProduct,    // 
         offShelfTime: item.offShelfTime,
@@ -878,7 +893,6 @@ class Category extends React.Component {
         onShelfTime: item.onShelfTime,  // 上架时间
         price: item.typeModel ? item.typeModel.price : "",
         sorts:item.sorts,
-        productImg: item.productImg,//产品图片
         productDetail: item.productDetail,
         saleMode: item.saleMode,
         typeId: item.typeId,
@@ -886,6 +900,7 @@ class Category extends React.Component {
         updater: item.updater,
         control: item.id,
         activityType: item.activityType,
+        coverVideo:item.coverVideo,//封面视频
         timeLimitNum: item.typeModel ? item.typeModel.timeLimitNum : "",
         timeLimitType: item.typeModel ? item.typeModel.timeLimitType : "",
         shipFee: item.typeModel ? item.typeModel.shipFee : "",
@@ -943,7 +958,7 @@ class Category extends React.Component {
                 const successFn = (response) => {
                     console.log('返回了什么：', response);
                     params.success({
-                        url: JSON.parse(xhr.responseText).messsageBody,
+                        url: JSON.parse(xhr.responseText).data,
                         meta: {
                             id: params.libraryId,
                         }
@@ -1015,8 +1030,20 @@ class Category extends React.Component {
                 style={{ width: "120px", marginRight: "25px" }}
                 onChange={e => this.searchNewProduct(e)}
               >
-                <Option value={0}>已推荐</Option>
-                <Option value={1}>未推荐</Option>
+                <Option value={1}>已推荐</Option>
+                <Option value={0}>未推荐</Option>
+              </Select>
+            </li>
+            <li>
+              <span style={{ marginRight: "10px" }}>活动方式</span>
+              <Select
+                allowClear
+                placeholder="全部"
+                style={{ width: "120px", marginRight: "25px" }}
+                onChange={e => this.searchProduct(e)}
+              >
+                <Option value={1}>普通产品</Option>
+                <Option value={2}>活动产品</Option>
               </Select>
             </li>
             <li>
@@ -1090,8 +1117,8 @@ class Category extends React.Component {
                     validator: (rule, value, callback) => {
                       const v = tools.trim(value);
                       if (v) {
-                        if (v.length > 30) {
-                          callback("最多输入80位字符");
+                        if (v.length > 100) {
+                          callback("最多输入100个字");
                         }
                       }
                       callback();
@@ -1109,8 +1136,8 @@ class Category extends React.Component {
                     validator: (rule, value, callback) => {
                       const v = tools.trim(value);
                       if (v) {
-                        if (v.length > 20) {
-                          callback("最多输入20位字符");
+                        if (v.length > 50) {
+                          callback("最多输入50个字");
                         }
                       }
                       callback();
@@ -1120,12 +1147,12 @@ class Category extends React.Component {
               })(
                 <Select disabled={this.state.addOrUp === "look"} placeholder="请选择产品型号">
                   {(() => {
-                      const id = String(form.getFieldValue("formTypeId"));
-                      return this.state.productModels.filter(item => String(item.typeId) === id).map((item, index) => (
-                          <Option key={index} value={String(item.id)}>
-                              {item.name}
-                          </Option>
-                      ))
+                    const id = String(form.getFieldValue("formTypeId"));
+                    return this.state.productModels.filter(item => String(item.typeId) === id).map((item, index) => (
+                      <Option key={index} value={String(item.id)}>
+                        {item.name}
+                      </Option>
+                    ))
                   })()
                   }
                 </Select>
@@ -1174,52 +1201,60 @@ class Category extends React.Component {
               {obj.openAccountFee}
             </FormItem>
             <FormItem label="列表封面图片上传" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>
-              <p style={{float:'left',marginTop:'30px',marginLeft:'-195px',color: 'brown'}}>(推荐尺寸500*500)</p>
-              <Upload
-                name="pImg"
-                disabled={this.state.addOrUp === "look"}
-                action={`${Config.baseURL}/manager/product/uploadImage`}
-                listType="picture-card"
-                withCredentials
-                fileList={this.state.fileListDetail}
-                beforeUpload={(f, fl) => this.onUploadDetailBefore(f, fl)}
-                onChange={f => this.onUpLoadDetailChange(f)}
-                onRemove={f => this.onUpLoadDetailRemove(f)}
-              >
-                {this.state.fileListDetail.length >= 1 ? null : (
-                  <div>
-                    <Icon type="plus" />
-                    <div className="ant-upload-text">选择文件</div>
-                  </div>
-                )}
-              </Upload>
+              <p style={{float:'left',marginTop:'30px',marginLeft:'-195px',color: '#F92A19'}}>(推荐尺寸500*500)</p>
+              {getFieldDecorator("upIcon1", {
+                rules: [{ required: true }]
+              })(
+                <Upload
+                  name="pImg"
+                  disabled={this.state.addOrUp === "look"}
+                  action={`${Config.baseURL}/manager/product/uploadImage`}
+                  listType="picture-card"
+                  withCredentials={true}
+                  fileList={this.state.fileListDetail}
+                  beforeUpload={(f, fl) => this.onUploadDetailBefore(f, fl)}
+                  onChange={f => this.onUpLoadDetailChange(f)}
+                  onRemove={f => this.onUpLoadDetailRemove(f)}
+                >
+                  {this.state.fileListDetail.length >= 1 ? null : (
+                    <div>
+                      <Icon type="plus" />
+                      <div className="ant-upload-text">选择文件</div>
+                    </div>
+                  )}
+                </Upload>
+            )}
             </FormItem>
             <FormItem label="产品封面图片上传(最多5张)" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>
-              <p style={{float:'left',marginTop:'30px',marginLeft:'-195px',color: 'brown'}}>(推荐尺寸750*600)</p>
-              <Upload
-                name="pImg"
-                disabled={this.state.addOrUp === "look"}
-                action={`${Config.baseURL}/manager/product/uploadImage`}
-                listType="picture-card"
-                withCredentials={true}
-                fileList={this.state.fileList}
-                beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
-                onChange={f => this.onUpLoadChange(f)}
-                onRemove={f => this.onUpLoadRemove(f)}
-              >
-                {this.state.fileList.length >= 5 ? null : (
-                  <div>
-                    <Icon type="plus" />
-                    <div className="ant-upload-text">选择文件</div>
-                  </div>
-                )}
-              </Upload>
+              <p style={{float:'left',marginTop:'30px',marginLeft:'-195px',color: '#F92A19'}}>(推荐尺寸750*600)</p>
+              {getFieldDecorator("upIcon2", {
+                rules: [{ required: true }]
+              })(
+                <Upload
+                  name="pImg"
+                  disabled={this.state.addOrUp === "look"}
+                  action={`${Config.baseURL}/manager/product/uploadImage`}
+                  listType="picture-card"
+                  withCredentials={true}
+                  fileList={this.state.fileList}
+                  beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
+                  onChange={f => this.onUpLoadChange(f)}
+                  onRemove={f => this.onUpLoadRemove(f)}
+                >
+                  {this.state.fileList.length >= 5 ? null : (
+                    <div>
+                      <Icon type="plus" />
+                      <div className="ant-upload-text">选择文件</div>
+                    </div>
+                  )}
+                </Upload>
+              )}
             </FormItem>
             <FormItem label="产品封面视频上传" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>
               <Upload
                 name="pImg"
                 disabled={this.state.addOrUp === "look"}
-                action={`${Config.baseURL}/manager/product/uploadImage`}
+                action={`${Config.baseURL}/manager/product/uploadVideo`}
                 listType="picture-card"
                 withCredentials={true}
                 fileList={this.state.formCoverVideo}
@@ -1238,17 +1273,17 @@ class Category extends React.Component {
             <FormItem label="产品详情" labelCol={{ span: 24 }} wrapperCol={{ span: 24}}>
                 <BraftEditor {...editorProps} ref={(dom) => this.editor = dom}/>
             </FormItem>
-            <FormItem label="是否设为推荐" {...formItemLayout}>
-              {getFieldDecorator("formConditions", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请选择是否设为推荐" }]
-              })(
-                <Select disabled={this.state.addOrUp === "look"} placeholder="请选择是否设为推荐">
-                  <Option value={1}>否</Option>
-                  <Option value={0}>是</Option>
-                </Select>
-              )}
-            </FormItem>
+            {/*<FormItem label="是否设为推荐" {...formItemLayout}>*/}
+              {/*{getFieldDecorator("formConditions", {*/}
+                {/*initialValue: undefined,*/}
+                {/*rules: [{ required: true, message: "请选择是否设为推荐" }]*/}
+              {/*})(*/}
+                {/*<Select disabled={this.state.addOrUp === "look"} placeholder="请选择是否设为推荐">*/}
+                  {/*<Option value={1}>否</Option>*/}
+                  {/*<Option value={0}>是</Option>*/}
+                {/*</Select>*/}
+              {/*)}*/}
+            {/*</FormItem>*/}
             <FormItem label="排序" {...formItemLayout}>
               {getFieldDecorator("formSort", {
                 initialValue: undefined,

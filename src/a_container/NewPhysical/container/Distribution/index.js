@@ -49,8 +49,12 @@ import {
   deleteImage,
   findticketModelByWhere,
   addticket,
-  updateTicketStatus
+  updateTicketStatus,
+  alertTicket,
+  onChange,
+  onOk
 } from "../../../../a_action/shop-action";
+
 import {
   findAllProvince,
   findStationByArea,
@@ -83,7 +87,8 @@ class Category extends React.Component {
       searchBeginTime: "", // 搜索 - 开始时间
       searchEndTime: "", // 搜索- 结束时间
       addOrUp: "add", // 当前操作是新增还是修改
-      addnewModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
+      addnewModalShow: false, // 添加新用户模态框是否显示
+      UpdateModalShow: false,//修改的模态框出现
       addnewLoading: false, // 是否正在添加新用户中
       nowData: null, // 当前选中用户的信息，用于查看详情、修改、分配菜单
       queryModalShow: false, // 查看详情模态框是否显示
@@ -157,15 +162,15 @@ class Category extends React.Component {
         : ""
     };
     this.props.actions.findReserveList(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.ticketPage.result || [],
+          data: res.data.ticketPage.result || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.ticketPage.total
+          total: res.data.ticketPage.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -175,9 +180,9 @@ class Category extends React.Component {
     this.props.actions
       .findticketModelByWhere({ pageNum: 0, pageSize: 9999, typeId: 5 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productModelIds: res.messsageBody
+            productModelIds: res.data
           });
         }
       });
@@ -212,6 +217,16 @@ class Category extends React.Component {
         return "已过期";
       case "5":
         return "已预约";
+    }
+  }
+  
+  //是否禁用
+  ticketStatus(id) {
+    switch (String(id)) {
+      case "1":
+        return "未禁用";
+      case "4":
+        return "已禁用";
     }
   }
 
@@ -285,8 +300,8 @@ class Category extends React.Component {
         parentId: selectedOptions[selectedOptions.length - 1].id
       })
       .then(res => {
-        if (res.returnCode === "0") {
-          targetOption.children = res.messsageBody.map((item, index) => {
+        if (res.status === "0") {
+          targetOption.children = res.data.map((item, index) => {
             return {
               id: item.id,
               value: item.areaName,
@@ -314,9 +329,9 @@ class Category extends React.Component {
       pageSize: 9999
     };
     this.props.actions.findStationByArea(params).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          stations: res.messsageBody.result
+          stations: res.data.result
         });
       }
     });
@@ -333,7 +348,7 @@ class Category extends React.Component {
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
 
   //Input中的删除按钮所删除的条件
@@ -371,6 +386,7 @@ class Category extends React.Component {
 
   // 查询某一条数据的详情
   onQueryClick(record) {
+    console.log('详情有什么啊：',record)
     this.setState({
       nowData: record,
       queryModalShow: true
@@ -393,11 +409,11 @@ class Category extends React.Component {
     this.props.actions
       .updateTicketStatus(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -430,8 +446,8 @@ class Category extends React.Component {
       addnewModalShow: true
     });
   }
-
-  // 添加或修改确定
+  
+  // 添加模态框的确定
   onAddNewOk() {
     const me = this;
     const { form } = me.props;
@@ -478,39 +494,20 @@ class Category extends React.Component {
           productModelId: values.addnewProductModelId,
           cardCount: values.addnewCardCount
         };
-        if (this.state.addOrUp === "add") {
-          // 新增
-          me.props.actions
-            .addticket(tools.clearNull(params))
-            .then(res => {
-              me.setState({
-                addnewLoading: false
-              });
-              this.onGetData(this.state.pageNum, this.state.pageSize);
-              this.onAddNewClose();
-            })
-            .catch(() => {
-              me.setState({
-                addnewLoading: false
-              });
+        me.props.actions
+          .addticket(tools.clearNull(params))
+          .then(res => {
+            me.setState({
+              addnewLoading: false
             });
-        } else {
-          params.id = this.state.nowData.id;
-          me.props.actions
-            .upReserveList(params)
-            .then(res => {
-              me.setState({
-                addnewLoading: false
-              });
-              this.onGetData(this.state.pageNum, this.state.pageSize);
-              this.onAddNewClose();
-            })
-            .catch(() => {
-              me.setState({
-                addnewLoading: false
-              });
+            this.onGetData(this.state.pageNum, this.state.pageSize);
+            this.onAddNewClose();
+          })
+          .catch(() => {
+            me.setState({
+              addnewLoading: false
             });
-        }
+          });
       }
     );
   }
@@ -518,8 +515,70 @@ class Category extends React.Component {
   // 关闭模态框
   onAddNewClose() {
     this.setState({
-      addnewModalShow: false
+      addnewModalShow: false,
+      UpdateModalShow:false
     });
+  }
+  
+  //修改某一条数据模态框出现
+  onUpdateClick(record) {
+    const me = this;
+    const { form } = me.props;
+    console.log("是什么：", record);
+    form.setFieldsValue({
+      UpTime: record.validEndTime ? new moment(record.validEndTime) : undefined,
+      upAddCount: record.ticketNo,
+    });
+    console.log("是什么：", record);
+    me.setState({
+      nowData: record,
+      addOrUp: "up",
+      UpdateModalShow: true,
+    });
+  }
+  
+  // 确定修改某一条数据
+  onUpdateOk() {
+    const me = this;
+    const { form } = me.props;
+    console.log('是什么是：',me)
+    form.validateFields(
+      ["UpTime","upAddCount"],
+      (err, values) => {
+      if (err) {
+        return;
+      }
+      console.log("values:", values);
+      me.setState({
+        upLoading: true
+      });
+      const params = {
+        ticketId: me.state.nowData.id,
+        // addCount: values.upAddCount, //新增体检卡使用次数
+        // validEnd:`"${tools.dateToStr(values.UpTime._d)}"`, //更新分配时间
+        validEnd:`${tools.dateToStr(values.UpTime._d)}`, //更新分配时间
+      };
+      this.props.actions
+        .alertTicket(params)
+        .then(res => {
+          if (res.status === "0") {
+            me.setState({
+              addnewLoading: false
+            });
+            message.success(res.message || "修改成功");
+            this.onGetData(this.state.pageNum, this.state.pageSize);
+            this.onAddNewClose();
+          } else {
+            message.error(res.message || "修改失败，请重试");
+          }
+        })
+        .catch(() => {
+          me.setState({
+            upLoading: false
+          });
+        });
+    }
+    );
   }
 
   // 表单页码改变
@@ -600,7 +659,7 @@ class Category extends React.Component {
         title: "是否禁用",
         dataIndex: "ticketStatus",
         key: "ticketStatus",
-        render: text => this.Disable(text)
+        render: text => this.ticketStatus(text)
       },
       {
         title: "是否限制仅该服务站使用",
@@ -629,7 +688,6 @@ class Category extends React.Component {
         width: 120,
         render: (text, record) => {
           const controls = [];
-
           controls.push(
             <span
               key="0"
@@ -640,6 +698,17 @@ class Category extends React.Component {
                 <Icon type="eye" />
               </Tooltip>
             </span>
+          );
+          controls.push(
+            <span
+              key="1"
+              className="control-btn blue"
+              onClick={() => this.onUpdateClick(record)}
+            >
+            <Tooltip placement="top" title="编辑">
+              <Icon type="edit" />
+            </Tooltip>
+          </span>
           );
           record.ticketStatus === 3 &&
             controls.push(
@@ -707,7 +776,6 @@ class Category extends React.Component {
         weight: item.weight,
         isExpire: item.isExpire,
         hasExpire: item.hasExpire,
-        validEndTime: item.validEndTime,
         createTime: item.createTime,
         timeLimitNum: item.hraCard.productModel.timeLimitNum,
         timeLimitType: item.hraCard.productModel.timeLimitType,
@@ -722,6 +790,7 @@ class Category extends React.Component {
         ticketType: item.ticketType,
         hraCard: item.hraCard,
         ticketId: item.ticketId,
+        validEndTime:item.validEndTime,//到期时间
         surplus: item.surplus,
         citys:
           item.province && item.city && item.region
@@ -792,8 +861,8 @@ class Category extends React.Component {
                 style={{ width: "172px" }}
                 onChange={e => this.searchExpireChange(e)}
               >
-                <Option value={1}>未到期</Option>
-                <Option value={0}>已到期</Option>
+                <Option value={0}>未到期</Option>
+                <Option value={1}>已到期</Option>
               </Select>
             </li>
             <li>
@@ -814,11 +883,11 @@ class Category extends React.Component {
                 style={{ width: "172px" }}
                 onChange={e => this.searchTicketStatusChange(e)}
               >
-                <Option value={1}>未使用</Option>
-                <Option value={2}>已使用</Option>
-                <Option value={3}>已禁用</Option>
-                <Option value={4}>已过期</Option>
-                <Option value={5}>已预约</Option>
+                <Option value={1}>未禁用</Option>
+                {/*<Option value={2}>已使用</Option>*/}
+                {/*<Option value={3}>已禁用</Option>*/}
+                <Option value={4}>已禁用</Option>
+                {/*<Option value={5}>已预约</Option>*/}
               </Select>
             </li>
             <li>
@@ -1047,6 +1116,35 @@ class Category extends React.Component {
             </FormItem>
           </Form>
         </Modal>
+        {/* 修改模态框 */}
+        <Modal
+          title="体检卡分配"
+          visible={this.state.UpdateModalShow}
+          onOk={() => this.onUpdateOk()}
+          onCancel={() => this.onAddNewClose()}
+          confirmLoading={this.state.addnewLoading}
+        >
+          <Form>
+            <FormItem label="体检卡号" {...formItemLayout}>
+              {!! this.state.nowData ? this.state.nowData.ticketNo : ''}
+            </FormItem>
+            <FormItem label="到期时间" {...formItemLayout}>
+              {getFieldDecorator("UpTime", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请修改到期时间" }]
+              })(
+                <DatePicker
+                  style={{ width: "100%" }}
+                  showTime
+                  format="YYYY-MM-DD HH:mm:ss"
+                  placeholder="请修改到期时间"
+                  onChange={onChange}
+                  onOk={onOk}
+                />
+              )}
+            </FormItem>
+          </Form>
+        </Modal>
         {/* 查看详情模态框 */}
         <Modal
           title="查看详情"
@@ -1088,7 +1186,7 @@ class Category extends React.Component {
             </FormItem>
             <FormItem label="是否禁用" {...formItemLayout}>
               {!!this.state.nowData
-                ? this.Disable(this.state.nowData.ticketStatus)
+                ? this.ticketStatus(this.state.nowData.ticketStatus)
                 : ""}
             </FormItem>
             <FormItem label="是否限制仅该服务站使用" {...formItemLayout}>
@@ -1147,7 +1245,10 @@ export default connect(
         queryStationList,
         addStationList,
         upStationList,
-        delStationList
+        delStationList,
+        alertTicket,
+        onChange,
+        onOk
       },
       dispatch
     )

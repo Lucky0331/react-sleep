@@ -140,20 +140,20 @@ class Category extends React.Component {
       canBuy: Boolean(this.state.searchCanbuy)
     };
     this.props.actions.buyPower(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.bpPage.result || [],
-          productTypes: res.messsageBody.ptList || [],
-          userTypes: res.messsageBody.utList || [],
-          healthTypes: res.messsageBody.dtList || [],
+          data: res.data.bpPage.result || [],
+          productTypes: res.data.ptList || [],
+          userTypes: res.data.utList || [],
+          healthTypes: res.data.dtList || [],
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
-      // console.log('是谁:',res.messsageBody.ptList)
+      // console.log('是谁:',res.data.ptList)
     });
   }
 
@@ -165,11 +165,11 @@ class Category extends React.Component {
     this.props.actions
       .updateProductLine(params)
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           message.success("修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
-          message.error(res.returnMessaage || "修改失败，请重试");
+          message.error(res.message || "修改失败，请重试");
         }
       })
       .catch(() => {
@@ -184,18 +184,18 @@ class Category extends React.Component {
       canBuy: record.canBuy ? 2 : 1
     };
     this.props.actions.deleteStation(params).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
         this.onGetData(this.state.pageNum, this.state.pageSize);
       } else {
-        message.error(res.returnMessaage || "删除失败，请重试");
+        message.error(res.message || "删除失败，请重试");
       }
     });
   }
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
 
   // 查询某一条数据的详情
@@ -266,14 +266,14 @@ class Category extends React.Component {
           me.props.actions
             .addProductLine(tools.clearNull(params))
             .then(res => {
-              if (res.returnCode === "0") {
+              if (res.status === "0") {
                 me.setState({
                   addnewLoading: false
                 });
                 this.onGetData(this.state.pageNum, this.state.pageSize);
                 this.onAddNewClose();
               } else {
-                message.error(res.returnMessaage || "操作失败");
+                message.error(res.message || "操作失败");
                 this.onAddNewClose();
               }
             })
@@ -286,14 +286,14 @@ class Category extends React.Component {
             .editProductLine(params)
             .then(res => {
               //修改
-              if (res.returnCode === "0") {
+              if (res.status === "0") {
                 me.setState({
                   addnewLoading: false
                 });
                 this.onGetData(this.state.pageNum, this.state.pageSize);
                 this.onAddNewClose();
               } else {
-                message.error(res.returnMessaage || "操作失败");
+                message.error(res.message || "操作失败");
                 this.onAddNewClose();
               }
             })

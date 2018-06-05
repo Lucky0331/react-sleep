@@ -340,3 +340,29 @@ export function DelateassistantList(params = {}) {
       });
   };
 }
+
+//客服问答推荐撤回 /发布撤回
+export function DownassistantList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/assistant/recommend", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//客服问答发布/撤回
+export function RemoveList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/assistant/remove", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}

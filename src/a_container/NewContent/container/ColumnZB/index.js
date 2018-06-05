@@ -102,9 +102,9 @@ class Menu extends React.Component {
       typeId: parentId
     };
     this.props.actions.Columnlist(params).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result || [],
+          data: res.data.result || [],
         });
       } else {
         this.setState({
@@ -120,9 +120,9 @@ class Menu extends React.Component {
       pageSize,
     };
     this.props.actions.Columnlist(params).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data2: res.messsageBody.result || [],
+          data2: res.data.result || [],
         });
       }
     });
@@ -131,12 +131,12 @@ class Menu extends React.Component {
   // 确定删除当前菜单
   onRemoveClick(id) {
     this.props.actions.delateColumnlist({ id: id }).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         message.success("删除成功");
-        this.getAllMenus();
+        // this.getAllMenus();
         this.onGetData();
       } else {
-        message.error(res.returnMessaage || "删除失败");
+        message.error(res.message || "删除失败");
       }
     });
   }
@@ -233,10 +233,10 @@ class Menu extends React.Component {
           me.props.actions
             .addColumnlist(tools.clearNull(params))
             .then(res => {
-            if (res.returnCode === "0") {
+            if (res.status === "0") {
               message.success("添加成功");
-                this.getAllMenus(); // 重新获取菜单
-                this.onGetData();
+                // this.getAllMenus(); // 重新获取菜单
+                // this.onGetData();
                 this.onAddNewClose();
               } else {
                 message.error("添加失败");
@@ -323,10 +323,8 @@ class Menu extends React.Component {
   }
 
   // TABLE页码改变
-  onTableChange(p) {
-    this.setState({
-      pageNum: p.current
-    });
+  onTableChange(page, pageSize) {
+    // this.onGetData(page, pageSize);
   }
   // 父级tree选择确定
   onTreeOk(obj) {
@@ -458,7 +456,7 @@ class Menu extends React.Component {
         subList:item.subList,
         conditions: item.conditions,
         iconImg:item.iconImg,
-        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize
+        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
       };
     });
   }
@@ -516,11 +514,12 @@ class Menu extends React.Component {
             <Table
               columns={this.makeColumns()}
               dataSource={this.makeData(this.state.data)}
-              onChange={p => this.onTableChange(p)}
               pagination={{
                 pageSize: this.state.pageSize,
                 showQuickJumper: true,
-                showTotal: (total, range) => `共 ${total} 条数据`
+                showTotal: (total, range) => `共 ${total} 条数据`,
+                onChange: (page, pageSize) =>
+                  this.onTableChange(page, pageSize)
               }}
             />
           </div>
@@ -557,7 +556,7 @@ class Menu extends React.Component {
                   }
                   </Select>
               )}
-              <p style={{color: 'brown'}}>（若添加二级分类请选择父级）</p>
+              <p style={{color: '#F92A19'}}>（若添加二级分类请选择父级）</p>
             </FormItem>
           </Form>
         </Modal>

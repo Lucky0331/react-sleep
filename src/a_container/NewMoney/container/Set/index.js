@@ -104,15 +104,15 @@ class Category extends React.Component {
       pageSize
     };
     this.props.actions.MoneyList(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data: res.messsageBody.result,
+          data: res.data.result,
           pageNum,
           pageSize,
-          total: res.messsageBody.total
+          total: res.data.total
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -124,14 +124,14 @@ class Category extends React.Component {
       pageSize
     };
     this.props.actions.ServiceList(tools.clearNull(params)).then(res => {
-      if (res.returnCode === "0") {
+      if (res.status === "0") {
         this.setState({
-          data2: res.messsageBody.result || [],
+          data2: res.data.result || [],
           pageNum,
           pageSize
         });
       } else {
-        message.error(res.returnMessaage || "获取数据失败，请重试");
+        message.error(res.message || "获取数据失败，请重试");
       }
     });
   }
@@ -141,9 +141,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productTypes: res.messsageBody.result
+            productTypes: res.data.result
           });
         }
       });
@@ -154,9 +154,9 @@ class Category extends React.Component {
     this.props.actions
       .findProductModelByWhere({ pageNum: 0, pageSize: 9999 })
       .then(res => {
-        if (res.returnCode === "0") {
+        if (res.status === "0") {
           this.setState({
-            productModels: res.messsageBody.result
+            productModels: res.data.result
           });
         }
       });
@@ -180,7 +180,7 @@ class Category extends React.Component {
 
   // 搜索
   onSearch() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
+    this.onGetData(1, this.state.pageSize);
   }
 
   // 查询某一条数据的详情
@@ -328,12 +328,12 @@ class Category extends React.Component {
         this.props.actions
           .updateMoneyList(params)
           .then(res => {
-            if (res.returnCode === "0") {
+            if (res.status === "0") {
               message.success("修改成功");
               this.onGetData(this.state.pageNum, this.state.pageSize);
               this.onUpClose();
             } else {
-              message.error(res.returnMessaage || "修改失败，请重试");
+              message.error(res.message || "修改失败，请重试");
             }
             me.setState({
               upLoading: false
@@ -406,12 +406,12 @@ class Category extends React.Component {
         this.props.actions
           .updateServiceList(params)
           .then(res => {
-            if (res.returnCode === "0") {
+            if (res.status === "0") {
               message.success("修改成功");
               this.onGetData(this.state.pageNum, this.state.pageSize);
               this.onUpClose();
             } else {
-              message.error(res.returnMessaage || "修改失败，请重试");
+              message.error(res.message || "修改失败，请重试");
             }
             me.setState({
               upLoading: false

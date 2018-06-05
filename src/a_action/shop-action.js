@@ -353,10 +353,10 @@ export function findAllProvince(params = {}) {
   return dispatch => {
     return Fetchapi.newPost("/manager/area/findAllProvince", params)
       .then(msg => {
-        if (msg.returnCode === "0") {
+        if (msg.status === "0") {
           dispatch({
             type: "SYS::findAllProvince",
-            payload: msg.messsageBody
+            payload: msg.data
           });
         }
         return msg;
@@ -492,6 +492,19 @@ export function addticket(params = {}) {
   };
 }
 
+//修改F卡的有效期和使用次数(总部才有)
+export function alertTicket(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/ticket/alertTicket", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
 //查询 资金流向-经营收益
 export function addMoneyFlow(params = {}) {
   return dispatch => {
@@ -564,7 +577,7 @@ export function updateProductLine(params = {}) {
 //服务站信息管理列表查询
 export function ContractList(params = {}) {
   return dispatch => {
-    return Fetchapi.newPost("/manager/station/list  ", params)
+    return Fetchapi.newPost("/manager/station/list", params)
       .then(msg => {
         return msg;
       })
@@ -830,6 +843,19 @@ export function deleteActivity(params = {}) {
 export function upDateOnlineList(params = {}) {
   return dispatch => {
     return Fetchapi.newPost("/manager/activity/outOff", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//清除活动中已下架的推荐产品
+export function activityList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/activity/remove", params,)
       .then(msg => {
         return msg;
       })
