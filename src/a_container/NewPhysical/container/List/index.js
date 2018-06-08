@@ -71,8 +71,20 @@ class Category extends React.Component {
       searchMobile: "", // 搜索 - 手机号
       searchTicketNo: "", // 搜索 - 体检卡号
       searchDate: undefined, // 搜索 - 预约体检日期
-      searchBeginTime: "", // 搜索 - 开始时间
-      searchEndTime: "", // 搜索- 结束时间
+      searchBeginTime: moment(
+        (() => {
+          const d = new Date();
+          d.setDate(d.getDate() - 7);
+          return d;
+        })()
+      ), // 搜索- 开始时间
+      searchEndTime: moment(
+        (() => {
+          const d = new Date();
+          d.setMonth(d.getMonth());
+          return d;
+        })()
+      ), // 搜索- 结束时间 (体检列表体检时间默认查询一周的)
       searchStation:'',//服务站关键字
       searchUserSource: "", //搜索 - 用户来源
       searchState: "", //搜索 - 体检卡状态
@@ -211,6 +223,25 @@ class Category extends React.Component {
     );
     return t ? t.name : "";
   }
+  
+  //清空Input标签内容
+  emitEmpty(){
+    this.setState({
+      searchStation: ""
+    });
+  }
+  
+  emitEmpty1(){
+    this.setState({
+      searchTicketNo: ""
+    });
+  }
+  
+  emitEmpty2(){
+    this.setState({
+      searchMobile: ""
+    });
+  }
 
   // 工具 - 根据ID获取用户来源名字
   getNameByModelId(id) {
@@ -292,6 +323,14 @@ class Category extends React.Component {
       nowData: record,
       queryModalShow: true
     });
+    console.log('啥数据：',record)
+  }
+  
+  //查看体检报告
+  onLookPdf(record){
+    this.setState({
+      nowData: record,
+    })
   }
 
   // 搜索 - 开始时间变化
@@ -336,13 +375,18 @@ class Category extends React.Component {
         title: "服务站名称",
         dataIndex: "name",
         key: "name",
-        width: 180
+        width: 200
       },
       {
         title: "体检卡号",
         dataIndex: "ticketNo",
         key: "ticketNo",
         width: 200
+      },
+      {
+        title:'体检卡型号',
+        dataIndex:'ticketType',
+        key:'ticketType'
       },
       {
         title: "体检人",
@@ -378,8 +422,8 @@ class Category extends React.Component {
       },
       {
         title: "实际体检日期",
-        dataIndex: "createTime",
-        key: "createTime",
+        dataIndex: "useTime",
+        key: "useTime",
         width: 200
       },
       {
@@ -399,7 +443,7 @@ class Category extends React.Component {
       {
         title: "操作",
         key: "control",
-        width: 150,
+        width: 100,
         fixed: "right",
         render: (text, record) => {
           const controls = [];
@@ -414,30 +458,35 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
-          controls.push(
-            <span
-              key="2"
-              className="control-btn blue"
-              onClick={() => this.onUpdateClick(record)}
-            >
-              <Tooltip placement="top" title="编辑">
-                <Icon type="edit" />
-              </Tooltip>
-            </span>
-          );
-          record.ticketStatus === 1 &&
+          // record.ticketStatus === 1 &&
+          //   controls.push(
+          //     <span
+          //       key="3"
+          //       className="control-btn red"
+          //       onClick={() => this.onUpdateClick(record)}
+          //     >
+          //       <Tooltip placement="top" title="再次体检">
+          //         <Icon type="medicine-box" />
+          //       </Tooltip>
+          //     </span>
+          //   );
+            record.reportPdf != "" &&
             controls.push(
-              <span
+            <span
                 key="3"
                 className="control-btn red"
-                onClick={() => this.onUpdateClick(record)}
+                // onClick={() => this.onLookPdf(record)}
               >
-                <Tooltip placement="top" title="再次体检">
-                  <Icon type="medicine-box" />
-                </Tooltip>
+                {/*当有体检报告的时候需要跳转新页面*/}
+              <a href="javascript:;" onClick={()=>window.open(record.reportPdf)}><Tooltip placement="top" title="查看体检报告">
+                <Icon type="medicine-box" />
+            </Tooltip></a>
+                {/*下面的跳转是另一种方法*/}
+                {/*<a href={record.reportPdf} target="_blank"><Tooltip placement="top" title="查看体检报告">*/}
+                {/*<Icon type="medicine-box" />*/}
+                {/*</Tooltip></a>*/}
               </span>
-            );
-
+            )
           const result = [];
           controls.forEach((item, index) => {
             if (index) {
@@ -470,7 +519,11 @@ class Category extends React.Component {
         username: item.hraCustomer ? item.hraCustomer.username : null,
         birthdate: item.hraCustomer ? item.hraCustomer.birthdate : null,
         height: item.hraCustomer ? item.hraCustomer.height : "XXX",
-        weight: item.hraCustomer ? item.hraCustomer.weight : "XX",
+        weight: item.hraCustomer ? Number(item.hraCustomer.weight) : "XX",
+        reportPdf:item.hraReport ? item.hraReport.reportPdf : '', //体检报告链接
+        hraReport:item.hraReport,
+        useTime: item.useTime,
+        ticketType:item.ticketType, //体检卡型号
         reserveTime: item.reserveTime,
         reserveFrom: item.reserveFrom,
         sex: item.hraCustomer ? item.hraCustomer.sex : null,
@@ -497,6 +550,18 @@ class Category extends React.Component {
         sm: { span: 18 }
       }
     };
+    const { searchStation } = this.state;
+    const { searchTicketNo } = this.state;
+    const { searchMobile } = this.state;
+    const suffix = searchStation ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty()} />
+    ) : null;
+    const suffix1 = searchTicketNo ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty1()} />
+    ) : null;
+    const suffix2 = searchMobile ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty2()} />
+    ) : null;
     console.log("是啥：", form.getFieldValue("addnewTypeId"));
     return (
       <div style={{ width: "100%" }}>
@@ -516,6 +581,8 @@ class Category extends React.Component {
             <li>
               <span>服务站名称：</span>
               <Input
+                suffix={suffix}
+                value={searchStation}
                 style={{ width: "172px", marginRight: "10px" }}
                 onChange={e => this.searchStationChange(e)}
               />
@@ -536,6 +603,8 @@ class Category extends React.Component {
             <li>
               <span>体检卡号：</span>
               <Input
+                suffix={suffix1}
+                value={searchTicketNo}
                 style={{ width: "172px", marginRight: "10px" }}
                 onChange={e => this.searchTicketNoChange(e)}
               />
@@ -543,6 +612,8 @@ class Category extends React.Component {
             <li>
               <span>手机号：</span>
               <Input
+                suffix={suffix2}
+                value={searchMobile}
                 style={{ width: "172px", marginRight: "10px" }}
                 onChange={e => this.searchMobileChange(e)}
               />
@@ -565,6 +636,7 @@ class Category extends React.Component {
                 }}
                 format="YYYY-MM-DD"
                 placeholder="开始时间"
+                value={this.state.searchBeginTime}
                 onChange={e => this.searchBeginTime(e)}
               />
               --
@@ -584,6 +656,7 @@ class Category extends React.Component {
                 }}
                 format="YYYY-MM-DD"
                 placeholder="结束时间"
+                value={this.state.searchEndTime}
                 onChange={e => this.searchEndTime(e)}
               />
             </li>
@@ -773,6 +846,13 @@ class Category extends React.Component {
               {!!this.state.nowData ? this.state.nowData.username : ""}
             </FormItem>
             <FormItem
+              label="体检卡型号"
+              {...formItemLayout}
+              style={{ marginLeft: "20px" }}
+            >
+              {!!this.state.nowData ? this.state.nowData.ticketType : ""}
+            </FormItem>
+            <FormItem
               label="身份证号"
               {...formItemLayout}
               style={{ marginLeft: "20px" }}
@@ -843,7 +923,7 @@ class Category extends React.Component {
               {...formItemLayout}
               style={{ marginLeft: "20px" }}
             >
-              {!!this.state.nowData ? this.state.nowData.createTime : ""}
+              {!!this.state.nowData ? this.state.nowData.useTime : ""}
             </FormItem>
             <FormItem
               label="体检卡号状态"

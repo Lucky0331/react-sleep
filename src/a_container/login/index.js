@@ -315,7 +315,7 @@ class LoginContainer extends React.Component {
                   ]
                 })(
                   <Input
-                    style={{ width: "200px" }}
+                    style={{ width: "55%" }}
                     placeholder="请输入验证码"
                     id="form_vcode"
                     onPressEnter={() => this.onSubmit()}
@@ -323,7 +323,6 @@ class LoginContainer extends React.Component {
                 )}
                 <Vcode
                   height={32}
-                  width={150}
                   lineCount={50}
                   onChange={code => this.onVcodeChange(code)}
                   className="vcode"

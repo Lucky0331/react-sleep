@@ -40,7 +40,7 @@ import MenuTree from "../../../../a_component/menuTree";
 // ==================
 // 本页面所需action
 // ==================
-
+import { deleteImage } from "../../../../a_action/shop-action"
 import {
   findAllMenu,
   addMenuInfo,
@@ -267,6 +267,7 @@ class Menu extends React.Component {
       "addMenuDesc"
     ]);
     this.setState({
+      fileList: [],
       treeFatherValue: null,
       addModalShow: true
     });
@@ -291,7 +292,8 @@ class Menu extends React.Component {
           menuDesc: values.upMenuDesc,
           parentId: this.state.treeFatherValue
             ? `${this.state.treeFatherValue.id}`
-            : "0" // 如果没有的话就是顶级菜单，顶级菜单默认为0
+            : "0" ,// 如果没有的话就是顶级菜单，顶级菜单默认为0
+          iconImg: this.state.fileList.map(item => item.url).join(","),
         };
         this.setState({ upLoading: true });
         this.props.actions
@@ -313,6 +315,81 @@ class Menu extends React.Component {
       }
     );
   }
+  
+  // 菜单图标 - 上传中、上传成功、上传失败的回调
+  onUpLoadChange(obj) {
+    // console.log('图片上传：', obj);
+    if (obj.file.status === "done") {
+      // 上传成功后调用,将新的地址加进原list
+      if (obj.file.response.data) {
+        const list = _.cloneDeep(this.state.fileList);
+        const t = list.find(item => item.uid === obj.file.uid);
+        t.url = obj.file.response.data;
+        this.setState({
+          fileList: list,
+          fileLoading: false
+        });
+      } else {
+        const list = _.cloneDeep(this.state.fileList);
+        this.setState({
+          fileList: list.filter(item => item.uid !== obj.file.uid),
+          fileLoading: false
+        });
+        message.error("图片上传失败");
+      }
+    } else if (obj.file.status === "uploading") {
+      this.setState({
+        fileLoading: true
+      });
+    } else if (obj.file.status === "error") {
+      const list = _.cloneDeep(this.state.fileList);
+      this.setState({
+        fileList: list.filter(item => item.uid !== obj.file.uid),
+        fileLoading: false
+      });
+      message.error("图片上传失败");
+    }
+  }
+  
+  // 菜单图标 - 上传前
+  onUploadBefore(f, fl) {
+    console.log("上传前：", f, fl);
+    if (
+        ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
+    ) {
+      message.error("只能上传jpg、jpeg、png、bmp、gif格式的图片");
+      return false;
+    } else {
+      const newList = _.cloneDeep(this.state.fileList);
+      newList.push(f);
+      this.setState({
+        fileList: newList
+      });
+      return true;
+    }
+  }
+  
+  // 菜单图标 - 删除一个图片
+  onUpLoadRemove(f) {
+    console.log("删除；", f);
+    this.deleteImg(f.url);
+    const list = _.cloneDeep(this.state.fileList);
+    this.setState({
+      fileList: list.filter(item => item.uid !== f.uid)
+    });
+  }
+  
+  // 真正从服务端删除商品的图片
+  deleteImg(uri) {
+    const temp = uri.split("/");
+    const fileName = temp.splice(-1, 1);
+    const params = {
+      path: temp.join("/"),
+      fileName
+    };
+    console.log("删除后的是啥？", temp.join("/"), fileName);
+    this.props.actions.deleteImage(params);
+  }
 
   // 修改 - 模态框 出现
   onUpdateClick(record) {
@@ -324,10 +401,15 @@ class Menu extends React.Component {
       upMenuUrl: record.menuUrl,
       upMenuDesc: record.menuDesc,
       upSorts: record.sorts,
-      upConditions: record.conditions
+      upConditions: record.conditions,
     });
     this.setState({
       nowData: record,
+      fileList: record.iconImg
+        ? record.iconImg
+            .split(",")
+            .map((item, index) => ({ uid: index, url: item, status: "done" }))
+        : [], //菜单图标
       treeFatherValue: {
         id: record.parentId,
         title: this.getFather(record.parentId)
@@ -674,6 +756,25 @@ class Menu extends React.Component {
                 ]
               })(<Input placeholder="请输入URL" />)}
             </FormItem>
+            <FormItem label="添加菜单图" {...formItemLayout}>
+              <Upload
+                name="pImg"
+                action={`${Config.baseURL}/manager/product/uploadImage`}
+                listType="picture-card"
+                withCredentials={true}
+                fileList={this.state.fileList}
+                beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
+                onChange={f => this.onUpLoadChange(f)}
+                onRemove={f => this.onUpLoadRemove(f)}
+              >
+                {this.state.fileList.length >= 1 ? null : (
+                  <div>
+                    <Icon type="plus" />
+                    <div className="ant-upload-text">选择文件</div>
+                  </div>
+                )}
+              </Upload>
+            </FormItem>
             <FormItem label="父级" {...formItemLayout}>
               <Input
                 placeholder="请选择父级"
@@ -708,25 +809,6 @@ class Menu extends React.Component {
                 />
               )}
             </FormItem>
-            {/*<FormItem label="添加菜单图" {...formItemLayout}>*/}
-             {/*<Upload*/}
-               {/*name="pImg"*/}
-               {/*action={`${Config.baseURL}/manager/product/uploadImage`}*/}
-               {/*listType="picture-card"*/}
-               {/*withCredentials={true}*/}
-               {/*fileList={this.state.fileList}*/}
-               {/*beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}*/}
-               {/*onChange={f => this.onUpLoadChange(f)}*/}
-               {/*onRemove={f => this.onUpLoadRemove(f)}*/}
-              {/*>*/}
-                  {/*{this.state.fileList.length >= 1 ? null : (*/}
-                      {/*<div>*/}
-                        {/*<Icon type="plus" />*/}
-                        {/*<div className="ant-upload-text">选择文件</div>*/}
-                      {/*</div>*/}
-                  {/*)}*/}
-              {/*</Upload>*/}
-            {/*</FormItem>*/}
             <FormItem label="排序" {...formItemLayout}>
               {getFieldDecorator("addSorts", {
                 initialValue: 0,
@@ -795,6 +877,25 @@ class Menu extends React.Component {
                 ]
               })(<Input placeholder="请输入URL" />)}
             </FormItem>
+            <FormItem label="修改菜单图标" {...formItemLayout}>
+              <Upload
+                name="pImg"
+                action={`${Config.baseURL}/manager/product/uploadImage`}
+                listType="picture-card"
+                withCredentials={true}
+                fileList={this.state.fileList}
+                beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
+                onChange={f => this.onUpLoadChange(f)}
+                onRemove={f => this.onUpLoadRemove(f)}
+              >
+                {this.state.fileList.length >= 1 ? null : (
+                  <div>
+                    <Icon type="plus" />
+                    <div className="ant-upload-text">选择文件</div>
+                  </div>
+                )}
+              </Upload>
+            </FormItem>
             <FormItem label="父级" {...formItemLayout}>
               <Input
                 placeholder="请选择父级"
@@ -829,29 +930,6 @@ class Menu extends React.Component {
                 />
               )}
             </FormItem>
-            {/*<FormItem label="修改菜单图标" {...formItemLayout}>*/}
-                {/*{getFieldDecorator("upIconImg", {*/}
-                    {/*rules: [{ required: true }]*/}
-                {/*})(*/}
-                    {/*<Upload*/}
-                        {/*name="pImg"*/}
-                        {/*action={`${Config.baseURL}/manager/product/uploadImage`}*/}
-                        {/*listType="picture-card"*/}
-                        {/*withCredentials={true}*/}
-                        {/*fileList={this.state.fileList}*/}
-                        {/*beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}*/}
-                        {/*onChange={f => this.onUpLoadChange(f)}*/}
-                        {/*onRemove={f => this.onUpLoadRemove(f)}*/}
-                    {/*>*/}
-                        {/*{this.state.fileList.length >= 1 ? null : (*/}
-                            {/*<div>*/}
-                              {/*<Icon type="plus" />*/}
-                              {/*<div className="ant-upload-text">选择文件</div>*/}
-                            {/*</div>*/}
-                        {/*)}*/}
-                    {/*</Upload>*/}
-                {/*)}*/}
-            {/*</FormItem>*/}
             <FormItem label="排序" {...formItemLayout}>
               {getFieldDecorator("upSorts", {
                 initialValue: 0,
@@ -947,6 +1025,7 @@ export default connect(
   dispatch => ({
     actions: bindActionCreators(
       {
+        deleteImage,
         findAllMenu,
         addMenuInfo,
         deleteMenuInfo,

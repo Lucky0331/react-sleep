@@ -77,7 +77,8 @@ class Category extends React.Component {
       searchName: "", // 搜索 - 状态
       searchPayType: "", //搜索 - 支付类型
       searchConditions: "", //搜索 - 订单状态
-      searchorderNo: "", //搜索 - 订单号
+      searchorderNo: "", //搜索 - 子订单号
+      searchMainOrderId:"", //搜索 - 主订单号
       searchuserSaleFlag:"",//搜索 - 分销商是否享有收益
       searchUserType: "", //搜索 - 用户类型
       searchUserName: "", //搜索 - 经销商账户
@@ -151,6 +152,7 @@ class Category extends React.Component {
       refer: this.state.searchRefer.trim(),
       typeCode: this.state.searchproductType,
       orderFrom: this.state.searchorderFrom,
+      mainOrderId:this.state.searchMainOrderId.trim(),
       orderNo: this.state.searchorderNo.trim(),
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
@@ -357,12 +359,19 @@ class Category extends React.Component {
     });
   }
 
-  //搜索 - 订单号
+  //搜索 - 子订单号
   searchOrderNoChange(e) {
     this.setState({
       searchorderNo: e.target.value
     });
     console.log("e是什么；", e.target.value);
+  }
+  
+  //搜索 - 主订单号
+  searchMainOrderChange(e){
+    this.setState({
+      searchMainOrderId:e.target.value
+    })
   }
 
   //搜索 - 云平台工单号
@@ -440,6 +449,12 @@ class Category extends React.Component {
   emitEmpty6() {
     this.setState({
       searchMaxPrice: ""
+    });
+  }
+  
+  emitEmpty7() {
+    this.setState({
+      searchMainOrderId: ""
     });
   }
 
@@ -694,7 +709,7 @@ class Category extends React.Component {
     }
   
     const newElement6 = document.createElement("input");
-    if (params.conditions) {
+    if (params.conditions || params.conditions === 0) {
       newElement6.setAttribute("name", "conditions");
       newElement6.setAttribute("type", "hidden");
       newElement6.setAttribute("value", params.conditions);
@@ -732,14 +747,7 @@ class Category extends React.Component {
       newElement10.setAttribute("value", params.userSaleFlag);
       form.appendChild(newElement10);
     }
-  
-    const newElement11 = document.createElement("input");
-    if (params.userType) {
-      newElement11.setAttribute("name", "userType");
-      newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.userType);
-      form.appendChild(newElement11);
-    }
+    
   
     const newElement12 = document.createElement("input");
     if (params.ambassadorName) {
@@ -899,7 +907,12 @@ class Category extends React.Component {
         width: 50
       },
       {
-        title: "订单号",
+        title:'主订单号',
+        dataIndex:'mainOrderId',
+        key:'mainOrderId'
+      },
+      {
+        title: "子订单号",
         dataIndex: "orderNo",
         key: "orderNo"
       },
@@ -1112,13 +1125,13 @@ class Category extends React.Component {
         city: item.shopAddress ? item.shopAddress.city : "",
         region: item.shopAddress ? item.shopAddress.region : "",
         street: item.shopAddress ? item.shopAddress.street : "",
-        mainOrderId: item.mainOrderId,
+        mainOrderId: item.mainOrderId, //主订单号
         id: item.distributor ? item.distributor.id : "",
         station: item.station,
         typeId: item.product ? item.product.typeId : "",
         company: item.product ? item.product.typeId : "",
         distributorId: item.ambassador ? item.ambassador.id : "",
-        userSaleFlag: item.userSaleFlag
+        userSaleFlag: item.userSaleFlag,
       };
     });
   }
@@ -1145,6 +1158,7 @@ class Category extends React.Component {
     const { searchDistributorId } = this.state;
     const { searchMinPrice } = this.state;
     const { searchMaxPrice } = this.state;
+    const { searchMainOrderId } = this.state;
     const suffix = searchorderNo ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty()} />
     ) : null;
@@ -1154,6 +1168,9 @@ class Category extends React.Component {
     const suffix3 = searchUserName ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty2()} />
     ) : null;
+    const suffix4 = searchMainOrderId ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty7()} />
+    ) : null; //主订单号
     const suffix5 = searchAmbassadorId ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty3()} />
     ) : null;
@@ -1172,7 +1189,16 @@ class Category extends React.Component {
         <div className="system-search">
           <ul className="search-ul more-ul">
             <li>
-              <span>订单号查询</span>
+              <span>主订单号查询</span>
+              <Input
+                style={{ width: "172px" }}
+                suffix={suffix4}
+                value={searchMainOrderId}
+                onChange={e => this.searchMainOrderChange(e)}
+              />
+            </li>
+            <li>
+              <span>子订单号查询</span>
               <Input
                 style={{ width: "172px" }}
                 suffix={suffix}
@@ -1454,7 +1480,10 @@ class Category extends React.Component {
           wrapClassName={"list"}
         >
           <Form>
-            <FormItem label="订单号" {...formItemLayout}>
+            <FormItem label="主订单号" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.mainOrderId : ""}
+            </FormItem>
+            <FormItem label="子订单号" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.orderNo : ""}
             </FormItem>
             <FormItem label="云平台工单号" {...formItemLayout}>

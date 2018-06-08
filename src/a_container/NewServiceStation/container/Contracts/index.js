@@ -85,8 +85,8 @@ class Category extends React.Component {
       searchTypeId: undefined, // 搜索 - 产品类型
       searchContract: "", // 搜索 - 状态
       searchAddress: [], // 搜索 - 地址
-      searchStationName: [], // 搜索 - 服务站名称
-      searchCompanyName: [], // 搜索 - 公司名称
+      searchStationName: "", // 搜索 - 服务站名称
+      searchCompanyName: "", // 搜索 - 公司名称
       searchBeginTime:'',//承包开始时间
       searchEndTime:'',//承包结束时间
       searchRecommend:"",//推荐状态
@@ -98,6 +98,7 @@ class Category extends React.Component {
       addnewLoading: false, // 是否正在添加新用户中
       maskClose:false,//蒙层是否关闭
       nowData: null, // 当前选中用户的信息，用于查看详情、修改、分配菜单
+      nowData2:null,//栏目编辑，添加
       addnewModalShow:false, //添加栏目时的弹窗
       updatenewModalShow:false, //修改栏目时的弹窗
       queryModalShow: false, // 查看详情模态框是否显示
@@ -216,9 +217,9 @@ class Category extends React.Component {
       region: this.state.searchAddress[2],
       stationName: this.state.searchStationName,
       companyName: this.state.searchCompanyName,
-      recommended:this.state.searchRecommend,
+      recommend:this.state.searchRecommend,
       hraIsOnline:this.state.searchHraIsOnline,
-      stationKeyWord:this.state.searchStationKeyWord,
+      addressKeywords:this.state.searchStationKeyWord,
       minContractStartTime:this.state.searchBeginTime
         ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)}`
         : "",
@@ -379,7 +380,7 @@ class Category extends React.Component {
         "addnewColumnTitle",
         "addnewColumntextContent",
         "addnewImgs",
-        "addnewSorts"
+        "addnewSorts2"
       ],
       (err, values) => {
         if (err) {
@@ -392,7 +393,7 @@ class Category extends React.Component {
           stationId:Number(this.state.nowData.id),
           title: values.addnewColumnTitle,
           textContent: values.addnewColumntextContent,
-          sort:Number(values.addnewSorts),//排序
+          sort:Number(values.addnewSorts2),//排序
           imgs: this.state.fileListLan.map(item => item.url).join(",")
         };
         me.props.actions
@@ -719,9 +720,10 @@ class Category extends React.Component {
     console.log("Record:", record);
     console.log('栏目id是：',record.id)
     form.setFieldsValue({
+      id: record.id,
       upColumnTitle: record.title,
       upColumntextContent: record.textContent,
-      upSorts:record.sort,
+      upSorts:String(record.sort),
     });
     me.setState({
       fileListLan: record.imgs
@@ -730,6 +732,7 @@ class Category extends React.Component {
             .map((item, index) => ({ uid: index, url: item, status: "done" }))
         : [], // 封面图上传的列表
       updatenewModalShow: true,
+      nowData2:record,
     });
   }
   
@@ -749,9 +752,11 @@ class Category extends React.Component {
           upLoading: true
         });
         const params = {
-          staitonId: me.state.nowData.id,
+          deleted:me.state.data2[0].deleted,
+          stationId: me.state.nowData.id,
           title: values.upColumnTitle,
-          id:me.state.data2[0].id,
+          // id:this.state.data2.map(text => text.id),
+          id:me.state.nowData2.id,
           textContent: values.upColumntextContent,
           sort:values.upSorts,
           imgs: this.state.fileListLan.map(item => item.url).join(","),
@@ -971,17 +976,11 @@ class Category extends React.Component {
         dataIndex:'address',
         key:'address'
       },
-      // {
-      //   title: "承包状态",
-      //   dataIndex: "contract",
-      //   key: "contract",
-      //   render: text =>
-      //     Boolean(text) === true ? (
-      //       <span style={{color: "green"}}>已承包</span>
-      //     ) : (
-      //       <span style={{color: "red"}}>未承包</span>
-      //     )
-      // },
+      {
+        title: "承包状态",
+        dataIndex: "contract",
+        key: "contract",
+      },
       {
         title:'承包时间',
         dataIndex:'contractAllTime',
@@ -1027,7 +1026,7 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
-          record.contract === true &&
+          // record.contract === true &&
           controls.push(
             <span className="control-btn blue" key="1" onClick={() => this.onUpNewShow(record)}>
               <Tooltip placement="top" title="承包信息修改">
@@ -1035,7 +1034,7 @@ class Category extends React.Component {
               </Tooltip>
            </span>
           );
-          record.contract === false &&
+          // record.contract === false &&
           controls.push(
             <span className="control-btn blue" key="2" onClick={() => this.onAddNewShow(record)}>
               <Tooltip placement="top" title="承包信息录入">
@@ -1199,7 +1198,6 @@ class Category extends React.Component {
         dayCount: item.dayCount,
         hraIsOnline:item.hraIsOnline,
         state: item.state,
-        contract: item.contract,
         employeeNum:item.employeeNum, //员工数量
         storeArea:item.storeArea,//门店规模
         establishedTime:item.establishedTime,//成立时间
@@ -1208,8 +1206,16 @@ class Category extends React.Component {
         recommended:item.recommended, //是否推荐
         businessHours:item.businessHoursEnd ? `${item.businessHoursEnd}-${item.businessHoursStart}` : '',//营业时间区间
         deviceStatus: item.deviceStatus ? item.deviceStatus : '',
-        contractEndTime: item.contractEndTime,
-        contractStartTime:item.contractStartTime,
+        contractTimeNow:moment(
+          (() => {
+            const d = new Date();
+            d.setMonth(d.getMonth());
+            return d;
+          })()
+        ),//当前时间
+        contractEndTime: item.contractEndTime,//承包结束时间
+        contractStartTime:item.contractStartTime,//承包开始时间
+        contract: new moment(item.contractEndTime) > new moment(item.contractTimeNow) ? '已承包' : '未承包', //承包状态
         contractAllTime:item.contractEndTime ? `${item.contractStartTime}-${item.contractEndTime}` : '',
         contractor:item.contractor,
         contractorPhone:item.contractorPhone ? item.contractorPhone :"",
@@ -1233,6 +1239,7 @@ class Category extends React.Component {
         imgs: item.imgs,
         stationId:item.stationId,
         sort:item.sort,
+        deleted:item.deleted,
       };
     });
   }
@@ -1297,9 +1304,7 @@ class Category extends React.Component {
                 placeholder="关键字"
                 suffix={suffix}
                 value={searchStationName}
-                style={{
-                  width: "172px",
-                }}
+                style={{width: "172px"}}
                 onChange={e => this.onSearchStationName(e)}
               />
             </li>
@@ -1333,18 +1338,18 @@ class Category extends React.Component {
                 onChange={e => this.onSearchStation(e)}
               />
             </li>
-            {/*<li>*/}
-              {/*<span style={{marginRight: "10px"}}>承包状态</span>*/}
-              {/*<Select*/}
-                {/*placeholder="全部"*/}
-                {/*allowClear*/}
-                {/*style={{width: "120px",marginRight: "25px"}}*/}
-                {/*onChange={e => this.searchNameChange(e)}*/}
-              {/*>*/}
-                {/*<Option value={0}>未承包</Option>*/}
-                {/*<Option value={1}>已承包</Option>*/}
-              {/*</Select>*/}
-            {/*</li>*/}
+            <li>
+              <span style={{marginRight: "10px"}}>承包状态</span>
+              <Select
+                placeholder="全部"
+                allowClear
+                style={{width: "172px"}}
+                onChange={e => this.searchNameChange(e)}
+              >
+                <Option value={0}>未承包</Option>
+                <Option value={1}>已承包</Option>
+              </Select>
+            </li>
             <li>
               <span style={{marginRight: "10px"}}>HRA设备上线状态</span>
               <Select
@@ -1353,8 +1358,8 @@ class Category extends React.Component {
                 style={{width: "172px"}}
                 onChange={e => this.searchHraIsOnlineChange(e)}
               >
-                <Option value={0}>已上线</Option>
-                <Option value={1}>未上线</Option>
+                <Option value={1}>已上线</Option>
+                <Option value={0}>未上线</Option>
               </Select>
             </li>
             <li>
@@ -1425,7 +1430,7 @@ class Category extends React.Component {
             columns={this.makeColumns()}
             className="my-table"
             dataSource={this.makeData(this.state.data)}
-            scroll={{x:2100}}
+            scroll={{x:2700}}
             pagination={{
               total: this.state.total,
               current: this.state.pageNum,
@@ -1561,15 +1566,7 @@ class Category extends React.Component {
               {!!this.state.nowData ? this.state.nowData.contractAllTime : ""}
             </FormItem>
             <FormItem label="状态" {...formItemLayout}>
-              {!!this.state.nowData ? (
-                Boolean(this.state.nowData.contract) === true ? (
-                  <span style={{color: "green"}}>已承包</span>
-                ) : (
-                  <span style={{color: "red"}}>未承包</span>
-                )
-              ) : (
-                ""
-              )}
+              {!!this.state.nowData ? this.state.nowData.contract : ""}
             </FormItem>
             <FormItem label="是否推荐" {...formItemLayout}>
               {!!this.state.nowData ? (
@@ -1669,10 +1666,10 @@ class Category extends React.Component {
               })(<Input placeholder="请输入栏目文本" />)}
             </FormItem>
             <FormItem label="排序" {...formItemLayout}>
-              {getFieldDecorator("addnewSorts", {
+              {getFieldDecorator("addnewSorts2", {
                 initialValue: undefined,
                 // rules: [{ message: "请输入排序序号" }]
-              })(<Input placeholder="请输入排序序号" />)}
+              })(<Input placeholder="请输入排序序号"/>)}
             </FormItem>
             <FormItem label="栏目图片" {...formItemLayout}>
               {getFieldDecorator("addnewImgs", {
@@ -1843,15 +1840,7 @@ class Category extends React.Component {
               <span style={{marginLeft:'-4px'}}>{!!this.state.nowData ? this.state.nowData.createTime : ""}</span>
             </FormItem>
             {/*<FormItem label="承包状态" {...formItemLayout2} style={{marginLeft:'10px'}}>*/}
-              {/*<span >{!!this.state.nowData ? (*/}
-                {/*Boolean(this.state.nowData.contract) === true ? (*/}
-                  {/*<span style={{color: "green"}}>已承包</span>*/}
-                {/*) : (*/}
-                  {/*<span style={{color: "red"}}>未承包</span>*/}
-                {/*)*/}
-              {/*) : (*/}
-                {/*""*/}
-              {/*)}</span>*/}
+              {/*<span>{!!this.state.nowData ? this.state.nowData.contract : ""}</span>*/}
             {/*</FormItem>*/}
             <FormItem label="承包人姓名" {...formItemLayout} >
               <span>{!!this.state.nowData ? this.state.nowData.contractor : ""}</span>
@@ -1936,7 +1925,7 @@ class Category extends React.Component {
                   rules: [{ required: true, message: "请输入员工数量" }]
                 })(<InputNumber placeholder="请输入员工数量" style={{width:'172px'}}/>)}
               </FormItem>
-              <FormItem label="自定义栏目" {...formItemLayout3} style={{width:'800px',height:'380px'}}>
+              <FormItem label="自定义栏目" {...formItemLayout3} style={{width:'800px',minHeight: '150px',maxHeight: '700px'}}>
                 {getFieldDecorator("addnewCount", {
                   initialValue: undefined,
                 })(

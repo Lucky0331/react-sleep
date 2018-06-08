@@ -258,7 +258,7 @@ class Category extends React.Component {
         this.setState({
           data2:[],
         })
-        message.error(res.message || "获取数据失败，请重试" , 1.5);
+        message.warning(res.message || "获取数据失败，请重试" , 1.5);
       }
     });
   }
@@ -1298,7 +1298,7 @@ class Category extends React.Component {
           <Table
             columns={this.makeColumns()}
             className="my-table"
-            scroll={{ x: 3000 }}
+            scroll={{ x: 4000 }}
             dataSource={this.makeData(this.state.data2)}
             pagination={{
               total: this.state.total,

@@ -1204,7 +1204,7 @@ class Category extends React.Component {
           columns={this.makeColumns()}
           dataSource={this.makeData(this.state.data)}
           rowSelection={this.initChose()}
-          scroll={{ x: 2000 }}
+          scroll={{ x: 2300 }}
           pagination={{
             total: this.state.total,
             current: this.state.pageNum,

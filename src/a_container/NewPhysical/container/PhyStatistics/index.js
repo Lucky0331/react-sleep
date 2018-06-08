@@ -75,7 +75,13 @@ class Category extends React.Component {
       searchAddress: [], // 搜索 - 地址
       searchStationKeyWord:'',  //搜索 - 服务站关键字
       searchrefundBeginTime:'',//搜索 - 开始时间
-      searchrefundEndTime:'',//搜索 - 结束时间
+      searchrefundEndTime:moment(
+        (() => {
+          const d = new Date();
+          d.setMonth(d.getMonth());
+          return d;
+        })()
+      ),//搜索 - 结束时间
       citys: [], // 符合Cascader组件的城市数据
       usedTotalNum:"",//体检预约总数
       reverseTotalNum:"",//公众号预约总数

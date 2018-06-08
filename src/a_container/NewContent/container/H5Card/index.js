@@ -688,6 +688,7 @@ class Category extends React.Component {
         </div>
         <div className="system-table">
           <Table
+            className="my-table"
             columns={this.makeColumns()}
             dataSource={this.makeData(this.state.data)}
             pagination={{

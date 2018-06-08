@@ -316,6 +316,7 @@ class Category extends React.Component {
       nowData: record,
       queryModalShow: true
     });
+    console.log('详情有什么：',record)
   }
 
   // 搜索 - 开始时间变化
@@ -345,6 +346,25 @@ class Category extends React.Component {
     this.setState({
       searchticketState:e
     })
+  }
+  
+  //清空Input标签内容
+  emitEmpty(){
+    this.setState({
+      searchStation: ""
+    });
+  }
+  
+  emitEmpty1(){
+    this.setState({
+      searchTicketNo: ""
+    });
+  }
+  
+  emitEmpty2(){
+    this.setState({
+      searchMobile: ""
+    });
   }
   
   //预约来源
@@ -700,7 +720,7 @@ class Category extends React.Component {
         birthdate: item.hraCustomer ? item.hraCustomer.birthdate : null,
         sex: item.hraCustomer ? item.hraCustomer.sex : '',
         height: item.hraCustomer ? item.hraCustomer.height : "XXX",
-        weight: item.hraCustomer ? item.hraCustomer.weight : "XX",
+        weight: item.hraCustomer ? item.hraCustomer.weight: "XX",
         reserveFrom: item.reserveFrom,
         stationId: item.stationId,
         name: item.station ? item.station.name : null,
@@ -734,6 +754,19 @@ class Category extends React.Component {
         sm: { span: 18 }
       }
     };
+  
+    const { searchStation } = this.state;
+    const { searchTicketNo } = this.state;
+    const { searchMobile } = this.state;
+    const suffix = searchStation ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty()} />
+    ) : null;
+    const suffix1 = searchTicketNo ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty1()} />
+    ) : null;
+    const suffix2 = searchMobile ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty2()} />
+    ) : null;
     console.log("是啥：", form.getFieldValue("addnewTypeId"));
     return (
       <div style={{ width: "100%" }}>
@@ -753,6 +786,8 @@ class Category extends React.Component {
             <li>
               <span>服务站名称：</span>
               <Input
+                suffix={suffix}
+                value={searchStation}
                 style={{ width: "172px", marginRight: "10px" }}
                 onChange={e => this.searchStationChange(e)}
               />
@@ -773,6 +808,8 @@ class Category extends React.Component {
             <li>
               <span>体检卡号：</span>
               <Input
+                suffix={suffix2}
+                value={searchMobile}
                 style={{ width: "172px", marginRight: "10px" }}
                 onChange={e => this.searchTicketNoChange(e)}
               />
@@ -780,6 +817,8 @@ class Category extends React.Component {
             <li>
               <span>手机号：</span>
               <Input
+                suffix={suffix2}
+                value={searchMobile}
                 style={{ width: "172px", marginRight: "10px" }}
                 onChange={e => this.searchMobileChange(e)}
               />
@@ -1081,7 +1120,7 @@ class Category extends React.Component {
               {...formItemLayout}
               style={{ marginLeft: "20px" }}
             >
-              {!!this.state.nowData ? `${this.state.nowData.weight}kg` : ""}
+              {!!this.state.nowData ? `${(this.state.nowData.weight)}kg` : ''}
             </FormItem>
             <FormItem
               label="预约来源"

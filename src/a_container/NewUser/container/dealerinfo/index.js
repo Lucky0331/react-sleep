@@ -221,10 +221,10 @@ class Manager extends React.Component {
       mobile: this.state.searchAmbassadorMobile ? this.state.searchAmbassadorMobile : "", // 搜索 - 经销商手机号
       userId: this.state.searchEId ? this.state.searchEId : "", //经销商id
       bindBeginTime: this.state.searchBindingBeginTime
-        ? `${tools.dateToStrD(this.state.searchBindingBeginTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchBindingBeginTime.utc()._d)}`
         : "",
       bindEndTime: this.state.searchBindingEndTime
-        ? `${tools.dateToStrD(this.state.searchBindingEndTime._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchBindingEndTime.utc()._d)}`
         : ""
     };
 
@@ -272,10 +272,10 @@ class Manager extends React.Component {
       mobile: this.state.searchAmbassadorMobile ? this.state.searchAmbassadorMobile : "", // 搜索 - 经销商手机号
       userId: this.state.searchEId ? this.state.searchEId : "", //经销商id
       bindBeginTime: this.state.searchBindingBeginTime
-        ? `${tools.dateToStrD(this.state.searchBindingBeginTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchBindingBeginTime.utc()._d)}`
         : "",
       bindEndTime: this.state.searchBindingEndTime
-        ? `${tools.dateToStrD(this.state.searchBindingEndTime._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchBindingEndTime.utc()._d)}`
         : ""
     };
     let form = document.getElementById("download-form");
@@ -398,23 +398,25 @@ class Manager extends React.Component {
 
   // 导出优惠卡详情数据
     onExportCardList(pageNum, pageSize) {
-    const params = {
-      pageNum,
-      pageSize,
-      category: 1,
-      userType: this.state.searchType ? this.state.searchType : "",//搜索 - 经销商身份
-      realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 经销商姓名
-      userId: this.state.searchEId ? this.state.searchEId : "",   //经销商id
-      distributorId: this.state.searchDistributorId
-        ? this.state.searchDistributorId
-        : "", //搜索 - 经销商id
-      bindBeginTime: this.state.searchBindingBeginTime
-        ? `${tools.dateToStrD(this.state.searchBindingBeginTime._d)} 00:00:00`
-        : "",
-      bindEndTime: this.state.searchBindingEndTime
-        ? `${tools.dateToStrD(this.state.searchBindingEndTime._d)} 23:59:59`
-        : "",
-    };
+      const params = {
+        pageNum,
+        pageSize,
+        category: 1,
+        userType: this.state.searchType,
+        province: this.state.searchAddress[0],
+        city: this.state.searchAddress[1],
+        region: this.state.searchAddress[2],
+        realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 经销商姓名
+        userName: this.state.searchUserName, //经销商账户
+        mobile: this.state.searchAmbassadorMobile ? this.state.searchAmbassadorMobile : "", // 搜索 - 经销商手机号
+        userId: this.state.searchEId ? this.state.searchEId : "", //经销商id
+        bindBeginTime: this.state.searchBindingBeginTime
+          ? `${tools.dateToStr(this.state.searchBindingBeginTime.utc()._d)} `
+          : "",
+        bindEndTime: this.state.searchBindingEndTime
+          ? `${tools.dateToStr(this.state.searchBindingEndTime.utc()._d)} `
+          : ""
+      };
     let form = document.getElementById("download-form");
     if (!form) {
       form = document.createElement("form");
@@ -437,11 +439,91 @@ class Manager extends React.Component {
     newElement2.setAttribute("value", pageSize);
     form.appendChild(newElement2);
   
-    const newElement3 = document.createElement("input");
-    newElement3.setAttribute("name", "category");
-    newElement3.setAttribute("type", "hidden");
-    newElement3.setAttribute("value",'1');
-    form.appendChild(newElement3);
+      const newElement7 = document.createElement("input");
+      newElement7.setAttribute("name", "category");
+      newElement7.setAttribute("type", "hidden");
+      newElement7.setAttribute("value",'1');
+      form.appendChild(newElement7);
+  
+      const newElement3 = document.createElement("input");
+      if (params.userType) {
+        newElement3.setAttribute("name", "userType");
+        newElement3.setAttribute("type", "hidden");
+        newElement3.setAttribute("value", params.userType);
+        form.appendChild(newElement3);
+      }
+  
+      const newElement4 = document.createElement("input");
+      if (params.mobile) {
+        newElement4.setAttribute("name", "mobile");
+        newElement4.setAttribute("type", "hidden");
+        newElement4.setAttribute("value", params.mobile);
+        form.appendChild(newElement4);
+      }
+  
+      const newElement5 = document.createElement("input");
+      if (params.realName) {
+        newElement5.setAttribute("name", "realName");
+        newElement5.setAttribute("type", "hidden");
+        newElement5.setAttribute("value", params.realName);
+        form.appendChild(newElement5);
+      }
+  
+      const newElement6 = document.createElement("input");
+      if (params.userId) {
+        newElement6.setAttribute("name", "userId");
+        newElement6.setAttribute("type", "hidden");
+        newElement6.setAttribute("value", params.userId);
+        form.appendChild(newElement6);
+      }
+  
+      const newElement8 = document.createElement("input");
+      if (params.bindBeginTime) {
+        newElement8.setAttribute("name", "bindBeginTime");
+        newElement8.setAttribute("type", "hidden");
+        newElement8.setAttribute("value", params.bindBeginTime);
+        form.appendChild(newElement8);
+      }
+  
+      const newElement9 = document.createElement("input");
+      if (params.bindEndTime) {
+        newElement9.setAttribute("name", "bindEndTime");
+        newElement9.setAttribute("type", "hidden");
+        newElement9.setAttribute("value", params.bindEndTime);
+        form.appendChild(newElement9);
+      }
+  
+      const newElement10 = document.createElement("input");
+      if (params.province) {
+        newElement10.setAttribute("name", "province");
+        newElement10.setAttribute("type", "hidden");
+        newElement10.setAttribute("value", params.province);
+        form.appendChild(newElement10);
+      }
+  
+      const newElement11 = document.createElement("input");
+      if (params.city) {
+        newElement11.setAttribute("name", "city");
+        newElement11.setAttribute("type", "hidden");
+        newElement11.setAttribute("value", params.city);
+        form.appendChild(newElement11);
+      }
+  
+      const newElement12 = document.createElement("input");
+      if (params.region) {
+        newElement12.setAttribute("name", "region");
+        newElement12.setAttribute("type", "hidden");
+        newElement12.setAttribute("value", params.region);
+        form.appendChild(newElement12);
+      }
+  
+      const newElement13 = document.createElement("input");
+      if (params.userName) {
+        newElement13.setAttribute("name", "userName");
+        newElement13.setAttribute("type", "hidden");
+        newElement13.setAttribute("value", params.userName);
+        form.appendChild(newElement13);
+      }
   
     this.props.actions.ExportCardList(tools.clearNull(params)).then(res => {
       if (res.status != '1') {
@@ -630,17 +712,17 @@ class Manager extends React.Component {
   }
 
   //搜索 - 开始绑定上级关系时间
-  searchBindingBeginTimeChange(v) {
+  searchBindingBeginTimeChange(e) {
     this.setState({
-      searchBindingBeginTime: v
+      searchBindingBeginTime: _.cloneDeep(e)
     });
-    console.log("这是什么：", v);
+    console.log("这是什么：", e);
   }
 
   //搜索 - 结束绑定上级关系时间
-  searchBindingEndTimeChange(v) {
+  searchBindingEndTimeChange(e) {
     this.setState({
-      searchBindingEndTime: v
+      searchBindingEndTime: _.cloneDeep(e)
     });
   }
 

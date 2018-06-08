@@ -134,38 +134,38 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      userType: this.state.searchUserType,
-      withdrawType: this.state.searchWithdrawType,
-      id: this.state.searchId,
-      nickName: this.state.searchUserName,
-      username: this.state.searchRealName,
+      userType: this.state.searchUserType,//用户身份
+      withdrawType: this.state.searchWithdrawType, //提现方式
+      nickName: this.state.searchUserName, //用户昵称
+      username: this.state.searchRealName, //用户姓名
       ambassadorName: this.state.searchambassadorName,
-      paymentNo: this.state.searchtradeNo,
-      flag: this.state.searchFlag,
-      phone: this.state.searchMobile,
-      minAmount: this.state.searchMinPrice,
-      maxAmount: this.state.searchMaxPrice,
+      paymentNo: this.state.searchtradeNo, //流水号查询
+      flag: this.state.searchFlag, //提现状态
+      phone: this.state.searchMobile.trim(), //用户手机号
+      minAmount: this.state.searchMinPrice, //提现金额 小
+      maxAmount: this.state.searchMaxPrice, //提现金额 大
       productType: this.state.searchTypeId,
-      userId: this.state.searchUserMallId,
-      partnerTradeNo: this.state.searchPartnerTradeNo,
+      orderId: this.state.searchOrderId.trim(), //订单号
+      userId: this.state.searchUserMallId.trim(), //用户id
+      partnerTradeNo: this.state.searchPartnerTradeNo.trim(), //提现单号查询
       minApplyTime: this.state.searchApplyBeginTime
         ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
-        : "",
+        : "", //申请提现时间 - 开始
       maxApplyTime: this.state.searchApplyEndTime
         ? `${tools.dateToStr(this.state.searchApplyEndTime.utc()._d)} `
-        : "",
+        : "", //申请提现时间 - 结束
       minPaymentTime: this.state.searchBeginTime
         ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)} `
-        : "",
+        : "", //提现到账时间 - 开始
       maxPaymentTime: this.state.searchEndTime
         ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
-        : "",
+        : "", //提现到账时间 - 结束
       minAuditTime: this.state.searchRefundTime
-          ? `${tools.dateToStr(this.state.searchRefundTime.utc()._d)} `
-          : "",
+        ? `${tools.dateToStr(this.state.searchRefundTime.utc()._d)} `
+        : "", //提现审核时间 - 开始
       maxAuditTime: this.state.searchRefundEndTime
-          ? `${tools.dateToStr(this.state.searchRefundEndTime.utc()._d)} `
-          : "",
+        ? `${tools.dateToStr(this.state.searchRefundEndTime.utc()._d)} `
+        : "", //提现审核时间 - 结束
     };
     this.props.actions.cashRecord(tools.clearNull(params)).then(res => {
       if (res.status === "0") {
@@ -189,39 +189,38 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      userType: this.state.searchUserType,
-      withdrawType: this.state.searchWithdrawType,
-      id: this.state.searchId,
-      nickName: this.state.searchUserName,
-      username: this.state.searchRealName,
+      userType: this.state.searchUserType,//用户身份
+      withdrawType: this.state.searchWithdrawType, //提现方式
+      nickName: this.state.searchUserName, //用户昵称
+      username: this.state.searchRealName, //用户姓名
       ambassadorName: this.state.searchambassadorName,
-      paymentNo: this.state.searchtradeNo,
-      flag: this.state.searchFlag,
-      phone: this.state.searchMobile,
-      orderId: this.state.searchOrderId,
-      minAmount: this.state.searchMinPrice,
-      maxAmount: this.state.searchMaxPrice,
+      paymentNo: this.state.searchtradeNo, //流水号查询
+      flag: this.state.searchFlag, //提现状态
+      phone: this.state.searchMobile.trim(), //用户手机号
+      minAmount: this.state.searchMinPrice, //提现金额 小
+      maxAmount: this.state.searchMaxPrice, //提现金额 大
       productType: this.state.searchTypeId,
-      userId: this.state.searchUserMallId,
-      partnerTradeNo: this.state.searchPartnerTradeNo,
+      orderId: this.state.searchOrderId.trim(), //订单号
+      userId: this.state.searchUserMallId.trim(), //用户id
+      partnerTradeNo: this.state.searchPartnerTradeNo.trim(), //提现单号查询
       minApplyTime: this.state.searchApplyBeginTime
         ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
-        : "",
+        : "", //申请提现时间 - 开始
       maxApplyTime: this.state.searchApplyEndTime
         ? `${tools.dateToStr(this.state.searchApplyEndTime.utc()._d)} `
-        : "",
+        : "", //申请提现时间 - 结束
       minPaymentTime: this.state.searchBeginTime
         ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)} `
-        : "",
+        : "", //提现到账时间 - 开始
       maxPaymentTime: this.state.searchEndTime
         ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
-        : "",
+        : "", //提现到账时间 - 结束
       minAuditTime: this.state.searchRefundTime
         ? `${tools.dateToStr(this.state.searchRefundTime.utc()._d)} `
-        : "",
+        : "", //提现审核时间 - 开始
       maxAuditTime: this.state.searchRefundEndTime
         ? `${tools.dateToStr(this.state.searchRefundEndTime.utc()._d)} `
-        : "",
+        : "", //提现审核时间 - 结束
     };
     this.props.actions.RecordDetail(tools.clearNull(params)).then(res => {
       if (res.status === "0") {
@@ -662,38 +661,37 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      userType: this.state.searchUserType,
-      withdrawType: this.state.searchWithdrawType,
-      id: this.state.searchId,
-      nickName: this.state.searchUserName,
-      username: this.state.searchRealName,
+      userType: this.state.searchUserType,//用户身份
+      withdrawType: this.state.searchWithdrawType, //提现方式
+      nickName: this.state.searchUserName, //用户昵称
+      username: this.state.searchRealName, //用户姓名
       ambassadorName: this.state.searchambassadorName,
-      paymentNo: this.state.searchtradeNo,
-      flag: this.state.searchFlag,
-      phone: this.state.searchMobile,
-      minAmount: this.state.searchMinPrice,
-      maxAmount: this.state.searchMaxPrice,
+      paymentNo: this.state.searchtradeNo, //流水号查询
+      flag: this.state.searchFlag, //提现状态
+      phone: this.state.searchMobile, //用户手机号
+      minAmount: this.state.searchMinPrice, //提现金额 小
+      maxAmount: this.state.searchMaxPrice, //提现金额 大
       productType: this.state.searchTypeId,
-      userId: this.state.searchUserMallId,
-      partnerTradeNo: this.state.searchPartnerTradeNo,
+      userId: this.state.searchUserMallId, //用户id
+      partnerTradeNo: this.state.searchPartnerTradeNo, //提现单号查询
       minApplyTime: this.state.searchApplyBeginTime
         ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
-        : "",
+        : "", //申请提现时间 - 开始
       maxApplyTime: this.state.searchApplyEndTime
         ? `${tools.dateToStr(this.state.searchApplyEndTime.utc()._d)} `
-        : "",
+        : "", //申请提现时间 - 结束
       minPaymentTime: this.state.searchBeginTime
         ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)} `
-        : "",
+        : "", //提现到账时间 - 开始
       maxPaymentTime: this.state.searchEndTime
         ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)} `
-        : "",
+        : "", //提现到账时间 - 结束
       minAuditTime: this.state.searchRefundTime
         ? `${tools.dateToStr(this.state.searchRefundTime.utc()._d)} `
-        : "",
+        : "", //提现审核时间 - 开始
       maxAuditTime: this.state.searchRefundEndTime
         ? `${tools.dateToStr(this.state.searchRefundEndTime.utc()._d)} `
-        : "",
+        : "", //提现审核时间 - 结束
     };
     let form = document.getElementById("download-form");
     if (!form) {
@@ -725,13 +723,6 @@ class Category extends React.Component {
       form.appendChild(newElement3);
     }
     
-    const newElement4 = document.createElement("input");
-    if (params.id) {
-      newElement4.setAttribute("name", "id");
-      newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.id);
-      form.appendChild(newElement4);
-    }
     
     const newElement5 = document.createElement("input");
     if (params.withdrawType) {
@@ -894,7 +885,7 @@ class Category extends React.Component {
       paymentNo: this.state.searchtradeNo,
       flag: this.state.searchFlag,
       phone: this.state.searchMobile,
-      orderId: this.state.searchOrderId,
+      orderId: this.state.searchOrderId.trim(),
       minAmount: this.state.searchMinPrice,
       maxAmount: this.state.searchMaxPrice,
       productType: this.state.searchTypeId,
@@ -1810,7 +1801,7 @@ class Category extends React.Component {
                   <Table
                     columns={this.makeColumns()}
                     dataSource={this.makeData(this.state.data)}
-                    scroll={{ x: 1800 }}
+                    scroll={{ x: 2600 }}
                     pagination={{
                       total: this.state.total,
                       current: this.state.pageNum,
@@ -2083,23 +2074,23 @@ class Category extends React.Component {
                     <li>
                       <span style={{ marginRight: "10px" }}>提现审核时间</span>
                       <DatePicker
-                          showTime={{
-                            defaultValue: moment("00:00:00", "HH:mm:ss")
-                          }}
-                          format="YYYY-MM-DD HH:mm:ss"
-                          placeholder="开始时间"
-                          onChange={e => this.searchRefundTime(e)}
-                          onOk={onOk}
+                        showTime={{
+                          defaultValue: moment("00:00:00", "HH:mm:ss")
+                        }}
+                        format="YYYY-MM-DD HH:mm:ss"
+                        placeholder="开始时间"
+                        onChange={e => this.searchRefundTime(e)}
+                        onOk={onOk}
                       />
                       --
                       <DatePicker
-                          showTime={{
-                            defaultValue: moment("23:59:59", "HH:mm:ss")
-                          }}
-                          format="YYYY-MM-DD HH:mm:ss"
-                          placeholder="结束时间"
-                          onChange={e => this.searchRefundTime(e)}
-                          onOk={onOk}
+                        showTime={{
+                          defaultValue: moment("23:59:59", "HH:mm:ss")
+                        }}
+                        format="YYYY-MM-DD HH:mm:ss"
+                        placeholder="结束时间"
+                        onChange={e => this.searchRefundTime(e)}
+                        onOk={onOk}
                       />
                     </li>
                     <li style={{ marginLeft: "40px" }}>
@@ -2122,7 +2113,7 @@ class Category extends React.Component {
                   <Table
                     columns={this.makeColumnsList()}
                     dataSource={this.makeDataDetail(this.state.data2)}
-                    scroll={{ x: 2000 }}
+                    scroll={{ x: 2600 }}
                     pagination={{
                       total: this.state.total2,
                       current: this.state.pageNum,

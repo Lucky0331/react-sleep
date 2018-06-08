@@ -151,8 +151,9 @@ class Category extends React.Component {
         });
       } else if (res.status === "1") {
         this.setState({
-          data: []
+          data: [],
         });
+        message.warning(res.message || "获取数据失败，请重试" , 1.5);
       }
     });
   }

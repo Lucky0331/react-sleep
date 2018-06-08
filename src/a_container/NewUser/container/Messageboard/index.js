@@ -511,10 +511,7 @@ class Manager extends React.Component {
     return data.map((item, index) => {
       return {
         key: index,
-        citys:
-          item.province && item.city && item.region
-            ? `${item.province}/${item.city}/${item.region}`
-            : "",
+        citys: [item.province, item.city, item.region].filter((v)=> v).join('/'),  //因为有的时候省市后面没有区 所以要这样写。
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         id:item.id,
         mobile:item.mobile,
