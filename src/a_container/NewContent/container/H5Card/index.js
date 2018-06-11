@@ -27,6 +27,7 @@ import {
 } from "antd";
 import "./index.scss";
 import tools from "../../../../util/tools"; // 工具
+import $ from 'jquery';
 import Power from "../../../../util/power"; // 权限
 import { power } from "../../../../util/data";
 // ==================

@@ -7,15 +7,6 @@ export default class ApiService {
   // url、参数、请求方式(默认post)、参数类型(默认json)
   static newPost(url, bodyObj = {}, type = "post", isJson) {
     if (isJson) {
-      // axios({
-      //     method: 'get',
-      //     url: `https://api.github.com/emojis`,
-      //     data: JSON.stringify(bodyObj),
-      //     // withCredentials: true,
-      //     headers: {
-      //         'Content-Type': 'application/json;charset=UTF-8'
-      //     }
-      // });
       return reqwest({
         url: `${config.baseURL}${url}`,
         method: type,
@@ -42,7 +33,8 @@ export default class ApiService {
         contentType: "application/x-www-form-urlencoded;charset=UTF-8",
         crossOrigin: true,
         withCredentials: true,
-        data: bodyObj
+        data: bodyObj,
+        type: "json" //因为请求到的格式可能不是json 所以要在这里命名不敢什么情况都是json格式
       }).then(res => {
         const msg = res.message || res.message || "";
         if (msg.indexOf("过期") >= 0) {
