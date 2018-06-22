@@ -223,7 +223,7 @@ class Category extends React.Component {
       document.body.appendChild(form);
     }
     else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/settleAccounts/record`;
+    form.action = `${Config.baseURL}/manager/export/food/settleAccounts/record`;
     form.method = "post";
     console.log("FORM:", form);
 

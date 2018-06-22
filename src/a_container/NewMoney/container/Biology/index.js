@@ -185,7 +185,7 @@ class Category extends React.Component {
     });
   }
 
-  // 导出经营收益所需列表数据
+  // 导出生物科技所需列表数据
   onExportData(pageNum, pageSize) {
     const params = {
       pageNum,
@@ -222,7 +222,7 @@ class Category extends React.Component {
       document.body.appendChild(form);
     }
     else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/settleAccounts/record`;
+    form.action = `${Config.baseURL}/manager/export/biological/settleAccounts/record`;
     form.method = "post";
     console.log("FORM:", form);
 

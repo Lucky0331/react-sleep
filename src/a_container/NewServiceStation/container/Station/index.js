@@ -706,12 +706,16 @@ class Category extends React.Component {
           )
       },
       {
+        title:'最后修改时间',
+        dataIndex:'updateTime',
+        key:'updateTime'
+      },
+      {
         title: "操作",
         key: "control",
         width: 150,
         render: (text, record) => {
           const controls = [];
-
           controls.push(
             <span
               key="0"
@@ -817,6 +821,7 @@ class Category extends React.Component {
         dayCount: item.dayCount,
         name: item.name,
         state: item.state,
+        updateTime:item.updateTime,
         deviceStatus: item.deviceStatus,
         onlineId: item.onlineId,
         deviceType: item.deviceType,
@@ -1127,6 +1132,9 @@ class Category extends React.Component {
               ) : (
                 ""
               )}
+            </FormItem>
+            <FormItem label="最后修改时间" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.updateTime : ''}
             </FormItem>
           </Form>
         </Modal>

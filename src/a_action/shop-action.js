@@ -89,6 +89,19 @@ export function deleteProductType(params = {}) {
   };
 }
 
+// 产品类型标签
+export function findProductLabel(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/productType/productTag", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
 // 删除产品类型
 export function hasRecommendProductType(params = {}) {
   return dispatch => {
@@ -1084,6 +1097,77 @@ export function deleteColumnCount(params = {}) {
       });
   };
 }
+
+//导出的请求--汇总对账
+export function AllExportList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/export/reconciliation/record", params, 'post',false,false)
+    .then(msg => {
+      return msg;
+    })
+  };
+}
+
+//导出的请求--净水服务
+export function WaterExportList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/export/water/reconciliation/record", params, 'post',false,false)
+    .then(msg => {
+      return msg;
+    })
+  };
+}
+
+//导出的请求--健康食品
+export function FoodExportList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/export/food/reconciliation/record", params, 'post',false,false)
+    .then(msg => {
+      return msg;
+    })
+  };
+}
+
+//导出的请求--生物科技
+export function BiologicalExportList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/export/biological/reconciliation/record", params, 'post',false,false)
+    .then(msg => {
+      return msg;
+    })
+  };
+}
+
+//导出的请求--优惠卡
+export function CordExportList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/export/m/ticket/reconciliation/record", params, 'post',false,false)
+    .then(msg => {
+      return msg;
+    })
+  };
+}
+
+//导出的请求--健康评估
+export function HealthyExportList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/export/ticket/reconciliation/record", params, 'post',false,false)
+    .then(msg => {
+      return msg;
+    })
+  };
+}
+
+//导出的请求--退款记录导出
+export function RefundExportList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/export/refund/record", params, 'post',false,false)
+    .then(msg => {
+      return msg;
+    })
+  };
+}
+
 
 //计费方式的选择
 export function onChange3(feeType) {

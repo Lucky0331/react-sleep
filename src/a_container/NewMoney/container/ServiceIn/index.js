@@ -217,7 +217,7 @@ class Category extends React.Component {
       document.body.appendChild(form);
     }
     else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/settleAccounts/record`;
+    form.action = `${Config.baseURL}/manager/export/m/ticket/settleAccounts/record`;
     form.method = "post";
     console.log("FORM:", form);
   
@@ -474,14 +474,7 @@ class Category extends React.Component {
       searchPayMonth: v
     });
   }
-
-  // 搜索 - 云平台工单号
-  searchReferChange(v) {
-    this.setState({
-      searchRefer: v.target.value
-    });
-  }
-
+  
   // 搜索 - 服务站地区输入框值改变时触发
   onSearchAddress(c) {
     this.setState({
@@ -809,9 +802,6 @@ class Category extends React.Component {
         key: "orderId"
       },
       {
-        title: "云平台工单号"
-      },
-      {
         title: "用户类型",
         dataIndex: "userType",
         key: "userType",
@@ -1091,15 +1081,15 @@ class Category extends React.Component {
                 onChange={e => this.searchOrderIdChange(e)}
               />
             </li>
-            <li>
-              <span>云平台工单号查询</span>
-              <Input
-                style={{ width: "165px" }}
-                suffix={suffix5}
-                value={searchRefer}
-                onChange={e => this.searchReferChange(e)}
-              />
-            </li>
+            {/*<li>*/}
+              {/*<span>云平台工单号查询</span>*/}
+              {/*<Input*/}
+                {/*style={{ width: "165px" }}*/}
+                {/*suffix={suffix5}*/}
+                {/*value={searchRefer}*/}
+                {/*onChange={e => this.searchReferChange(e)}*/}
+              {/*/>*/}
+            {/*</li>*/}
             <li>
               <span>用户类型</span>
               <Select

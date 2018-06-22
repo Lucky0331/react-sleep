@@ -219,17 +219,17 @@ class Manager extends React.Component {
                 minInterval: 1,
             },
             series: [{
-                name: '趋势数据',
-                type: 'line',
-                data: seriesData,
-                itemStyle:{
-                    normal:{
-                        color:'#1890FF',
-                        lineStyle:{
-                            color:'#1890FF'
-                        }
-                    }
+              name: '趋势数据',
+              type: 'line',
+              data: seriesData,
+              itemStyle:{
+                normal:{
+                  color:'#1890FF',
+                  lineStyle:{
+                    color:'#1890FF'
+                  }
                 }
+              }
             }]
         };
         return option;
@@ -358,7 +358,7 @@ class Manager extends React.Component {
     return (
       <div className="userinfocount-page">
         <div className="system-search">
-            <RadioGroup onChange={(e) => this.onRadioChange(e)} value={this.state.searchRadio}>
+          <RadioGroup onChange={(e) => this.onRadioChange(e)} value={this.state.searchRadio}>
           <ul className="search-ul">
             <li>
                 <Radio value={0}>历史全部</Radio>
@@ -397,7 +397,7 @@ class Manager extends React.Component {
                   </Button>
               </li>
           </ul>
-            </RadioGroup>
+          </RadioGroup>
         </div>
           <div className="head-tabs">
               <ul>
@@ -565,7 +565,7 @@ export default connect(
   dispatch => ({
     actions: bindActionCreators(
       {
-          findUserInfoCount
+        findUserInfoCount
       },
       dispatch
     )

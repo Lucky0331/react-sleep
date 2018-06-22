@@ -384,8 +384,8 @@ class Menu extends React.Component {
     const temp = uri.split("/");
     const fileName = temp.splice(-1, 1);
     const params = {
-      path: temp.join("/"),
-      fileName
+      path: `${temp.join("/")}${fileName}`,
+      // fileName
     };
     console.log("删除后的是啥？", temp.join("/"), fileName);
     this.props.actions.deleteImage(params);

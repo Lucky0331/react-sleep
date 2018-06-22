@@ -1285,6 +1285,9 @@ class Category extends React.Component {
         width: 50
       },
       {
+        title:'主订单号'
+      },
+      {
         title: "提现单号",
         dataIndex: "partnerTradeNo",
         key: "partnerTradeNo"

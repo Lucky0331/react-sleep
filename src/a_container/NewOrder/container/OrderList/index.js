@@ -63,7 +63,6 @@ class Category extends React.Component {
     super(props);
     this.state = {
       data: [], // 当前页面全部数据
-      productModels: [], // 所有的产品型号
       productTypes: [], //所有的产品类型
       searchProductName: "", // 搜索 - 产品名称
       searchModelId: "", // 搜索 - 产品型号
@@ -111,7 +110,6 @@ class Category extends React.Component {
       });
     }
     this.getAllProductType(); // 获取所有的产品类型
-    this.getAllProductModel(); // 获取所有的产品型号
     this.onGetData(this.state.pageNum, this.state.pageSize);
   }
 
@@ -152,7 +150,7 @@ class Category extends React.Component {
       refer: this.state.searchRefer.trim(),
       typeCode: this.state.searchproductType,
       orderFrom: this.state.searchorderFrom,
-      mainOrderId:this.state.searchMainOrderId.trim(),
+      mainOrderNo:this.state.searchMainOrderId.trim(),//主订单号查询
       orderNo: this.state.searchorderNo.trim(),
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
@@ -181,28 +179,6 @@ class Category extends React.Component {
     });
   }
 
-  // 工具 - 根据受理状态码查询对应的名字
-  getConditionNameById(id) {
-    switch (id) {
-      case 0:
-        return "待付款";
-      case 1:
-        return "待审核";
-      case 2:
-        return "待发货";
-      case 3:
-        return "待收货";
-      case 4:
-        return "已完成";
-      case -3:
-        return "已取消";
-      case -4:
-        return "已关闭";
-      default:
-        return "";
-    }
-  }
-
   // 获取所有的产品类型，当前页要用
   getAllProductType() {
     this.props.actions
@@ -215,18 +191,6 @@ class Category extends React.Component {
         }
       });
   }
-  // 获取所有产品型号，当前页要用
-  getAllProductModel() {
-    this.props.actions
-      .findProductModelByWhere({ pageNum: 0, pageSize: 9999 })
-      .then(res => {
-        if (res.status === "0") {
-          this.setState({
-            productModels: res.data.modelList.result || []
-          });
-        }
-      });
-  }
 
   // 工具 - 根据产品类型ID查产品类型名称
   findProductNameById(id) {
@@ -235,38 +199,7 @@ class Category extends React.Component {
     );
     return t ? t.name : "";
   }
-
-  // 工具 - 根据产品型号ID获取产品型号名称
-  getNameByModelId(id) {
-    const t = this.state.productModels.find(
-      item => String(item.id) === String(id)
-    );
-    return t ? t.name : "";
-  }
-
-  // 工具 - 根据ID获取用户类型
-  getUserType(id) {
-    switch (String(id)) {
-      case "0":
-        return "经销商（体验版）";
-      case "1":
-        return "经销商（微创版）";
-      case "2":
-        return "经销商（个人版）";
-      case "3":
-        return "分享用户";
-      case "4":
-        return "普通用户";
-      case "5":
-        return "企业版经销商";
-      case "6":
-        return "企业版子账号";
-      case "7":
-        return "分销商";
-      default:
-        return "";
-    }
-  }
+  
 
   // 工具 - 根据ID获取用户来源名字
   getListByModelId(id) {
@@ -875,11 +808,11 @@ class Category extends React.Component {
   // 查询某一条数据的详情
   onQueryClick(record) {
     console.log("是什么：", record);
+    console.log("是什么类型：", record.productType);
     this.setState({
       nowData: record,
       queryModalShow: true,
-      typeId: record.typeId,
-      userType:record.userType
+      productType: record.productType,
     });
   }
 
@@ -908,13 +841,13 @@ class Category extends React.Component {
       },
       {
         title:'主订单号',
-        dataIndex:'mainOrderId',
-        key:'mainOrderId'
+        dataIndex:'mainOrder',
+        key:'mainOrder'
       },
       {
         title: "子订单号",
-        dataIndex: "orderNo",
-        key: "orderNo"
+        dataIndex: "orderId",
+        key: "orderId"
       },
       {
         title: "云平台工单号",
@@ -925,19 +858,17 @@ class Category extends React.Component {
         title: "订单来源",
         dataIndex: "orderFrom",
         key: "orderFrom",
-        render: text => this.getListByModelId(text)
+        // render: text => this.getListByModelId(text)
       },
       {
         title: "订单状态",
-        dataIndex: "conditions",
-        key: "conditions",
-        render: text => this.getConditionNameById(text)
+        dataIndex: "orderStatus",
+        key: "orderStatus",
       },
       {
         title: "用户类型",
-        dataIndex: "userType",
-        key: "userType",
-        render: text => this.getUserType(text)
+        dataIndex: "userIdentity",
+        key: "userIdentity",
       },
       {
         title: "用户id",
@@ -946,40 +877,33 @@ class Category extends React.Component {
       },
       {
         title: "用户收货地区",
-        dataIndex: "station",
-        key: "station",
-        render: (text, record) => {
-          return `${record.province}/${record.city}/${record.region}`;
-        }
+        dataIndex: "orderRegional",
+        key: "orderRegional",
       },
       {
         title: "活动方式",
         dataIndex: "activityType",
         key: "activityType",
-        render: text => this.getActivity(text)
       },
       {
         title: "产品类型",
-        dataIndex: "typeId",
-        key: "typeId",
-        render: text => this.findProductNameById(text)
+        dataIndex: "productType",
+        key: "productType",
       },
       {
         title: "产品公司",
-        dataIndex: "company",
-        key: "company",
-        render: text => this.Productcompany(text)
+        dataIndex: "productCompany",
+        key: "productCompany",
       },
       {
         title: "产品名称",
-        dataIndex: "name",
-        key: "name"
+        dataIndex: "productName",
+        key: "productName"
       },
       {
         title: "产品型号",
-        dataIndex: "modelId",
-        key: "modelId",
-        render: text => this.getNameByModelId(text)
+        dataIndex: "productModel",
+        key: "productModel",
       },
       {
         title: "数量",
@@ -988,62 +912,43 @@ class Category extends React.Component {
       },
       {
         title: "订单总金额",
-        dataIndex: "fee",
-        key: "fee"
+        dataIndex: "orderFee",
+        key: "orderFee"
       },
       {
         title: "下单时间",
-        dataIndex: "createTime",
-        key: "createTime"
+        dataIndex: "orderTime",
+        key: "orderTime"
       },
       {
         title: "支付状态",
-        dataIndex: "pay",
-        key: "pay",
-        render: text =>
-          Boolean(text) === true ? (
-            <span style={{ color: "green" }}>已支付</span>
-          ) : (
-            <span style={{ color: "red" }}>未支付</span>
-          )
+        dataIndex: "payStatus",
+        key: "payStatus",
       },
       {
         title: "支付方式",
         dataIndex: "payType",
         key: "payType",
-        render: text => this.getBypayType(text)
       },
-      // {
-      //   title:'流水号',
-      // },
       {
         title:'经销商身份',
-        dataIndex:'userType2',
-        key:'userType2',
-        render: text => this.getUserType(text)
+        dataIndex:'distributorIdentity',
+        key:'distributorIdentity',
       },
       {
         title: "经销商id",
-        dataIndex: "id",
-        key: "id"
-      },
-      // {
-      //   title:'是否有子账号'
-      // },
-      // {
-      //   title:'子账号id',
-      // },
-      {
-        title: "分销商id",
         dataIndex: "distributorId",
         key: "distributorId"
       },
       {
+        title: "分销商id",
+        dataIndex: "userSaleId",
+        key: "userSaleId"
+      },
+      {
         title: "分销商是否享有收益",
-        dataIndex: "userSaleFlag",
-        key: "userSaleFlag",
-        render: text =>
-          Boolean(text) === true ? <span>是</span> : <span>否</span>
+        dataIndex: "userSaleIsIncome",
+        key: "userSaleIsIncome",
       },
       {
         title: "操作",
@@ -1083,55 +988,40 @@ class Category extends React.Component {
     return data.map((item, index) => {
       return {
         key: index,
-        addrId: item.addrId,
+        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         citys:
           item.province && item.city && item.region
             ? `${item.province}/${item.city}/${item.region}`
             : "",
         count: item.count,
-        ecId: item.ecId,
-        fee: item.fee,
-        feeType: item.feeType,
-        openAccountFee: item.openAccountFee,
-        orderType: item.orderType,
-        payTime: item.payTime,
-        payType: item.payType,
-        orderNo: item.id,
-        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
-        createTime: item.createTime,
-        pay: item.pay,
-        companyName: item.station ? item.station.companyName : "",
-        name: item.product ? item.product.name : "",
-        modelId: item.product ? item.product.typeCode : "",
-        conditions: item.conditions,
-        remark: item.remark,
-        mobile: item.shopAddress ? item.shopAddress.mobile : "",
-        refer: item.refer,
-        userType: item.userInfo ? item.userInfo.userType : "",
-        userType2: item.distributor ? item.distributor.userType : "", //经销商身份
-        shipCode: item.shipCode,
-        activityType: item.activityType,
-        shipPrice: item.shipPrice,
-        transport: item.transport,
-        userName: item.userId,
-        customerName: item.customer ? item.customer.realName || item.customer.name  : "",
-        // customerName: item.customer ? item.customer.realName: "",
-        customerPhone: item.customer ? item.customer.phone : "",
-        orderFrom: item.orderFrom,
-        realName: item.distributor ? item.distributor.realName : "",
+        payTime: item.payTime,//支付时间
+        mainOrder: item.mainOrder, //主订单号
+        orderId: item.orderId, //子订单号
+        orderRegional:item.orderRegional,//用户收货地区
+        orderAddress:item.orderAddress ? `${item.orderRegional}/${item.orderAddress}` : '',//用户收货地址
+        productType:item.productType,//产品类型
+        productName:item.productName,///产品名称
+        productModel:item.productModel,//产品型号
+        productCompany:item.productCompany,//产品公司
+        orderFee: item.orderFee,//订单总金额
+        orderTime: item.orderTime,//下单时间
+        payStatus:item.payStatus,//支付状态
+        payType:item.payType,//支付方式
+        distributorId:item.distributorId,//经销商id
+        userSaleId:item.userSaleId,//分销商id
+        userSaleIsIncome:item.userSaleIsIncome,//分销商是否享有收益
+        orderStatus: item.orderStatus,//订单状态
+        orderPhone: item.orderPhone, //用户收货手机号
+        refer: item.refer,//云平台工单号
+        userIdentity : item.userIdentity, // 用户类型
+        distributorIdentity: item.distributorIdentity, //经销商身份
+        activityType: item.activityType,//活动方式
+        userName: item.userId, //用户id
+        customerName: item.customerName, //安装工姓名
+        customerPhone: item.customerPhone,//安装工电话
+        customerAddress:item.customerAddress,//安装工服务站地区
+        orderFrom: item.orderFrom,//订单来源
         ambassadorName: item.distributor ? item.distributor.mobile : "",
-        name2: item.station ? item.station.name : "",
-        province: item.shopAddress ? item.shopAddress.province : "",
-        city: item.shopAddress ? item.shopAddress.city : "",
-        region: item.shopAddress ? item.shopAddress.region : "",
-        street: item.shopAddress ? item.shopAddress.street : "",
-        mainOrderId: item.mainOrderId, //主订单号
-        id: item.distributor ? item.distributor.id : "",
-        station: item.station,
-        typeId: item.product ? item.product.typeId : "",
-        company: item.product ? item.product.typeId : "",
-        distributorId: item.ambassador ? item.ambassador.id : "",
-        userSaleFlag: item.userSaleFlag,
       };
     });
   }
@@ -1481,28 +1371,22 @@ class Category extends React.Component {
         >
           <Form>
             <FormItem label="主订单号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.mainOrderId : ""}
+              {!!this.state.nowData ? this.state.nowData.mainOrder : ""}
             </FormItem>
             <FormItem label="子订单号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.orderNo : ""}
+              {!!this.state.nowData ? this.state.nowData.orderId : ""}
             </FormItem>
             <FormItem label="云平台工单号" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.refer : ""}
             </FormItem>
             <FormItem label="订单来源" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getListByModelId(this.state.nowData.orderFrom)
-                : ""}
+              {!!this.state.nowData ? this.state.nowData.orderFrom : ""}
             </FormItem>
             <FormItem label="订单状态" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getConditionNameById(this.state.nowData.conditions)
-                : ""}
+              {!!this.state.nowData ? this.state.nowData.orderStatus : ""}
             </FormItem>
             <FormItem label="用户类型" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getUserType(this.state.nowData.userType)
-                : ""}
+              {!!this.state.nowData ? this.state.nowData.userIdentity  : ""}
             </FormItem>
             <FormItem label="用户id" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.userName : ""}
@@ -1510,129 +1394,76 @@ class Category extends React.Component {
             <FormItem
               label="用户收货手机号"
               {...formItemLayout}
-              className={this.state.typeId == 5 ? "hide" : ""}
+              className={this.state.productType == "健康评估" ? "hide" : ""}
             >
-              {!!this.state.nowData ? this.state.nowData.mobile : ""}
+              {!!this.state.nowData ? this.state.nowData.orderPhone : ""}
             </FormItem>
             <FormItem
               label="用户收货地区"
               {...formItemLayout}
-              className={this.state.typeId == 5 ? "hide" : ""}
+              className={this.state.productType == "健康评估" ? "hide" : ""}
             >
-              {!!this.state.nowData
-                ? this.getCity(
-                    this.state.nowData.province,
-                    this.state.nowData.city,
-                    this.state.nowData.region
-                  )
-                : ""}
+              {!!this.state.nowData ? this.state.nowData.orderRegional : ""}
             </FormItem>
             <FormItem
               label="用户收货地址"
               {...formItemLayout}
-              className={this.state.typeId == 5 ? "hide" : ""}
+              className={this.state.productType == "健康评估" ? "hide" : ""}
             >
-              {!!this.state.nowData
-                ? this.getAddress(
-                    this.state.nowData.province,
-                    this.state.nowData.city,
-                    this.state.nowData.region,
-                    this.state.nowData.street
-                  )
-                : ""}
+              {!!this.state.nowData ? this.state.nowData.orderAddress : ""}
             </FormItem>
             <FormItem label="活动方式" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getActivity(this.state.nowData.activityType)
-                : ""}
+              {!!this.state.nowData ? this.state.nowData.activityType: ""}
             </FormItem>
             <FormItem label="产品类型" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.findProductNameById(this.state.nowData.typeId)
-                : ""}
+              {!!this.state.nowData ? this.state.nowData.productType: ""}
             </FormItem>
             <FormItem label="产品公司" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.Productcompany(this.state.nowData.company)
-                : ""}
+              {!!this.state.nowData ? this.state.nowData.productCompany: ""}
             </FormItem>
             <FormItem label="产品名称" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.name : ""}
+              {!!this.state.nowData ? this.state.nowData.productName: ""}
             </FormItem>
             <FormItem label="产品型号" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getNameByModelId(this.state.nowData.modelId)
-                : ""}
+              {!!this.state.nowData ? this.state.nowData.productModel: ""}
             </FormItem>
             <FormItem label="数量" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.count : ""}
             </FormItem>
             <FormItem label="订单总金额" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.fee : ""}
+              {!!this.state.nowData ? this.state.nowData.orderFee : ''}
             </FormItem>
             <FormItem label="下单时间" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.createTime : ""}
+              {!!this.state.nowData ? this.state.nowData.orderTime : ""}
             </FormItem>
             <FormItem label="支付方式" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getBypayType(this.state.nowData.payType)
-                : ""}
+              {!!this.state.nowData ? this.state.nowData.payType: ""}
             </FormItem>
             <FormItem label="支付状态" {...formItemLayout}>
-              {!!this.state.nowData ? (
-                Boolean(this.state.nowData.pay) === true ? (
-                  <span style={{ color: "green" }}>已支付</span>
-                ) : (
-                  <span style={{ color: "red" }}>未支付</span>
-                )
-              ) : (
-                ""
-              )}
+              {!!this.state.nowData ? this.state.nowData.payStatus: ""}
             </FormItem>
             <FormItem label="支付时间" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.payTime : ""}
             </FormItem>
-            {/*<FormItem label="流水号" {...formItemLayout}>*/}
-              {/*/!*{!!this.state.nowData ? this.state.nowData.mainOrderId : ""}*!/*/}
-            {/*</FormItem>*/}
             <FormItem label="经销商身份" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getUserType(this.state.nowData.userType2)
-                : ""}
+              {!!this.state.nowData ? this.state.nowData.distributorIdentity : ""}
             </FormItem>
             <FormItem label="经销商id" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.id : ""}
-            </FormItem>
-            {/*<FormItem label="是否有子账号" {...formItemLayout}>*/}
-              {/*/!*{!!this.state.nowData ? this.state.nowData.id : ""}*!/*/}
-            {/*</FormItem>*/}
-            {/*<FormItem label="子账号id" {...formItemLayout}>*/}
-              {/*/!*{!!this.state.nowData ? this.state.nowData.id : ""}*!/*/}
-            {/*</FormItem>*/}
-            <FormItem label="分销商id" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.distributorId : ""}
             </FormItem>
+            <FormItem label="分销商id" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.userSaleId : ""}
+            </FormItem>
             <FormItem label="分销商是否有收益" {...formItemLayout}>
-              {!!this.state.nowData ? (
-                Boolean(this.state.nowData.userSaleFlag) === true ? (
-                  <span>是</span>
-                ) : (
-                  <span>否</span>
-                )
-              ) : (
-                ""
-              )}
+              {!!this.state.nowData ? this.state.nowData.userSaleIsIncome : ""}
             </FormItem>
             <FormItem
               label="安装工姓名"
               {...formItemLayout}
               className={
-                this.state.typeId == 2 ||
-                this.state.typeId == 3 ||
-                this.state.typeId == 4 ||
-                this.state.typeId == 5
-                  ? "hide"
-                  : ""
+                this.state.productType == "健康食品" ||
+                this.state.productType == "生物科技" ||
+                this.state.productType == "健康评估" ? "hide" : ""
               }
             >
               {!!this.state.nowData ? this.state.nowData.customerName : ""}
@@ -1641,12 +1472,9 @@ class Category extends React.Component {
               label="安装工电话"
               {...formItemLayout}
               className={
-                this.state.typeId == 2 ||
-                this.state.typeId == 3 ||
-                this.state.typeId == 4 ||
-                this.state.typeId == 5
-                  ? "hide"
-                  : ""
+                this.state.productType == "健康食品" ||
+                this.state.productType == "生物科技" ||
+                this.state.productType == "健康评估" ? "hide" : ""
               }
             >
               {!!this.state.nowData ? this.state.nowData.customerPhone : ""}
@@ -1655,21 +1483,12 @@ class Category extends React.Component {
               label="服务站地区（安装工）"
               {...formItemLayout}
               className={
-                this.state.typeId == 2 ||
-                this.state.typeId == 3 ||
-                this.state.typeId == 4 ||
-                this.state.typeId == 5
-                  ? "hide"
-                  : ""
+                this.state.productType == "健康食品" ||
+                this.state.productType == "生物科技" ||
+                this.state.productType == "健康评估" ? "hide" : ""
               }
             >
-              {!!this.state.nowData
-                ? this.getCity(
-                    this.state.nowData.province,
-                    this.state.nowData.city,
-                    this.state.nowData.region
-                  )
-                : ""}
+              {!!this.state.nowData ? this.state.nowData.customerAddress : ""}
             </FormItem>
           </Form>
         </Modal>

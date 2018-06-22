@@ -107,12 +107,15 @@ export function listByDicType(params = {}) {
 //导出的请求--用户信息管理
 export function ExportList(params = {}) {
   return dispatch => {
-    return Fetchapi.newPost("/manager/export/userInfo/list", params)
+    return Fetchapi.newPost("/manager/export/userInfo/list", params, 'post', false, false)
       .then(msg => {
+        console.log('msg是什么',msg)
+
         return msg;
       })
-      .catch(() => {
-        message.error("网络错误，请重试");
+      .catch((e) => {
+        console.log('错误：', e);
+        message.error("网络错误，请重试", e);
       });
   };
 }
@@ -120,7 +123,7 @@ export function ExportList(params = {}) {
 //导出的请求--经销商信息管理
 export function ExportdealerList(params = {}) {
   return dispatch => {
-    return Fetchapi.newPost("/manager/export/userInfo/list", params)
+    return Fetchapi.newPost("/manager/export/userInfo/list", params,'post', false, false)
       .then(msg => {
         return msg;
       })
@@ -133,7 +136,7 @@ export function ExportdealerList(params = {}) {
 //导出的请求--经销商信息优惠卡管理
 export function ExportCardList(params = {}) {
   return dispatch => {
-    return Fetchapi.newPost("/manager/export/ticket/list", params)
+    return Fetchapi.newPost("/manager/export/ticket/list", params,'post', false, false)
       .then(msg => {
         return msg;
       })
@@ -142,6 +145,60 @@ export function ExportCardList(params = {}) {
       });
   };
 }
+
+//数据统计 -运营查询
+export function dataCountList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/dataCount/operation", params,)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//数据统计 -用户数据查询
+export function userCountList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/dataCount/user", params,)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//数据统计 -订单数据查询
+export function orderCountList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/dataCount/order", params,)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+//数据统计 -收益数据查询
+export function incomeCountList(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/dataCount/income", params,)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
+
 
 //经销商信息管理详情跳转页面所带参数
 export function detailRecord(v) {

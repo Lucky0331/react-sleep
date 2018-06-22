@@ -44,7 +44,13 @@ import {
   findProductTypeByWhere,
   onChange,
   onOk,
-  statementList
+  statementList,
+  AllExportList,
+  WaterExportList,
+  FoodExportList,
+  BiologicalExportList,
+  CordExportList,
+  HealthyExportList
 } from "../../../../a_action/shop-action";
 
 // ==================
@@ -79,7 +85,8 @@ class Category extends React.Component {
       searchTicketNo:'',//搜索 - 体检卡号
       searchmchOrderIdChange: "", // 流水号查询
       searchConditions: "", //搜索 - 订单状态
-      searchorderNo: "", //搜索 - 订单号
+      searchorderNo: "", //搜索 - 子订单号
+      searchMainOrderId:"",//搜索 - 主订单号
       searchRefer: "", //搜索 - 云平台工单号
       searchUserName: "", //搜索 - 用户id
       searchActivity: "", //搜索 - 活动方式
@@ -128,15 +135,16 @@ class Category extends React.Component {
       orderStatus: this.state.searchConditions, //订单状态
       userId: this.state.searchUserName.trim(), //用户id
       orderType: this.state.searchProductType, //产品类型
-      orderId: this.state.searchorderNo.trim(),  //订单号查询
+      orderId: this.state.searchorderNo.trim(),  //子订单号查询
+      mainOrderId:this.state.searchMainOrderId.trim(), //主订单号查询
       paymentNo: this.state.searchmchOrderIdChange.trim(), //流水号
       refer: this.state.searchRefer.trim(), //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
         : "",
       maxTime: this.state.searchEndTime
-        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchEndTime._d)}`
         : "",
     };
     this.props.actions.statementList(tools.clearNull(params)).then(res => {
@@ -166,14 +174,15 @@ class Category extends React.Component {
       userId: this.state.searchUserName.trim(), //用户id
       modelType:this.state.searchType,//产品型号
       orderId: this.state.searchorderNo.trim(),  //订单号查询
+      mainOrderId:this.state.searchMainOrderId.trim(), //主订单号查询
       paymentNo: this.state.searchmchOrderIdChange.trim(), //流水号
       refer: this.state.searchRefer.trim(), //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
         : "",
       maxTime: this.state.searchEndTime
-        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchEndTime._d)}`
         : "",
     };
     this.props.actions.statementList(tools.clearNull(params)).then(res => {
@@ -203,14 +212,15 @@ class Category extends React.Component {
       userId: this.state.searchUserName.trim(), //用户id
       modelType:this.state.searchType,//产品型号
       orderId: this.state.searchorderNo.trim(),  //订单号查询
+      mainOrderId:this.state.searchMainOrderId.trim(), //主订单号查询
       paymentNo: this.state.searchmchOrderIdChange.trim(), //流水号
       refer: this.state.searchRefer.trim(), //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
         : "",
       maxTime: this.state.searchEndTime
-        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchEndTime._d)}`
         : "",
     };
     this.props.actions.statementList(tools.clearNull(params)).then(res => {
@@ -240,15 +250,16 @@ class Category extends React.Component {
       userId: this.state.searchUserName.trim(), //用户id
       modelType:this.state.searchType,//产品型号
       orderId: this.state.searchorderNo.trim(),  //订单号查询
+      mainOrderId:this.state.searchMainOrderId.trim(), //主订单号查询
       paymentNo: this.state.searchmchOrderIdChange.trim(), //流水号
       refer: this.state.searchRefer.trim(), //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
-          : "",
+        ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
+        : "",
       maxTime: this.state.searchEndTime
-          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
-          : "",
+        ? `${tools.dateToStr(this.state.searchEndTime._d)}`
+        : "",
     };
     this.props.actions.statementList(tools.clearNull(params)).then(res => {
       console.log("返回的什么：", res.data);
@@ -278,14 +289,15 @@ class Category extends React.Component {
       userId: this.state.searchUserName.trim(), //用户id
       ticketNo: this.state.searchTicketNo.trim(), //体检卡号
       orderId: this.state.searchorderNo.trim(),  //订单号查询
+      mainOrderId:this.state.searchMainOrderId.trim(), //主订单号查询
       paymentNo: this.state.searchmchOrderIdChange.trim(), //流水号
       refer: this.state.searchRefer, //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+          ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
           : "",
       maxTime: this.state.searchEndTime
-          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+          ? `${tools.dateToStr(this.state.searchEndTime._d)}`
           : "",
     };
     this.props.actions.statementList(tools.clearNull(params)).then(res => {
@@ -315,14 +327,15 @@ class Category extends React.Component {
       userId: this.state.searchUserName.trim(), //用户id
       modelType:this.state.searchType,//产品型号
       orderId: this.state.searchorderNo.trim(),  //订单号查询
+      mainOrderId:this.state.searchMainOrderId.trim(), //主订单号查询
       paymentNo: this.state.searchmchOrderIdChange.trim(), //流水号
       refer: this.state.searchRefer.trim(), //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+          ? `${tools.dateToStr(this.state.searchBeginTime._d)} `
           : "",
       maxTime: this.state.searchEndTime
-          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+          ? `${tools.dateToStr(this.state.searchEndTime._d)} `
           : "",
     };
     this.props.actions.statementList(tools.clearNull(params)).then(res => {
@@ -536,14 +549,21 @@ class Category extends React.Component {
     });
   }
 
-  //搜索 - 订单号
+  //搜索 - 子订单号
   searchOrderNoChange(e) {
     this.setState({
       searchorderNo: e.target.value
     });
     console.log("e是什么；", e.target.value);
   }
-
+  
+  //搜索 - 主订单号
+ searchMainOrderIdChange(e) {
+    this.setState({
+      searchMainOrderId: e.target.value
+    });
+  }
+  
   //搜索 - 用户账号
   searchUserNameChange(e) {
     this.setState({
@@ -661,6 +681,12 @@ class Category extends React.Component {
       searchRefer: ""
     });
   }
+  
+  emitEmpty4() {
+    this.setState({
+      searchMainOrderId: ""
+    });
+  }
 
   emitEmpty5() {
     this.setState({
@@ -738,15 +764,16 @@ class Category extends React.Component {
       orderStatus: this.state.searchConditions, //订单状态
       userId: this.state.searchUserName, //用户id
       orderType: this.state.searchProductType, //产品类型
-      orderId: this.state.searchorderNo,  //订单号查询
+      orderId: this.state.searchorderNo,  //子订单号查询
+      mainOrderId:this.state.searchMainOrderId,//主订单号查询
       paymentNo: this.state.searchmchOrderIdChange, //流水号
       refer: this.state.searchRefer, //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
         : "",
       maxTime: this.state.searchEndTime
-        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchEndTime._d)}`
         : "",
     };
     let form = document.getElementById("download-form");
@@ -858,8 +885,23 @@ class Category extends React.Component {
       newElement13.setAttribute("value", params.minTime);
       form.appendChild(newElement13);
     }
-
-    form.submit();
+    
+    const newElement14 = document.createElement("input");
+    if (params.mainOrderId) {
+      newElement14.setAttribute("name", "mainOrderId");
+      newElement14.setAttribute("type", "hidden");
+      newElement14.setAttribute("value", params.mainOrderId);
+      form.appendChild(newElement14);
+    }
+  
+    this.props.actions.AllExportList(tools.clearNull(params)).then(res => {
+      if (String(res) === "[object XMLDocument]") {
+        message.error('没有数据！');
+      } else {
+        form.submit();
+      }
+    });
+    // form.submit();
   }
   
   //导出 - 净水服务
@@ -872,30 +914,32 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      orderType:1,
       id: this.state.searchId,
       payType: this.state.searchPayType,
       orderStatus: this.state.searchConditions, //订单状态
       userId: this.state.searchUserName, //用户id
       modelType:this.state.searchType,//产品型号
       orderId: this.state.searchorderNo,  //订单号查询
+      mainOrderId:this.state.searchMainOrderId,//主订单号查询
       paymentNo: this.state.searchmchOrderIdChange, //流水号
       refer: this.state.searchRefer, //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
         : "",
       maxTime: this.state.searchEndTime
-        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchEndTime._d)}`
         : "",
     };
     let form = document.getElementById("download-form");
     if (!form) {
       form = document.createElement("form");
       document.body.appendChild(form);
+    }else{
+      form.innerHTML="";
     }
-    else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
+    form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/export/water/reconciliation/record`;
     form.method = "post";
     console.log("FORM:", params);
     
@@ -941,14 +985,6 @@ class Category extends React.Component {
       newElement6.setAttribute("type", "hidden");
       newElement6.setAttribute("value", params.userId);
       form.appendChild(newElement6);
-    }
-  
-    const newElement7 = document.createElement("input");
-    if (params.orderType) {
-      newElement7.setAttribute("name", "orderType");
-      newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", "1");
-      form.appendChild(newElement7);
     }
   
     const newElement8 = document.createElement("input");
@@ -1006,8 +1042,24 @@ class Category extends React.Component {
       newElement14.setAttribute("value", params.modelType);
       form.appendChild(newElement14);
     }
+  
+    const newElement15 = document.createElement("input");
+    if (params.mainOrderId) {
+      newElement15.setAttribute("name", "mainOrderId");
+      newElement15.setAttribute("type", "hidden");
+      newElement15.setAttribute("value", params.mainOrderId);
+      form.appendChild(newElement15);
+    }
+  
+    this.props.actions.WaterExportList(tools.clearNull(params)).then(res => {
+      if (String(res) === "[object XMLDocument]") {
+        message.error('没有数据！');
+      } else {
+        form.submit();
+      }
+    });
     
-    form.submit();
+    // form.submit();
   }
   
   //导出 - 健康食品
@@ -1020,21 +1072,21 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      orderType:2,
       id: this.state.searchId,
       payType: this.state.searchPayType,
       orderStatus: this.state.searchConditions, //订单状态
       userId: this.state.searchUserName, //用户id
       modelType:this.state.searchType,//产品型号
       orderId: this.state.searchorderNo,  //订单号查询
+      mainOrderId:this.state.searchMainOrderId,//主订单号查询
       paymentNo: this.state.searchmchOrderIdChange, //流水号
       refer: this.state.searchRefer, //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+          ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
           : "",
       maxTime: this.state.searchEndTime
-          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+          ? `${tools.dateToStr(this.state.searchEndTime._d)}`
           : "",
     };
     let form = document.getElementById("download-form");
@@ -1043,7 +1095,7 @@ class Category extends React.Component {
       document.body.appendChild(form);
     }
     else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
+    form.action = `${Config.baseURL}/manager/export/food/reconciliation/record`;
     form.method = "post";
     console.log("FORM:", params);
     
@@ -1089,14 +1141,6 @@ class Category extends React.Component {
       newElement6.setAttribute("type", "hidden");
       newElement6.setAttribute("value", params.userId);
       form.appendChild(newElement6);
-    }
-  
-    const newElement7 = document.createElement("input");
-    if (params.orderType) {
-      newElement7.setAttribute("name", "orderType");
-      newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", "2");
-      form.appendChild(newElement7);
     }
   
     const newElement8 = document.createElement("input");
@@ -1154,8 +1198,24 @@ class Category extends React.Component {
       newElement14.setAttribute("value", params.modelType);
       form.appendChild(newElement14);
     }
+  
+    const newElement15 = document.createElement("input");
+    if (params.mainOrderId) {
+      newElement15.setAttribute("name", "mainOrderId");
+      newElement15.setAttribute("type", "hidden");
+      newElement15.setAttribute("value", params.mainOrderId);
+      form.appendChild(newElement15);
+    }
+  
+    this.props.actions.FoodExportList(tools.clearNull(params)).then(res => {
+      if (String(res) === "[object XMLDocument]") {
+        message.error('没有数据！');
+      } else {
+        form.submit();
+      }
+    });
     
-    form.submit();
+    // form.submit();
   }
   
   //导出 - 生物科技
@@ -1168,22 +1228,22 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      orderType:3,
       id: this.state.searchId,
       payType: this.state.searchPayType,
       orderStatus: this.state.searchConditions, //订单状态
       userId: this.state.searchUserName, //用户id
       modelType:this.state.searchType,//产品型号
       orderId: this.state.searchorderNo,  //订单号查询
+      mainOrderId:this.state.searchMainOrderId,//主订单号查询
       paymentNo: this.state.searchmchOrderIdChange, //流水号
       refer: this.state.searchRefer, //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-          ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
-          : "",
+        ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
+        : "",
       maxTime: this.state.searchEndTime
-          ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
-          : "",
+        ? `${tools.dateToStr(this.state.searchEndTime._d)}`
+        : "",
     };
     let form = document.getElementById("download-form");
     if (!form) {
@@ -1191,7 +1251,7 @@ class Category extends React.Component {
       document.body.appendChild(form);
     }
     else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
+    form.action = `${Config.baseURL}/manager/export/biological/reconciliation/record`;
     form.method = "post";
     console.log("FORM:", params);
     
@@ -1237,14 +1297,6 @@ class Category extends React.Component {
       newElement6.setAttribute("type", "hidden");
       newElement6.setAttribute("value", params.userId);
       form.appendChild(newElement6);
-    }
-  
-    const newElement7 = document.createElement("input");
-    if (params.orderType) {
-      newElement7.setAttribute("name", "orderType");
-      newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", "3");
-      form.appendChild(newElement7);
     }
   
     const newElement8 = document.createElement("input");
@@ -1302,6 +1354,22 @@ class Category extends React.Component {
       newElement14.setAttribute("value", params.modelType);
       form.appendChild(newElement14);
     }
+  
+    const newElement15 = document.createElement("input");
+    if (params.mainOrderId) {
+      newElement15.setAttribute("name", "mainOrderId");
+      newElement15.setAttribute("type", "hidden");
+      newElement15.setAttribute("value", params.mainOrderId);
+      form.appendChild(newElement15);
+    }
+  
+    this.props.actions.BiologicalExportList(tools.clearNull(params)).then(res => {
+      if (String(res) === "[object XMLDocument]") {
+        message.error('没有数据！');
+      } else {
+        form.submit();
+      }
+    });
     
     form.submit();
   }
@@ -1316,18 +1384,17 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      orderType:5,
-      modelType:'M',
       id: this.state.searchId,
       userId: this.state.searchUserName, //用户id
       orderId: this.state.searchorderNo,  //订单号查询
+      mainOrderId:this.state.searchMainOrderId,//主订单号查询
       paymentNo: this.state.searchmchOrderIdChange, //流水号
       ticketNo: this.state.searchTicketNo, //体检卡号
       minTime: this.state.searchBeginTime
-        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
         : "",
       maxTime: this.state.searchEndTime
-        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchEndTime._d)}`
         : "",
     };
     let form = document.getElementById("download-form");
@@ -1336,7 +1403,7 @@ class Category extends React.Component {
       document.body.appendChild(form);
     }
     else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
+    form.action = `${Config.baseURL}/manager/export/m/ticket/reconciliation/record`;
     form.method = "post";
     console.log("FORM:", params);
     
@@ -1351,22 +1418,6 @@ class Category extends React.Component {
     newElement2.setAttribute("type", "hidden");
     newElement2.setAttribute("value", pageSize);
     form.appendChild(newElement2);
-    
-    const newElement3 = document.createElement("input");
-    if (params.orderType) {
-      newElement3.setAttribute("name", "orderType");
-      newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", "5");
-      form.appendChild(newElement3);
-    }
-    
-    const newElement4 = document.createElement("input");
-    if (params.modelType) {
-      newElement4.setAttribute("name", "modelType");
-      newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", "M");
-      form.appendChild(newElement4);
-    }
     
     const newElement5 = document.createElement("input");
     if (params.id) {
@@ -1423,8 +1474,24 @@ class Category extends React.Component {
       newElement11.setAttribute("value", params.minTime);
       form.appendChild(newElement11);
     }
+  
+    const newElement12 = document.createElement("input");
+    if (params.mainOrderId) {
+      newElement12.setAttribute("name", "mainOrderId");
+      newElement12.setAttribute("type", "hidden");
+      newElement12.setAttribute("value", params.mainOrderId);
+      form.appendChild(newElement12);
+    }
+  
+    this.props.actions.CordExportList(tools.clearNull(params)).then(res => {
+      if (String(res) === "[object XMLDocument]") {
+        message.error('没有数据！');
+      } else {
+        form.submit();
+      }
+    });
     
-    form.submit();
+    // form.submit();
   }
   
   //导出 - 健康评估
@@ -1437,17 +1504,17 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      orderType:5,
       id: this.state.searchId,
       userId: this.state.searchUserName, //用户id
       modelType:this.state.searchType,//产品型号
       orderId: this.state.searchorderNo,  //订单号查询
+      mainOrderId:this.state.searchMainOrderId,//主订单号查询
       paymentNo: this.state.searchmchOrderIdChange, //流水号
       minTime: this.state.searchBeginTime
-        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
         : "",
       maxTime: this.state.searchEndTime
-        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59`
+        ? `${tools.dateToStr(this.state.searchEndTime._d)}`
         : "",
     };
     let form = document.getElementById("download-form");
@@ -1456,7 +1523,7 @@ class Category extends React.Component {
       document.body.appendChild(form);
     }
     else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
+    form.action = `${Config.baseURL}/manager/export/ticket/reconciliation/record`;
     form.method = "post";
     console.log("FORM:", params);
     
@@ -1527,14 +1594,24 @@ class Category extends React.Component {
       newElement11.setAttribute("value", params.orderId);
       form.appendChild(newElement11);
     }
+  
+    const newElement13 = document.createElement("input");
+    if (params.mainOrderId) {
+      newElement13.setAttribute("name", "mainOrderId");
+      newElement13.setAttribute("type", "hidden");
+      newElement13.setAttribute("value", params.mainOrderId);
+      form.appendChild(newElement13);
+    }
+  
+    this.props.actions.HealthyExportList(tools.clearNull(params)).then(res => {
+      if (String(res) === "[object XMLDocument]") {
+        message.error('没有数据！');
+      } else {
+        form.submit();
+      }
+    });
     
-    const newElement12 = document.createElement("input");
-      newElement12.setAttribute("name", "orderType");
-      newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", "5");
-      form.appendChild(newElement12);
-    
-      form.submit();
+    // form.submit();
   }
 
   // 查询某一条数据的详情
@@ -1602,7 +1679,12 @@ class Category extends React.Component {
         width: 50
       },
       {
-        title: "订单号",
+        title:'主订单号',
+        dataIndex:'mainOrderId',
+        key:'mainOrderId'
+      },
+      {
+        title: "子订单号",
         dataIndex: "orderNo",
         key: "orderNo"
       },
@@ -1699,7 +1781,12 @@ class Category extends React.Component {
         width: 50
       },
       {
-        title: "订单号",
+        title:'主订单号',
+        dataIndex:'mainOrderId',
+        key:'mainOrderId'
+      },
+      {
+        title: "子订单号",
         dataIndex: "orderNo",
         key: "orderNo"
       },
@@ -1781,7 +1868,12 @@ class Category extends React.Component {
         width: 50
       },
       {
-        title: "订单号",
+        title:'主订单号',
+        dataIndex:'mainOrderId',
+        key:'mainOrderId'
+      },
+      {
+        title: "子订单号",
         dataIndex: "orderNo",
         key: "orderNo"
       },
@@ -1868,7 +1960,12 @@ class Category extends React.Component {
         width: 50
       },
       {
-        title: "订单号",
+        title:'主订单号',
+        dataIndex:'mainOrderId',
+        key:'mainOrderId'
+      },
+      {
+        title: "子订单号",
         dataIndex: "orderNo",
         key: "orderNo"
       },
@@ -1955,7 +2052,12 @@ class Category extends React.Component {
         width: 50
       },
       {
-        title: "订单号",
+        title:'主订单号',
+        dataIndex:'mainOrderId',
+        key:'mainOrderId'
+      },
+      {
+        title: "子订单号",
         dataIndex: "orderNo",
         key: "orderNo"
       },
@@ -2099,6 +2201,7 @@ class Category extends React.Component {
         distributorRegion:item.distributorRegion,//经销商区
         isSonAccount:item.isSonAccount,//是否有子账号
         sonAccountId:item.sonAccountId ,//子账户id
+        mainOrderId:item.mainOrderId, //主订单号
       };
     });
   }
@@ -2122,6 +2225,7 @@ class Category extends React.Component {
     const { searchUserName } = this.state;
     const { searchmchOrderIdChange } = this.state;
     const { searchRefer } = this.state;
+    const { searchMainOrderId } = this.state;
     const suffix = searchorderNo ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty()} />
     ) : null;
@@ -2134,6 +2238,9 @@ class Category extends React.Component {
     const suffix4 = searchRefer ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty3()} />
     ) : null;
+    const suffix5 = searchMainOrderId ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty4()} />
+    ) : null;
 
     return (
       <div>
@@ -2143,7 +2250,16 @@ class Category extends React.Component {
               <div className="system-table">
                 <ul className="search-ul more-ul">
                   <li>
-                    <span>订单号查询</span>
+                    <span>主订单号查询</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      suffix={suffix5}
+                      value={searchMainOrderId}
+                      onChange={e => this.searchMainOrderIdChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>子订单号查询</span>
                     <Input
                       style={{ width: "172px" }}
                       suffix={suffix}
@@ -2274,7 +2390,10 @@ class Category extends React.Component {
                 wrapClassName={"list"}
               >
                 <Form>
-                  <FormItem label="订单号" {...formItemLayout}>
+                  <FormItem label="主订单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.mainOrderId : ""}
+                  </FormItem>
+                  <FormItem label="子订单号" {...formItemLayout}>
                     {!!this.state.nowData ? this.state.nowData.orderNo : ""}
                   </FormItem>
                   <FormItem label="云平台工单号" {...formItemLayout}>
@@ -2335,7 +2454,16 @@ class Category extends React.Component {
               <div className="system-table">
                 <ul className="search-ul more-ul">
                   <li>
-                    <span>订单号查询</span>
+                    <span>主订单号查询</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix5}
+                        value={searchMainOrderId}
+                        onChange={e => this.searchMainOrderIdChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>子订单号查询</span>
                     <Input
                       style={{ width: "172px" }}
                       suffix={suffix}
@@ -2346,10 +2474,10 @@ class Category extends React.Component {
                   <li>
                     <span>云平台工单号</span>
                     <Input
-                        style={{ width: "172px" }}
-                        suffix={suffix4}
-                        value={searchRefer}
-                        onChange={e => this.searchReferChange(e)}
+                      style={{ width: "172px" }}
+                      suffix={suffix4}
+                      value={searchRefer}
+                      onChange={e => this.searchReferChange(e)}
                     />
                   </li>
                   <li>
@@ -2469,7 +2597,10 @@ class Category extends React.Component {
                 wrapClassName={"list"}
               >
                 <Form>
-                  <FormItem label="订单号" {...formItemLayout}>
+                  <FormItem label="主订单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.mainOrderId : ""}
+                  </FormItem>
+                  <FormItem label="子订单号" {...formItemLayout}>
                     {!!this.state.nowData ? this.state.nowData.orderNo : ""}
                   </FormItem>
                   <FormItem label="云平台工单号" {...formItemLayout}>
@@ -2553,21 +2684,30 @@ class Category extends React.Component {
               <div className="system-table">
                 <ul className="search-ul more-ul">
                   <li>
-                    <span>订单号查询</span>
+                    <span>主订单号查询</span>
                     <Input
-                        style={{ width: "172px" }}
-                        suffix={suffix}
-                        value={searchorderNo}
-                        onChange={e => this.searchOrderNoChange(e)}
+                      style={{ width: "172px" }}
+                      suffix={suffix5}
+                      value={searchMainOrderId}
+                      onChange={e => this.searchMainOrderIdChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>子订单号查询</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      suffix={suffix}
+                      value={searchorderNo}
+                      onChange={e => this.searchOrderNoChange(e)}
                     />
                   </li>
                   <li>
                     <span>云平台工单号</span>
                     <Input
-                        style={{ width: "172px" }}
-                        suffix={suffix4}
-                        value={searchRefer}
-                        onChange={e => this.searchReferChange(e)}
+                      style={{ width: "172px" }}
+                      suffix={suffix4}
+                      value={searchRefer}
+                      onChange={e => this.searchReferChange(e)}
                     />
                   </li>
                   <li>
@@ -2679,15 +2819,18 @@ class Category extends React.Component {
               </div>
               {/* 查看详情模态框 */}
               <Modal
-                  title="查看详情"
-                  visible={this.state.queryModalShow}
-                  onOk={() => this.onQueryModalClose()}
-                  onCancel={() => this.onQueryModalClose()}
-                  onChange={() => this.onQueryClick()}
-                  wrapClassName={"list"}
+                title="查看详情"
+                visible={this.state.queryModalShow}
+                onOk={() => this.onQueryModalClose()}
+                onCancel={() => this.onQueryModalClose()}
+                onChange={() => this.onQueryClick()}
+                wrapClassName={"list"}
               >
                 <Form>
-                  <FormItem label="订单号" {...formItemLayout}>
+                  <FormItem label="主订单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.mainOrderId : ""}
+                  </FormItem>
+                  <FormItem label="子订单号" {...formItemLayout}>
                     {!!this.state.nowData ? this.state.nowData.orderNo : ""}
                   </FormItem>
                   <FormItem label="云平台工单号" {...formItemLayout}>
@@ -2797,21 +2940,30 @@ class Category extends React.Component {
               <div className="system-table">
                 <ul className="search-ul more-ul">
                   <li>
-                    <span>订单号查询</span>
+                    <span>主订单号查询</span>
                     <Input
-                        style={{ width: "172px" }}
-                        suffix={suffix}
-                        value={searchorderNo}
-                        onChange={e => this.searchOrderNoChange(e)}
+                      style={{ width: "172px" }}
+                      suffix={suffix5}
+                      value={searchMainOrderId}
+                      onChange={e => this.searchMainOrderIdChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>子订单号查询</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      suffix={suffix}
+                      value={searchorderNo}
+                      onChange={e => this.searchOrderNoChange(e)}
                     />
                   </li>
                   <li>
                     <span>云平台工单号</span>
                     <Input
-                        style={{ width: "172px" }}
-                        suffix={suffix4}
-                        value={searchRefer}
-                        onChange={e => this.searchReferChange(e)}
+                      style={{ width: "172px" }}
+                      suffix={suffix4}
+                      value={searchRefer}
+                      onChange={e => this.searchReferChange(e)}
                     />
                   </li>
                   <li>
@@ -2931,7 +3083,10 @@ class Category extends React.Component {
                   wrapClassName={"list"}
               >
                 <Form>
-                  <FormItem label="订单号" {...formItemLayout}>
+                  <FormItem label="主订单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.mainOrderId : ""}
+                  </FormItem>
+                  <FormItem label="子订单号" {...formItemLayout}>
                     {!!this.state.nowData ? this.state.nowData.orderNo : ""}
                   </FormItem>
                   <FormItem label="云平台工单号" {...formItemLayout}>
@@ -3038,7 +3193,16 @@ class Category extends React.Component {
               <div className="system-table">
                 <ul className="search-ul more-ul">
                   <li>
-                    <span>订单号查询</span>
+                    <span>主订单号查询</span>
+                    <Input
+                      style={{ width: "172px" }}
+                      suffix={suffix5}
+                      value={searchMainOrderId}
+                      onChange={e => this.searchMainOrderIdChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>子订单号查询</span>
                     <Input
                       style={{ width: "172px" }}
                       suffix={suffix}
@@ -3138,7 +3302,10 @@ class Category extends React.Component {
                   wrapClassName={"list"}
               >
                 <Form>
-                  <FormItem label="订单号" {...formItemLayout}>
+                  <FormItem label="主订单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.mainOrderId : ""}
+                  </FormItem>
+                  <FormItem label="子订单号" {...formItemLayout}>
                     {!!this.state.nowData ? this.state.nowData.orderNo : ""}
                   </FormItem>
                   <FormItem label="体检卡号" {...formItemLayout}>
@@ -3187,7 +3354,16 @@ class Category extends React.Component {
               <div className="system-table">
                 <ul className="search-ul more-ul">
                   <li>
-                    <span>订单号查询</span>
+                    <span>主订单号查询</span>
+                    <Input
+                        style={{ width: "172px" }}
+                        suffix={suffix5}
+                        value={searchMainOrderId}
+                        onChange={e => this.searchMainOrderIdChange(e)}
+                    />
+                  </li>
+                  <li>
+                    <span>子订单号查询</span>
                     <Input
                         style={{ width: "172px" }}
                         suffix={suffix}
@@ -3299,7 +3475,10 @@ class Category extends React.Component {
                   wrapClassName={"list"}
               >
                 <Form>
-                  <FormItem label="订单号" {...formItemLayout}>
+                  <FormItem label="主订单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.mainOrderId : ""}
+                  </FormItem>
+                  <FormItem label="子订单号" {...formItemLayout}>
                     {!!this.state.nowData ? this.state.nowData.orderNo : ""}
                   </FormItem>
                   <FormItem label="下单时间" {...formItemLayout}>
@@ -3407,7 +3586,17 @@ export default connect(
   }),
   dispatch => ({
     actions: bindActionCreators(
-      { findProductTypeByWhere, onChange, onOk, statementList },
+      {
+        findProductTypeByWhere,
+        onChange, onOk,
+        statementList,
+        AllExportList,
+        WaterExportList,
+        FoodExportList,
+        BiologicalExportList,
+        CordExportList,
+        HealthyExportList
+      },
       dispatch
     )
   })

@@ -74,6 +74,7 @@ class Category extends React.Component {
       searchrefundEndTime: "", // 搜索- 申请退款结束时间
       searchorderFrom: "", //搜索 - 订单来源
       searchName: "", // 搜索 - 状态
+      searchMainOrderId:'',//搜索 - 主订单号
       searchorderNo: "", //搜索 - 订单号
       searchUserName: "", //搜索 - 用户id
       searchActivity: "", //搜索 - 活动方式
@@ -274,8 +275,15 @@ class Category extends React.Component {
     }
     return `${s}${c}${q}${x}`;
   }
+  
+  //搜索 - 主订单号
+  searchMainOrderIdChange(e) {
+    this.setState({
+      searchMainOrderId: e.target.value
+    });
+  }
 
-  //搜索 - 订单号
+  //搜索 - 子订单号
   searchOrderNoChange(e) {
     this.setState({
       searchorderNo: e.target.value
@@ -406,6 +414,12 @@ class Category extends React.Component {
       searchUserName: ""
     });
   }
+  
+  emitEmpty3() {
+    this.setState({
+      searchMainOrderId: ""
+    });
+  }
 
   emitEmpty5() {
     this.setState({
@@ -428,7 +442,7 @@ class Category extends React.Component {
     this.onExportData(this.state.pageNum, this.state.pageSize);
   }
 
-  // 导出订单对账列表数据
+  // 导出退款审核列表数据
   onExportData(pageNum, pageSize) {
     const params = {
       pageNum,
@@ -440,12 +454,12 @@ class Category extends React.Component {
       orderNo: this.state.searchorderNo.trim(),
       minPrice: this.state.searchMinPrice,
       maxPrice: this.state.searchMaxPrice,
-      refundBeginTime: this.state.searchrefundBeginTime
-        ? `${tools.dateToStrD(this.state.searchrefundBeginTime._d)} 00:00:00`
-        : "",
-      refundEndTime: this.state.searchrefundEndTime
-        ? `${tools.dateToStrD(this.state.searchrefundEndTime._d)} 23:59:59`
-        : ""
+      minAuditTime: this.state.searchrefundBeginTime
+        ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)}`
+        : "", //申请退款时间 - 开始
+      maxAuditTime: this.state.searchrefundEndTime
+        ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)}`
+        : "" //申请退款时间 - 结束
     };
     let form = document.getElementById("download-form");
     if (!form) {
@@ -486,18 +500,18 @@ class Category extends React.Component {
     }
 
     const newElement5 = document.createElement("input");
-    if (params.refundBeginTime) {
-      newElement5.setAttribute("name", "refundBeginTime");
+    if (params.minAuditTime) {
+      newElement5.setAttribute("name", "minAuditTime");
       newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.refundBeginTime);
+      newElement5.setAttribute("value", params.minAuditTime);
       form.appendChild(newElement5);
     }
 
     const newElement6 = document.createElement("input");
-    if (params.refundEndTime) {
-      newElement6.setAttribute("name", "refundEndTime");
+    if (params.maxAuditTime) {
+      newElement6.setAttribute("name", "maxAuditTime");
       newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.refundEndTime);
+      newElement6.setAttribute("value", params.maxAuditTime);
       form.appendChild(newElement6);
     }
 
@@ -778,10 +792,16 @@ class Category extends React.Component {
   makeColumns() {
     const columns = [
       {
-        title: "订单号",
+        title:'主订单号',
+        dataIndex:'mainOrderId',
+        key:'mainOrderId',
+        fixed: "left",
+        width:150
+      },
+      {
+        title: "子订单号",
         dataIndex: "orderNo",
         key: "orderNo",
-        fixed: "left",
         width: 150
       },
       {
@@ -972,7 +992,8 @@ class Category extends React.Component {
         refundStatus: item.refundStatus,
         refundId: item.id,
         selectedKeys: item.selectedKeys,
-        refundDetail: item.refundDetail || ""
+        refundDetail: item.refundDetail || "",
+        mainOrderId:item.orders ? item.orderId.mainOrderId : '',
       };
     });
   }
@@ -996,11 +1017,15 @@ class Category extends React.Component {
     const { searchUserName } = this.state;
     const { searchMinPrice } = this.state;
     const { searchMaxPrice } = this.state;
+    const { searchMainOrderId } = this.state;
     const suffix = searchorderNo ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty()} />
     ) : null;
     const suffix2 = searchUserName ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty1()} />
+    ) : null;
+    const suffix4 = searchMainOrderId ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty3()} />
     ) : null;
     const suffix8 = searchMinPrice ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty5()} />
@@ -1013,6 +1038,15 @@ class Category extends React.Component {
       <div className="page-refundaudit">
         <div className="system-search">
           <ul className="search-ul more-ul">
+            <li>
+              <span>主订单号</span>
+              <Input
+                style={{ width: "172px" }}
+                onChange={e => this.searchMainOrderIdChange(e)}
+                suffix={suffix4}
+                value={searchMainOrderId}
+              />
+            </li>
             <li>
               <span>订单号查询</span>
               <Input

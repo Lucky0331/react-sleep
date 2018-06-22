@@ -841,6 +841,7 @@ class Category extends React.Component {
                 onChange={v => this.onSearchAddress(v)}
                 options={this.state.citys}
                 loadData={e => this.getAllCitySon(e)}
+                changeOnSelect
               />
             </li>
             <li>

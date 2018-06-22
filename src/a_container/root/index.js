@@ -18,6 +18,7 @@ import NewPhysical from "../NewPhysical"; // 体检管理模块
 import NewServiceStation from "../NewServiceStation"; // 服务站模块
 import NewMoney from "../NewMoney"; //资金管理模块
 import NewInvoice from "../NewInvoice"; //发票管理模块
+import NewStatistics from "../NewStatistics"; //数据统计管理模块
 import NewContent from "../NewContent"; //内容管理模块
 import NewUser from "../NewUser"; //用户管理
 
@@ -149,6 +150,10 @@ class RootContainer extends React.Component {
                       <Route
                         path="/content"
                         render={props => this.onEnter(NewContent, props)}
+                      />
+                      <Route
+                        path="/statistics"
+                        render={props => this.onEnter(NewStatistics, props)}
                       />
                       <Route
                         path="/usermanage"

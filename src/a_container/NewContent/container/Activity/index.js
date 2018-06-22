@@ -208,8 +208,8 @@ class Category extends React.Component {
     const temp = uri.split("/");
     const fileName = temp.splice(-1, 1);
     const params = {
-      path: temp.join("/"),
-      fileName
+      path: `${temp.join("/")}${fileName}`,
+      // fileName
     };
     console.log("删除后的是啥？", temp.join("/"), fileName);
     this.props.actions.deleteImage(params);
@@ -595,7 +595,6 @@ class Category extends React.Component {
         productName8:item.recommendProductList && item.recommendProductList[7] ? item.recommendProductList[7].productId : '',
         productName9:item.recommendProductList && item.recommendProductList[8]? item.recommendProductList[8].productId : '',
         productName10:item.recommendProductList && item.recommendProductList[9] ? item.recommendProductList[9].productId : '',
-  
       };
     });
   }

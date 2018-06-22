@@ -84,6 +84,7 @@ class Manager extends React.Component {
       extensionShow: false, //推广客户详情是否显示
       upLoading: false, // 是否正在修改用户中
       roleTreeShow: false, // 角色树是否显示
+      UpdateModalShow: false,//修改的模态框出现
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
@@ -267,6 +268,71 @@ class Manager extends React.Component {
       }
     });
   }
+  
+  // 关闭模态框
+  onAddNewClose() {
+    this.setState({
+      addnewModalShow: false,
+      UpdateModalShow:false
+    });
+  }
+  
+  //修改某一条数据模态框出现
+  onUpdateClick(record) {
+    const me = this;
+    const { form } = me.props;
+    console.log("是什么：", record);
+    form.setFieldsValue({
+      upAddCount: record.ticketNo,
+    });
+    console.log("是什么：", record);
+    me.setState({
+      nowData: record,
+      addOrUp: "up",
+      UpdateModalShow: true,
+    });
+  }
+  
+  // 确定修改某一条数据
+  onUpdateOk() {
+    const me = this;
+    const { form } = me.props;
+    console.log('是什么是：',me)
+    form.validateFields(
+      ["UpMobile"],
+      (err, values) => {
+        if (err) {
+          return;
+        }
+        console.log("values:", values);
+        me.setState({
+          upLoading: true
+        });
+        const params = {
+          ticketId: me.state.nowData.id,
+        };
+        this.props.actions
+          .alertTicket(params)
+          .then(res => {
+            if (res.status === "0") {
+              me.setState({
+                addnewLoading: false
+              });
+              message.success(res.message || "修改成功");
+              this.onGetData(this.state.pageNum, this.state.pageSize);
+              this.onAddNewClose();
+            } else {
+              message.error(res.message || "修改失败，请重试");
+            }
+          })
+          .catch(() => {
+            me.setState({
+              upLoading: false
+            });
+          });
+      }
+    );
+  }
 
   // 搜索
   onSearch() {
@@ -408,10 +474,11 @@ class Manager extends React.Component {
     }
   
     this.props.actions.ExportList(tools.clearNull(params)).then(res => {
-      if (res.status != '1') {
+      console.log('返货的是：', res);
+      if (String(res) === "[object XMLDocument]") {
+        message.error('没有数据！');
+      } else {
         form.submit();
-      } else if(res.status === "1"){
-        alert('当月无用户创建记录！')
       }
     });
   
@@ -488,9 +555,9 @@ class Manager extends React.Component {
       userType: d.userType,
       // queryModalShow: true
     });
-      this.props.actions.userinfoRecord(d);
-      this.props.history.push("../NewUser/userinfoRecord");
-      console.log("跳转页面的record带了哪些参数：", d);
+    this.props.actions.userinfoRecord(d);
+    this.props.history.push("../NewUser/userinfoRecord");
+    console.log("跳转页面的record带了哪些参数：", d);
   }
 
   // 查看详情模态框关闭
@@ -703,12 +770,23 @@ class Manager extends React.Component {
         title: "操作",
         key: "control",
         fixed: "right",
-        width: 60,
+        width: 100,
         render: (text, record) => {
           let controls = [];
           controls.push(
             <span
               key="0"
+              className="control-btn blue"
+              onClick={() => this.onUpdateClick(record)}
+            >
+            <Tooltip placement="top" title="修改">
+              <Icon type="edit" />
+            </Tooltip>
+          </span>
+          );
+          controls.push(
+            <span
+              key="1"
               className="control-btn green"
               onClick={() => this.onQueryClick(record)}
             >
@@ -812,36 +890,7 @@ class Manager extends React.Component {
       };
     });
   }
-
-  // 添加区域被改变  选择省市区后查询对应的服务站
-  onAddCascader(e) {
-    console.log("是什么:", e);
-    const me = this;
-    const { form } = me.props;
-    form.resetFields(["addnewServiceStation", "upServiceStation"]);
-    this.props.actions
-      .findStationByArea({
-        province: e[0],
-        city: e[1],
-        region: e[2],
-        pageNum: 0,
-        pageSize: 9999
-      })
-      .then(res => {
-        if (res.status === "0") {
-          this.setState({
-            stations: res.data.result
-          });
-        }
-      });
-  }
-
-  // 添加组织被改变
-  onAddOrgCodeChange(e) {
-    const me = this;
-    const { form } = me.props;
-    form.resetFields(["addnewServiceStation"]);
-  }
+  
   render() {
     const me = this;
     const { form } = me.props;
@@ -856,9 +905,6 @@ class Manager extends React.Component {
         sm: { span: 16 }
       }
     };
-    const addOrgCodeShow = getFieldValue("addnewOrgCode") === 18;
-    const upOrgCodeShow = getFieldValue("upOrgCode") === 18;
-    // console.log('code是什么：', addOrgCodeShow);
 
     const { searchEId } = this.state;
     const { searchNickName } = this.state;
@@ -1057,168 +1103,26 @@ class Manager extends React.Component {
             }}
           />
         </div>
-        {/* 查看用户详情模态框 */}
+        {/* 修改模态框 */}
         <Modal
-          title="用户信息详情"
-          visible={this.state.queryModalShow}
-          onOk={() => this.onQueryModalClose()}
-          onCancel={() => this.onQueryModalClose()}
-          wrapClassName={"list"}
+          title="解绑手机号"
+          visible={this.state.UpdateModalShow}
+          onOk={() => this.onUpdateOk()}
+          onCancel={() => this.onAddNewClose()}
+          confirmLoading={this.state.addnewLoading}
         >
           <Form>
-            <FormItem label="用户id" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.eId : ""}
-            </FormItem>
-            <FormItem label="用户昵称" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.nickName : ""}
-            </FormItem>
-            <FormItem label="用户姓名" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.realName : ""}
-            </FormItem>
-            <FormItem label="用户手机号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.mobile : ""}
-            </FormItem>
-            <FormItem label="用户身份" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getListByModelId(this.state.nowData.userType)
-                : ""}
-            </FormItem>
-            <FormItem label="创建时间" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.createTime : ""}
-            </FormItem>
-            <FormItem label="绑定上级关系时间" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.bindTime : ""}
-            </FormItem>
-            <FormItem label="健康大使id" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.id : ""}
-            </FormItem>
-            <FormItem label="健康大使昵称" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.nickName2 : ""}
-            </FormItem>
-            <FormItem label="健康大使姓名" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.realName2 : ""}
-            </FormItem>
-            <FormItem label="健康大使手机号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.mobile2 : ""}
-            </FormItem>
-            <FormItem label="健康大使身份" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getListByModelId(this.state.nowData.userType2)
-                : ""}
-            </FormItem>
-            <FormItem
-              label="经销商id"
-              {...formItemLayout}
-              className={
-                this.state.userType == 0 ||
-                this.state.userType == 1 ||
-                this.state.userType == 2 ||
-                this.state.userType == 4 ||
-                this.state.userType == 5 ||
-                this.state.userType == 6
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.id2 : ""}
-            </FormItem>
-            <FormItem
-              label="经销商昵称"
-              {...formItemLayout}
-              className={
-                this.state.userType == 0 ||
-                this.state.userType == 1 ||
-                this.state.userType == 2 ||
-                this.state.userType == 4 ||
-                this.state.userType == 5 ||
-                this.state.userType == 6
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.nickName3 : ""}
-            </FormItem>
-            <FormItem
-              label="经销商姓名"
-              {...formItemLayout}
-              className={
-                this.state.userType == 0 ||
-                this.state.userType == 1 ||
-                this.state.userType == 2 ||
-                this.state.userType == 4 ||
-                this.state.userType == 5 ||
-                this.state.userType == 6
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.realName3 : ""}
-            </FormItem>
-            <FormItem
-              label="经销商手机号"
-              {...formItemLayout}
-              className={
-                this.state.userType == 0 ||
-                this.state.userType == 1 ||
-                this.state.userType == 2 ||
-                this.state.userType == 4 ||
-                this.state.userType == 5 ||
-                this.state.userType == 6
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.mobile3 : ""}
-            </FormItem>
-            <FormItem
-              label="经销商身份"
-              {...formItemLayout}
-              className={
-                this.state.userType == 0 ||
-                this.state.userType == 1 ||
-                this.state.userType == 2 ||
-                this.state.userType == 4 ||
-                this.state.userType == 5 ||
-                this.state.userType == 6
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData
-                ? this.getListByModelId(this.state.nowData.userType3)
-                : ""}
-            </FormItem>
-            <FormItem
-              label="经销商账户"
-              {...formItemLayout}
-              className={
-                this.state.userType == 0 ||
-                this.state.userType == 1 ||
-                this.state.userType == 2 ||
-                this.state.userType == 4 ||
-                this.state.userType == 5 ||
-                this.state.userType == 6
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.userName3 : ""}
-            </FormItem>
-            <FormItem
-              label="服务站地区（经销商）"
-              {...formItemLayout}
-              className={
-                this.state.userType == 0 ||
-                this.state.userType == 1 ||
-                this.state.userType == 2 ||
-                this.state.userType == 4 ||
-                this.state.userType == 5 ||
-                this.state.userType == 6
-                  ? "hide"
-                  : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.station : ""}
+            <FormItem label="修改手机号" {...formItemLayout}>
+              {!! this.state.nowData ? this.state.nowData.mobile : ''}
+              {getFieldDecorator("UpMobile", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请修改手机号" }]
+              })(
+                <Input
+                  style={{ width: "100%" }}
+                  placeholder="请修改手机号"
+                />
+              )}
             </FormItem>
           </Form>
         </Modal>

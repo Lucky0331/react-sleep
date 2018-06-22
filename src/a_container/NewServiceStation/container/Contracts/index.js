@@ -109,6 +109,7 @@ class Category extends React.Component {
       citys: [], // 符合Cascader组件的城市数据
       fileList: [], // 服务站图片已上传的列表
       fileListLan: [], // 自定义栏目图片已上传的列表
+      fileListDetail:[],//服务站封面图上传
       id:'',// 栏目id
     };
   }
@@ -645,6 +646,11 @@ class Category extends React.Component {
           .split(",")
           .map((item, index) => ({ uid: index, url: item, status: "done" }))
         : [], // 服务站图上传的列表
+        fileListDetail: record.coverImage
+        ? record.coverImage
+          .split(",")
+          .map((item, index) => ({ uid: index, url: item, status: "done" }))
+        : [], // 服务站图封面图上传
     });
   }
   
@@ -675,6 +681,7 @@ class Category extends React.Component {
           recommended: values.addnewRecommended ? 0 : 1,  // 是否推荐
           sort:values.addnewSorts,//排序位置
           imgs: this.state.fileList.map(item => item.url).join(","), //服务站图片
+          coverImage:this.state.fileListDetail.map(item => item.url).join(","),//服务站封面图片上传
           establishedTime: `${tools.dateToStr(values.addnewEstablishedTime.utc()._d)}`, //成立时间
           storeArea: values.addnewStoreArea,//门店规模
           employeeNum: values.addnewEmployeeNum,//员工数量
@@ -873,8 +880,83 @@ class Category extends React.Component {
     const temp = uri.split("/");
     const fileName = temp.splice(-1, 1);
     const params = {
-      path: temp.join("/"),
-      fileName
+      path: `${temp.join("/")}${fileName}`,
+      // fileName
+    };
+    console.log("删除后的是啥？", temp.join("/"), fileName);
+    this.props.actions.deleteImage(params);
+  }
+  
+  // 服务站封面图片 - 上传中、上传成功、上传失败的回调
+  onUpLoadCoverChange(obj) {
+    console.log("图片上传：", obj);
+    if (obj.file.status === "done") {
+      // 上传成功后调用,将新的地址加进原list
+      if (obj.file.response.data) {
+        const list = _.cloneDeep(this.state.fileListDetail);
+        const t = list.find(item => item.uid === obj.file.uid);
+        t.url = obj.file.response.data;
+        this.setState({
+          fileListDetail: list,
+          fileLoading: false
+        });
+      } else {
+        const list = _.cloneDeep(this.state.fileListDetail);
+        this.setState({
+          fileListDetail: list.filter(item => item.uid !== obj.file.uid),
+          fileLoading: false
+        });
+        message.error("图片上传失败");
+      }
+    } else if (obj.file.status === "uploading") {
+      this.setState({
+        fileLoading: true
+      });
+    } else if (obj.file.status === "error") {
+      const list = _.cloneDeep(this.state.fileListDetail);
+      this.setState({
+        fileListDetail: list.filter(item => item.uid !== obj.file.uid),
+        fileLoading: false
+      });
+      message.error("图片上传失败");
+    }
+  }
+  
+  // 服务站封面图片 - 上传前
+  onUploadCoverBefore(f, fl) {
+    console.log("上传前：", f, fl);
+    if (
+      ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
+    ) {
+      message.error("只能上传jpg、jpeg、png、bmp、gif格式的图片");
+      return false;
+    } else {
+      const newList = _.cloneDeep(this.state.fileListDetail);
+      newList.push(f);
+      this.setState({
+        fileListDetail: newList
+      });
+      return true;
+    }
+  }
+  
+  // 服务站封面图片 - 删除一个图片
+  onUpLoadCoverRemove(f) {
+    console.log("删除；", f);
+    this.deleteImg(f.url);
+    const list = _.cloneDeep(this.state.fileListDetail);
+    this.setState({
+      fileListDetail: list.filter(item => item.uid !== f.uid)
+    });
+  }
+  
+  // 真正从服务端删除服务站封面图片
+  deleteImg(uri) {
+    const temp = uri.split("/");
+    const fileName = temp.splice(-1, 1);
+    const params = {
+      path: `${temp.join("/")}${fileName}`,
+      // fileName
     };
     console.log("删除后的是啥？", temp.join("/"), fileName);
     this.props.actions.deleteImage(params);
@@ -883,7 +965,7 @@ class Category extends React.Component {
   // 列表封面图片 - 上传前
   onUploadDetailBefore(f) {
     if (
-        ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
+      ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
     ) {
       message.error("只能上传jpg、jpeg、png、bmp、gif格式的图片");
       return false;
@@ -1223,6 +1305,7 @@ class Category extends React.Component {
         createTime: item.createTime ? item.createTime :'',
         productType: item.productType ? item.productType : "",
         person:item.person,
+        coverImage:item.coverImage,
         imgs:item.imgs, //服务站图
       };
     });
@@ -1878,6 +1961,25 @@ class Category extends React.Component {
                   onRemove={f => this.onUpLoadRemove(f)}
                 >
                   {this.state.fileList.length >= 3 ? null : (
+                    <div>
+                      <Icon type="plus" />
+                      <div className="ant-upload-text">选择文件</div>
+                    </div>
+                  )}
+                </Upload>
+              </FormItem>
+              <FormItem label="服务站封面图片上传" {...formItemLayout3} labelCol={{ span: 10 }} wrapperCol={{ span: 20 }}>
+                <Upload
+                  name="pImg"
+                  action={`${Config.baseURL}/manager/station/uploadImage`}
+                  listType="picture-card"
+                  withCredentials={true}
+                  fileList={this.state.fileListDetail}
+                  beforeUpload={(f, fl) => this.onUploadCoverBefore(f, fl)}
+                  onChange={f => this.onUpLoadCoverChange(f)}
+                  onRemove={f => this.onUpLoadCoverRemove(f)}
+                >
+                  {this.state.fileListDetail.length >= 1 ? null : (
                     <div>
                       <Icon type="plus" />
                       <div className="ant-upload-text">选择文件</div>

@@ -44,7 +44,8 @@ import {
   onOk,
   refundList,
   refundAuditEgis,
-  AuditLog
+  AuditLog,
+  RefundExportList
 } from "../../../../a_action/shop-action";
 
 // ==================
@@ -75,7 +76,8 @@ class Category extends React.Component {
       searchmchOrderIdChange: "", // 流水号查询
       searchConditions: "", //搜索 - 退款状态
       searchConditionsType: "", //搜索 - 订单状态
-      searchorderNo: "", //搜索 - 订单号
+      searchorderNo: "", //搜索 - 子订单号
+      searchMainOrderId:'',//搜索 - 主订单号
       searchUserName: "", //搜索 - 用户id
       searchActivity: "", //搜索 - 活动方式
       searchFlagChange:"",   //搜索 - 操作方式
@@ -122,6 +124,7 @@ class Category extends React.Component {
       userId: this.state.searchUserName.trim(),
       productType: this.state.searchProductType,
       orderNo: this.state.searchorderNo.trim(),
+      mainOrderId:this.state.searchMainOrderId.trim(),
       minPrice: this.state.searchMinPrice,
       maxPrice: this.state.searchMaxPrice,
       mchOrderId: this.state.searchmchOrderIdChange.trim(),
@@ -312,12 +315,19 @@ class Category extends React.Component {
     });
   }
 
-  //搜索 - 订单号
+  //搜索 - 子订单号
   searchOrderNoChange(e) {
     this.setState({
       searchorderNo: e.target.value
     });
     console.log("e是什么；", e.target.value);
+  }
+  
+  //搜索 - 主订单号
+  searchMainOrderIdChange(e) {
+    this.setState({
+      searchMainOrderId: e.target.value
+    });
   }
 
   //搜索 - 用户账号
@@ -467,6 +477,12 @@ class Category extends React.Component {
       searchmchOrderIdChange: ""
     });
   }
+  
+  emitEmpty3() {
+    this.setState({
+      searchMainOrderId: ""
+    });
+  }
 
   emitEmpty5() {
     this.setState({
@@ -506,7 +522,7 @@ class Category extends React.Component {
       pageNum,
       pageSize,
       id: this.state.searchId,
-      conditions: this.state.searchConditions, //退款状态
+      flag: this.state.searchConditions, //退款状态
       userId: this.state.searchUserName,
       productType: this.state.searchProductType,
       orderNo: this.state.searchorderNo.trim(),
@@ -517,16 +533,16 @@ class Category extends React.Component {
       activityType: this.state.searchActivity,
       refundBeginTime: this.state.searchrefundBeginTime
         ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)} `
-        : "",
+        : "",  //退款申请时间-开始
       refundEndTime: this.state.searchrefundEndTime
         ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)} `
-        : "",
+        : "",  //退款申请时间-结束
       beginTime: this.state.searchTime
         ? `${tools.dateToStr(this.state.searchTime.utc()._d)}`
-        : "",
+        : "", //退款到账时间 - 开始
       endTime: this.state.searchTime2
         ? `${tools.dateToStr(this.state.searchTime2.utc()._d)} `
-        : ""
+        : "", // 退款到账时间 - 结束
     };
     let form = document.getElementById("download-form");
     if (!form) {
@@ -534,7 +550,7 @@ class Category extends React.Component {
       document.body.appendChild(form);
     }
     else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/order/refundExport`;
+    form.action = `${Config.baseURL}/manager/export/refund/record`;
     form.method = "post";
     console.log("FORM:", params);
 
@@ -551,10 +567,10 @@ class Category extends React.Component {
     form.appendChild(newElement2);
 
     const newElement3 = document.createElement("input");
-    if (params.conditions) {
-      newElement3.setAttribute("name", "conditions");
+    if (params.flag) {
+      newElement3.setAttribute("name", "flag");
       newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.conditions);
+      newElement3.setAttribute("value", params.flag);
       form.appendChild(newElement3);
     }
 
@@ -653,8 +669,16 @@ class Category extends React.Component {
       newElement15.setAttribute("value", params.endTime);
       form.appendChild(newElement15);
     }
+  
+    this.props.actions.RefundExportList(tools.clearNull(params)).then(res => {
+      if (String(res) === "[object XMLDocument]") {
+        message.error('没有数据！');
+      } else {
+        form.submit();
+      }
+    });
 
-    form.submit();
+    // form.submit();
   }
 
   // 查询某一条数据的详情
@@ -720,7 +744,12 @@ class Category extends React.Component {
         width: 50
       },
       {
-        title: "订单号",
+        title:'主订单号',
+        dataIndex:'mainOrderId',
+        key:'mainOrderId'
+      },
+      {
+        title: "子订单号",
         dataIndex: "orderNo",
         key: "orderNo"
       },
@@ -959,6 +988,7 @@ class Category extends React.Component {
     const { searchmchOrderIdChange } = this.state;
     const { searchMinPrice } = this.state;
     const { searchMaxPrice } = this.state;
+    const { searchMainOrderId } = this.state;
     const suffix = searchorderNo ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty()} />
     ) : null;
@@ -967,6 +997,9 @@ class Category extends React.Component {
     ) : null;
     const suffix3 = searchmchOrderIdChange ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty2()} />
+    ) : null;
+    const suffix4 = searchMainOrderId ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty3()} />
     ) : null;
     const suffix8 = searchMinPrice ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty5()} />
@@ -984,12 +1017,21 @@ class Category extends React.Component {
                   <div className="system-table">
                     <ul className="search-ul more-ul">
                       <li>
-                        <span>订单号查询</span>
+                        <span>主订单号</span>
                         <Input
                             style={{ width: "172px" }}
-                            onChange={e => this.searchOrderNoChange(e)}
-                            suffix={suffix}
-                            value={searchorderNo}
+                            onChange={e => this.searchMainOrderIdChange(e)}
+                            suffix={suffix4}
+                            value={searchMainOrderId}
+                        />
+                      </li>
+                      <li>
+                        <span>子订单号</span>
+                        <Input
+                          style={{ width: "172px" }}
+                          onChange={e => this.searchOrderNoChange(e)}
+                          suffix={suffix}
+                          value={searchorderNo}
                         />
                       </li>
                       <li>
@@ -1189,7 +1231,10 @@ class Category extends React.Component {
                     wrapClassName={"list"}
                 >
                   <Form>
-                    <FormItem label="订单号" {...formItemLayout}>
+                    <FormItem label="主订单号" {...formItemLayout}>
+                      {/*{!!this.state.nowData ? this.state.nowData.orderNo : ""}*/}
+                    </FormItem>
+                    <FormItem label="子订单号" {...formItemLayout}>
                         {!!this.state.nowData ? this.state.nowData.orderNo : ""}
                     </FormItem>
                     <FormItem label="退款状态" {...formItemLayout}>
@@ -1376,7 +1421,7 @@ export default connect(
   }),
   dispatch => ({
     actions: bindActionCreators(
-      { findProductTypeByWhere, onChange, onOk, refundList, refundAuditEgis ,AuditLog},
+      { findProductTypeByWhere, onChange, onOk, refundList, refundAuditEgis ,AuditLog,RefundExportList},
       dispatch
     )
   })
