@@ -76,7 +76,7 @@ class Menu extends React.Component {
       upLoading: false, // 修改 - 是否loading中
       treeFatherValue: null, // 修改 - 父级树选择的父级信息
       addnewModalShow: false, // 添加 - 模态框 是否出现
-      searchMenuName: "", // 查询 - 菜单名
+      searchOrderNo: "", // 查询 - 分类名称
       searchConditions: undefined, // 查询 - 状态
       fileList: [], // 缩略图已上传的列表
       fileLoading: false, // 缩略图片正在上传
@@ -99,7 +99,8 @@ class Menu extends React.Component {
   // onGetData 条件查询 本页面TABLE用此数据
   onGetData(parentId = 0) {
     const params = {
-      typeId: parentId
+      typeId: parentId,
+      name:this.state.searchOrderNo
     };
     this.props.actions.Columnlist(params).then(res => {
       if (res.status === "0") {
@@ -133,7 +134,7 @@ class Menu extends React.Component {
     this.props.actions.delateColumnlist({ id: id }).then(res => {
       if (res.status === "0") {
         message.success("删除成功");
-        // this.getAllMenus();
+        this.getAllMenus();
         this.onGetData();
       } else {
         message.error(res.message || "删除失败");
@@ -231,12 +232,12 @@ class Menu extends React.Component {
         this.setState({ addLoading: true });
         if (this.state.addOrUp === "add") {
           me.props.actions
-            .addColumnlist(tools.clearNull(params))
+            .addColumnlist(tools.clearNull(params)) //添加
             .then(res => {
             if (res.status === "0") {
               message.success("添加成功");
-                // this.getAllMenus(); // 重新获取菜单
-                // this.onGetData();
+                this.getAllMenus(); // 重新获取菜单
+                this.onGetData();
                 this.onAddNewClose();
               } else {
                 message.error("添加失败");
@@ -249,12 +250,13 @@ class Menu extends React.Component {
           } else {
           params.id = this.state.nowData.id;
           me.props.actions
-            .updateColumnlist(params)
-            .then(res => {// 修改
+            .updateColumnlist(params)  // 修改
+            .then(res => {
               me.setState({
                 addnewLoading: false
               });
-              this.onGetData(this.state.pageNum, this.state.pageSize);
+              this.getAllMenus(); // 重新获取菜单
+              this.onGetData();
               this.onAddNewClose();
             })
             .catch(() => {
@@ -265,6 +267,17 @@ class Menu extends React.Component {
         }
       }
     );
+  }
+  //搜索 - 按钮
+  onSearch(){
+    this.onGetData(1,this.state.pageSize)
+  }
+  
+  //搜索 - 分类名称
+  searchOrderNoChange(e){
+    this.setState({
+      searchOrderNo:e.target.value
+    })
   }
 
   // 新增 - 取消
@@ -315,30 +328,9 @@ class Menu extends React.Component {
     });
   }
 
-  // 选择父级tree出现
-  onFatherShow() {
-    this.setState({
-      fatherTreeShow: true
-    });
-  }
-
   // TABLE页码改变
   onTableChange(page, pageSize) {
     // this.onGetData(page, pageSize);
-  }
-  // 父级tree选择确定
-  onTreeOk(obj) {
-    console.log("父级选择的是什么：", obj);
-    this.setState({
-      treeFatherValue: obj,
-      fatherTreeShow: false
-    });
-  }
-  // 父级tree选择取消
-  onTreeClose() {
-    this.setState({
-      fatherTreeShow: false
-    });
   }
 
   // 工具函数 - 根据父ID得到父名称
@@ -497,13 +489,6 @@ class Menu extends React.Component {
           <div className="r system-table">
             <div className="menu-search">
               <ul className="search-func more-ul search-ul">
-                <li>
-                  <span>分类名称</span>
-                  <Input
-                    style={{ width: "172px",marginLeft:"5px" }}
-                    onChange={e => this.searchOrderNoChange(e)}
-                  />
-                </li>
                 <li>
                   <Button type="primary" onClick={() => this.onAddNewShow()}>
                     <Icon type="plus-circle-o" />添加分类

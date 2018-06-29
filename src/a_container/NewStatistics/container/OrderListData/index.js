@@ -78,13 +78,14 @@ class Category extends React.Component {
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
       searchAddress: [], // 搜索 - 地址
-      searchrefundBeginTime:moment(
-        (() => {
-          const d = new Date();
-          d.setDate(d.getDate() - 6);
-          return d;
-        })()
-      ),//搜索 - 开始时间
+      // searchrefundBeginTime:moment(
+      //   (() => {
+      //     const d = new Date();
+      //     d.setDate(d.getDate() - 6);
+      //     return d;
+      //   })()
+      // ),//搜索 - 开始时间
+      searchrefundBeginTime:'',//搜索 - 开始时间
       searchrefundEndTime:moment(
         (() => {
           const d = new Date();
@@ -95,6 +96,9 @@ class Category extends React.Component {
       citys: [], // 符合Cascader组件的城市数据
       usedTotalNum:"",//体检预约总数
       reverseTotalNum:"",//公众号预约总数
+      searchRadio: 1 ,//时间区间 - 默认选择
+      searchRadioFour: 4 ,//区域选择 - 默认选择
+      tabKey:1,//tabKey值
     };
     this.echartsDom = null; // Echarts实例
   }
@@ -198,24 +202,41 @@ class Category extends React.Component {
     setTimeout(()=>{
       this.echartsDom1 && this.echartsDom1.resize();
       this.echartsDom2 && this.echartsDom2.resize();
+    });
+    //把key值存起来 然后导出的时候拿到对应的tab值
+    this.setState({
+      tabKey:e
     })
   }
 
   // 查询当前页面所需列表数据 - 订单概况
   onGetData(pageNum, pageSize) {
+    let minTime = null;
+    let maxTime = null;
+    const now = new Date();
+    const r = this.state.searchRadio;
+    if(r !== 0) {
+      minTime = tools.dateToStr(now);
+    }
+    if(r === 1) { // 7天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 7 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 2) { // 30天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 3) { // 自定义的时间
+      minTime = this.state.searchrefundBeginTime ? tools.dateToStr(this.state.searchrefundBeginTime._d) : null;
+      maxTime = this.state.searchrefundEndTime ? tools.dateToStr(this.state.searchrefundEndTime._d) : null;
+    }
     const params = {
       pageNum,
       pageSize,
+      minTime,
+      maxTime,
       type:1,
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2],
-      minTime: this.state.searchrefundBeginTime
-        ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)}`
-        : "",
-      maxTime: this.state.searchrefundEndTime
-        ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)} `
-        : ""
     };
     this.props.actions.orderCountList(tools.clearNull(params)).then(res => {
       console.log("请求到东西了么:", res.data.detail);
@@ -235,25 +256,38 @@ class Category extends React.Component {
   
   // 查询当前页面所需列表数据 - 分销订单概况
   onGetData2(pageNum, pageSize) {
+    let minTime = null;
+    let maxTime = null;
+    const now = new Date();
+    const r = this.state.searchRadio;
+    if(r !== 0) {
+      minTime = tools.dateToStr(now);
+    }
+    if(r === 1) { // 7天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 7 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 2) { // 30天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 3) { // 自定义的时间
+      minTime = this.state.searchrefundBeginTime ? tools.dateToStr(this.state.searchrefundBeginTime._d) : null;
+      maxTime = this.state.searchrefundEndTime ? tools.dateToStr(this.state.searchrefundEndTime._d) : null;
+    }
     const params = {
       pageNum,
       pageSize,
+      minTime,
+      maxTime,
       type:2,
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2],
-      minTime: this.state.searchrefundBeginTime
-        ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)}`
-        : "",
-      maxTime: this.state.searchrefundEndTime
-        ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)} `
-        : ""
     };
     this.props.actions.orderCountList(tools.clearNull(params)).then(res => {
-      console.log("请求到东西了么:", res.data2);
+      console.log("请求到东西了么:", res.data.detail);
       if (res.status === "0") {
         this.setState({
-          data2: [res.data] || "",
+          data2: res.data.detail || [],
           dataNum2: [res.data] || "",
           pageNum,
           pageSize,
@@ -305,10 +339,17 @@ class Category extends React.Component {
     });
   }
   
-  // radio改变时触发
+  //时间区间 - radio改变时触发
   onRadioChange(e) {
     this.setState({
       searchRadio: e.target.value,
+    });
+  }
+  
+  // 区域选择 -  radio改变时触发
+  onRadioChangeFour(e) {
+    this.setState({
+      searchRadioFour: e.target.value,
     });
   }
 
@@ -384,7 +425,7 @@ class Category extends React.Component {
         type: "category",
         name: "x",
         splitLine: { show: true },  //是否显示X轴线条
-        data: data2.map((item)=> item.date)
+        data: data2.map((item)=> item.time)
       },
       yAxis: {
         type: "value",
@@ -418,34 +459,57 @@ class Category extends React.Component {
   
   // 搜索
   onSearch() {
-    this.onGetData(1, this.state.pageSize);
+    this.onGetData(1,this.state.pageSize);
+    this.onGetData2(1,this.state.pageSize);
   }
   
   //导出
   onExport() {
-    this.onExportData(this.state.pageNum, this.state.pageSize);
+    console.log('有告诉我tab值么：',this.state.tabKey)
+    if(this.state.tabKey == 1){
+      this.onExportData(this.state.pageNum, this.state.pageSize); //导出订单概况
+    }else{
+      this.onExportDistributionData(this.state.pageNum, this.state.pageSize); //导出分销订单概况
+    }
   }
   
   //按服务站导出
   onExportStation() {
-    this.onExportStationData(this.state.pageNum, this.state.pageSize);
+    if(this.state.tabKey == 1){
+      this.onExportStationData(this.state.pageNum, this.state.pageSize);//导出订单概况
+    }else{
+      this.onExportDistributionStationData(this.state.pageNum, this.state.pageSize);//导出分销订单概况
+    }
   }
   
-  //导出的数据字段
+  //订单概况 - 导出的数据字段
   onExportData(pageNum, pageSize) {
+    let minTime = null;
+    let maxTime = null;
+    const now = new Date();
+    const r = this.state.searchRadio;
+    if(r !== 0) {
+      minTime = tools.dateToStr(now);
+    }
+    if(r === 1) { // 7天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 7 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 2) { // 30天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 3) { // 自定义的时间
+      minTime = this.state.searchrefundBeginTime ? tools.dateToStr(this.state.searchrefundBeginTime._d) : null;
+      maxTime = this.state.searchrefundEndTime ? tools.dateToStr(this.state.searchrefundEndTime._d) : null;
+    }
     const params = {
       pageNum,
       pageSize,
+      minTime,
+      maxTime,
       type:1,
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2],
-      minTime: this.state.searchrefundBeginTime
-        ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)}`
-        : "",
-      maxTime: this.state.searchrefundEndTime
-        ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)} `
-        : ""
     };
     let form = document.getElementById("download-form");
     if (!form) {
@@ -453,7 +517,7 @@ class Category extends React.Component {
       document.body.appendChild(form);
     }
     else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/examination/statistics`;
+    form.action = `${Config.baseURL}/manager/dataCount/export/order`;
     form.method = "post";
     console.log("FORM:", params);
     
@@ -469,6 +533,18 @@ class Category extends React.Component {
     newElement2.setAttribute("value", pageSize);
     form.appendChild(newElement2);
   
+    const newElement8 = document.createElement("input");
+    newElement8.setAttribute("name", "minTime");
+    newElement8.setAttribute("type", "hidden");
+    newElement8.setAttribute("value", params.minTime);
+    form.appendChild(newElement8);
+  
+    const newElement9 = document.createElement("input");
+    newElement9.setAttribute("name", "maxTime");
+    newElement9.setAttribute("type", "hidden");
+    newElement9.setAttribute("value", params.maxTime);
+    form.appendChild(newElement9);
+    
     const newElement3 = document.createElement("input");
     newElement3.setAttribute("name", "type");
     newElement3.setAttribute("type", "hidden");
@@ -498,49 +574,37 @@ class Category extends React.Component {
       newElement6.setAttribute("value", params.region);
       form.appendChild(newElement6);
     }
-  
-    const newElement7 = document.createElement("input");
-    if (params.stationKeyWord) {
-      newElement7.setAttribute("name", "stationKeyWord");
-      newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.stationKeyWord);
-      form.appendChild(newElement7);
-    }
-  
-    const newElement8 = document.createElement("input");
-    if (params.minTime) {
-      newElement8.setAttribute("name", "minTime");
-      newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.minTime);
-      form.appendChild(newElement8);
-    }
-  
-    const newElement9 = document.createElement("input");
-    if (params.maxTime) {
-      newElement9.setAttribute("name", "maxTime");
-      newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.maxTime);
-      form.appendChild(newElement9);
-    }
-    
     form.submit();
   }
   
-  //按服务站导出
-  onExportStationData(pageNum, pageSize) {
+  //分销订单概况 - 导出的数据字段
+  onExportDistributionData(pageNum, pageSize) {
+    let minTime = null;
+    let maxTime = null;
+    const now = new Date();
+    const r = this.state.searchRadio;
+    if(r !== 0) {
+      minTime = tools.dateToStr(now);
+    }
+    if(r === 1) { // 7天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 7 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 2) { // 30天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 3) { // 自定义的时间
+      minTime = this.state.searchrefundBeginTime ? tools.dateToStr(this.state.searchrefundBeginTime._d) : null;
+      maxTime = this.state.searchrefundEndTime ? tools.dateToStr(this.state.searchrefundEndTime._d) : null;
+    }
     const params = {
       pageNum,
       pageSize,
+      minTime,
+      maxTime,
       type:2,
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2],
-      minTime: this.state.searchrefundBeginTime
-        ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)}`
-        : "",
-      maxTime: this.state.searchrefundEndTime
-        ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)} `
-        : ""
     };
     let form = document.getElementById("download-form");
     if (!form) {
@@ -548,7 +612,103 @@ class Category extends React.Component {
       document.body.appendChild(form);
     }
     else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/examination/statistics`;
+    form.action = `${Config.baseURL}/manager/dataCount/export/order`;
+    form.method = "post";
+    console.log("FORM:", params);
+    
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+    
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+    
+    const newElement3 = document.createElement("input");
+    newElement3.setAttribute("name", "type");
+    newElement3.setAttribute("type", "hidden");
+    newElement3.setAttribute("value", "2");
+    form.appendChild(newElement3);
+    
+    const newElement4 = document.createElement("input");
+    if (params.province) {
+      newElement4.setAttribute("name", "province");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.province);
+      form.appendChild(newElement4);
+    }
+    
+    const newElement5 = document.createElement("input");
+    if (params.city) {
+      newElement5.setAttribute("name", "city");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.city);
+      form.appendChild(newElement5);
+    }
+    
+    const newElement6 = document.createElement("input");
+    if (params.region) {
+      newElement6.setAttribute("name", "region");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.region);
+      form.appendChild(newElement6);
+    }
+    
+    const newElement8 = document.createElement("input");
+    newElement8.setAttribute("name", "minTime");
+    newElement8.setAttribute("type", "hidden");
+    newElement8.setAttribute("value", params.minTime);
+    form.appendChild(newElement8);
+    
+    const newElement9 = document.createElement("input");
+    newElement9.setAttribute("name", "maxTime");
+    newElement9.setAttribute("type", "hidden");
+    newElement9.setAttribute("value", params.maxTime);
+    form.appendChild(newElement9);
+    
+    form.submit();
+  }
+  
+  //按服务站导出 - 订单概况
+  onExportStationData(pageNum, pageSize) {
+    let minTime = null;
+    let maxTime = null;
+    const now = new Date();
+    const r = this.state.searchRadio;
+    if(r !== 0) {
+      minTime = tools.dateToStr(now);
+    }
+    if(r === 1) { // 7天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 7 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 2) { // 30天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 3) { // 自定义的时间
+      minTime = this.state.searchrefundBeginTime ? tools.dateToStr(this.state.searchrefundBeginTime._d) : null;
+      maxTime = this.state.searchrefundEndTime ? tools.dateToStr(this.state.searchrefundEndTime._d) : null;
+    }
+    const params = {
+      pageNum,
+      pageSize,
+      minTime,
+      maxTime,
+      type:1,
+      province: this.state.searchAddress[0],
+      city: this.state.searchAddress[1],
+      region: this.state.searchAddress[2],
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    else { form.innerHTML="";} form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/dataCount/export/station/order`;
     form.method = "post";
     console.log("FORM:", params);
   
@@ -567,7 +727,7 @@ class Category extends React.Component {
     const newElement3 = document.createElement("input");
     newElement3.setAttribute("name", "type");
     newElement3.setAttribute("type", "hidden");
-    newElement3.setAttribute("value", "2");
+    newElement3.setAttribute("value", "1");
     form.appendChild(newElement3);
   
     const newElement4 = document.createElement("input");
@@ -594,29 +754,113 @@ class Category extends React.Component {
       form.appendChild(newElement6);
     }
   
-    const newElement7 = document.createElement("input");
-    if (params.stationKeyWord) {
-      newElement7.setAttribute("name", "stationKeyWord");
-      newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.stationKeyWord);
-      form.appendChild(newElement7);
-    }
-  
     const newElement8 = document.createElement("input");
-    if (params.minTime) {
       newElement8.setAttribute("name", "minTime");
       newElement8.setAttribute("type", "hidden");
       newElement8.setAttribute("value", params.minTime);
       form.appendChild(newElement8);
-    }
   
     const newElement9 = document.createElement("input");
-    if (params.maxTime) {
       newElement9.setAttribute("name", "maxTime");
       newElement9.setAttribute("type", "hidden");
       newElement9.setAttribute("value", params.maxTime);
       form.appendChild(newElement9);
+    
+    form.submit();
+  }
+  
+  //分销订单概况 - 按服务站导出的数据字段
+  onExportDistributionStationData(pageNum, pageSize) {
+    let minTime = null;
+    let maxTime = null;
+    const now = new Date();
+    const r = this.state.searchRadio;
+    if(r !== 0) {
+      minTime = tools.dateToStr(now);
     }
+    if(r === 1) { // 7天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 7 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 2) { // 30天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 3) { // 自定义的时间
+      minTime = this.state.searchrefundBeginTime ? tools.dateToStr(this.state.searchrefundBeginTime._d) : null;
+      maxTime = this.state.searchrefundEndTime ? tools.dateToStr(this.state.searchrefundEndTime._d) : null;
+    }
+    const params = {
+      pageNum,
+      pageSize,
+      minTime,
+      maxTime,
+      type:2,
+      province: this.state.searchAddress[0],
+      city: this.state.searchAddress[1],
+      region: this.state.searchAddress[2],
+    };
+    let form = document.getElementById("download-form");
+    if (!form) {
+      form = document.createElement("form");
+      document.body.appendChild(form);
+    }
+    else { form.innerHTML="";} form.id = "download-form";
+    form.action = `${Config.baseURL}/manager/dataCount/export/station/order`;
+    form.method = "post";
+    console.log("FORM:", params);
+    
+    const newElement = document.createElement("input");
+    newElement.setAttribute("name", "pageNum");
+    newElement.setAttribute("type", "hidden");
+    newElement.setAttribute("value", pageNum);
+    form.appendChild(newElement);
+    
+    const newElement2 = document.createElement("input");
+    newElement2.setAttribute("name", "pageSize");
+    newElement2.setAttribute("type", "hidden");
+    newElement2.setAttribute("value", pageSize);
+    form.appendChild(newElement2);
+    
+    const newElement3 = document.createElement("input");
+    newElement3.setAttribute("name", "type");
+    newElement3.setAttribute("type", "hidden");
+    newElement3.setAttribute("value", "2");
+    form.appendChild(newElement3);
+    
+    const newElement4 = document.createElement("input");
+    if (params.province) {
+      newElement4.setAttribute("name", "province");
+      newElement4.setAttribute("type", "hidden");
+      newElement4.setAttribute("value", params.province);
+      form.appendChild(newElement4);
+    }
+    
+    const newElement5 = document.createElement("input");
+    if (params.city) {
+      newElement5.setAttribute("name", "city");
+      newElement5.setAttribute("type", "hidden");
+      newElement5.setAttribute("value", params.city);
+      form.appendChild(newElement5);
+    }
+    
+    const newElement6 = document.createElement("input");
+    if (params.region) {
+      newElement6.setAttribute("name", "region");
+      newElement6.setAttribute("type", "hidden");
+      newElement6.setAttribute("value", params.region);
+      form.appendChild(newElement6);
+    }
+    
+    const newElement8 = document.createElement("input");
+    newElement8.setAttribute("name", "minTime");
+    newElement8.setAttribute("type", "hidden");
+    newElement8.setAttribute("value", params.minTime);
+    form.appendChild(newElement8);
+    
+    const newElement9 = document.createElement("input");
+    newElement9.setAttribute("name", "maxTime");
+    newElement9.setAttribute("type", "hidden");
+    newElement9.setAttribute("value", params.maxTime);
+    form.appendChild(newElement9);
     
     form.submit();
   }
@@ -665,7 +909,7 @@ class Category extends React.Component {
     return columns;
   }
   
-  // 构建字段 - 未绑定用户
+  // 构建字段 - 分销订单概况
   makeColumnsUnbound() {
     const columns = [
       {
@@ -677,33 +921,33 @@ class Category extends React.Component {
       },
       {
         title: "日期",
-        dataIndex: "date",
-        key: "date",
+        dataIndex: "time",
+        key: "time",
       },
       {
         title: "分销订单总数",
-        dataIndex:'total',
-        key:'total'
+        dataIndex:'totalCount',
+        key:'totalCount'
       },
       {
         title: "净水服务",
-        dataIndex:'1',
-        key:'1'
+        dataIndex:'waterCount',
+        key:'waterCount'
       },
       {
         title: "健康食品",
-        dataIndex:'2',
-        key:'2'
+        dataIndex:'foodCount',
+        key:'foodCount'
       },
       {
         title:'生物科技',
-        dataIndex:'3',
-        key:'3'
+        dataIndex:'biologicalCount',
+        key:'biologicalCount'
       },
       {
         title:'健康评估',
-        dataIndex:'5',
-        key:'5'
+        dataIndex:'ticketCount',
+        key:'ticketCount'
       },
     ];
     return columns;
@@ -902,7 +1146,7 @@ class Category extends React.Component {
               </li>
             </ul>
           </RadioGroup>
-          <RadioGroup onChange={(e) => this.onRadioChange(e)} value={this.state.searchRadio}>
+          <RadioGroup onChange={(e) => this.onRadioChangeFour(e)} value={this.state.searchRadioFour}>
             <ul className="search-ul more-ul">
               <li style={{fontWeight:'bold',marginTop:'7px'}}><span>区域选择</span></li>
               <li style={{marginTop:'7px'}}>
@@ -911,7 +1155,7 @@ class Category extends React.Component {
               <li>
                 <Radio value={5}>区域筛选</Radio>
                 <Cascader
-                  disabled={this.state.searchRadio !== 5}
+                  disabled={this.state.searchRadioFour !== 5}
                   placeholder="请选择服务区域"
                   onChange={v => this.onSearchAddress(v)}
                   options={this.state.citys}

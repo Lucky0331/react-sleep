@@ -83,6 +83,7 @@ class Category extends React.Component {
         })()
       ),//搜索 - 结束时间
       citys: [], // 符合Cascader组件的城市数据
+      ListLoading:false,//体检统计数据多加载
       usedTotalNum:"",//体检预约总数
       reverseTotalNum:"",//公众号预约总数
     };
@@ -99,7 +100,7 @@ class Category extends React.Component {
           id: item.id,
           value: item.areaName,
           label: item.areaName,
-          isLeaf: false
+          isLeaf: false,
         }))
       });
     }
@@ -111,8 +112,10 @@ class Category extends React.Component {
       dom.setOption(me.makeOption(this.state.data), true);
       window.onresize = dom.resize;
         this.onGetData(this.state.pageNum,this.state.pageSize)
-    }, 16);
-
+    }, 10);
+    this.setState({
+      ListLoading:true,
+    })
   }
 
   componentWillReceiveProps(nextP) {
@@ -192,7 +195,10 @@ class Category extends React.Component {
       } else {
         message.error(res.message || "获取数据失败，请重试");
       }
-    });
+      this.setState({
+        ListLoading: false
+      });
+    })
   }
 
   // 获取所有的省
@@ -716,6 +722,7 @@ class Category extends React.Component {
           <Table
             columns={this.makeColumns()}
             className="my-table"
+            loading={this.state.ListLoading}
             dataSource={this.makeData(this.state.data)}
             pagination={{
               total: this.state.total,

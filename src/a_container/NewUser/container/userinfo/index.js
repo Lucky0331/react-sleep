@@ -736,6 +736,11 @@ class Manager extends React.Component {
         key: "bindTime"
       },
       {
+        title:'成为分销商时间',
+        dataIndex:'incomeTime',
+        key:'incomeTime'
+      },
+      {
         title: "健康大使id",
         dataIndex: "id",
         key: "id"
@@ -832,6 +837,7 @@ class Manager extends React.Component {
         conditions: item.conditions,
         creator: item.creator,
         description: item.description,
+        incomeTime:item.incomeTime,//成为分销商时间
         email: item.email,
         orgCode: item.orgType,
         mobile: item.mobile,

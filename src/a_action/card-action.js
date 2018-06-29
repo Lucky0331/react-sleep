@@ -110,7 +110,7 @@ export function LiveVideo(params = {}) {
 //直播发布添加
 export function addLiveType(params = {}) {
   return dispatch => {
-    return Fetchapi.newPost("/manager/liveType/save", params,'post',true)
+    return Fetchapi.newPost("/manager/live/save", params,'post',true)
       .then(msg => {
         return msg;
       })
@@ -123,7 +123,7 @@ export function addLiveType(params = {}) {
 //直播发布修改
 export function updateLiveType(params = {}) {
   return dispatch => {
-    return Fetchapi.newPost("/manager/liveType/update", params,'post',true)
+    return Fetchapi.newPost("/manager/live/save", params,'post',true)
       .then(msg => {
         return msg;
       })

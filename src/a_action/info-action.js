@@ -198,6 +198,19 @@ export function incomeCountList(params = {}) {
   };
 }
 
+//经销商信息管理 - 发放优惠卡
+export function generateFreeCard(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/mall/ticket/generateFreeCard", params,)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
 
 
 //经销商信息管理详情跳转页面所带参数

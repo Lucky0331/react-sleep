@@ -808,8 +808,8 @@ class Category extends React.Component {
             <li>
               <span>体检卡号：</span>
               <Input
-                suffix={suffix2}
-                value={searchMobile}
+                suffix={suffix1}
+                value={searchTicketNo}
                 style={{ width: "172px", marginRight: "10px" }}
                 onChange={e => this.searchTicketNoChange(e)}
               />

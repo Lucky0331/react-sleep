@@ -133,6 +133,7 @@ class Manager extends React.Component {
      this.props.detail2.province,
      this.props.detail2.city,
      this.props.detail2.region,
+     this.props.detail2.incomeTime,
     );
   }
 
@@ -325,7 +326,8 @@ class Manager extends React.Component {
     mobile3: this.props.detail2.mobile3,
     bindPhoneTime:this.props.detail2.bindPhoneTime,
     userType3: this.getListByModelId(this.props.detail2.userType3),
-    userName3: this.props.detail2.userName3
+    userName3: this.props.detail2.userName3,
+    incomeTime:this.props.detail2.incomeTime,
     };
     });
   }
@@ -447,17 +449,20 @@ class Manager extends React.Component {
                   <span>{ this.props.detail2.mobile3 }</span>
               </FormItem>
               <FormItem label="经销商账户" {...formItemLayout} style={{paddingLeft:'15px'}}
-                        className={
-                            this.props.detail2.userType == 4 ? "hide" : ""
-                        }>
-                  <span style={{marginLeft:'-12px'}}>{ this.props.detail2.userName3 } </span>
+                className={
+                  this.props.detail2.userType == 4 ? "hide" : ""
+                }>
+                <span style={{marginLeft:'-12px'}}>{ this.props.detail2.userName3 } </span>
               </FormItem>
               <FormItem label="经销商所在市" {...formItemLayout}
-                        className={
-                            this.props.detail2.userType == 4 ? "hide" : ""
-                        }>
-                  <span>{ this.props.detail2.city }</span>
+                className={
+                  this.props.detail2.userType == 4 ? "hide" : ""
+                }>
+                <span>{ this.props.detail2.city }</span>
               </FormItem>
+            <FormItem label="成为分销商时间" {...formItemLayout} style={{marginLeft:'-12px'}}>
+              <span style={{marginLeft:'6px'}}>{ this.props.detail2.incomeTime } </span>
+            </FormItem>
           </Form>
         </div>
       </div>

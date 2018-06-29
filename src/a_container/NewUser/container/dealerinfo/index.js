@@ -56,7 +56,7 @@ import {
   findCityOrCounty,
   findStationByArea
 } from "../../../../a_action/sys-action";
-import { findUserInfo, detailRecord ,recordCard,ExportdealerList,ExportCardList} from "../../../../a_action/info-action";
+import { findUserInfo, detailRecord ,recordCard,ExportdealerList,ExportCardList,generateFreeCard} from "../../../../a_action/info-action";
 import { onOk } from "../../../../a_action/shop-action";
 // ==================
 // Definition
@@ -71,7 +71,7 @@ class Manager extends React.Component {
     this.state = {
       data: [], // 当前页面全部数据
       searchConditions: null,
-      addnewModalShow: false, // 添加新用户 或 修改用户 模态框是否显示
+      addnewModalShow: false, // 发放优惠卡模态框是否显示
       addnewLoading: false, // 是否正在添加新用户中
       nowData: null, // 当前选中用户的信息，用于查看详情
       orgCodeValue: null, // 新增、修改 - 选择的组织部门对象
@@ -85,7 +85,6 @@ class Manager extends React.Component {
       total: 0, // 数据库总共多少条数据
       userId: "", // 获取用户id
       eId: "",
-      addOrUp: "add", // 当前操作是新增还是修改
       citys: [], // 所有的省
       stations: [], // 当前服务站地区所对应的服务站
       searchType: "", //搜索 - 经销商类型
@@ -254,7 +253,7 @@ class Manager extends React.Component {
 
   //优惠卡导出
   onExportCard(){
-      this.onExportCardList(this.state.pageNum,this.state.pageSize);
+    this.onExportCardList(this.state.pageNum,this.state.pageSize);
   }
 
   // 导出经销商信息列表数据
@@ -765,6 +764,71 @@ class Manager extends React.Component {
         });
       });
   }
+  
+  //发放优惠卡弹窗
+  onSendClick(){
+    const me = this;
+    const { form } = me.props;
+    form.resetFields([
+      "addnewId",//发放优惠卡 - e家号
+      "addnewNumber",//发放优惠卡 - 数量
+    ]);
+    this.setState({
+      addnewModalShow: true
+    });
+  }
+  
+  // 添加或修改确定
+  onAddNewOk() {
+    const me = this;
+    const { form } = me.props;
+    form.validateFields(
+      [
+        "addnewId",
+        "addnewNumber",
+      ],
+      (err, values) => {
+      if (err) {
+        return false;
+      }
+      me.setState({
+        addnewLoading: true
+      });
+      const params = {
+        userId: Number(values.addnewId),//e家号
+        count: Number(values.addnewNumber), //发放数量
+      };
+      me.props.actions
+        .generateFreeCard(tools.clearNull(params)) //添加优惠卡
+        .then(res => {
+          if(res.status != '0'){
+            me.setState({
+              addnewLoading: false
+            });
+            this.onGetData(this.state.pageNum, this.state.pageSize);
+            this.onAddNewClose();
+            message.success("优惠卡发放成功");
+          }else{
+            message.error(res.message || "优惠卡发放失败");
+            this.onAddNewClose();
+          }
+         
+        })
+        .catch(() => {
+          me.setState({
+            addnewLoading: false
+          });
+        });
+      }
+     );
+  }
+  
+  // 关闭模态框
+  onAddNewClose() {
+    this.setState({
+      addnewModalShow: false
+    });
+  }
 
   // 表单页码改变
   onTablePageChange(page, pageSize) {
@@ -850,7 +914,7 @@ class Manager extends React.Component {
         title: "操作",
         key: "control",
         fixed: "right",
-        width: 80,
+        width: 100,
         render: (text, record) => {
           let controls = [];
           controls.push(
@@ -1178,6 +1242,20 @@ class Manager extends React.Component {
                 优惠卡情况导出
               </Button>
             </li>
+            <li>
+              <Button
+                icon="folder-open"
+                type="primary"
+                style={{
+                  color: "#fff",
+                  backgroundColor: "#108ee9",
+                  borderColor: "#108ee9"
+                }}
+                onClick={()=>this.onSendClick()}
+              >
+                发放优惠卡
+              </Button>
+            </li>
           </ul>
         </div>
         <Alert
@@ -1201,77 +1279,26 @@ class Manager extends React.Component {
             }}
           />
         </div>
-        {/* 查看用户详情模态框 */}
+        {/* 添加发放优惠卡模态框 */}
         <Modal
-          title="用户信息详情"
-          visible={this.state.queryModalShow}
-          onOk={() => this.onQueryModalClose()}
-          onCancel={() => this.onQueryModalClose()}
+          title= "发放优惠卡"
+          visible={this.state.addnewModalShow}
+          onOk={() => this.onAddNewOk()}
+          onCancel={() => this.onAddNewClose()}
+          confirmLoading={this.state.addnewLoading}
         >
           <Form>
-            <FormItem label="经销商id" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.mid2 : ""}
+            <FormItem label="e家号" {...formItemLayout}>
+              {getFieldDecorator("addnewId", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请输入e家号" }]
+              })(<Input placeholder="请输入e家号" />)}
             </FormItem>
-            <FormItem label="经销商昵称" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.nickName2 : ""}
-            </FormItem>
-            <FormItem label="经销商姓名" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.realName2 : ""}
-            </FormItem>
-            <FormItem label="经销商手机号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.mobile2 : ""}
-            </FormItem>
-            <FormItem label="经销商账户" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.userName2 : ""}
-            </FormItem>
-            <FormItem label="经销商身份" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getListByModelId(this.state.nowData.userType2)
-                : ""}
-            </FormItem>
-            <FormItem label="服务站地区（经销商）" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getCity(
-                    this.state.nowData.province,
-                    this.state.nowData.city,
-                    this.state.nowData.region
-                  )
-                : ""}
-            </FormItem>
-            <FormItem label="创建时间" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.createTime : ""}
-            </FormItem>
-            <FormItem label="绑定上级关系时间" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.bindTime : ""}
-            </FormItem>
-            <FormItem label="健康大使id" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.mid : ""}
-            </FormItem>
-            <FormItem label="健康大使昵称" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.nickName : ""}
-            </FormItem>
-            <FormItem label="健康大使姓名" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.realName : ""}
-            </FormItem>
-            <FormItem label="健康大使手机号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.mobile : ""}
-            </FormItem>
-            <FormItem label="健康大使身份" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getListByModelId(this.state.nowData.userType)
-                : ""}
-            </FormItem>
-            <FormItem label="推荐人账户" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.userName : ""}
-            </FormItem>
-            <FormItem label="服务站地区（推荐人）" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getCity(
-                    this.state.nowData.province2,
-                    this.state.nowData.city2,
-                    this.state.nowData.region2
-                  )
-                : ""}
+            <FormItem label="发放数量" {...formItemLayout}>
+              {getFieldDecorator("addnewNumber", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请输入发放数量" }]
+              })(<Input placeholder="请输入发放数量" />)}
             </FormItem>
           </Form>
         </Modal>
@@ -1318,6 +1345,7 @@ export default connect(
         findCityOrCounty,
         findStationByArea,
         findUserInfo,
+        generateFreeCard,
         onOk,
         detailRecord,
         recordCard,

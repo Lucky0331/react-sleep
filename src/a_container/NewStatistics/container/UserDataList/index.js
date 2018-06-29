@@ -95,6 +95,8 @@ class Category extends React.Component {
       citys: [], // 符合Cascader组件的城市数据
       usedTotalNum:"",//体检预约总数
       reverseTotalNum:"",//公众号预约总数
+      searchRadio: 1, // 当前radio选择的哪一个
+      searchRadioFour: 4, // 区域选择当前radio选择的哪一个
     };
     this.echartsDom = null; // Echarts实例
   }
@@ -205,19 +207,32 @@ class Category extends React.Component {
 
   // 查询当前页面所需列表数据 - e家用户
   onGetData(pageNum, pageSize) {
+    let minTime = null;
+    let maxTime = null;
+    const now = new Date();
+    const r = this.state.searchRadio;
+    if(r !== 0) {
+      minTime = tools.dateToStr(now);
+    }
+    if(r === 1) { // 7天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 7 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 2) { // 30天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 3) { // 自定义的时间
+      minTime = this.state.searchrefundBeginTime ? tools.dateToStr(this.state.searchrefundBeginTime._d) : null;
+      maxTime = this.state.searchrefundEndTime ? tools.dateToStr(this.state.searchrefundEndTime._d) : null;
+    }
     const params = {
       pageNum,
       pageSize,
+      minTime,
+      maxTime,
       type:1,
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2],
-      minTime: this.state.searchrefundBeginTime
-        ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)}`
-        : "",
-      maxTime: this.state.searchrefundEndTime
-        ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)} `
-        : ""
     };
     this.props.actions.userCountList(tools.clearNull(params)).then(res => {
       console.log("请求到东西了么:", res.data.detail);
@@ -237,19 +252,32 @@ class Category extends React.Component {
   
   // 查询当前页面所需列表数据 - 未绑定用户
   onGetData2(pageNum, pageSize) {
+    let minTime = null;
+    let maxTime = null;
+    const now = new Date();
+    const r = this.state.searchRadio;
+    if(r !== 0) {
+      minTime = tools.dateToStr(now);
+    }
+    if(r === 1) { // 7天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 7 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 2) { // 30天内
+      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
+      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
+    } else if (r === 3) { // 自定义的时间
+      minTime = this.state.searchrefundBeginTime ? tools.dateToStr(this.state.searchrefundBeginTime._d) : null;
+      maxTime = this.state.searchrefundEndTime ? tools.dateToStr(this.state.searchrefundEndTime._d) : null;
+    }
     const params = {
       pageNum,
       pageSize,
+      minTime,
+      maxTime,
       type:2,
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2],
-      minTime: this.state.searchrefundBeginTime
-        ? `${tools.dateToStr(this.state.searchrefundBeginTime.utc()._d)}`
-        : "",
-      maxTime: this.state.searchrefundEndTime
-        ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)} `
-        : ""
     };
     this.props.actions.userCountList(tools.clearNull(params)).then(res => {
       console.log("请求到东西了么:", res.data2);
@@ -307,10 +335,17 @@ class Category extends React.Component {
     });
   }
   
-  // radio改变时触发
+  // 时间区间 - radio改变时触发
   onRadioChange(e) {
     this.setState({
       searchRadio: e.target.value,
+    });
+  }
+  
+  // 区域选择 - radio改变时触发
+  onRadioChangeFour(e) {
+    this.setState({
+      searchRadioFour: e.target.value,
     });
   }
 
@@ -739,23 +774,33 @@ class Category extends React.Component {
       },
       {
         title: "日期",
-        dataIndex: "date",
-        key: "date",
+        dataIndex: "time",
+        key: "time",
       },
       {
         title: "分销用户",
+        dataIndex:'userSaleCount',
+        key:'userSaleCount'
       },
       {
         title: "微创版经销商",
+        dataIndex:'miniCount',
+        key:'miniCount'
       },
       {
         title: "个人版经销商",
+        dataIndex:'personCount',
+        key:'personCount'
       },
       {
-        title:'企业版经销商'
+        title:'企业版经销商',
+        dataIndex:'mainCount',
+        key:'mainCount'
       },
       {
-        title:'企业版子账号'
+        title:'企业版子账号',
+        dataIndex:'sonCount',
+        key:"sonCount"
       },
     ];
     return columns;
@@ -865,7 +910,6 @@ class Category extends React.Component {
     return columns;
   }
   
-
   //构建table所需数据
   makeData(data) {
     return data.map((item, index) => {
@@ -884,6 +928,10 @@ class Category extends React.Component {
         mainCountIn:item.mainCount,//企业版经销商
         sonCountIn:item.sonCount, //企业版子账号
         effectiveUserSaleCountIn:item.effectiveUserSaleCount,//有效分销商数
+        miniCount:item.miniCount,//微创版经销商
+        sonCount:item.sonCount,//企业版经销商(子)
+        mainCount:item.mainCount,//企业版经销商(主)
+        personCount:item.personCount,//个人版经销商
         // ratio:(item.usedCount && item.reverseCount) ? (item.reverseCount)/(item.usedCount) : '',
         reverseRatio:`${((item.reverseRatio)*100).toFixed(3)}%`,
         citys:
@@ -970,7 +1018,7 @@ class Category extends React.Component {
               </li>
             </ul>
           </RadioGroup>
-          <RadioGroup onChange={(e) => this.onRadioChange(e)} value={this.state.searchRadio}>
+          <RadioGroup onChange={(e) => this.onRadioChangeFour(e)} value={this.state.searchRadioFour}>
             <ul className="search-ul more-ul">
               <li style={{fontWeight:'bold',marginTop:'7px'}}><span>区域选择</span></li>
               <li style={{marginTop:'7px'}}>
@@ -979,7 +1027,7 @@ class Category extends React.Component {
               <li>
                 <Radio value={5}>区域筛选</Radio>
                 <Cascader
-                  disabled={this.state.searchRadio !== 5}
+                  disabled={this.state.searchRadioFour !== 5}
                   placeholder="请选择服务区域"
                   onChange={v => this.onSearchAddress(v)}
                   options={this.state.citys}

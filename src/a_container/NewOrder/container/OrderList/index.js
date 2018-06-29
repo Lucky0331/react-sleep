@@ -88,6 +88,7 @@ class Category extends React.Component {
       addnewModalShow: false, // 查看地区模态框是否显示
       upModalShow: false, // 修改模态框是否显示
       upLoading: false, // 是否正在修改用户中
+      ListLoading:false,//订单列表数据多加载
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
@@ -171,11 +172,15 @@ class Category extends React.Component {
           data: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.data.total
+          total: res.data.total,
+          ListLoading:true,
         });
       } else {
         message.error(res.message || "获取数据失败，请重试");
       }
+      this.setState({
+        ListLoading: false
+      });
     });
   }
 
@@ -981,6 +986,9 @@ class Category extends React.Component {
     ];
     return columns;
   }
+  // @connect(({ loading }) => ({
+  //   loading: loading.effects['profile/fetchBasic'],
+  // }))
 
   // 构建table所需数据
   makeData(data) {
@@ -1317,6 +1325,7 @@ class Category extends React.Component {
             columns={this.makeColumns()}
             dataSource={this.makeData(this.state.data)}
             scroll={{ x: 3300 }}
+            loading={this.state.ListLoading}
             pagination={{
               total: this.state.total,
               current: this.state.pageNum,

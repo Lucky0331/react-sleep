@@ -78,14 +78,17 @@ class Category extends React.Component {
       titleList: [], // 所有的标题位置
       titles: [], //所有的标题
       searchTitle: "", //搜索 - 频道id
-      searchDeleteStatus: "", //搜索 - 是否发布
       searchTypeCode: "", //搜索 - 产品类型
       pullliveId:"", //拉取操作/搜索频道id
       nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
       pullnowData:null,//指的是拉取后的数据
-      addnewModalShow: false, // 查看地区模态框是否显示
+      addnewModalShow: false, // 添加模态框是否显示
       upModalShow: false, // 修改模态框是否显示
-      searchLiveStatus:'', //搜索 - 标签
+      searchLiveStatus:'', //搜索 - 一级分类
+      searchLiveStatusTwo:'', //搜索 - 二级分类
+      searchLabel:'',//搜索 - 标签
+      searchRecommend:'',//搜索 - 是否推荐
+      searchRelease: "", //搜索 - 是否发布
       upLoading: false, // 是否正在修改用户中
       fileList: [], // 封面图上传的列表
       fileLoading: false, // 缩略图片正在上传
@@ -119,7 +122,11 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      liveStatus: this.state.searchLiveStatus,  //查询标签
+      liveTypeId: this.state.searchLiveStatus,  //查询一级分类
+      liveTypeSubId: this.state.searchLiveStatusTwo,  //查询二级分类
+      liveStatus:this.state.searchLabel,//查询标签
+      recommend:this.state.searchRecommend,//是否推荐
+      deleteFlag:this.state.searchRelease,//是否发布
       liveId: this.state.searchTitle, //频道id
       productTypeCode: this.state.searchTypeCode,
     };
@@ -136,7 +143,6 @@ class Category extends React.Component {
       } else {
         message.error(res.message || "获取数据失败，请重试");
       }
-      // console.log("直播列表一级分类：", res.data.result.liveType);
     });
   }
 
@@ -148,14 +154,6 @@ class Category extends React.Component {
       item => String(item.id) === String(id)
     );
     return t ? t.name : "";
-  }
-  
-  //工具 - 根据类型id拿到所有的一级分类名称
-  findClassifyOne(id){
-    const t = this.state.classifyOne.find(
-        item => String(item.id) === String(id)
-    )
-    return t ? t.name :'';
   }
   
   // 获取所有产品型号，当前页要用
@@ -207,8 +205,8 @@ class Category extends React.Component {
           addnewLabel:res.data.liveStatus ? res.data.liveStatus : "", //标签
           addnewRecommend:res.data.recommend ? res.data.recommend ? 1 : 0 : '' ,//是否推荐
           addnewSorts:res.data.sorts ? res.data.sorts : '',//排序
-          addnewClassifyOne:res.data.liveType ? res.data.liveType.name : '',//一级分类名称
-          addnewClassifyTwo:res.data.liveType ? res.data.liveType.subList[0].name : '',//二级分类名称
+          addnewClassifyOne:res.data.liveType ? String(res.data.liveType.id) : '',//一级分类名称
+          addnewClassifyTwo:res.data.liveType.subList[0] ? String(res.data.liveType.subList[0].id) : '',//二级分类名称
           // addnewProduct:res.data.recommendProductList[0].productName,//推荐产品
           realWatchTimes:res.data.realWatchTimes ? res.data.realWatchTimes : '',
           pcUrl:res.data.pcUrl ? res.data.pcUrl : "",
@@ -229,14 +227,6 @@ class Category extends React.Component {
       } 
     });
   }
-
-  // 工具 - 根据一级分类ID获取二级分类名称
-  getNameByCloumnId(id) {
-    const t = this.state.productModels.find(
-        item => String(item.id) === String(id)
-    );
-    return t ? t.name : "";
-  }
   
   // 工具 - 根据id返回标签名称
   getNameLiveStatusId(id) {
@@ -255,11 +245,20 @@ class Category extends React.Component {
   }
   
 
-  //搜索 - 标签输入框值改变时触发
+  //搜索 - 一级分类改变时触发
   searchNameChange(e) {
     this.setState({
-      searchLiveStatus: e
+      searchLiveStatus: e,
+      searchLiveStatusTwo:undefined
     });
+    console.log("id的数值是：", e);
+  }
+  
+  //二级分类改变时触发
+  searchNameChangeTwo(e){
+    this.setState({
+      searchLiveStatusTwo:e
+    })
   }
 
   //搜索 - 标题输入框值改变时触发
@@ -274,6 +273,38 @@ class Category extends React.Component {
     this.setState({
       searchTypeCode: typeId
     });
+  }
+  
+  //搜索 - 标签
+  searchLabelChange(e){
+    this.setState({
+      searchLabel:e
+    })
+  }
+  
+  //搜索 - 是否推荐
+  searchRecommendChange(e){
+    this.setState({
+      searchRecommend:e
+    })
+  }
+  
+  //搜索 - 是否发布
+  searchReleaseChange(e){
+    this.setState({
+      searchRelease:e
+    })
+  }
+  
+  //根据id值不同显示的字段不同
+  Newproduct(e) {
+    this.setState({
+      id: e
+    });
+    console.log("id的数值是：", e);
+    //产品类型改变时，重置产品型号的值位undefined
+    const { form } = this.props;
+    form.resetFields(["addnewClassifyTwo"]);//当一级分类改变时二级分类的值undefined
   }
 
   // 添加直播发布模态框出现
@@ -290,28 +321,33 @@ class Category extends React.Component {
       "addnewProduct", // 推荐产品
       "addnewTime", //添加拉取的时间
       "addnewTitle",//同步标题
-      "addnewWatchTimes",
-      "addnewRealWatchTimes",
-      "addnewPcUrl",
-      "addnewMobileUrl"
+      
     ]);
     this.setState({
       addOrUp: "add",
       fileList: [],
       addnewModalShow: true,
+      upModalShow:false,
       nowData: null,
       pullnowData:null,
     });
   }
 
-  // 关闭模态框
+  // 关闭添加模态框
   onAddNewClose() {
     this.setState({
       addnewModalShow: false
     });
   }
+  
+  // 关闭修改模态框
+  onUpNewClose() {
+    this.setState({
+      upModalShow: false
+    });
+  }
 
-  // 添加或修改确定
+  // 添加的确定
   onAddNewOk() {
     const me = this;
     const { form } = me.props;
@@ -319,7 +355,6 @@ class Category extends React.Component {
       message.warning("有图片正在上传...");
       return;
     }
-
     form.validateFields(
       [
         "addnewLiveId", //添加直播id
@@ -339,15 +374,14 @@ class Category extends React.Component {
         me.setState({
           addnewLoading: true
         });
-
         const params = {
           liveId: Number(values.addnewLiveId), //添加直播id
-          liveTypeId: Number(values.addnewClassifyOne), //添加一级分类
-          liveTypeSubId:Number(values.addnewClassifyTwo),//添加二级分类
+          liveTypeId: String(values.addnewClassifyOne), //添加一级分类
+          liveTypeSubId:String(values.addnewClassifyTwo),//添加二级分类
           liveStatus: values.addnewLabel, // 添加标签
           recommend: values.addnewRecommend , //添加是否推荐
           sorts: values.addnewSorts, // 添加排序的顺序
-          recommendProduct: String(values.addnewProduct),//推荐产品
+          recommendProduct: values.addnewProduct,//推荐产品
           name:values.addnewTitle,// 同步标题
           // updateTime:values.addnewTime,//同步拉取时间
           coverImage: this.state.fileList.map(item => item.url).join(","),
@@ -356,40 +390,25 @@ class Category extends React.Component {
           realWatchTimes:this.state.realWatchTimes,// 观看次数(真)
           watchTimes:this.state.watchTimes,// 观看次数(假)
         };
-        if (this.state.addOrUp === "add") {
-          // 新增
-          me.props.actions
-            .addLiveType(tools.clearNull(params))
-            .then(res => {
+        me.props.actions
+          .addLiveType(tools.clearNull(params))   // 新增
+          .then(res => {
+            if(res.status === '0'){
               me.setState({
                 addnewLoading: false
               });
               this.onGetData(1, this.state.pageSize);
               this.onAddNewClose();
-            })
-            .catch(() => {
-              me.setState({
-                addnewLoading: false
-              });
+              message.success(res.message || '直播上传成功')
+            }else{
+              message.error(res.message || '直播上传失败')
+            }
+          })
+          .catch(() => {
+            me.setState({
+              addnewLoading: false
             });
-        } else {
-          params.id = this.state.nowData.id;
-          me.props.actions
-            .updateLiveType(params)
-            .then(res => {
-              // 修改
-              me.setState({
-                addnewLoading: false
-              });
-              this.onGetData(this.state.pageNum, this.state.pageSize);
-              this.onAddNewClose();
-            })
-            .catch(() => {
-              me.setState({
-                addnewLoading: false
-              });
-            });
-        }
+          });
       }
     );
   }
@@ -400,30 +419,87 @@ class Category extends React.Component {
     const { form } = me.props;
     console.log("是什么：", record);
     form.setFieldsValue({
-      addnewLiveId: Number(record.liveId),//修改直播id
-      addnewClassifyOne: record.name2,//修改一级分类
-      addnewClassifyTwo:record.name3,//修改二级分类
-      addnewLabel: record.liveStatus,// 修改标签
-      addnewRecommend: record.recommend ? 1 : 0,//修改是否推荐
-      addnewSorts:record.sorts,
-      addnewTitle: record.name, //修改标题
-      mobileUrl:this.state.mobileUrl,// 手机播放地址
-      pcUrl:this.state.pcUrl,// pc播放地址
-      realWatchTimes:this.state.realWatchTimes,// 观看次数(真)
-      watchTimes:this.state.watchTimes,// 观看次数(假)
-      
+      UpLiveId: Number(record.liveId),//修改直播id
+      UpClassifyOne:String(record.liveTypeId),//修改一级分类
+      UpClassifyTwo:String(record.liveTypeSubId),//修改二级分类
+      UpLabel: record.liveStatus,// 修改标签
+      UpRecommend: record.recommend ? 1 : 0,//修改是否推荐
+      UpSorts:record.sorts,
+      UpTitle: record.name, //修改标题
+      mobileUrl:record.mobileUrl,// 手机播放地址
+      pcUrl:record.pcUrl,// pc播放地址
+      realWatchTimes:record.realWatchTimes,// 观看次数(真)
+      watchTimes:record.watchTimes,// 观看次数(假)
     });
     console.log("是什么：", record);
     me.setState({
       nowData: record,
       pullnowData:record,
       addOrUp: "up",
-      addnewModalShow: true,
+      upModalShow: true,
       fileList: record.coverImage
         ? record.coverImage
             .split(",")
             .map((item, index) => ({ uid: index, url: item, status: "done" }))
         : [], // 封面图上传的列表
+    });
+  }
+  
+  // 确定修改某一条数据
+  onUpOk() {
+    const me = this;
+    const { form } = me.props;
+    form.validateFields(
+      [
+        "UpLiveId", //添加直播id
+        "UpClassifyOne", // 添加一级分类
+        "UpClassifyTwo", //添加二级分类
+        "UpLabel", //添加标签
+        "UpRecommend", //添加是否推荐
+        "UpSorts", //添加排序的顺序
+        "UpProduct", // 推荐产品
+        "UpTitle",//同步标题
+      ],
+      (err, values) => {
+        if (err) {
+          return false;
+        }
+        me.setState({
+          upLoading: true
+        });
+      const params = {
+        liveId: this.state.nowData.liveId, //直播id
+        liveTypeId:values.UpClassifyOne, //分类一
+        liveTypeSubId: values.UpClassifyTwo, //分类二
+        liveStatus: values.UpLabel, //标签
+        recommend: values.UpRecommend, //推荐状态
+        sorts: values.UpSorts,//排序
+        name: values.UpTitle,//标题名称
+        coverImage: this.state.fileList.map(item => item.url).join(","),//封面图片
+        mobileUrl:this.state.nowData.mobileUrl,// 手机播放地址
+        pcUrl:this.state.nowData.pcUrl,// pc播放地址
+        realWatchTimes:this.state.nowData.realWatchTimes,// 观看次数(真)
+        watchTimes:this.state.nowData.watchTimes,// 观看次数(假)
+      };
+      this.props.actions
+        .updateLiveType(params)
+        .then(res => {
+          if (res.status === "0") {
+            message.success("修改成功");
+            this.onGetData(this.state.pageNum, this.state.pageSize);
+            this.onUpClose();
+          } else {
+            message.error(res.message || "修改失败，请重试");
+          }
+          me.setState({
+            upLoading: false
+          });
+        })
+        .catch(() => {
+          me.setState({
+            upLoading: false
+          });
+        });
     });
   }
 
@@ -690,17 +766,17 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
-          // controls.push(
-          //   <span
-          //     key="1"
-          //     className="control-btn blue"
-          //     onClick={() => this.onUpdateClick(record)}
-          //   >
-          //     <Tooltip placement="top" title="编辑">
-          //       <Icon type="edit" />
-          //     </Tooltip>
-          //   </span>
-          // );
+          controls.push(
+            <span
+              key="1"
+              className="control-btn blue"
+              onClick={() => this.onUpdateClick(record)}
+            >
+              <Tooltip placement="top" title="编辑">
+                <Icon type="edit" />
+              </Tooltip>
+            </span>
+          );
           record.deleteFlag === false &&
           controls.push(
             <span
@@ -775,7 +851,13 @@ class Category extends React.Component {
         recommend:item.recommend,
         deleteFlag:item.deleteFlag,
         deleteStatus: item.deleteStatus,
+        realWatchTimes:item.realWatchTimes,
+        watchTimes:item.watchTimes,
+        liveTypeId:item.liveType ? item.liveType.id : '',//一级分类id
+        liveTypeSubId:item.liveType &&  item.liveType.subList[0] ? item.liveType.subList[0].id :'', //二级分类id
         sorts: item.sorts,
+        pcUrl:item.pcUrl,
+        mobileUrl:item.mobileUrl,
         realName: item.distributor ? item.distributor.realName : ""
       };
     });
@@ -800,15 +882,7 @@ class Category extends React.Component {
     const suffix = searchTitle ? (
         <Icon type="close-circle" onClick={() => this.emitEmpty()} />
     ) : null;
-
-    console.log(
-      "是啥直播类型：",
-      this.state.liveTypes.filter(
-        item =>
-          String(item.liveTypeId) === String(form.getFieldValue("addnewClassifyOne"))
-      )
-    );
-    const modelId = form.getFieldValue("addnewClassifyTwo");
+    
     return (
       <div>
         <div className="system-search">
@@ -825,13 +899,35 @@ class Category extends React.Component {
             <li>
               <span style={{marginRight:'8px'}}>分类</span>
               <Select
-                placeholder="全部"
+                placeholder="一级分类"
                 allowClear
-                style={{ width: "172px" }}
+                style={{ width: "172px" ,marginRight:'8px'}}
+                value={this.state.searchLiveStatus}
                 onChange={e => this.searchNameChange(e)}
               >
-                {/*<Option value={1}>已推荐</Option>*/}
-                {/*<Option value={0}>未推荐</Option>*/}
+                {this.state.liveTypes.map((item, index) => (
+                  <Option key={index} value={String(item.id)}>
+                    {item.name}
+                  </Option>
+                ))}
+              </Select>
+              <Select
+                placeholder="二级分类"
+                allowClear
+                style={{ width: "172px" }}
+                value={this.state.searchLiveStatusTwo}
+                onChange={e => this.searchNameChangeTwo(e)}
+              >
+                {(() => {
+                  const id = String(this.state.searchLiveStatus)
+                  return this.state.liveTypes.filter(item => String(item.id) === id).map((item, index) => (
+                   (item.subList).map((item) =>
+                     <Option key={index} value={String(item.id)}>
+                      {item.name}
+                     </Option>
+                    )
+                  ))
+                })()}
               </Select>
             </li>
             <li>
@@ -840,7 +936,7 @@ class Category extends React.Component {
                 placeholder="全部"
                 allowClear
                 style={{ width: "172px" }}
-                onChange={e => this.searchNameChange(e)}
+                onChange={e => this.searchLabelChange(e)}
               >
                 <Option value={1}>直播中</Option>
                 <Option value={2}>回放</Option>
@@ -854,7 +950,7 @@ class Category extends React.Component {
                 placeholder="全部"
                 allowClear
                 style={{ width: "172px" }}
-                onChange={e => this.searchNameChange(e)}
+                onChange={e => this.searchRecommendChange(e)}
               >
                 <Option value={1}>已推荐</Option>
                 <Option value={0}>未推荐</Option>
@@ -866,7 +962,7 @@ class Category extends React.Component {
                 placeholder="全部"
                 allowClear
                 style={{ width: "172px" }}
-                onChange={e => this.searchNameChange(e)}
+                onChange={e => this.searchReleaseChange(e)}
               >
                 <Option value={1}>已发布</Option>
                 <Option value={0}>未发布</Option>
@@ -896,6 +992,7 @@ class Category extends React.Component {
         </div>
         <div className="system-table">
           <Table
+            className="my-table"
             columns={this.makeColumns()}
             dataSource={this.makeData(this.state.data)}
             pagination={{
@@ -909,16 +1006,9 @@ class Category extends React.Component {
             }}
           />
         </div>
-        <Modal
-          title="查看地区"
-          visible={this.state.addnewModalShow}
-          onOk={() => this.onAddNewOk()}
-          onCancel={() => this.onAddNewClose()}
-          confirmLoading={this.state.addnewLoading}
-        />
         {/* 添加模态框 */}
         <Modal
-          title={this.state.addOrUp === "add" ? "直播发布" : "修改直播发布"}
+          title="直播发布"
           visible={this.state.addnewModalShow}
           onOk={() => this.onAddNewOk()}
           onCancel={() => this.onAddNewClose()}
@@ -930,7 +1020,7 @@ class Category extends React.Component {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请添写频道ID" }]
               })(
-                  <Input placeholder="请添写频道ID" onChange={e => this.pullliveId(e)} style={{width:'180px',marginRight:'15px'}}/>
+                <Input placeholder="请添写频道ID" onChange={e => this.pullliveId(e)} style={{width:'180px',marginRight:'15px'}}/>
               )}
               {getFieldDecorator("addnewTypeId", {
                 initialValue: undefined,
@@ -952,14 +1042,13 @@ class Category extends React.Component {
                 <Select
                   style={{ width: '100%' }}
                   placeholder="请选择一级分类"
+                  onChange={e => this.Newproduct(e)}
                 >
-                {
-                  this.state.liveTypes.map((item) => {
-                    return (
-                        <Option key={String(item.id)}>{item.name}</Option>
-                    );
-                  })
-                }
+                  {this.state.liveTypes.map((item, index) => (
+                    <Option key={index} value={String(item.id)}>
+                      {item.name}
+                    </Option>
+                  ))}
                 </Select>
               )}
               {this.state.addnewClassifyOne ? this.state.addnewClassifyOne : ''}
@@ -968,16 +1057,17 @@ class Category extends React.Component {
                 rules: [{ message: "请选择二级分类" }]
               })(
                 <Select placeholder="请选择二级分类">
-                  {this.state.productModels
-                    .filter(
-                      item =>
-                        String(item.liveTypeId) ===
-                        String(form.getFieldValue("addnewClassifyOne"))
-                    )
-                    .map((item, index) => (
-                      <Option key={index} value={`${item.id}`}>
-                      </Option>
-                    ))}
+                  {(() => {
+                    const id = String(form.getFieldValue("addnewClassifyOne"));
+                    return this.state.liveTypes.filter(item => String(item.id) === id).map((item, index) => (
+                      (item.subList).map((item) =>
+                        <Option key={index} value={String(item.id)}>
+                          {item.name}
+                        </Option>
+                      )
+                    ))
+                  })()
+                  }
                 </Select>
               )}
               {this.state.addnewClassifyTwo ? this.state.addnewClassifyTwo : ''}
@@ -1067,6 +1157,137 @@ class Category extends React.Component {
                 rules: [{ message: "请添写拉取时间" }]
               })(<Input placeholder="请添写拉取时间" />)}
               {this.state.addnewTime ? this.state.addnewTime : ''}
+            </FormItem>
+          </Form>
+        </Modal>
+        {/* 编辑模态框 */}
+        <Modal
+          title="修改直播发布"
+          visible={this.state.upModalShow}
+          onOk={() => this.onUpOk()}
+          onCancel={() => this.onUpNewClose()}
+          confirmLoading={this.state.addnewLoading}
+        >
+          <Form>
+            <FormItem label="频道ID" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.liveId : ''}
+            </FormItem>
+            <FormItem label="分类" {...formItemLayout}>
+              {getFieldDecorator("UpClassifyOne", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择一级分类" }]
+              })(
+                <Select
+                  style={{ width: '100%' }}
+                  placeholder="请选择一级分类"
+                  onChange={e => this.Newproduct(e)}
+                >
+                  {this.state.liveTypes.map((item, index) => (
+                    <Option key={index} value={String(item.id)}>
+                      {item.name}
+                    </Option>
+                  ))}
+                </Select>
+              )}
+              {this.state.addnewClassifyOne ? this.state.addnewClassifyOne : ''}
+              {getFieldDecorator("UpClassifyTwo", {
+                initialValue: undefined,
+                rules: [{ message: "请选择二级分类" }]
+              })(
+                <Select placeholder="请选择二级分类">
+                  {(() => {
+                    const id = String(form.getFieldValue("UpClassifyOne"));
+                    return this.state.liveTypes.filter(item => String(item.id) === id).map((item, index) => (
+                      (item.subList).map((item) =>
+                      <Option key={index} value={String(item.id)}>
+                        {item.name}
+                      </Option>
+                      )
+                    ))
+                  })()
+                  }
+                </Select>
+              )}
+              {this.state.addnewClassifyTwo ? this.state.addnewClassifyTwo : ''}
+            </FormItem>
+            <FormItem label="标签" {...formItemLayout}>
+              {getFieldDecorator("UpLabel", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择标签" }]
+              })(
+                <Select placeholder="请选择标签">
+                  <Option value={1}>直播中</Option>
+                  <Option value={2}>回放</Option>
+                  <Option value={3}>视频</Option>
+                  <Option value={4}>预告</Option>
+                </Select>
+              )}
+              {this.state.addnewLabel ? this.state.addnewLabel : ''}
+            </FormItem>
+            <FormItem label="是否推荐" {...formItemLayout}>
+              {getFieldDecorator("UpRecommend", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择是否推荐" }]
+              })(
+                <Select placeholder="请选择标签">
+                  <Option value={1}>是</Option>
+                  <Option value={0}>否</Option>
+                </Select>
+              )}
+              {this.state.addnewRecommend ? this.state.addnewRecommend : ''}
+            </FormItem>
+            <FormItem label="排序" {...formItemLayout}>
+              {getFieldDecorator("UpSorts", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请输入排序序号" }]
+              })(<InputNumber placeholder="请输入排序序号" style={{width:'314px'}}/>)}
+              {this.state.addnewSorts ? this.state.addnewSorts : ''}
+            </FormItem>
+            <FormItem label="推荐产品" {...formItemLayout}>
+              {getFieldDecorator('UpProduct',{
+                initialValue: undefined,
+              })(
+                <Select
+                  mode="multiple"
+                  style={{ width: '100%' }}
+                  placeholder="请选择所要推荐产品"
+                >
+                  {
+                    this.state.productModels.map((item) => {
+                      return (
+                        <Option key={String(item.id)}>{item.name}</Option>
+                      );
+                    })
+                  }
+                </Select>
+              )}
+              {this.state.addnewProduct ? this.state.addnewProduct : ''}
+            </FormItem>
+            <FormItem label="标题" {...formItemLayout}>
+              {getFieldDecorator("UpTitle", {
+                initialValue: undefined,
+                rules: [{ message: "请添写标题名称" }]
+              })(<Input placeholder="请添写标题名称" />)}
+              {this.state.liveId ? this.state.addnewTitle : ''}
+            </FormItem>
+            <FormItem label="封面图片上传" {...formItemLayout} labelCol={{ span: 7 }} wrapperCol={{ span: 11 }}>
+              <Upload
+                name="pImg"
+                action={`${Config.baseURL}/manager/product/uploadImage`}
+                listType="picture-card"
+                withCredentials={true}
+                fileList={this.state.fileList}
+                beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
+                onChange={f => this.onUpLoadChange(f)}
+                onRemove={f => this.onUpLoadRemove(f)}
+              >
+                {this.state.fileList.length >= 3 ? null : (
+                  <div>
+                    <Icon type="plus" />
+                    <div className="ant-upload-text">选择文件</div>
+                  </div>
+                )}
+              </Upload>
             </FormItem>
           </Form>
         </Modal>

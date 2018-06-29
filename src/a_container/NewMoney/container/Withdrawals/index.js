@@ -1285,7 +1285,9 @@ class Category extends React.Component {
         width: 50
       },
       {
-        title:'主订单号'
+        title:'主订单号',
+        dataIndex:'mainOrderId',
+        key:'mainOrderId'
       },
       {
         title: "提现单号",
@@ -1455,6 +1457,7 @@ class Category extends React.Component {
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         createTime: item.createTime,
         pay: item.pay,
+        mainOrderId:item.mainOrderId,//主订单号
         applyTime: item.applyTime,
         paymentTime: item.paymentTime,
         productType: item.productType,
@@ -2138,6 +2141,11 @@ class Category extends React.Component {
                 wrapClassName={"list"}
               >
                 <Form>
+                  <FormItem label="主订单号" {...formItemLayout}>
+                    {!!this.state.nowData
+                      ? this.state.nowData.mainOrderId
+                      : ""}
+                  </FormItem>
                   <FormItem label="提现单号" {...formItemLayout}>
                     {!!this.state.nowData
                       ? this.state.nowData.partnerTradeNo
