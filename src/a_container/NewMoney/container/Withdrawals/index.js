@@ -85,6 +85,7 @@ class Category extends React.Component {
       searchUserMallId: "", // 搜索 - 用户翼猫id
       searchPartnerTradeNo: "", //搜索 - 提现单号
       searchOrderId: "", // 搜索 - 订单号
+      searchMainOrderId: '',//搜索 - 主订单号
       searchPresentNumber:"", //搜索 - 提现单号
       searchOperationBegin:"",//搜索 - 操作开始时间
       searchOperationEnd:"", //搜索 - 操作结束时间
@@ -125,10 +126,6 @@ class Category extends React.Component {
     }
   }
 
-    warning2 = () =>{
-        message.warning('导出功能尚在开发 敬请期待');
-    };
-
   // 查询当前页面 - 提现记录 - 所需列表数据
   onGetData(pageNum, pageSize) {
     const params = {
@@ -145,6 +142,7 @@ class Category extends React.Component {
       minAmount: this.state.searchMinPrice, //提现金额 小
       maxAmount: this.state.searchMaxPrice, //提现金额 大
       productType: this.state.searchTypeId,
+      mainOrderId:this.state.searchMainOrderId.trim(),//主订单号
       orderId: this.state.searchOrderId.trim(), //订单号
       userId: this.state.searchUserMallId.trim(), //用户id
       partnerTradeNo: this.state.searchPartnerTradeNo.trim(), //提现单号查询
@@ -200,6 +198,7 @@ class Category extends React.Component {
       minAmount: this.state.searchMinPrice, //提现金额 小
       maxAmount: this.state.searchMaxPrice, //提现金额 大
       productType: this.state.searchTypeId,
+      mainOrderId:this.state.searchMainOrderId.trim(),//主订单号
       orderId: this.state.searchOrderId.trim(), //订单号
       userId: this.state.searchUserMallId.trim(), //用户id
       partnerTradeNo: this.state.searchPartnerTradeNo.trim(), //提现单号查询
@@ -368,6 +367,12 @@ class Category extends React.Component {
       searchPresentNumber: ""
     });
   }
+  
+  emitEmpty11() {
+    this.setState({
+      searchMainOrderId: ""
+    });
+  }
 
   // 工具 - 根据产品类型ID查产品类型名称
   findProductNameById(id) {
@@ -473,6 +478,13 @@ class Category extends React.Component {
   searchMobileChange(e) {
     this.setState({
       searchMobile: e.target.value
+    });
+  }
+  
+  //搜索 - 主订单号
+  searchMainOrderIdChange(e) {
+    this.setState({
+      searchMainOrderId: e.target.value
     });
   }
 
@@ -1175,6 +1187,11 @@ class Category extends React.Component {
         width: 50
       },
       {
+        title:'主订单号',
+        dataIndex:'mainOrderId',
+        key:'mainOrderId'
+      },
+      {
         title: "提现单号",
         dataIndex: "partnerTradeNo",
         key: "partnerTradeNo"
@@ -1523,7 +1540,7 @@ class Category extends React.Component {
     });
   }
 
-    //操作日志 - table所需数据
+  //操作日志 - table所需数据
   makeDataJournal(data3) {
     return data3.map((item, index) => {
       return {
@@ -1538,7 +1555,7 @@ class Category extends React.Component {
         auditReason:item.auditReason
       };
     });
-    }
+  }
 
   render() {
     const me = this;
@@ -1565,6 +1582,7 @@ class Category extends React.Component {
     const { searchPartnerTradeNo } = this.state;
     const { searchOrderId } = this.state;
     const { searchPresentNumber } = this.state;
+    const { searchMainOrderId } = this.state;
     const suffix = searchtradeNo ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty0()} />
     ) : null;
@@ -1592,8 +1610,11 @@ class Category extends React.Component {
     const suffix7 = searchOrderId ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty9()} />
     ) : null;
+    const suffix10 = searchMainOrderId ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty11()} />
+    ) : null;
     const suffix11 = searchPresentNumber ? (
-        <Icon type="close-circle" onClick={() => this.emitEmpty10()} />
+      <Icon type="close-circle" onClick={() => this.emitEmpty10()} />
     ) : null;
     return (
       <div>
@@ -1604,6 +1625,15 @@ class Category extends React.Component {
               <div className="system-table">
                 <div className="system-table">
                   <ul className="search-ul more-ul">
+                    <li>
+                      <span>主订单号查询</span>
+                      <Input
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchMainOrderIdChange(e)}
+                        suffix={suffix10}
+                        value={searchMainOrderId}
+                      />
+                    </li>
                     <li>
                       <span>提现单号查询</span>
                       <Input
@@ -1829,6 +1859,11 @@ class Category extends React.Component {
                 wrapClassName={"list"}
               >
                 <Form>
+                  <FormItem label="主订单号" {...formItemLayout}>
+                    {!!this.state.nowData
+                      ? this.state.nowData.mainOrderId
+                      : ""}
+                  </FormItem>
                   <FormItem label="提现单号" {...formItemLayout}>
                     {!!this.state.nowData
                       ? this.state.nowData.partnerTradeNo
@@ -1893,6 +1928,15 @@ class Category extends React.Component {
               <div className="system-table">
                 <div className="system-table">
                   <ul className="search-ul more-ul">
+                    <li>
+                      <span>主订单号查询</span>
+                      <Input
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchMainOrderIdChange(e)}
+                        suffix={suffix10}
+                        value={searchMainOrderId}
+                      />
+                    </li>
                     <li>
                       <span>提现单号查询</span>
                       <Input

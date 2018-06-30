@@ -122,6 +122,7 @@ class Category extends React.Component {
       userId: this.state.searchUserName, //用户id
       productType: this.state.searchProductType, //产品类型
       orderNo: this.state.searchorderNo.trim(), //订单号查询
+      mainOrderId:this.state.searchMainOrderId.trim(),//主订单号查询
       minPrice: this.state.searchMinPrice,
       maxPrice: this.state.searchMaxPrice,
       userType: this.state.searchType, //用户身份
@@ -972,7 +973,8 @@ class Category extends React.Component {
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         name: item.product ? item.product.name : "",
         modelId: item.product ? item.product.typeCode : "",
-        typeId: item.product ? item.product.typeId : "",
+        typeId: item.product.productType ? item.product.productType.code : "",//产品类型codee值
+        company: item.product.productType ? item.product.productType.code : "",//产品公司
         activityStatus: item.orders ? item.orders.activityStatus : "",
         userId: item.orders ? item.orders.userInfo.id : "",
         userType: item.orders ? item.orders.userInfo.userType : "",
@@ -988,12 +990,11 @@ class Category extends React.Component {
         createTime: item.createTime,
         detail: item.product.name ? item.product.name : "",
         auditTime: item.orders ? item.orders.auditTime : "",
-        company: item.product ? item.product.typeId : "",
         refundStatus: item.refundStatus,
         refundId: item.id,
         selectedKeys: item.selectedKeys,
         refundDetail: item.refundDetail || "",
-        mainOrderId:item.orders ? item.orderId.mainOrderId : '',
+        mainOrderId:item.orders ? item.orders.mainOrderId : '',//主订单号
       };
     });
   }

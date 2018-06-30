@@ -929,6 +929,7 @@ class Category extends React.Component {
         ambassadorName: item.distributor ? item.distributor.mobile : "",
         userId: item.userInfo.id,
         modelType: item.modelType,
+        mainOrderId:item.mainOrderId,//主订单号
         mchOrderId: item.refundRecord ? item.refundRecord.tradeNo : "",
         refundPassTime:item.refundRecord ? item.refundRecord.refundPassTime:'',
         mobile: item.shopAddress ? item.shopAddress.mobile : "",
@@ -1232,7 +1233,7 @@ class Category extends React.Component {
                 >
                   <Form>
                     <FormItem label="主订单号" {...formItemLayout}>
-                      {/*{!!this.state.nowData ? this.state.nowData.orderNo : ""}*/}
+                      {!!this.state.nowData ? this.state.nowData.mainOrderId : ""}
                     </FormItem>
                     <FormItem label="子订单号" {...formItemLayout}>
                         {!!this.state.nowData ? this.state.nowData.orderNo : ""}
