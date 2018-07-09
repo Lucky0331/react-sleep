@@ -1,5 +1,5 @@
 import URLDATA from "./data";
-
+import { message } from 'antd';
 //  为这个项目创建的一些工具
 const tools = {
   // 通过location返回该url对应的各级name/path
@@ -280,6 +280,69 @@ const tools = {
       }
     });
     return temp;
+  },
+
+  /**
+   * 导出
+   * @param params 参数们
+   * @param url 完整接口地址
+   * @param type 请求方式，默认post
+   * @param name 要生成的文件名带后缀，默认文档.xls
+   */
+  download(params={}, url, type="post", name="文档.xls"){
+    // 构建form表单
+    const form = document.createElement("form");
+    form.action = url;
+    form.method = type;
+    Object.keys(params).forEach((item)=>{
+      const newElement = document.createElement("input");
+      newElement.setAttribute("name", item);
+      newElement.setAttribute("type", "hidden");
+      newElement.setAttribute("value", params[item]);
+      form.appendChild(newElement);
+    });
+
+    // 开始ajax请求
+    let xhr = new XMLHttpRequest();
+    xhr.open(type.toUpperCase(), form.action);
+    xhr.withCredentials = true;
+    xhr.responseType="blob";
+    const hide = message.loading("下载中,请稍等", 0);
+    xhr.onload = function() {
+      // 请求完成
+      let blob = this.response;
+      const fileName = name;
+      if (window.navigator.msSaveOrOpenBlob) {
+        navigator.msSaveBlob(blob, fileName);
+      } else {
+        const link = document.createElement("a");
+        link.href = window.URL.createObjectURL(blob);
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        window.URL.revokeObjectURL(link.href);
+        link.parentNode.removeChild(link);
+      }
+      xhr = null;
+      hide();
+    };
+    // 监听下载进度，流数据total为0，计算不出进度
+    xhr.addEventListener("progress", function(e){
+
+    }, false);
+    // 超时时触发
+    xhr.ontimeout = function(e) {
+      hide();
+      xhr = null;
+      message.error("连接超时，请重试", 0);
+    };
+    // 出错时触发
+    xhr.onerror = function(e) {
+      hide();
+      xhr = null;
+      message.error("下载出错，请重试", 0);
+    };
+    xhr.send(new FormData(form));
   }
 };
 
