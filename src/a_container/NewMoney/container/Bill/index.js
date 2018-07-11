@@ -291,7 +291,7 @@ class Category extends React.Component {
       orderId: this.state.searchorderNo.trim(),  //订单号查询
       mainOrderId:this.state.searchMainOrderId.trim(), //主订单号查询
       paymentNo: this.state.searchmchOrderIdChange.trim(), //流水号
-      refer: this.state.searchRefer, //云平台工单号
+      refer: this.state.searchRefer.trim(), //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
           ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
@@ -767,7 +767,7 @@ class Category extends React.Component {
       orderId: this.state.searchorderNo,  //子订单号查询
       mainOrderId:this.state.searchMainOrderId,//主订单号查询
       paymentNo: this.state.searchmchOrderIdChange, //流水号
-      refer: this.state.searchRefer, //云平台工单号
+      refer: this.state.searchRefer.trim(), //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
         ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
@@ -776,132 +776,7 @@ class Category extends React.Component {
         ? `${tools.dateToStr(this.state.searchEndTime._d)}`
         : "",
     };
-    let form = document.getElementById("download-form");
-    if (!form) {
-      form = document.createElement("form");
-      document.body.appendChild(form);
-    }
-    else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/reconciliation/record`;
-    form.method = "post";
-    console.log("FORM:", params);
-
-    const newElement = document.createElement("input");
-    newElement.setAttribute("name", "pageNum");
-    newElement.setAttribute("type", "hidden");
-    newElement.setAttribute("value", pageNum);
-    form.appendChild(newElement);
-
-    const newElement2 = document.createElement("input");
-    newElement2.setAttribute("name", "pageSize");
-    newElement2.setAttribute("type", "hidden");
-    newElement2.setAttribute("value", pageSize);
-    form.appendChild(newElement2);
-
-    const newElement3 = document.createElement("input");
-    if (params.id) {
-      newElement3.setAttribute("name", "id");
-      newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.id);
-      form.appendChild(newElement3);
-    }
-
-    const newElement4 = document.createElement("input");
-    if (params.payType) {
-      newElement4.setAttribute("name", "payType");
-      newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.payType);
-      form.appendChild(newElement4);
-    }
-
-    const newElement5 = document.createElement("input");
-    if (params.orderStatus) {
-      newElement5.setAttribute("name", "orderStatus");
-      newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.orderStatus);
-      form.appendChild(newElement5);
-    }
-
-    const newElement6 = document.createElement("input");
-    if (params.userId) {
-      newElement6.setAttribute("name", "userId");
-      newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.userId);
-      form.appendChild(newElement6);
-    }
-
-    const newElement7 = document.createElement("input");
-    if (params.orderType) {
-      newElement7.setAttribute("name", "orderType");
-      newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.orderType);
-      form.appendChild(newElement7);
-    }
-
-    const newElement8 = document.createElement("input");
-    if (params.orderId) {
-      newElement8.setAttribute("name", "orderId");
-      newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.orderId);
-      form.appendChild(newElement8);
-    }
-
-    const newElement9 = document.createElement("input");
-    if (params.paymentNo) {
-      newElement9.setAttribute("name", "paymentNo");
-      newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.paymentNo);
-      form.appendChild(newElement9);
-    }
-
-    const newElement10 = document.createElement("input");
-    if (params.refer) {
-      newElement10.setAttribute("name", "refer");
-      newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.refer);
-      form.appendChild(newElement10);
-    }
-
-    const newElement11 = document.createElement("input");
-    if (params.activityType) {
-      newElement11.setAttribute("name", "activityType");
-      newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.activityType);
-      form.appendChild(newElement11);
-    }
-  
-    const newElement12 = document.createElement("input");
-    if (params.maxTime) {
-      newElement12.setAttribute("name", "maxTime");
-      newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", params.maxTime);
-      form.appendChild(newElement12);
-    }
-    
-    const newElement13 = document.createElement("input");
-    if (params.minTime) {
-      newElement13.setAttribute("name", "minTime");
-      newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.minTime);
-      form.appendChild(newElement13);
-    }
-    
-    const newElement14 = document.createElement("input");
-    if (params.mainOrderId) {
-      newElement14.setAttribute("name", "mainOrderId");
-      newElement14.setAttribute("type", "hidden");
-      newElement14.setAttribute("value", params.mainOrderId);
-      form.appendChild(newElement14);
-    }
-  
-    this.props.actions.AllExportList(tools.clearNull(params)).then(res => {
-      if (String(res) === "[object XMLDocument]") {
-        message.error('没有数据！');
-      } else {
-        form.submit();
-      }
-    });
-    // form.submit();
+    tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/reconciliation/record`,'post','汇总对账.xls')
   }
   
   //导出 - 净水服务
@@ -922,7 +797,7 @@ class Category extends React.Component {
       orderId: this.state.searchorderNo,  //订单号查询
       mainOrderId:this.state.searchMainOrderId,//主订单号查询
       paymentNo: this.state.searchmchOrderIdChange, //流水号
-      refer: this.state.searchRefer, //云平台工单号
+      refer: this.state.searchRefer.trim(), //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
         ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
@@ -931,135 +806,7 @@ class Category extends React.Component {
         ? `${tools.dateToStr(this.state.searchEndTime._d)}`
         : "",
     };
-    let form = document.getElementById("download-form");
-    if (!form) {
-      form = document.createElement("form");
-      document.body.appendChild(form);
-    }else{
-      form.innerHTML="";
-    }
-    form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/water/reconciliation/record`;
-    form.method = "post";
-    console.log("FORM:", params);
-    
-    const newElement = document.createElement("input");
-    newElement.setAttribute("name", "pageNum");
-    newElement.setAttribute("type", "hidden");
-    newElement.setAttribute("value", pageNum);
-    form.appendChild(newElement);
-    
-    const newElement2 = document.createElement("input");
-    newElement2.setAttribute("name", "pageSize");
-    newElement2.setAttribute("type", "hidden");
-    newElement2.setAttribute("value", pageSize);
-    form.appendChild(newElement2);
-  
-    const newElement3 = document.createElement("input");
-    if (params.id) {
-      newElement3.setAttribute("name", "id");
-      newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.id);
-      form.appendChild(newElement3);
-    }
-  
-    const newElement4 = document.createElement("input");
-    if (params.payType) {
-      newElement4.setAttribute("name", "payType");
-      newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.payType);
-      form.appendChild(newElement4);
-    }
-  
-    const newElement5 = document.createElement("input");
-    if (params.orderStatus) {
-      newElement5.setAttribute("name", "orderStatus");
-      newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.orderStatus);
-      form.appendChild(newElement5);
-    }
-  
-    const newElement6 = document.createElement("input");
-    if (params.userId) {
-      newElement6.setAttribute("name", "userId");
-      newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.userId);
-      form.appendChild(newElement6);
-    }
-  
-    const newElement8 = document.createElement("input");
-    if (params.orderId) {
-      newElement8.setAttribute("name", "orderId");
-      newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.orderId);
-      form.appendChild(newElement8);
-    }
-  
-    const newElement9 = document.createElement("input");
-    if (params.paymentNo) {
-      newElement9.setAttribute("name", "paymentNo");
-      newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.paymentNo);
-      form.appendChild(newElement9);
-    }
-  
-    const newElement10 = document.createElement("input");
-    if (params.refer) {
-      newElement10.setAttribute("name", "refer");
-      newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.refer);
-      form.appendChild(newElement10);
-    }
-  
-    const newElement11 = document.createElement("input");
-    if (params.activityType) {
-      newElement11.setAttribute("name", "activityType");
-      newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.activityType);
-      form.appendChild(newElement11);
-    }
-  
-    const newElement12 = document.createElement("input");
-    if (params.maxTime) {
-      newElement12.setAttribute("name", "maxTime");
-      newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", params.maxTime);
-      form.appendChild(newElement12);
-    }
-  
-    const newElement13 = document.createElement("input");
-    if (params.minTime) {
-      newElement13.setAttribute("name", "minTime");
-      newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.minTime);
-      form.appendChild(newElement13);
-    }
-  
-    const newElement14 = document.createElement("input");
-    if (params.modelType) {
-      newElement14.setAttribute("name", "modelType");
-      newElement14.setAttribute("type", "hidden");
-      newElement14.setAttribute("value", params.modelType);
-      form.appendChild(newElement14);
-    }
-  
-    const newElement15 = document.createElement("input");
-    if (params.mainOrderId) {
-      newElement15.setAttribute("name", "mainOrderId");
-      newElement15.setAttribute("type", "hidden");
-      newElement15.setAttribute("value", params.mainOrderId);
-      form.appendChild(newElement15);
-    }
-  
-    this.props.actions.WaterExportList(tools.clearNull(params)).then(res => {
-      if (String(res) === "[object XMLDocument]") {
-        message.error('没有数据！');
-      } else {
-        form.submit();
-      }
-    });
-    
-    // form.submit();
+    tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/water/reconciliation/record`,'post','净水服务.xls')
   }
   
   //导出 - 健康食品
@@ -1080,142 +827,16 @@ class Category extends React.Component {
       orderId: this.state.searchorderNo,  //订单号查询
       mainOrderId:this.state.searchMainOrderId,//主订单号查询
       paymentNo: this.state.searchmchOrderIdChange, //流水号
-      refer: this.state.searchRefer, //云平台工单号
+      refer: this.state.searchRefer.trim(), //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
-          ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
-          : "",
+        ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
+        : "",
       maxTime: this.state.searchEndTime
-          ? `${tools.dateToStr(this.state.searchEndTime._d)}`
-          : "",
+        ? `${tools.dateToStr(this.state.searchEndTime._d)}`
+        : "",
     };
-    let form = document.getElementById("download-form");
-    if (!form) {
-      form = document.createElement("form");
-      document.body.appendChild(form);
-    }
-    else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/food/reconciliation/record`;
-    form.method = "post";
-    console.log("FORM:", params);
-    
-    const newElement = document.createElement("input");
-    newElement.setAttribute("name", "pageNum");
-    newElement.setAttribute("type", "hidden");
-    newElement.setAttribute("value", pageNum);
-    form.appendChild(newElement);
-    
-    const newElement2 = document.createElement("input");
-    newElement2.setAttribute("name", "pageSize");
-    newElement2.setAttribute("type", "hidden");
-    newElement2.setAttribute("value", pageSize);
-    form.appendChild(newElement2);
-  
-    const newElement3 = document.createElement("input");
-    if (params.id) {
-      newElement3.setAttribute("name", "id");
-      newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.id);
-      form.appendChild(newElement3);
-    }
-  
-    const newElement4 = document.createElement("input");
-    if (params.payType) {
-      newElement4.setAttribute("name", "payType");
-      newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.payType);
-      form.appendChild(newElement4);
-    }
-  
-    const newElement5 = document.createElement("input");
-    if (params.orderStatus) {
-      newElement5.setAttribute("name", "orderStatus");
-      newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.orderStatus);
-      form.appendChild(newElement5);
-    }
-  
-    const newElement6 = document.createElement("input");
-    if (params.userId) {
-      newElement6.setAttribute("name", "userId");
-      newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.userId);
-      form.appendChild(newElement6);
-    }
-  
-    const newElement8 = document.createElement("input");
-    if (params.orderId) {
-      newElement8.setAttribute("name", "orderId");
-      newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.orderId);
-      form.appendChild(newElement8);
-    }
-  
-    const newElement9 = document.createElement("input");
-    if (params.paymentNo) {
-      newElement9.setAttribute("name", "paymentNo");
-      newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.paymentNo);
-      form.appendChild(newElement9);
-    }
-  
-    const newElement10 = document.createElement("input");
-    if (params.refer) {
-      newElement10.setAttribute("name", "refer");
-      newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.refer);
-      form.appendChild(newElement10);
-    }
-  
-    const newElement11 = document.createElement("input");
-    if (params.activityType) {
-      newElement11.setAttribute("name", "activityType");
-      newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.activityType);
-      form.appendChild(newElement11);
-    }
-  
-    const newElement12 = document.createElement("input");
-    if (params.maxTime) {
-      newElement12.setAttribute("name", "maxTime");
-      newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", params.maxTime);
-      form.appendChild(newElement12);
-    }
-  
-    const newElement13 = document.createElement("input");
-    if (params.minTime) {
-      newElement13.setAttribute("name", "minTime");
-      newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.minTime);
-      form.appendChild(newElement13);
-    }
-  
-    const newElement14 = document.createElement("input");
-    if (params.modelType) {
-      newElement14.setAttribute("name", "modelType");
-      newElement14.setAttribute("type", "hidden");
-      newElement14.setAttribute("value", params.modelType);
-      form.appendChild(newElement14);
-    }
-  
-    const newElement15 = document.createElement("input");
-    if (params.mainOrderId) {
-      newElement15.setAttribute("name", "mainOrderId");
-      newElement15.setAttribute("type", "hidden");
-      newElement15.setAttribute("value", params.mainOrderId);
-      form.appendChild(newElement15);
-    }
-  
-    this.props.actions.FoodExportList(tools.clearNull(params)).then(res => {
-      if (String(res) === "[object XMLDocument]") {
-        message.error('没有数据！');
-      } else {
-        form.submit();
-      }
-    });
-    
-    // form.submit();
+    tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/food/reconciliation/record`,'post','健康食品.xls')
   }
   
   //导出 - 生物科技
@@ -1236,7 +857,7 @@ class Category extends React.Component {
       orderId: this.state.searchorderNo,  //订单号查询
       mainOrderId:this.state.searchMainOrderId,//主订单号查询
       paymentNo: this.state.searchmchOrderIdChange, //流水号
-      refer: this.state.searchRefer, //云平台工单号
+      refer: this.state.searchRefer.trim(), //云平台工单号
       activityType: this.state.searchActivity,
       minTime: this.state.searchBeginTime
         ? `${tools.dateToStr(this.state.searchBeginTime._d)}`
@@ -1245,133 +866,8 @@ class Category extends React.Component {
         ? `${tools.dateToStr(this.state.searchEndTime._d)}`
         : "",
     };
-    let form = document.getElementById("download-form");
-    if (!form) {
-      form = document.createElement("form");
-      document.body.appendChild(form);
-    }
-    else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/biological/reconciliation/record`;
-    form.method = "post";
-    console.log("FORM:", params);
+    tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/biological/reconciliation/record`,'post','生物科技.xls')
     
-    const newElement = document.createElement("input");
-    newElement.setAttribute("name", "pageNum");
-    newElement.setAttribute("type", "hidden");
-    newElement.setAttribute("value", pageNum);
-    form.appendChild(newElement);
-    
-    const newElement2 = document.createElement("input");
-    newElement2.setAttribute("name", "pageSize");
-    newElement2.setAttribute("type", "hidden");
-    newElement2.setAttribute("value", pageSize);
-    form.appendChild(newElement2);
-  
-    const newElement3 = document.createElement("input");
-    if (params.id) {
-      newElement3.setAttribute("name", "id");
-      newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.id);
-      form.appendChild(newElement3);
-    }
-  
-    const newElement4 = document.createElement("input");
-    if (params.payType) {
-      newElement4.setAttribute("name", "payType");
-      newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.payType);
-      form.appendChild(newElement4);
-    }
-  
-    const newElement5 = document.createElement("input");
-    if (params.orderStatus) {
-      newElement5.setAttribute("name", "orderStatus");
-      newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.orderStatus);
-      form.appendChild(newElement5);
-    }
-  
-    const newElement6 = document.createElement("input");
-    if (params.userId) {
-      newElement6.setAttribute("name", "userId");
-      newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.userId);
-      form.appendChild(newElement6);
-    }
-  
-    const newElement8 = document.createElement("input");
-    if (params.orderId) {
-      newElement8.setAttribute("name", "orderId");
-      newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.orderId);
-      form.appendChild(newElement8);
-    }
-  
-    const newElement9 = document.createElement("input");
-    if (params.paymentNo) {
-      newElement9.setAttribute("name", "paymentNo");
-      newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.paymentNo);
-      form.appendChild(newElement9);
-    }
-  
-    const newElement10 = document.createElement("input");
-    if (params.refer) {
-      newElement10.setAttribute("name", "refer");
-      newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.refer);
-      form.appendChild(newElement10);
-    }
-  
-    const newElement11 = document.createElement("input");
-    if (params.activityType) {
-      newElement11.setAttribute("name", "activityType");
-      newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.activityType);
-      form.appendChild(newElement11);
-    }
-  
-    const newElement12 = document.createElement("input");
-    if (params.maxTime) {
-      newElement12.setAttribute("name", "maxTime");
-      newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", params.maxTime);
-      form.appendChild(newElement12);
-    }
-  
-    const newElement13 = document.createElement("input");
-    if (params.minTime) {
-      newElement13.setAttribute("name", "minTime");
-      newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.minTime);
-      form.appendChild(newElement13);
-    }
-  
-    const newElement14 = document.createElement("input");
-    if (params.modelType) {
-      newElement14.setAttribute("name", "modelType");
-      newElement14.setAttribute("type", "hidden");
-      newElement14.setAttribute("value", params.modelType);
-      form.appendChild(newElement14);
-    }
-  
-    const newElement15 = document.createElement("input");
-    if (params.mainOrderId) {
-      newElement15.setAttribute("name", "mainOrderId");
-      newElement15.setAttribute("type", "hidden");
-      newElement15.setAttribute("value", params.mainOrderId);
-      form.appendChild(newElement15);
-    }
-  
-    this.props.actions.BiologicalExportList(tools.clearNull(params)).then(res => {
-      if (String(res) === "[object XMLDocument]") {
-        message.error('没有数据！');
-      } else {
-        form.submit();
-      }
-    });
-    
-    form.submit();
   }
   
   //导出 - 优惠卡
@@ -1397,101 +893,7 @@ class Category extends React.Component {
         ? `${tools.dateToStr(this.state.searchEndTime._d)}`
         : "",
     };
-    let form = document.getElementById("download-form");
-    if (!form) {
-      form = document.createElement("form");
-      document.body.appendChild(form);
-    }
-    else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/m/ticket/reconciliation/record`;
-    form.method = "post";
-    console.log("FORM:", params);
-    
-    const newElement = document.createElement("input");
-    newElement.setAttribute("name", "pageNum");
-    newElement.setAttribute("type", "hidden");
-    newElement.setAttribute("value", pageNum);
-    form.appendChild(newElement);
-    
-    const newElement2 = document.createElement("input");
-    newElement2.setAttribute("name", "pageSize");
-    newElement2.setAttribute("type", "hidden");
-    newElement2.setAttribute("value", pageSize);
-    form.appendChild(newElement2);
-    
-    const newElement5 = document.createElement("input");
-    if (params.id) {
-      newElement5.setAttribute("name", "id");
-      newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.id);
-      form.appendChild(newElement5);
-    }
-    
-    const newElement6 = document.createElement("input");
-    if (params.userId) {
-      newElement6.setAttribute("name", "userId");
-      newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.userId);
-      form.appendChild(newElement6);
-    }
-    
-    const newElement7 = document.createElement("input");
-    if (params.orderId) {
-      newElement7.setAttribute("name", "orderId");
-      newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.orderId);
-      form.appendChild(newElement7);
-    }
-    
-    const newElement8 = document.createElement("input");
-    if (params.paymentNo) {
-      newElement8.setAttribute("name", "paymentNo");
-      newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.paymentNo);
-      form.appendChild(newElement8);
-    }
-    
-    const newElement9 = document.createElement("input");
-    if (params.ticketNo) {
-      newElement9.setAttribute("name", "ticketNo");
-      newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.ticketNo);
-      form.appendChild(newElement9);
-    }
-  
-    const newElement10 = document.createElement("input");
-    if (params.maxTime) {
-      newElement10.setAttribute("name", "maxTime");
-      newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.maxTime);
-      form.appendChild(newElement10);
-    }
-  
-    const newElement11 = document.createElement("input");
-    if (params.minTime) {
-      newElement11.setAttribute("name", "minTime");
-      newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.minTime);
-      form.appendChild(newElement11);
-    }
-  
-    const newElement12 = document.createElement("input");
-    if (params.mainOrderId) {
-      newElement12.setAttribute("name", "mainOrderId");
-      newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", params.mainOrderId);
-      form.appendChild(newElement12);
-    }
-  
-    this.props.actions.CordExportList(tools.clearNull(params)).then(res => {
-      if (String(res) === "[object XMLDocument]") {
-        message.error('没有数据！');
-      } else {
-        form.submit();
-      }
-    });
-    
-    // form.submit();
+    tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/m/ticket/reconciliation/record`,'post','优惠卡.xls')
   }
   
   //导出 - 健康评估
@@ -1517,101 +919,7 @@ class Category extends React.Component {
         ? `${tools.dateToStr(this.state.searchEndTime._d)}`
         : "",
     };
-    let form = document.getElementById("download-form");
-    if (!form) {
-      form = document.createElement("form");
-      document.body.appendChild(form);
-    }
-    else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/ticket/reconciliation/record`;
-    form.method = "post";
-    console.log("FORM:", params);
-    
-    const newElement = document.createElement("input");
-    newElement.setAttribute("name", "pageNum");
-    newElement.setAttribute("type", "hidden");
-    newElement.setAttribute("value", pageNum);
-    form.appendChild(newElement);
-    
-    const newElement2 = document.createElement("input");
-    newElement2.setAttribute("name", "pageSize");
-    newElement2.setAttribute("type", "hidden");
-    newElement2.setAttribute("value", pageSize);
-    form.appendChild(newElement2);
-    
-    const newElement3 = document.createElement("input");
-    if (params.id) {
-      newElement3.setAttribute("name", "id");
-      newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.id);
-      form.appendChild(newElement3);
-    }
-    
-    const newElement4 = document.createElement("input");
-    if (params.modelType) {
-      newElement4.setAttribute("name", "modelType");
-      newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.modelType);
-      form.appendChild(newElement4);
-    }
-    
-    const newElement5 = document.createElement("input");
-    if (params.minTime) {
-      newElement5.setAttribute("name", "minTime");
-      newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.minTime);
-      form.appendChild(newElement5);
-    }
-    
-    const newElement6 = document.createElement("input");
-    if (params.maxTime) {
-      newElement6.setAttribute("name", "maxTime");
-      newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.maxTime);
-      form.appendChild(newElement6);
-    }
-    
-    const newElement9 = document.createElement("input");
-    if (params.userId) {
-      newElement9.setAttribute("name", "userId");
-      newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.userId);
-      form.appendChild(newElement9);
-    }
-    
-    const newElement10 = document.createElement("input");
-    if (params.paymentNo) {
-      newElement10.setAttribute("name", "paymentNo");
-      newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.paymentNo);
-      form.appendChild(newElement10);
-    }
-    
-    const newElement11 = document.createElement("input");
-    if (params.orderId) {
-      newElement11.setAttribute("name", "orderId");
-      newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.orderId);
-      form.appendChild(newElement11);
-    }
-  
-    const newElement13 = document.createElement("input");
-    if (params.mainOrderId) {
-      newElement13.setAttribute("name", "mainOrderId");
-      newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.mainOrderId);
-      form.appendChild(newElement13);
-    }
-  
-    this.props.actions.HealthyExportList(tools.clearNull(params)).then(res => {
-      if (String(res) === "[object XMLDocument]") {
-        message.error('没有数据！');
-      } else {
-        form.submit();
-      }
-    });
-    
-    // form.submit();
+    tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/ticket/reconciliation/record`,'post','健康评估.xls')
   }
 
   // 查询某一条数据的详情

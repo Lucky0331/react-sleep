@@ -38,7 +38,7 @@ module.exports = {
         test: /\.css$/,
         use: [
           "style-loader",
-            "css-loader",
+          "css-loader",
           "postcss-loader"
         ]
       },
@@ -49,7 +49,7 @@ module.exports = {
           "style-loader",
           "css-loader",
           "postcss-loader",
-          `less-loader`
+          {loader: "less-loader", options:{javascriptEnabled: true}}
         ]
       },
       {
@@ -57,7 +57,7 @@ module.exports = {
         test: /\.scss$/,
         use: [
           "style-loader",
-            "css-loader",
+          "css-loader",
           "postcss-loader",
           "sass-loader"
         ]
@@ -66,17 +66,17 @@ module.exports = {
         // 文件解析
         test: /\.(eot|woff|otf|svg|ttf|woff2|appcache|mp3|mp4|pdf)(\?|$)/,
         include: path.resolve(__dirname, "src"),
-          use: [
-              "file-loader?name=assets/[name].[ext]"
-          ]
+        use: [
+          "file-loader?name=assets/[name].[ext]"
+        ]
       },
       {
         // 图片解析
         test: /\.(png|jpg|gif)(\?|$)/,
         include: path.resolve(__dirname, "src"),
-          use: [
-              "url-loader?limit=8192&name=assets/[name].[ext]"
-          ]
+        use: [
+          "url-loader?limit=8192&name=assets/[name].[ext]"
+        ]
       },
       {
         // CSV/TSV文件解析
@@ -95,23 +95,30 @@ module.exports = {
     ]
   },
   plugins: [
-      new webpack.DllReferencePlugin({
-          context: __dirname,
-          /**
-           下面这个地址对应webpack.dll.config.js中生成的那个json文件的路径
-           这样webpack打包时，就先直接去这个json文件中把那些预编译的资源弄进来
-           **/
-          manifest: require('./dll/vendor-manifest.json')
-      }),
+    new webpack.DllReferencePlugin({
+      context: __dirname,
+      /**
+       下面这个地址对应webpack.dll.config.js中生成的那个json文件的路径
+       这样webpack打包时，就先直接去这个json文件中把那些预编译的资源弄进来
+       **/
+      manifest: require('./dll/vendor-manifest.json')
+    }),
     new HtmlWebpackPlugin({
       //根据模板插入css/js等生成最终HTML
       filename: "./index.html", //生成的html存放路径，相对于 output.path
       favicon: "./favicon.ico", // 自动把根目录下的favicon.ico图片加入html
       template: "./index.ejs", //html模板路径
       inject: true, // 是否将js放在body的末尾
-        templateParameters: {
-            "dll" : "<script src='/vendor.dll.js'></script>",
-        }
+      templateParameters: {
+        "dll" : "<script src='/vendor.dll.js'></script>",
+      }
+    }),
+    new webpack.ProvidePlugin({
+      //在react中引用jquery
+      //在$变量挂载到window下面，可以在项目中直接使用$不需要引用
+      $:"jquery",
+      jQuery:"jquery",
+      "window.jQuery":"jquery"
     }),
     new webpack.HotModuleReplacementPlugin() // 热更新插件
   ],

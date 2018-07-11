@@ -136,7 +136,7 @@ class Category extends React.Component {
       orderId: this.state.searchOrderId,
       userId: this.state.searchUserId,
       hraCardId: this.state.searchHraCardId,
-      serialNumber: this.state.searchSerialNumber,
+      serialNumber: this.state.searchSerialNumber.trim(),
       distributionType: this.state.searchDistributionType,
       minPayTime: this.state.searchMinPayTime
         ? `${tools.dateToStrD(this.state.searchMinPayTime._d)} 00:00:00`

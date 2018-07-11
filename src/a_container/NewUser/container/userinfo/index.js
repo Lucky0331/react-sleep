@@ -45,21 +45,11 @@ import RoleTree from "../../../../a_component/roleTree"; // 角色树 用于选�
 // ==================
 
 import {
-  findAdminUserByKeys,
-  addAdminUserInfo,
-  deleteAdminUserInfo,
-  updateAdminUserInfo,
-  findAllRole,
-  findAllRoleByUserId,
-  assigningRole,
-  findAllOrganizer,
   findAllProvince,
   findCityOrCounty,
-  findStationByArea
 } from "../../../../a_action/sys-action";
-import { findUserInfo, myCustomers,userinfoRecord ,ExportList} from "../../../../a_action/info-action";
+import { findUserInfo, myCustomers,userinfoRecord ,ExportList,UntiePhone} from "../../../../a_action/info-action";
 import { onOk } from "../../../../a_action/shop-action";
-import { cashRecord } from "../../../../a_action/shop-action";
 // ==================
 // Definition
 // ==================
@@ -189,6 +179,19 @@ class Manager extends React.Component {
         });
       });
   }
+  
+  // 解绑某用户手机号
+  onRemoveClick(eId) {
+    this.props.actions.UntiePhone({ userId: eId }).then(res => {
+      console.log('有什么：',)
+      if (res.status === "0") {
+        message.success("解绑成功");
+        this.onGetData(this.state.pageNum, this.state.pageSize);
+      } else {
+       message.error(res.message || "解绑失败，请重试");
+     }
+    });
+  }
 
   // 工具 - 根据ID获取用户类型
   getListByModelId(id) {
@@ -221,12 +224,7 @@ class Manager extends React.Component {
     }
     return `${s}${c}${q}`;
   }
-
-    warning2 = () =>{
-        message.warning('导出功能尚在开发 敬请期待');
-    };
-
-
+  
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
     const params = {
@@ -274,22 +272,6 @@ class Manager extends React.Component {
     this.setState({
       addnewModalShow: false,
       UpdateModalShow:false
-    });
-  }
-  
-  //修改某一条数据模态框出现
-  onUpdateClick(record) {
-    const me = this;
-    const { form } = me.props;
-    console.log("是什么：", record);
-    form.setFieldsValue({
-      upAddCount: record.ticketNo,
-    });
-    console.log("是什么：", record);
-    me.setState({
-      nowData: record,
-      addOrUp: "up",
-      UpdateModalShow: true,
     });
   }
   
@@ -371,118 +353,7 @@ class Manager extends React.Component {
         ? `${tools.dateToStr(this.state.searchCreateendTime.utc()._d)}`
         : "",
     };
-    let form = document.getElementById("download-form");
-    if (!form) {
-      form = document.createElement("form");
-      document.body.appendChild(form);
-    }
-    else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/userInfo/list`;
-    form.method = "post";
-    
-    console.log("FORM:", form, params);
-    console.log('是message么:',message)
-
-    const newElement = document.createElement("input");
-    newElement.setAttribute("name", "pageNum");
-    newElement.setAttribute("type", "hidden");
-    newElement.setAttribute("value", pageNum);
-    form.appendChild(newElement);
-
-    const newElement2 = document.createElement("input");
-    newElement2.setAttribute("name", "pageSize");
-    newElement2.setAttribute("type", "hidden");
-    newElement2.setAttribute("value", pageSize);
-    form.appendChild(newElement2);
-
-    const newElement10 = document.createElement("input");
-    newElement10.setAttribute("name", "category");
-    newElement10.setAttribute("type", "hidden");
-    newElement10.setAttribute("value",'2');
-    form.appendChild(newElement10);
-
-    const newElement3 = document.createElement("input");
-    if (params.userType) {
-      newElement3.setAttribute("name", "userType");
-      newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.userType);
-      form.appendChild(newElement3);
-    }
-
-    const newElement4 = document.createElement("input");
-    if (params.mobile) {
-      newElement4.setAttribute("name", "mobile");
-      newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.mobile);
-      form.appendChild(newElement4);
-    }
-
-    const newElement5 = document.createElement("input");
-    if (params.realName) {
-      newElement5.setAttribute("name", "realName");
-      newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.realName);
-      form.appendChild(newElement5);
-    }
-
-    const newElement6 = document.createElement("input");
-    if (params.userId) {
-      newElement6.setAttribute("name", "userId");
-      newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.userId);
-      form.appendChild(newElement6);
-    }
-
-    const newElement8 = document.createElement("input");
-    if (params.bindBeginTime) {
-      newElement8.setAttribute("name", "bindBeginTime");
-      newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.bindBeginTime);
-      form.appendChild(newElement8);
-    }
-
-    const newElement9 = document.createElement("input");
-    if (params.bindEndTime) {
-      newElement9.setAttribute("name", "bindEndTime");
-      newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.bindEndTime);
-      form.appendChild(newElement9);
-    }
-  
-    const newElement11 = document.createElement("input");
-    if (params.distributorId) {
-      newElement11.setAttribute("name", "distributorId");
-      newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.distributorId);
-      form.appendChild(newElement11);
-    }
-  
-    const newElement12 = document.createElement("input");
-    if (params.beginTime) {
-      newElement12.setAttribute("name", "beginTime");
-      newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", params.beginTime);
-      form.appendChild(newElement12);
-    }
-  
-    const newElement13 = document.createElement("input");
-    if (params.endTime) {
-      newElement13.setAttribute("name", "endTime");
-      newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.endTime);
-      form.appendChild(newElement13);
-    }
-  
-    this.props.actions.ExportList(tools.clearNull(params)).then(res => {
-      console.log('返货的是：', res);
-      if (String(res) === "[object XMLDocument]") {
-        message.error('没有数据！');
-      } else {
-        form.submit();
-      }
-    });
-  
-    // form.submit();
+    tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/userInfo/list`,'post', '用户信息管理.xls');
   }
 
   //Input中的删除按钮所删除的条件
@@ -741,6 +612,11 @@ class Manager extends React.Component {
         key:'incomeTime'
       },
       {
+        title:'成为分享用户时间',
+        dataIndex:'shareTime',
+        key:'shareTime'
+      },
+      {
         title: "健康大使id",
         dataIndex: "id",
         key: "id"
@@ -779,15 +655,19 @@ class Manager extends React.Component {
         render: (text, record) => {
           let controls = [];
           controls.push(
-            <span
+            <Popconfirm
               key="0"
-              className="control-btn blue"
-              onClick={() => this.onUpdateClick(record)}
+              title="确定解绑手机号吗?"
+              onConfirm={() => this.onRemoveClick(record.eId)}
+              okText="确定"
+              cancelText="取消"
             >
-            <Tooltip placement="top" title="修改">
-              <Icon type="edit" />
-            </Tooltip>
-          </span>
+              <span className="control-btn green">
+                <Tooltip placement="top" title="解绑">
+                  <Icon type="phone" />
+                </Tooltip>
+              </span>
+            </Popconfirm>
           );
           controls.push(
             <span
@@ -827,7 +707,7 @@ class Manager extends React.Component {
         key: index,
         adminIp: item.adminIp,
         password: item.password,
-        eId: item.id,
+        eId: item.id,//用户id
         citys:
           item.province && item.city && item.region
             ? `${item.province}/${item.city}/${item.region}`
@@ -838,9 +718,10 @@ class Manager extends React.Component {
         creator: item.creator,
         description: item.description,
         incomeTime:item.incomeTime,//成为分销商时间
+        shareTime:item.shareTime,//成为分享用户时间
         email: item.email,
         orgCode: item.orgType,
-        mobile: item.mobile,
+        mobile: item.mobile, //用户手机号
         headImg: item.headImg,
         updateTime: item.updateTime,
         updater: item.updater,
@@ -1097,7 +978,7 @@ class Manager extends React.Component {
           <Table
             columns={this.makeColumns()}
             dataSource={this.makeData(this.state.data)}
-            scroll={{ x: 2000 }}
+            scroll={{ x: 2500 }}
             pagination={{
               total: this.state.total,
               current: this.state.pageNum,
@@ -1109,29 +990,6 @@ class Manager extends React.Component {
             }}
           />
         </div>
-        {/* 修改模态框 */}
-        <Modal
-          title="解绑手机号"
-          visible={this.state.UpdateModalShow}
-          onOk={() => this.onUpdateOk()}
-          onCancel={() => this.onAddNewClose()}
-          confirmLoading={this.state.addnewLoading}
-        >
-          <Form>
-            <FormItem label="修改手机号" {...formItemLayout}>
-              {!! this.state.nowData ? this.state.nowData.mobile : ''}
-              {getFieldDecorator("UpMobile", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请修改手机号" }]
-              })(
-                <Input
-                  style={{ width: "100%" }}
-                  placeholder="请修改手机号"
-                />
-              )}
-            </FormItem>
-          </Form>
-        </Modal>
       </div>
     );
   }
@@ -1163,22 +1021,14 @@ export default connect(
   dispatch => ({
     actions: bindActionCreators(
       {
-        findAdminUserByKeys,
-        addAdminUserInfo,
-        deleteAdminUserInfo,
-        updateAdminUserInfo,
-        findAllRole,
-        findAllRoleByUserId,
-        assigningRole,
-        findAllOrganizer,
         findAllProvince,
         findCityOrCounty,
-        findStationByArea,
         findUserInfo,
         myCustomers,
         onOk,
         userinfoRecord,
-        ExportList
+        ExportList,
+        UntiePhone
       },
       dispatch
     )

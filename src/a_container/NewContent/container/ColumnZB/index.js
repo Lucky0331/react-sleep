@@ -100,7 +100,7 @@ class Menu extends React.Component {
   onGetData(parentId = 0) {
     const params = {
       typeId: parentId,
-      name:this.state.searchOrderNo
+      // name:this.state.searchOrderNo
     };
     this.props.actions.Columnlist(params).then(res => {
       if (res.status === "0") {

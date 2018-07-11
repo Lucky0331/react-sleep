@@ -439,8 +439,8 @@ class Category extends React.Component {
       upModalShow: true,
       fileList: record.coverImage
         ? record.coverImage
-            .split(",")
-            .map((item, index) => ({ uid: index, url: item, status: "done" }))
+          .split(",")
+          .map((item, index) => ({ uid: index, url: item, status: "done" }))
         : [], // 封面图上传的列表
     });
   }

@@ -44,19 +44,11 @@ import RoleTree from "../../../../a_component/roleTree"; // 角色树 用于选�
 // ==================
 
 import {
-  findAdminUserByKeys,
-  addAdminUserInfo,
-  deleteAdminUserInfo,
-  updateAdminUserInfo,
-  findAllRole,
-  findAllRoleByUserId,
-  assigningRole,
-  findAllOrganizer,
   findAllProvince,
   findCityOrCounty,
   findStationByArea
 } from "../../../../a_action/sys-action";
-import { findUserInfo, detailRecord ,recordCard,ExportdealerList,ExportCardList,generateFreeCard} from "../../../../a_action/info-action";
+import { findUserInfo, detailRecord ,recordCard,ExportdealerList,ExportCardList,generateFreeCard,UntiePhone} from "../../../../a_action/info-action";
 import { onOk } from "../../../../a_action/shop-action";
 // ==================
 // Definition
@@ -217,7 +209,7 @@ class Manager extends React.Component {
       region: this.state.searchAddress[2],
       realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 经销商姓名
       userName: this.state.searchUserName, //经销商账户
-      mobile: this.state.searchAmbassadorMobile ? this.state.searchAmbassadorMobile : "", // 搜索 - 经销商手机号
+      mobile: this.state.searchAmbassadorMobile ? this.state.searchAmbassadorMobile.trim() : "", // 搜索 - 经销商手机号
       userId: this.state.searchEId ? this.state.searchEId : "", //经销商id
       bindBeginTime: this.state.searchBindingBeginTime
         ? `${tools.dateToStr(this.state.searchBindingBeginTime.utc()._d)}`
@@ -235,7 +227,7 @@ class Manager extends React.Component {
           pageSize,
           total: res.data.total
         });
-      } else {
+      } else if(res.data == null){
         message.error(res.message || "获取数据失败，请重试");
       }
     });
@@ -277,114 +269,8 @@ class Manager extends React.Component {
         ? `${tools.dateToStr(this.state.searchBindingEndTime.utc()._d)}`
         : ""
     };
-    let form = document.getElementById("download-form");
-    if (!form) {
-      form = document.createElement("form");
-      document.body.appendChild(form);
-    }
-    else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/userInfo/list`;
-    form.method = "post";
-    console.log("FORM:", params);
-
-    const newElement = document.createElement("input");
-    newElement.setAttribute("name", "pageNum");
-    newElement.setAttribute("type", "hidden");
-    newElement.setAttribute("value", pageNum);
-    form.appendChild(newElement);
-
-    const newElement2 = document.createElement("input");
-    newElement2.setAttribute("name", "pageSize");
-    newElement2.setAttribute("type", "hidden");
-    newElement2.setAttribute("value", pageSize);
-    form.appendChild(newElement2);
-
-    const newElement7 = document.createElement("input");
-    newElement7.setAttribute("name", "category");
-    newElement7.setAttribute("type", "hidden");
-    newElement7.setAttribute("value",'1');
-    form.appendChild(newElement7);
-
-    const newElement3 = document.createElement("input");
-    if (params.userType) {
-      newElement3.setAttribute("name", "userType");
-      newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.userType);
-      form.appendChild(newElement3);
-    }
-
-    const newElement4 = document.createElement("input");
-    if (params.mobile) {
-      newElement4.setAttribute("name", "mobile");
-      newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.mobile);
-      form.appendChild(newElement4);
-    }
-
-    const newElement5 = document.createElement("input");
-    if (params.realName) {
-      newElement5.setAttribute("name", "realName");
-      newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.realName);
-      form.appendChild(newElement5);
-    }
-
-    const newElement6 = document.createElement("input");
-    if (params.userId) {
-      newElement6.setAttribute("name", "userId");
-      newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.userId);
-      form.appendChild(newElement6);
-    }
-
-    const newElement8 = document.createElement("input");
-    if (params.bindBeginTime) {
-      newElement8.setAttribute("name", "bindBeginTime");
-      newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.bindBeginTime);
-      form.appendChild(newElement8);
-    }
-
-    const newElement9 = document.createElement("input");
-    if (params.bindEndTime) {
-      newElement9.setAttribute("name", "bindEndTime");
-      newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.bindEndTime);
-      form.appendChild(newElement9);
-    }
-  
-    const newElement10 = document.createElement("input");
-    if (params.province) {
-      newElement10.setAttribute("name", "province");
-      newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.province);
-      form.appendChild(newElement10);
-    }
-  
-    const newElement11 = document.createElement("input");
-    if (params.city) {
-      newElement11.setAttribute("name", "city");
-      newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.city);
-      form.appendChild(newElement11);
-    }
-  
-    const newElement12 = document.createElement("input");
-    if (params.region) {
-      newElement12.setAttribute("name", "region");
-      newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", params.region);
-      form.appendChild(newElement12);
-    }
-  
-    const newElement13 = document.createElement("input");
-    if (params.userName) {
-      newElement13.setAttribute("name", "userName");
-      newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.userName);
-      form.appendChild(newElement13);
-    }
-  
+    tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/userInfo/list`,'post', '经销商信息管理.xls');
+    
     this.props.actions.ExportdealerList(tools.clearNull(params)).then(res => {
       if (res.status != '1') {
         form.submit();
@@ -586,6 +472,18 @@ class Manager extends React.Component {
     this.setState({
       searchUserName: ""
     });
+  }
+  
+  //解绑手机号事件
+  onRemoveClick(userId){
+    this.props.actions.UntiePhone({userId:userId}).then(res => {
+      if(res.status === '0'){
+        message.success('解绑成功')
+        this.onGetData(this.state.pageNum,this.state.pageSize)
+      }else{
+        message.error(res.message || '解绑失败，请重试')
+      }
+    })
   }
 
   // 查询某一条数据的详情
@@ -921,6 +819,17 @@ class Manager extends React.Component {
             <span
               key="0"
               className="control-btn green"
+              onClick={() => this.onRemoveClick(record.userId)}
+            >
+              <Tooltip placement="top" title='是否解绑手机号'>
+                <Icon type="phone"/>
+              </Tooltip>
+            </span>
+          );
+          controls.push(
+            <span
+              key="1"
+              className="control-btn green"
               onClick={() => this.onQueryClick(record)}
             >
               <a href="#/usermanage/dealerinfoDetail"><Tooltip placement="top" title="查看">
@@ -930,7 +839,7 @@ class Manager extends React.Component {
           );
           controls.push(
             <span
-              key="1"
+              key="2"
               className="control-btn blue"
               onClick={() => this.CardList(record)}
             >
@@ -1333,14 +1242,6 @@ export default connect(
   dispatch => ({
     actions: bindActionCreators(
       {
-        findAdminUserByKeys,
-        addAdminUserInfo,
-        deleteAdminUserInfo,
-        updateAdminUserInfo,
-        findAllRole,
-        findAllRoleByUserId,
-        assigningRole,
-        findAllOrganizer,
         findAllProvince,
         findCityOrCounty,
         findStationByArea,
@@ -1350,7 +1251,8 @@ export default connect(
         detailRecord,
         recordCard,
         ExportdealerList,
-        ExportCardList
+        ExportCardList,
+        UntiePhone
       },
       dispatch
     )

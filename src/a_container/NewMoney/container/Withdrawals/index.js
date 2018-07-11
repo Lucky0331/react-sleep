@@ -84,7 +84,7 @@ class Category extends React.Component {
       searchFlag2:"", //搜索 - 操作方式
       searchUserMallId: "", // 搜索 - 用户翼猫id
       searchPartnerTradeNo: "", //搜索 - 提现单号
-      searchOrderId: "", // 搜索 - 订单号
+      searchOrderId: "", // 搜索 - 子订单号
       searchMainOrderId: '',//搜索 - 主订单号
       searchPresentNumber:"", //搜索 - 提现单号
       searchOperationBegin:"",//搜索 - 操作开始时间
@@ -136,14 +136,14 @@ class Category extends React.Component {
       nickName: this.state.searchUserName, //用户昵称
       username: this.state.searchRealName, //用户姓名
       ambassadorName: this.state.searchambassadorName,
-      paymentNo: this.state.searchtradeNo, //流水号查询
+      paymentNo: this.state.searchtradeNo.trim(), //流水号查询
       flag: this.state.searchFlag, //提现状态
       phone: this.state.searchMobile.trim(), //用户手机号
       minAmount: this.state.searchMinPrice, //提现金额 小
       maxAmount: this.state.searchMaxPrice, //提现金额 大
       productType: this.state.searchTypeId,
       mainOrderId:this.state.searchMainOrderId.trim(),//主订单号
-      orderId: this.state.searchOrderId.trim(), //订单号
+      orderId: this.state.searchOrderId.trim(), //子订单号
       userId: this.state.searchUserMallId.trim(), //用户id
       partnerTradeNo: this.state.searchPartnerTradeNo.trim(), //提现单号查询
       minApplyTime: this.state.searchApplyBeginTime
@@ -192,14 +192,14 @@ class Category extends React.Component {
       nickName: this.state.searchUserName, //用户昵称
       username: this.state.searchRealName, //用户姓名
       ambassadorName: this.state.searchambassadorName,
-      paymentNo: this.state.searchtradeNo, //流水号查询
+      paymentNo: this.state.searchtradeNo.trim(), //流水号查询
       flag: this.state.searchFlag, //提现状态
       phone: this.state.searchMobile.trim(), //用户手机号
       minAmount: this.state.searchMinPrice, //提现金额 小
       maxAmount: this.state.searchMaxPrice, //提现金额 大
       productType: this.state.searchTypeId,
       mainOrderId:this.state.searchMainOrderId.trim(),//主订单号
-      orderId: this.state.searchOrderId.trim(), //订单号
+      orderId: this.state.searchOrderId.trim(), //子订单号
       userId: this.state.searchUserMallId.trim(), //用户id
       partnerTradeNo: this.state.searchPartnerTradeNo.trim(), //提现单号查询
       minApplyTime: this.state.searchApplyBeginTime
@@ -557,7 +557,7 @@ class Category extends React.Component {
     });
   }
 
-  //搜索 - 订单号
+  //搜索 - 子订单号
   searchOrderIdChange(v) {
     this.setState({
       searchOrderId: v.target.value
@@ -678,7 +678,7 @@ class Category extends React.Component {
       nickName: this.state.searchUserName, //用户昵称
       username: this.state.searchRealName, //用户姓名
       ambassadorName: this.state.searchambassadorName,
-      paymentNo: this.state.searchtradeNo, //流水号查询
+      paymentNo: this.state.searchtradeNo.trim(), //流水号查询
       flag: this.state.searchFlag, //提现状态
       phone: this.state.searchMobile, //用户手机号
       minAmount: this.state.searchMinPrice, //提现金额 小
@@ -894,7 +894,7 @@ class Category extends React.Component {
       nickName: this.state.searchUserName,
       username: this.state.searchRealName,
       ambassadorName: this.state.searchambassadorName,
-      paymentNo: this.state.searchtradeNo,
+      paymentNo: this.state.searchtradeNo.trim(),
       flag: this.state.searchFlag,
       phone: this.state.searchMobile,
       orderId: this.state.searchOrderId.trim(),
@@ -1102,6 +1102,14 @@ class Category extends React.Component {
       newElement22.setAttribute("type", "hidden");
       newElement22.setAttribute("value", params.maxAuditTime);
       form.appendChild(newElement22);
+    }
+    
+    const newElement23 = document.createElement("input");
+    if (params.orderId) {
+      newElement23.setAttribute("name", "orderId");
+      newElement23.setAttribute("type", "hidden");
+      newElement23.setAttribute("value", params.orderId);
+      form.appendChild(newElement23);
     }
     
     form.submit();
@@ -1312,7 +1320,7 @@ class Category extends React.Component {
         key: "partnerTradeNo"
       },
       {
-        title: "订单号",
+        title: "子订单号",
         dataIndex: "orderId",
         key: "orderId"
       },
@@ -1350,8 +1358,8 @@ class Category extends React.Component {
       },
       {
         title: "提现审核时间",
-        // dataIndex: "paymentTime",
-        // key: "paymentTime"
+        dataIndex: "auditTime",
+        key: "auditTime"
       },
       {
         title: "产品类型",
@@ -1947,7 +1955,7 @@ class Category extends React.Component {
                       />
                     </li>
                     <li>
-                      <span>订单号</span>
+                      <span>子订单号</span>
                       <Input
                         style={{ width: "172px" }}
                         onChange={v => this.searchOrderIdChange(v)}
@@ -2139,7 +2147,7 @@ class Category extends React.Component {
                         }}
                         format="YYYY-MM-DD HH:mm:ss"
                         placeholder="结束时间"
-                        onChange={e => this.searchRefundTime(e)}
+                        onChange={e => this.searchRefundEndTime(e)}
                         onOk={onOk}
                       />
                     </li>
@@ -2195,7 +2203,7 @@ class Category extends React.Component {
                       ? this.state.nowData.partnerTradeNo
                       : ""}
                   </FormItem>
-                  <FormItem label="订单号" {...formItemLayout}>
+                  <FormItem label="子订单号" {...formItemLayout}>
                     {!!this.state.nowData ? this.state.nowData.orderId : ""}
                   </FormItem>
                   <FormItem label="提现金额" {...formItemLayout}>
@@ -2248,7 +2256,7 @@ class Category extends React.Component {
                     {!!this.state.nowData ? this.state.nowData.phone : ""}
                   </FormItem>
                   <FormItem label="提现审核时间" {...formItemLayout}>
-                    {/*{!!this.state.nowData ? this.state.nowData.phone : ""}*/}
+                    {!!this.state.nowData ? this.state.nowData.auditTime : ""}
                   </FormItem>
                   <FormItem
                     label="审核时间"

@@ -344,6 +344,36 @@ export function findOrderByWhere(params = {}) {
   };
 }
 
+//修改订单产品型号
+export function updateType(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/product/productListByTypeCode",params)
+      .then(msg => {
+        dispatch({
+          type: "SHOP::updateOrder",
+          payload: msg
+        });
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      })
+  }
+}
+
+//确定修改订单产品型号
+export function updateOrderModel(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/order/updateOrderModel", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
 // 修改订单状态
 export function updateOrder(params = {}) {
   return dispatch => {

@@ -56,6 +56,7 @@ class Category extends React.Component {
       fileLoading: false, // 产品图片正在上传
       fileDetailLoading: false, // 详细图片正在上传
       fileVideoLoading: false,  // 视频上传中
+      temp:[],
     };
     this.editor = null; // 这是新增时候的那个编辑器
   }
@@ -321,10 +322,9 @@ class Category extends React.Component {
   onModalOk() {
     // 查看，直接关闭
     if (this.state.addOrUp === 'look'){
-        this.onModalClose();
-        return;
+      this.onModalClose();
+      return;
     }
-
     const me = this;
     const { form } = me.props;
     if (me.state.fileLoading || me.state.fileDetailLoading) {
@@ -340,6 +340,7 @@ class Category extends React.Component {
         "formActivityType", // 活动方式ID
         "formConditions", // 是否是推荐ID
         "formSort",  // 排序
+        "price",//价格
     ],(err, values) => {
         if (err) {
           return false;
@@ -360,6 +361,7 @@ class Category extends React.Component {
           coverVideo: this.state.formCoverVideo.map(item => item.url).join(","), // 视频
           conditions: values.formConditions, // 是否是推荐
           sorts: values.formSort, // 排序
+          // price:this.state.temp.price,//价格
         };
         if (this.state.addOrUp === "add") {
           // 新增
@@ -901,7 +903,7 @@ class Category extends React.Component {
         offShelfTime: item.offShelfTime,
         onShelf: item.onShelf,  // 上架状态
         onShelfTime: item.onShelfTime,  // 上架时间
-        price: item.typeModel ? item.typeModel.price : "",
+        price: item.productModel ? item.productModel.price : "",
         sorts:item.sorts,
         productDetail: item.productDetail,
         saleMode: item.saleMode,

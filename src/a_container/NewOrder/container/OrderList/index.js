@@ -18,11 +18,13 @@ import {
   message,
   Modal,
   Tooltip,
-  InputNumber,
+  Checkbox,
+  Row,
   Select,
   Divider,
   Cascader,
-  DatePicker
+  DatePicker,
+  Radio
 } from "antd";
 import "./index.scss";
 import Config from "../../../../config/config";
@@ -46,10 +48,12 @@ import {
   findProductTypeByWhere,
   findProductModelByWhere,
   addProductType,
-  warning,
   updateProductType,
   deleteProductType,
+  updateType,
+  updateOrderModel,
   onChange,
+  onChange3,
   onOk
 } from "../../../../a_action/shop-action";
 
@@ -58,12 +62,15 @@ import {
 // ==================
 const FormItem = Form.Item;
 const Option = Select.Option;
+const RadioGroup = Radio.Group;
 class Category extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       data: [], // 当前页面全部数据
+      data2:[],//编辑按钮发起的请求的数据
       productTypes: [], //所有的产品类型
+      productModels: [], // 所有的产品型号
       searchProductName: "", // 搜索 - 产品名称
       searchModelId: "", // 搜索 - 产品型号
       searchproductType: "", //搜索 - 产品类型
@@ -92,7 +99,11 @@ class Category extends React.Component {
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
-      citys: [] // 符合Cascader组件的城市数据
+      citys: [],// 符合Cascader组件的城市数据
+      chargeNames:[],//计费方式数组
+      chargeTypes: [], //所有的计费方式
+      code: undefined, //产品类型所对应的code值
+  
     };
   }
 
@@ -126,10 +137,21 @@ class Category extends React.Component {
       });
     }
   }
-
-    // warning2 = () =>{
-    //     message.warning('导出功能尚在开发 敬请期待');
-    // };
+  
+  // 获取所有产品型号，当前页要用
+  getAllProductModel() {
+    this.props.actions
+      .findProductModelByWhere({ pageNum: 0, pageSize: 9999 })
+      .then(res => {
+        console.log("这个有东西么:", res.data.modelList.result);
+        if (res.status === "0") {
+          this.setState({
+            productModels: res.data.modelList.result,
+            chargeTypes: res.data.chargeTypeList,
+          });
+        }
+      });
+  }
 
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
@@ -197,12 +219,28 @@ class Category extends React.Component {
       });
   }
 
-  // 工具 - 根据产品类型ID查产品类型名称
-  findProductNameById(id) {
+  // 工具 - 根据产品类型名称查产品类型ID
+  findProductNameById(name) {
     const t = this.state.productTypes.find(
-      item => String(item.id) === String(id)
+      item => String(item.name) === String(name)
     );
-    return t ? t.name : "";
+    return t ? t.id : "";
+  }
+  
+  // 工具 - 根据产品型号名称查产品名称型号ID
+  findProductModelById(name) {
+    const t = this.state.productModels.find(
+      item => String(item.name) === String(name)
+    );
+    return t ? t.id : "";
+  }
+  
+  // 工具 - 根据计费方式ID返回计费方式类型名称
+  getfeeTypeTypeId(feeType) {
+    const t = this.state.chargeTypes.find(
+      item => String(item.feeType) === String(feeType)
+    );
+    return t ? t.chargeName : "";
   }
   
 
@@ -512,50 +550,17 @@ class Category extends React.Component {
       searchuserSaleFlag:e
     })
   }
-
-  // 确定修改某一条数据
-  onUpOk() {
-    const me = this;
-    const { form } = me.props;
-    form.validateFields(["upOrderStatus"], (err, values) => {
-      if (err) {
-        return;
-      }
-
-      me.setState({
-        upLoading: true
-      });
-      const params = {
-        orderId: me.state.nowData.id,
-        orderStatus: values.upOrderStatus
-      };
-
-      this.props.actions
-        .updateProductType(params)
-        .then(res => {
-          if (res.status === "0") {
-            message.success("修改成功");
-            this.onGetData(this.state.pageNum, this.state.pageSize);
-            this.onUpClose();
-          } else {
-            message.error(res.message || "修改失败，请重试");
-          }
-          me.setState({
-            upLoading: false
-          });
-        })
-        .catch(() => {
-          me.setState({
-            upLoading: false
-          });
-        });
-    });
-  }
-  // 关闭修改某一条数据
-  onUpClose() {
+  
+  //根据code值不同显示的字段不同
+  Newproduct(e) {
     this.setState({
-      upModalShow: false
+      code: e
     });
+    console.log("code的数值是：", e);
+    //产品类型改变时，重置产品型号的值位undefined
+    const { form } = this.props;
+    form.resetFields(["formTypeCode"]);
+    form.resetFields(["formTypeLabel"]); //产品标签的值也为undefined
   }
 
   // 搜索
@@ -584,7 +589,7 @@ class Category extends React.Component {
       ambassadorName: this.state.searchambassadorName,
       productName: this.state.searchProductName,
       modelId: this.state.searchModelId,
-      refer: this.state.searchRefer,
+      refer: this.state.searchRefer.trim(),
       typeCode: this.state.searchproductType,
       orderFrom: this.state.searchorderFrom,
       orderNo: this.state.searchorderNo.trim(),
@@ -600,216 +605,94 @@ class Category extends React.Component {
         ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)}`
         : ""
     };
-    let form = document.getElementById("download-form");
-    if (!form) {
-      form = document.createElement("form");
-      document.body.appendChild(form);
-    }
-    else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/order/list`;
-    form.method = "post";
-    console.log("FORM:", params);
-
-    const newElement = document.createElement("input");
-    newElement.setAttribute("name", "pageNum");
-    newElement.setAttribute("type", "hidden");
-    newElement.setAttribute("value", pageNum);
-    form.appendChild(newElement);
-
-    const newElement2 = document.createElement("input");
-    newElement2.setAttribute("name", "pageSize");
-    newElement2.setAttribute("type", "hidden");
-    newElement2.setAttribute("value", pageSize);
-    form.appendChild(newElement2);
-  
-    const newElement3 = document.createElement("input");
-    if (params.isPay || params.isPay === 0) {
-      newElement3.setAttribute("name", "isPay");
-      newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.isPay);
-      form.appendChild(newElement3);
-    }
-  
-    const newElement4 = document.createElement("input");
-    if (params.payType) {
-      newElement4.setAttribute("name", "payType");
-      newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.payType);
-      form.appendChild(newElement4);
-    }
-  
-    const newElement5 = document.createElement("input");
-    if (params.activityType) {
-      newElement5.setAttribute("name", "activityType");
-      newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.activityType);
-      form.appendChild(newElement5);
-    }
-  
-    const newElement6 = document.createElement("input");
-    if (params.conditions || params.conditions === 0) {
-      newElement6.setAttribute("name", "conditions");
-      newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.conditions);
-      form.appendChild(newElement6);
-    }
-  
-    const newElement7 = document.createElement("input");
-    if (params.distributorId) {
-      newElement7.setAttribute("name", "distributorId");
-      newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value", params.distributorId);
-      form.appendChild(newElement7);
-    }
-  
-    const newElement8 = document.createElement("input");
-    if (params.partId) {
-      newElement8.setAttribute("name", "partId");
-      newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.partId);
-      form.appendChild(newElement8);
-    }
-  
-    const newElement9 = document.createElement("input");
-    if (params.userType) {
-      newElement9.setAttribute("name", "userType");
-      newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.userType);
-      form.appendChild(newElement9);
-    }
-  
-    const newElement10 = document.createElement("input");
-    if (params.userSaleFlag) {
-      newElement10.setAttribute("name", "userSaleFlag");
-      newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.userSaleFlag);
-      form.appendChild(newElement10);
-    }
-    
-  
-    const newElement12 = document.createElement("input");
-    if (params.ambassadorName) {
-      newElement12.setAttribute("name", "ambassadorName");
-      newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", params.ambassadorName);
-      form.appendChild(newElement12);
-    }
-  
-    const newElement13 = document.createElement("input");
-    if (params.userName) {
-      newElement13.setAttribute("name", "userName");
-      newElement13.setAttribute("type", "hidden");
-      newElement13.setAttribute("value", params.userName);
-      form.appendChild(newElement13);
-    }
-  
-    const newElement14 = document.createElement("input");
-    if (params.productName) {
-      newElement14.setAttribute("name", "productName");
-      newElement14.setAttribute("type", "hidden");
-      newElement14.setAttribute("value", params.productName);
-      form.appendChild(newElement14);
-    }
-  
-    const newElement15 = document.createElement("input");
-    if (params.modelId) {
-      newElement15.setAttribute("name", "modelId");
-      newElement15.setAttribute("type", "hidden");
-      newElement15.setAttribute("value", params.modelId);
-      form.appendChild(newElement15);
-    }
-  
-    const newElement16 = document.createElement("input");
-    if (params.refer) {
-      newElement16.setAttribute("name", "refer");
-      newElement16.setAttribute("type", "hidden");
-      newElement16.setAttribute("value", params.refer);
-      form.appendChild(newElement16);
-    }
-  
-    const newElement17 = document.createElement("input");
-    if (params.typeCode) {
-      newElement17.setAttribute("name", "typeCode");
-      newElement17.setAttribute("type", "hidden");
-      newElement17.setAttribute("value", params.typeCode);
-      form.appendChild(newElement17);
-    }
-  
-    const newElement18 = document.createElement("input");
-    if (params.orderFrom) {
-      newElement18.setAttribute("name", "orderFrom");
-      newElement18.setAttribute("type", "hidden");
-      newElement18.setAttribute("value", params.orderFrom);
-      form.appendChild(newElement18);
-    }
-  
-    const newElement19 = document.createElement("input");
-    if (params.province) {
-      newElement19.setAttribute("name", "province");
-      newElement19.setAttribute("type", "hidden");
-      newElement19.setAttribute("value", params.province);
-      form.appendChild(newElement19);
-    }
-  
-    const newElement20 = document.createElement("input");
-    if (params.city) {
-      newElement20.setAttribute("name", "city");
-      newElement20.setAttribute("type", "hidden");
-      newElement20.setAttribute("value", params.city);
-      form.appendChild(newElement20);
-    }
-  
-    const newElement21 = document.createElement("input");
-    if (params.region) {
-      newElement21.setAttribute("name", "region");
-      newElement21.setAttribute("type", "hidden");
-      newElement21.setAttribute("value", params.region);
-      form.appendChild(newElement21);
-    }
-  
-    const newElement22 = document.createElement("input");
-    if (params.orderNo) {
-      newElement22.setAttribute("name", "orderNo");
-      newElement22.setAttribute("type", "hidden");
-      newElement22.setAttribute("value", params.orderNo);
-      form.appendChild(newElement22);
-    }
-  
-    const newElement23 = document.createElement("input");
-    if (params.minPrice) {
-      newElement23.setAttribute("name", "minPrice");
-      newElement23.setAttribute("type", "hidden");
-      newElement23.setAttribute("value", params.minPrice);
-      form.appendChild(newElement23);
-    }
-  
-    const newElement24 = document.createElement("input");
-    if (params.maxPrice) {
-      newElement24.setAttribute("name", "maxPrice");
-      newElement24.setAttribute("type", "hidden");
-      newElement24.setAttribute("value", params.maxPrice);
-      form.appendChild(newElement24);
-    }
-  
-    const newElement25 = document.createElement("input");
-    if (params.beginTime) {
-      newElement25.setAttribute("name", "beginTime");
-      newElement25.setAttribute("type", "hidden");
-      newElement25.setAttribute("value", params.beginTime);
-      form.appendChild(newElement25);
-    }
-  
-    const newElement26 = document.createElement("input");
-    if (params.endTime) {
-      newElement26.setAttribute("name", "endTime");
-      newElement26.setAttribute("type", "hidden");
-      newElement26.setAttribute("value", params.endTime);
-      form.appendChild(newElement26);
-    }
-    
-    form.submit();
+    tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/order/list`,'post', '订单列表.xls');
   }
-
+  
+  //修改订单产品型号 - 模态框出现
+  onUpdateClick(record){
+    const params = {
+      typeCode:this.findProductNameById(record.productType),
+    };
+    this.props.actions.updateType(tools.clearNull(params)).then(res => {
+      console.log('这里的data是什么',res.data)
+      if (res.status === "0") {
+        this.setState({
+          data2: res.data || [],
+        });
+      } else {
+        message.error(res.message || "获取数据失败，请重试");
+      }
+    });
+    this.getAllProductModel();// 获取所有的产品型号
+    const me = this;
+    const {form} = me.props;
+    form.setFieldsValue({
+      formTypeId:record.productType,
+      formName:record.productName,
+      formTypeCode:record.productModel,
+      chargesTypes:record.feeType,
+    });
+    me.setState({
+      nowData:record,
+      upModalShow:true,
+      productType: record.productType,
+    });
+  }
+  
+  //确定修改产品型号  一系列
+  onUpOk() {
+    const me = this;
+    const { form } = me.props;
+    console.log('这个me是什么',me)
+    form.validateFields([
+      "formTypeId",
+      "formTypeCode",
+      "formName",
+        "chargesTypes"
+    ], (err, values) => {
+      if (err) {
+        return false;
+      }
+      me.setState({
+        upLoading: true
+      });
+      const params = {
+        orderId: me.state.nowData.orderId,//订单号
+        productId: this.findProductNameById(values.formTypeId),//产品id
+        modelId:this.findProductModelById(values.formTypeCode),//型号id
+        modelName: values.formName,//型号名称
+        feeType: values.chargesTypes,//计费方式
+      };
+      
+      this.props.actions
+        .updateOrderModel(params)
+        .then(res => {
+          if (res.status === "0") {
+            message.success("修改成功");
+            this.onGetData(this.state.pageNum, this.state.pageSize);
+            this.onUpClose();
+          } else {
+            message.error(res.message || "修改失败，请重试");
+          }
+          me.setState({
+            upLoading: false
+          });
+        })
+        .catch(() => {
+          me.setState({
+            upLoading: false
+          });
+        });
+    });
+  }
+ 
+  // 关闭修改某一条数据
+  onUpNewClose() {
+    this.setState({
+      upModalShow: false
+    });
+  }
+  
   // 查询某一条数据的详情
   onQueryClick(record) {
     console.log("是什么：", record);
@@ -936,6 +819,11 @@ class Category extends React.Component {
         key: "payType",
       },
       {
+        title:'订单完成时间',
+        dataIndex:'completeTime',
+        key:'completeTime'
+      },
+      {
         title:'经销商身份',
         dataIndex:'distributorIdentity',
         key:'distributorIdentity',
@@ -959,12 +847,24 @@ class Category extends React.Component {
         title: "操作",
         key: "control",
         fixed: "right",
-        width: 40,
+        width: 80,
         render: (text, record) => {
           const controls = [];
-          controls.push(
+          record.productType != '健康评估'
+          && controls.push(
             <span
               key="0"
+              className="control-btn blue"
+              onClick={() => this.onUpdateClick(record)}
+            >
+              <Tooltip placement="top" title="修改订单产品型号">
+                <Icon type="edit" />
+              </Tooltip>
+            </span>
+          );
+          controls.push(
+            <span
+              key="1"
               className="control-btn green"
               onClick={() => this.onQueryClick(record)}
             >
@@ -1029,10 +929,13 @@ class Category extends React.Component {
         customerPhone: item.customerPhone,//安装工电话
         customerAddress:item.customerAddress,//安装工服务站地区
         orderFrom: item.orderFrom,//订单来源
+        completeTime:item.completeTime,//订单完成时间
+        feeType:item.feeType,//计费方式
         ambassadorName: item.distributor ? item.distributor.mobile : "",
       };
     });
   }
+  
 
   render() {
     const me = this;
@@ -1370,6 +1273,103 @@ class Category extends React.Component {
             </FormItem>
           </Form>
         </Modal>
+        {/* 编辑模态框 */}
+        <Modal
+          title="修改产品型号"
+          visible={this.state.upModalShow}
+          onOk={() => this.onUpOk()}
+          onCancel={() => this.onUpNewClose()}
+          confirmLoading={this.state.upLoading}
+          wrapClassName={"list"}
+        >
+          <Form>
+            <FormItem label="产品类型" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("formTypeId", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择产品类型" }]
+              })(
+                <Select
+                  placeholder="请选择产品类型"
+                  onChange={e => this.Newproduct(e)}
+                >
+                  {this.state.productTypes.map((item, index) => (
+                    <Option key={index} value={String(item.id)}>
+                      {item.name}
+                    </Option>
+                  ))}
+                </Select>
+              )}
+            </FormItem>
+            <FormItem label="产品名称" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("formName", {
+                initialValue: undefined,
+                rules: [
+                  { required: true, message: "请输入产品名称" },
+                  {
+                    validator: (rule, value, callback) => {
+                      const v = tools.trim(value);
+                      if (v) {
+                        if (v.length > 100) {
+                          callback("最多输入100个字");
+                        }
+                      }
+                      callback();
+                    }
+                  }
+                ]
+              })(<Input disabled={this.state.addOrUp === "look"} placeholder="请输入产品名称" />)}
+            </FormItem>
+            <FormItem label="产品型号" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("formTypeCode", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择产品型号" }]
+              })(
+                <Select placeholder="请选择产品型号">
+                  {(() => {
+                    const id = String(form.getFieldValue("formTypeId"));
+                    return this.state.productModels.filter(item => String(item.typeId) === id).map((item, index) => (
+                      <Option key={index} value={String(item.id)}>
+                        {item.name}
+                      </Option>
+                    ))
+                  })()
+                }
+                </Select>
+              )}
+            </FormItem>
+            <Row>
+              <FormItem
+                label="计费方式" {...formItemLayout}  labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}
+                className={
+                  this.state.productType == "健康食品" || this.state.productType == "生物科技" || this.state.productType == "健康评估" ? "hide" : ""
+                }
+              >
+                
+                {getFieldDecorator("chargesTypes", {
+                  initialValue: undefined,
+                  rules: [{ required: true, message: "请选择计费方式" }]
+                })(
+                  <RadioGroup>
+                    {(()=>{
+                      const t = this.state.data2.find((item)=>item.productModel && item.productModel.name === this.state.nowData.productModel);
+                      console.log(t);
+                      if(t &&t.productModel && t.productModel.chargeTypes){
+                        return t.productModel.chargeTypes.map((item, index) => {
+                          return (
+                            <Radio key={index} value={item.feeType}>
+                              {item.chargeName}
+                            </Radio>
+                          );
+                        })
+                      }
+                      return null;
+                    })()}
+                  </RadioGroup>
+                )}
+              </FormItem>
+            </Row>
+          </Form>
+        </Modal>
         {/* 查看详情模态框 */}
         <Modal
           title="查看详情"
@@ -1454,6 +1454,9 @@ class Category extends React.Component {
             <FormItem label="支付时间" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.payTime : ""}
             </FormItem>
+            <FormItem label="订单完成时间" {...formItemLayout}>
+              {!!this.state.nowData ? this.state.nowData.completeTime : ""}
+            </FormItem>
             <FormItem label="经销商身份" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.distributorIdentity : ""}
             </FormItem>
@@ -1514,6 +1517,7 @@ Category.propTypes = {
   location: P.any,
   history: P.any,
   actions: P.any,
+  form: P.any,
   citys: P.array // 动态加载的省
 };
 
@@ -1535,11 +1539,13 @@ export default connect(
         updateOrder,
         findProductModelByWhere,
         findProductTypeByWhere,
-        warning,
         addProductType,
         updateProductType,
         deleteProductType,
+        updateType,
+        updateOrderModel,
         onChange,
+        onChange3,
         onOk
       },
       dispatch

@@ -110,7 +110,6 @@ export function ExportList(params = {}) {
     return Fetchapi.newPost("/manager/export/userInfo/list", params, 'post', false, false)
       .then(msg => {
         console.log('msg是什么',msg)
-
         return msg;
       })
       .catch((e) => {
@@ -211,7 +210,18 @@ export function generateFreeCard(params = {}) {
   };
 }
 
-
+//用户信息管理 - 解绑手机号
+export function UntiePhone(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/userInfo/unBindPhone", params,)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
 
 //经销商信息管理详情跳转页面所带参数
 export function detailRecord(v) {
