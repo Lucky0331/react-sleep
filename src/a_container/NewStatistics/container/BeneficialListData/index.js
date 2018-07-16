@@ -80,25 +80,13 @@ class Category extends React.Component {
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
       searchAddress: [], // 搜索 - 地址
-      // searchrefundBeginTime:moment(
-      //   (() => {
-      //     const d = new Date();
-      //     d.setDate(d.getDate() - 6);
-      //     return d;
-      //   })()
-      // ),//搜索 - 开始时间
-      // searchrefundEndTime:moment(
-      //   (() => {
-      //     const d = new Date();
-      //     d.setMonth(d.getMonth());
-      //     return d;
-      //   })()
-      // ),//搜索 - 结束时间
-      searchBeginTime:'',//搜索 - 开始时间
+      searchBeginTime:"",//搜索 - 开始时间
       searchEndTime:'',//搜索 - 结束时间
       citys: [], // 符合Cascader组件的城市数据
       usedTotalNum:"",//体检预约总数
       reverseTotalNum:"",//公众号预约总数
+      maxTime:'',//最大时间
+      minTime:'',//最小时间
       searchRadio: 1 ,//时间区间 - 默认选择
       searchRadioFour: 4 ,//区域选择 - 默认选择
       tabKey:1,//导出tab页key值
@@ -251,6 +239,8 @@ class Category extends React.Component {
           pageNum,
           pageSize,
           total:res.data.size,
+          minTime:(res.data.minTime).substring(0,10),//最小时间
+          maxTime:(res.data.maxTime).substring(0,10),//最大时间
         });
       } else if(res.status != "0" ){
         message.error(res.message || "获取数据失败，请重试");
@@ -296,6 +286,8 @@ class Category extends React.Component {
           pageNum,
           pageSize,
           total:res.data.size,
+          minTime:(res.data.minTime).substring(0,10),//最小时间
+          maxTime:(res.data.maxTime).substring(0,10),//最大时间
         });
       } else if(res.status != "0" ){
         message.error(res.message || "获取数据失败，请重试");
@@ -341,6 +333,8 @@ class Category extends React.Component {
           pageNum,
           pageSize,
           total:res.data.size,
+          minTime:(res.data.minTime).substring(0,10),//最小时间
+          maxTime:(res.data.maxTime).substring(0,10),//最大时间
         });
       } else if(res.status != "0" ){
         message.error(res.message || "获取数据失败，请重试");
@@ -374,8 +368,8 @@ class Category extends React.Component {
             };
           });
       }
-          targetOption.loading = false;
-          this.setState({
+        targetOption.loading = false;
+        this.setState({
           citys: [...this.state.citys]
         });
       });
@@ -1142,7 +1136,7 @@ class Category extends React.Component {
         water:item["1"] ? item["1"] : 0, //净水服务
         food:item["2"] ? item["2"] : 0, //健康食品
         biology:item["3"] ? item["3"] : 0, //生物科技
-        healthy:item["5"] ? item["4"] : 0, //健康体检
+        healthy:item["5"] ? item["5"] : 0, //健康体检
         receivePersonCount:item.receivePersonCount,//领取人数
         sendCardCountNotAllowRepeat:item.sendCardCountNotAllowRepeat,//赠送卡数
         sendCardCoutAllowRepeat:item.sendCardCoutAllowRepeat,//赠送卡次数
@@ -1155,7 +1149,7 @@ class Category extends React.Component {
           item.province && item.city && item.region
             ? `${item.province}/${item.city}/${item.region}`
             : "",
-        alltime:this.state.searchBeginTime && this.state.searchEndTime ? `${tools.dateToStrD(this.state.searchBeginTime._d)} -- ${tools.dateToStrD(this.state.searchEndTime._d)}` : '---', //时间区间
+        alltime:this.state.minTime && this.state.maxTime ? `${this.state.minTime}--${this.state.maxTime}` : '', //时间区间
       };
     });
   }
@@ -1274,8 +1268,7 @@ class Category extends React.Component {
                 current: this.state.pageNum,
                 pageSize: this.state.pageSize,
                 showQuickJumper: true,
-                defaultCurrent: 3,
-                pageSizeOptions: ["10", "30", "50"],
+                hideOnSinglePage:true,//只有一页展示的时候隐藏页码
                 showTotal: (total, range) => `共 ${total} 条数据`,
                 onChange: (page, pageSize) =>
                   this.onTablePageChange(page, pageSize)
@@ -1307,8 +1300,7 @@ class Category extends React.Component {
                   current: this.state.pageNum,
                   pageSize: this.state.pageSize,
                   showQuickJumper: true,
-                  defaultCurrent: 3,
-                  pageSizeOptions: ["10", "30", "50"],
+                  hideOnSinglePage:true,//只有一页展示的时候隐藏页码
                   showTotal: (total, range) => `共 ${total} 条数据`,
                   onChange: (page, pageSize) =>
                     this.onTablePageChange2(page, pageSize)
@@ -1340,6 +1332,7 @@ class Category extends React.Component {
                   current: this.state.pageNum,
                   pageSize: this.state.pageSize,
                   showQuickJumper: true,
+                  hideOnSinglePage:true,//只有一页展示的时候隐藏页码
                   showTotal: (total, range) => `共 ${total} 条数据`,
                   onChange: (page, pageSize) =>
                     this.onTablePageChange3(page, pageSize)

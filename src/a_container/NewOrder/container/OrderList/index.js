@@ -103,7 +103,6 @@ class Category extends React.Component {
       chargeNames:[],//计费方式数组
       chargeTypes: [], //所有的计费方式
       code: undefined, //产品类型所对应的code值
-  
     };
   }
 
@@ -121,6 +120,7 @@ class Category extends React.Component {
         }))
       });
     }
+    this.getAllProductModel();// 获取所有的产品型号
     this.getAllProductType(); // 获取所有的产品类型
     this.onGetData(this.state.pageNum, this.state.pageSize);
   }
@@ -224,7 +224,7 @@ class Category extends React.Component {
     const t = this.state.productTypes.find(
       item => String(item.name) === String(name)
     );
-    return t ? t.id : "";
+    return t ? t.id : '';
   }
   
   // 工具 - 根据产品型号名称查产品名称型号ID
@@ -232,18 +232,23 @@ class Category extends React.Component {
     const t = this.state.productModels.find(
       item => String(item.name) === String(name)
     );
+    return t ? t.id : '';
+  }
+  
+  // 工具 - 根据产品型号ID查产品名称型号名称
+  findProductModelByName(id) {
+    const t = this.state.productModels.find(
+      item => String(item.id) === String(id)
+    );
+    return t ? t.name : '';
+  }
+  
+  // 工具 - 根据产品型号ID拿产品ID modelId就是这个
+  findProductNames(id) {
+    const t = this.state.data2.find((item)=> Number(item.productModel.id) === Number(id));
     return t ? t.id : "";
   }
   
-  // 工具 - 根据计费方式ID返回计费方式类型名称
-  getfeeTypeTypeId(feeType) {
-    const t = this.state.chargeTypes.find(
-      item => String(item.feeType) === String(feeType)
-    );
-    return t ? t.chargeName : "";
-  }
-  
-
   // 工具 - 根据ID获取用户来源名字
   getListByModelId(id) {
     switch (String(id)) {
@@ -560,9 +565,14 @@ class Category extends React.Component {
     //产品类型改变时，重置产品型号的值位undefined
     const { form } = this.props;
     form.resetFields(["formTypeCode"]);
-    form.resetFields(["formTypeLabel"]); //产品标签的值也为undefined
+    form.resetFields(["chargesTypes"]); //计费方式的值
   }
-
+// 选不同型号时重置计费方式
+  Newproduct2(e) {
+    //产品类型改变时，重置产品型号的值位undefined
+    const { form } = this.props;
+    form.resetFields(["chargesTypes"]); //计费方式的值
+  }
   // 搜索
   onSearch() {
     this.onGetData(1, this.state.pageSize);
@@ -615,21 +625,24 @@ class Category extends React.Component {
     };
     this.props.actions.updateType(tools.clearNull(params)).then(res => {
       console.log('这里的data是什么',res.data)
+      console.log('aaaa',res.data.map(item => (item.id))
+    )
       if (res.status === "0") {
         this.setState({
           data2: res.data || [],
+          productId:res.data.map(item => (item.id))
         });
       } else {
         message.error(res.message || "获取数据失败，请重试");
       }
     });
-    this.getAllProductModel();// 获取所有的产品型号
     const me = this;
     const {form} = me.props;
+    console.log("fuzhi:", record.productModel, this.findProductModelById(record.productModel));
     form.setFieldsValue({
-      formTypeId:record.productType,
+      formTypeId:String(this.findProductNameById(record.productType)),
       formName:record.productName,
-      formTypeCode:record.productModel,
+      formTypeCode:Number.isInteger(record.productModel) ? String(record.productModel) : String(this.findProductModelById(record.productModel)),//型号id
       chargesTypes:record.feeType,
     });
     me.setState({
@@ -645,11 +658,12 @@ class Category extends React.Component {
     const { form } = me.props;
     console.log('这个me是什么',me)
     form.validateFields([
-      "formTypeId",
       "formTypeCode",
       "formName",
-        "chargesTypes"
+      "formId",
+      "chargesTypes"
     ], (err, values) => {
+      console.log('走到了吗',err, values)
       if (err) {
         return false;
       }
@@ -658,19 +672,20 @@ class Category extends React.Component {
       });
       const params = {
         orderId: me.state.nowData.orderId,//订单号
-        productId: this.findProductNameById(values.formTypeId),//产品id
-        modelId:this.findProductModelById(values.formTypeCode),//型号id
-        modelName: values.formName,//型号名称
+        // modelId:Number.isInteger(values.formTypeCode) ? values.formTypeCode : this.findProductModelById(values.formTypeCode),//产品型号id
+        // productId: Number.isInteger(values.formTypeId) ? String(values.productModel) : String(this.findProductModelById(values.productModel)),//产品类型id
+        modelId: values.formTypeCode,//产品型号id
+        productId: this.findProductNames(values.formTypeCode),//产品类型id
+        modelName: this.findProductModelByName(values.formTypeCode),//产品型号名称
         feeType: values.chargesTypes,//计费方式
       };
-      
       this.props.actions
         .updateOrderModel(params)
         .then(res => {
           if (res.status === "0") {
             message.success("修改成功");
             this.onGetData(this.state.pageNum, this.state.pageSize);
-            this.onUpClose();
+            this.onUpNewClose();
           } else {
             message.error(res.message || "修改失败，请重试");
           }
@@ -716,6 +731,25 @@ class Category extends React.Component {
     console.log("页码改变：", page, pageSize);
     this.onGetData(page, pageSize);
   }
+  
+  // 产品型号选择时，查对应的计费方式
+  onSelectModels(id) {
+    const temp = this.state.productModels.find(item => {
+      return String(id) === String(item.id);
+    });
+    console.log("temp是什么：", temp);
+    return temp
+      ? {
+       charges: temp.chargeTypes
+         ? temp.chargeTypes.map((item, index) => (
+           <div key={index}>
+             {index + 1}.{item.chargeName}
+           </div>
+         ))
+        : ""
+      }
+      : {};
+  }
 
   // 构建字段
   makeColumns() {
@@ -746,7 +780,6 @@ class Category extends React.Component {
         title: "订单来源",
         dataIndex: "orderFrom",
         key: "orderFrom",
-        // render: text => this.getListByModelId(text)
       },
       {
         title: "订单状态",
@@ -908,8 +941,10 @@ class Category extends React.Component {
         orderRegional:item.orderRegional,//用户收货地区
         orderAddress:item.orderAddress ? `${item.orderRegional}/${item.orderAddress}` : '',//用户收货地址
         productType:item.productType,//产品类型
+        productId:item.productId,//产品id
         productName:item.productName,///产品名称
         productModel:item.productModel,//产品型号
+        productModelId:item.productModelId,//产品型号id
         productCompany:item.productCompany,//产品公司
         orderFee: item.orderFee,//订单总金额
         orderTime: item.orderTime,//下单时间
@@ -1324,7 +1359,7 @@ class Category extends React.Component {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请选择产品型号" }]
               })(
-                <Select placeholder="请选择产品型号">
+                <Select placeholder="请选择产品型号" onChange={e => this.Newproduct2(e)}>
                   {(() => {
                     const id = String(form.getFieldValue("formTypeId"));
                     return this.state.productModels.filter(item => String(item.typeId) === id).map((item, index) => (
@@ -1341,19 +1376,23 @@ class Category extends React.Component {
               <FormItem
                 label="计费方式" {...formItemLayout}  labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}
                 className={
-                  this.state.productType == "健康食品" || this.state.productType == "生物科技" || this.state.productType == "健康评估" ? "hide" : ""
+                  this.state.productType == "健康食品" || this.state.productType == "生物科技" || this.state.productType == "健康评估"  ? "hide" : ""
                 }
               >
-                
                 {getFieldDecorator("chargesTypes", {
                   initialValue: undefined,
-                  rules: [{ required: true, message: "请选择计费方式" }]
+                  rules: [{ required: (()=>{
+                    const type = form.getFieldValue("formTypeId");
+                    return Number(type) === 1;
+                  })(), message: "请选择计费方式" }]
                 })(
                   <RadioGroup>
                     {(()=>{
-                      const t = this.state.data2.find((item)=>item.productModel && item.productModel.name === this.state.nowData.productModel);
-                      console.log(t);
-                      if(t &&t.productModel && t.productModel.chargeTypes){
+                      const type = form.getFieldValue("formTypeCode");
+                      console.log("===", type,this.state.data2);
+                      const t = this.state.data2.find((item)=>String(item.productModel.id) === String(type));
+                      console.log("AAAAAAAAA:", t);
+                      if(t && t.productModel && t.productModel.chargeTypes){
                         return t.productModel.chargeTypes.map((item, index) => {
                           return (
                             <Radio key={index} value={item.feeType}>

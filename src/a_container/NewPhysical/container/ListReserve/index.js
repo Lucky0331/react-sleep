@@ -262,20 +262,6 @@ class Category extends React.Component {
         return "";
     }
   }
-  
-  // 工具 - 根据type获取状态名称
-  getticketStatusByType(type) {
-    switch (String(type)) {
-      case "1":
-        return "已预约";
-      case "2":
-        return "已过期";
-      case "3":
-        return "已禁用";
-      default:
-        return "";
-    }
-  }
 
   // 搜索 - 手机号输入框值改变时触发
   searchMobileChange(e) {
@@ -521,7 +507,6 @@ class Category extends React.Component {
           upLoading: true
         });
         const params = {
-          // id: me.state.nowData.id,
           custId: me.state.nowData.customerId,
           ticketNo: me.state.nowData.ticketNo,
           idCard: values.upIdCard,
@@ -535,29 +520,25 @@ class Category extends React.Component {
             ? `${tools.dateforNull(values.upBirthDate._d)}`
             : "",
           reserveTime: values.upReserveTime
-            ? `${tools.dateToStr2(values.upReserveTime._d)}`
+            ? `${tools.dateToStr(values.upReserveTime._d)}`
             : ""
         };
-
         me.props.actions
-          .ticketUpdate(params)
+          .ticketUpdate(params) // 修改
           .then(res => {
-            // 修改
             me.setState({
               addnewLoading: false
             });
             this.onGetData(this.state.pageNum, this.state.pageSize);
-            this.onAddNewClose();
+            this.onUpClose();
+            message.success(res.message || '修改成功')
           })
           .catch(() => {
             me.setState({
               addnewLoading: false
             });
+            message.error(res.message || '修改失败，请重试')
           });
-        console.log(
-          "什么时间：",
-          `${tools.dateToStr2(values.upReserveTime._d)}`
-        );
       }
     );
   }
@@ -629,7 +610,6 @@ class Category extends React.Component {
         title: "预约状态",
         dataIndex:'ticketStatus',
         key:'ticketStatus',
-        // render:text=>this.getticketStatusByType(text)
       },
       {
         title: "预约来源",
@@ -668,18 +648,6 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
-          // record.ticketStatus === 1 &&
-          //   controls.push(
-          //     <span
-          //       key="3"
-          //       className="control-btn red"
-          //       onClick={() => this.onUpdateClick(record)}
-          //     >
-          //       <Tooltip placement="top" title="再次体检">
-          //         <Icon type="medicine-box" />
-          //       </Tooltip>
-          //     </span>
-          //   );
           const result = [];
           controls.forEach((item, index) => {
             if (index) {
@@ -697,7 +665,9 @@ class Category extends React.Component {
   // 构建table所需数据
   makeData(data) {
     console.log("data是个啥：", data);
+    
     return data.map((item, index) => {
+      console.log("第一个时间是个啥：", new moment(item.reserveTime.substring(0,10) + " 23:59:59"));
       return {
         key: index,
         id: item.id,
@@ -727,15 +697,8 @@ class Category extends React.Component {
         updateTime: item.updateTime,
         updater: item.updater,
         userSource: item.reserveFrom,
-        reserveTime: item.reserveTime,
-        reserveTimeBig:moment(
-          (() => {
-            const d = new Date();
-            d.setMonth(d.getMonth());
-            return d;
-          })()
-        ),
-        ticketStatus:new moment(item.reserveTime) > new moment(item.reserveTimeBig) ? '已预约' : '已过期',
+        reserveTime: (item.reserveTime).substring(0,10),
+        ticketStatus:new moment(item.reserveTime.substring(0,10) + " 23:59:59") >= new moment(new Date()) ? '已预约' : '已过期',
       };
     });
   }
@@ -1159,7 +1122,6 @@ class Category extends React.Component {
             <FormItem
               label="体检卡号"
               {...formItemLayout}
-              // style={{ marginLeft:'20px'}}
             >
               {!!this.state.nowData ? this.state.nowData.ticketNo : ""}
             </FormItem>

@@ -259,8 +259,7 @@ class Category extends React.Component {
         fileList: record.productImg ? record.productImg.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })): [], // 产品封面图片已上传的列表
         formCoverVideo: record.coverVideo ? record.coverVideo.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })): [], // 封面视频
       });
-      }
-
+    }
   }
 
   /** 下架或上架 **/
@@ -353,7 +352,7 @@ class Category extends React.Component {
           name: values.formName, // 产品名称
           typeId: Number(values.formTypeId), // 产品类型ID
           typeCode: Number(values.formTypeCode), // 产品型号ID
-          productTag: values.formTypeLabel, // 产品标签ID
+          productTag: String(values.formTypeLabel), // 产品标签ID
           activityType: values.formActivityType, // 活动方式ID
           productImg: this.state.fileList.map(item => item.url).join(","), // 产品封面图片们
           detailImg: this.state.fileListDetail.map(item => item.url).join(","), // 列表封面图片们
@@ -1147,6 +1146,7 @@ class Category extends React.Component {
                 <Select disabled={this.state.addOrUp === "look"} placeholder="请选择产品型号">
                   {(() => {
                     const id = String(form.getFieldValue("formTypeId"));
+                    console.log('走到哪了',id)
                     return this.state.productModels.filter(item => String(item.typeId) === id).map((item, index) => (
                     <Option key={index} value={String(item.id)}>
                       {item.name}
@@ -1221,7 +1221,7 @@ class Category extends React.Component {
             <FormItem label="列表封面图片上传" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>
               <p style={{float:'left',marginTop:'30px',marginLeft:'-195px',color: '#F92A19'}}>(推荐尺寸500*500)</p>
               {getFieldDecorator("upIcon1", {
-                rules: [{ required: true }]
+                // rules: [{ required: true }]
               })(
                 <Upload
                   name="pImg"
@@ -1246,7 +1246,7 @@ class Category extends React.Component {
             <FormItem label="产品封面图片上传(最多5张)" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>
               <p style={{float:'left',marginTop:'30px',marginLeft:'-195px',color: '#F92A19'}}>(推荐尺寸750*600)</p>
               {getFieldDecorator("upIcon2", {
-                rules: [{ required: true }]
+                // rules: [{ required: true }]
               })(
                 <Upload
                   name="pImg"

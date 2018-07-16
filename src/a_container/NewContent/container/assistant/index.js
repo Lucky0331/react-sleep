@@ -554,19 +554,11 @@ class Category extends React.Component {
     return data.map((item, index) => {
       return {
         key: index,
-        addrId: item.addrId,
-        count: item.count,
-        title: item.title,
         orderNo: item.id,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
-        createTime: item.createTime,
         deleteFlag: item.deleteFlag,
-        url: item.url,
-        adImg: item.adImg,
         sorts: item.sorts,
-        adId: item.adId,
         id: item.id,
-        creatTime:item.creatTime,
         typeCode:item.typeCode,
         questions: item.questions, //问题
         answers: item.answers,//回答
@@ -743,17 +735,6 @@ class Category extends React.Component {
                   autosize={{ minRows: 1, maxRows: 8 }}
               />)}
             </FormItem>
-            {/*<FormItem label="是否设为热门资讯" {...formItemLayout}>*/}
-              {/*{getFieldDecorator("addnewHot", {*/}
-                {/*initialValue: undefined,*/}
-                {/*rules: [{ required: true, message: "请选择是否设为热门资讯" }]*/}
-              {/*})(*/}
-                {/*<Select placeholder="请选择是否设为热门资讯">*/}
-                  {/*<Option value={0}>否</Option>*/}
-                  {/*<Option value={1}>是</Option>*/}
-                {/*</Select>*/}
-              {/*)}*/}
-            {/*</FormItem>*/}
             <FormItem label="是否发布" {...formItemLayout}>
               {getFieldDecorator("addnewConditions", {
                 initialValue: undefined,

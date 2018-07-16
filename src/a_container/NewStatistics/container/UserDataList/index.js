@@ -78,22 +78,10 @@ class Category extends React.Component {
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
       searchAddress: [], // 搜索 - 地址
-      // searchrefundBeginTime:moment(
-      //   (() => {
-      //     const d = new Date();
-      //     d.setDate(d.getDate() - 6);
-      //     return d;
-      //   })()
-      // ),//搜索 - 开始时间
-      // searchrefundEndTime:moment(
-      //   (() => {
-      //     const d = new Date();
-      //     d.setMonth(d.getMonth());
-      //     return d;
-      //   })()
-      // ),//搜索 - 结束时间
       searchBindingBeginTime:'',//搜索 - 开始时间
       searchBindingEndTime:'',//搜索 - 结束时间
+      minTime:'',//最小时间
+      maxTime:'',//最大时间
       citys: [], // 符合Cascader组件的城市数据
       usedTotalNum:"",//体检预约总数
       reverseTotalNum:"",//公众号预约总数
@@ -241,6 +229,8 @@ class Category extends React.Component {
           pageNum,
           pageSize,
           total:res.data.size,
+          minTime:(res.data.minTime).substring(0,10),//最小时间
+          maxTime:(res.data.maxTime).substring(0,10),//最大时间
         });
       } else if(res.status != "0" ){
         message.error(res.message || "获取数据失败，请重试");
@@ -250,28 +240,9 @@ class Category extends React.Component {
   
   // 查询当前页面所需列表数据 - 未绑定用户
   onGetData2(pageNum, pageSize) {
-    let minTime = null;
-    let maxTime = null;
-    const now = new Date();
-    const r = this.state.searchRadio;
-    if(r !== 0) {
-      minTime = tools.dateToStr(now);
-    }
-    if(r === 1) { // 7天内
-      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 6 )))} 00:00:00`;
-      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
-    } else if (r === 2) { // 30天内
-      minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
-      maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
-    } else if (r === 3) { // 自定义的时间
-      minTime = this.state.searchBindingBeginTime ? `${tools.dateToStr(this.state.searchBindingBeginTime.utc()._d)}` : null;
-      maxTime = this.state.searchBindingEndTime ? `${tools.dateToStr(this.state.searchBindingEndTime.utc()._d)}` : null;
-    }
     const params = {
       pageNum,
       pageSize,
-      minTime,
-      maxTime,
       type:2,
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
@@ -285,7 +256,6 @@ class Category extends React.Component {
           dataNum2: [res.data] || "",
           pageNum,
           pageSize,
-          total:res.data.size,
         });
       } else if(res.status != "0" ){
         message.error(res.message || "获取数据失败，请重试");
@@ -821,7 +791,6 @@ class Category extends React.Component {
         sonCount:item.sonCount,//企业版经销商(子)
         mainCount:item.mainCount,//企业版经销商(主)
         personCount:item.personCount,//个人版经销商
-        // ratio:(item.usedCount && item.reverseCount) ? (item.reverseCount)/(item.usedCount) : '',
         reverseRatio:`${((item.reverseRatio)*100).toFixed(3)}%`,
         citys:
           item.province && item.city && item.region
@@ -847,7 +816,7 @@ class Category extends React.Component {
         commonCount:item.commonCount,//普通用户
         shareCount:item.shareCount,//分享用户
         effectiveUserSaleCount:item.effectiveUserSaleCount,//有效分销商数
-        alltime:this.state.searchrefundBeginTime && this.state.searchrefundEndTime? `${tools.dateToStrD(this.state.searchrefundBeginTime._d)} -- ${tools.dateToStrD(this.state.searchrefundEndTime._d)}` : '---', //时间区间
+        alltime:this.state.minTime && this.state.maxTime ? `${this.state.minTime}--${this.state.maxTime}` : '', //时间区间
         stationArea: this.state.searchAddress[0] && this.state.searchAddress[1] && this.state.searchAddress[2] ? `${this.state.searchAddress[0]}/${this.state.searchAddress[1]}/${this.state.searchAddress[2]}` : "全部",
         ratio:(item.usedTotalNum && item.reverseTotalNum) ? `${((item.reverseTotalNum)/(this.state.usedTotalNum)*100).toFixed(3)}%` : '',
         citys:
@@ -936,12 +905,12 @@ class Category extends React.Component {
                 </Button>
               </li>
               <li>
-                <Button icon="download" type="primary" onClick={(e)=>this.onExport(e)}>
+                <Button icon="download" type="primary" onClick={(e)=>this.onExport(e)} className={this.state.tabKey == 2 ? "hide" : ""}>
                   导出
                 </Button>
               </li>
               <li>
-                <Button icon="download" type="primary" onClick={()=>this.onExportStation()}>
+                <Button icon="download" type="primary" onClick={()=>this.onExportStation()} className={this.state.tabKey == 2 ? "hide" : ""}>
                   按服务站导出
                 </Button>
               </li>
@@ -973,6 +942,7 @@ class Category extends React.Component {
                 current: this.state.pageNum,
                 pageSize: this.state.pageSize,
                 showQuickJumper: true,
+                hideOnSinglePage:true,//只有一页展示的时候隐藏页码
                 showTotal: (total, range) => `共 ${total} 条数据`,
                 onChange: (page, pageSize) =>
                   this.onTablePageChange(page, pageSize)

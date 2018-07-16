@@ -654,7 +654,7 @@ class Manager extends React.Component {
         width: 100,
         render: (text, record) => {
           let controls = [];
-          controls.push(
+          record.userType != 7 && controls.push(
             <Popconfirm
               key="0"
               title="确定解绑手机号吗?"

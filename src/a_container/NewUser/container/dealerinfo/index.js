@@ -270,15 +270,6 @@ class Manager extends React.Component {
         : ""
     };
     tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/userInfo/list`,'post', '经销商信息管理.xls');
-    
-    this.props.actions.ExportdealerList(tools.clearNull(params)).then(res => {
-      if (res.status != '1') {
-        form.submit();
-      } else if(res.status === "1"){
-        alert('当月无经销商绑定记录！')
-      }
-    });
-    
   }
 
   // 导出优惠卡详情数据
@@ -302,121 +293,7 @@ class Manager extends React.Component {
           ? `${tools.dateToStr(this.state.searchBindingEndTime.utc()._d)} `
           : ""
       };
-    let form = document.getElementById("download-form");
-    if (!form) {
-      form = document.createElement("form");
-      document.body.appendChild(form);
-    }
-    else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/ticket/list`;
-    form.method = "post";
-    console.log("FORM:", params);
-
-    const newElement = document.createElement("input");
-    newElement.setAttribute("name", "pageNum");
-    newElement.setAttribute("type", "hidden");
-    newElement.setAttribute("value", pageNum);
-    form.appendChild(newElement);
-
-    const newElement2 = document.createElement("input");
-    newElement2.setAttribute("name", "pageSize");
-    newElement2.setAttribute("type", "hidden");
-    newElement2.setAttribute("value", pageSize);
-    form.appendChild(newElement2);
-  
-      const newElement7 = document.createElement("input");
-      newElement7.setAttribute("name", "category");
-      newElement7.setAttribute("type", "hidden");
-      newElement7.setAttribute("value",'1');
-      form.appendChild(newElement7);
-  
-      const newElement3 = document.createElement("input");
-      if (params.userType) {
-        newElement3.setAttribute("name", "userType");
-        newElement3.setAttribute("type", "hidden");
-        newElement3.setAttribute("value", params.userType);
-        form.appendChild(newElement3);
-      }
-  
-      const newElement4 = document.createElement("input");
-      if (params.mobile) {
-        newElement4.setAttribute("name", "mobile");
-        newElement4.setAttribute("type", "hidden");
-        newElement4.setAttribute("value", params.mobile);
-        form.appendChild(newElement4);
-      }
-  
-      const newElement5 = document.createElement("input");
-      if (params.realName) {
-        newElement5.setAttribute("name", "realName");
-        newElement5.setAttribute("type", "hidden");
-        newElement5.setAttribute("value", params.realName);
-        form.appendChild(newElement5);
-      }
-  
-      const newElement6 = document.createElement("input");
-      if (params.userId) {
-        newElement6.setAttribute("name", "userId");
-        newElement6.setAttribute("type", "hidden");
-        newElement6.setAttribute("value", params.userId);
-        form.appendChild(newElement6);
-      }
-  
-      const newElement8 = document.createElement("input");
-      if (params.bindBeginTime) {
-        newElement8.setAttribute("name", "bindBeginTime");
-        newElement8.setAttribute("type", "hidden");
-        newElement8.setAttribute("value", params.bindBeginTime);
-        form.appendChild(newElement8);
-      }
-  
-      const newElement9 = document.createElement("input");
-      if (params.bindEndTime) {
-        newElement9.setAttribute("name", "bindEndTime");
-        newElement9.setAttribute("type", "hidden");
-        newElement9.setAttribute("value", params.bindEndTime);
-        form.appendChild(newElement9);
-      }
-  
-      const newElement10 = document.createElement("input");
-      if (params.province) {
-        newElement10.setAttribute("name", "province");
-        newElement10.setAttribute("type", "hidden");
-        newElement10.setAttribute("value", params.province);
-        form.appendChild(newElement10);
-      }
-  
-      const newElement11 = document.createElement("input");
-      if (params.city) {
-        newElement11.setAttribute("name", "city");
-        newElement11.setAttribute("type", "hidden");
-        newElement11.setAttribute("value", params.city);
-        form.appendChild(newElement11);
-      }
-  
-      const newElement12 = document.createElement("input");
-      if (params.region) {
-        newElement12.setAttribute("name", "region");
-        newElement12.setAttribute("type", "hidden");
-        newElement12.setAttribute("value", params.region);
-        form.appendChild(newElement12);
-      }
-  
-      const newElement13 = document.createElement("input");
-      if (params.userName) {
-        newElement13.setAttribute("name", "userName");
-        newElement13.setAttribute("type", "hidden");
-        newElement13.setAttribute("value", params.userName);
-        form.appendChild(newElement13);
-      }
-  
-    this.props.actions.ExportCardList(tools.clearNull(params)).then(res => {
-      if (res.status != '1') {
-        form.submit();
-      } else if(res.status === "1"){
-        alert('当月无经销商优惠卡赠送记录！')
-      }
-    });
+      tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/ticket/list`,'post', '优惠卡情况导出.xls');
 }
 
   //Input中的删除按钮所删除的条件
@@ -475,8 +352,8 @@ class Manager extends React.Component {
   }
   
   //解绑手机号事件
-  onRemoveClick(userId){
-    this.props.actions.UntiePhone({userId:userId}).then(res => {
+  onRemoveClick(mid2){
+    this.props.actions.UntiePhone({userId:mid2}).then(res => {
       if(res.status === '0'){
         message.success('解绑成功')
         this.onGetData(this.state.pageNum,this.state.pageSize)
@@ -819,7 +696,7 @@ class Manager extends React.Component {
             <span
               key="0"
               className="control-btn green"
-              onClick={() => this.onRemoveClick(record.userId)}
+              onClick={() => this.onRemoveClick(record.mid2)}
             >
               <Tooltip placement="top" title='是否解绑手机号'>
                 <Icon type="phone"/>

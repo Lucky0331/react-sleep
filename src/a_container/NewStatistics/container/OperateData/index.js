@@ -80,22 +80,10 @@ class Category extends React.Component {
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
       searchAddress: [], // 搜索 - 地址
-      // searchBeginTime:moment(
-      //   (() => {
-      //     const d = new Date();
-      //     d.setDate(d.getDate() - 6);
-      //     return d;
-      //   })()
-      // ),//搜索 - 开始时间
-      // searchEndTime:moment(
-      //   (() => {
-      //     const d = new Date();
-      //     d.setMonth(d.getMonth());
-      //     return d;
-      //   })()
-      // ),//搜索 - 结束时间
       searchBindingBeginTime:'',//搜索 - 开始时间
       searchBindingEndTime:'',//搜索 - 结束时间
+      minTime:'',//开始时间
+      maxTime:'',//结束时间
       citys: [], // 符合Cascader组件的城市数据
       usedTotalNum:"",//体检预约总数
       reverseTotalNum:"",//公众号预约总数
@@ -181,23 +169,6 @@ class Category extends React.Component {
     this.onGetData3(page, pageSize);
   }
   
-
-  // 搜索 - 申请退款开始时间
-  searchApplyBeginTime(v, v1) {
-    console.log("是什么：", v, v1);
-    this.setState({
-      searchrefundBeginTime: _.cloneDeep(v)
-    });
-  }
-
-  // 搜索 - 申请退款结束时间
-  searchApplyEndTime(v) {
-    console.log("触发：", v);
-    this.setState({
-      searchrefundEndTime: _.cloneDeep(v)
-    });
-  }
-  
   //运营数据 tab操作
   onSearchJump(e){
     if(e==1){
@@ -231,8 +202,8 @@ class Category extends React.Component {
       minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
       maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
     } else if (r === 3) { // 自定义的时间
-      minTime = this.state.searchrefundBeginTime ? tools.dateToStr(this.state.searchrefundBeginTime._d) : null;
-      maxTime = this.state.searchrefundEndTime ? tools.dateToStr(this.state.searchrefundEndTime._d) : null;
+      minTime = this.state.searchBindingBeginTime ? tools.dateToStr(this.state.searchBindingBeginTime._d) : null;
+      maxTime = this.state.searchBindingEndTime ? tools.dateToStr(this.state.searchBindingEndTime._d) : null;
     }
     const params = {
       pageNum,
@@ -252,7 +223,8 @@ class Category extends React.Component {
           dataNum2: [res.data] || "",
           pageNum,
           pageSize,
-          total:res.data.size,
+          minTime:(res.data.minTime).substring(0,10),//最小时间
+          maxTime:(res.data.maxTime).substring(0,10),//最大时间
         });
       } else if(res.status != "0" ){
         message.error(res.message || "获取数据失败，请重试");
@@ -276,8 +248,8 @@ class Category extends React.Component {
       minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
       maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
     } else if (r === 3) { // 自定义的时间
-      minTime = this.state.searchrefundBeginTime ? tools.dateToStr(this.state.searchrefundBeginTime._d) : null;
-      maxTime = this.state.searchrefundEndTime ? tools.dateToStr(this.state.searchrefundEndTime._d) : null;
+      minTime = this.state.searchBindingBeginTime ? tools.dateToStr(this.state.searchBindingBeginTime._d) : null;
+      maxTime = this.state.searchBindingEndTime ? tools.dateToStr(this.state.searchBindingEndTime._d) : null;
     }
     const params = {
       pageNum,
@@ -297,7 +269,8 @@ class Category extends React.Component {
           dataNum3: [res.data] || "",
           pageNum,
           pageSize,
-          total:res.data.size,
+          minTime:(res.data.minTime).substring(0,10),//最小时间
+          maxTime:(res.data.maxTime).substring(0,10),//最大时间
         });
       } else if(res.status != "0" ){
         message.error(res.message || "获取数据失败，请重试");
@@ -517,11 +490,11 @@ class Category extends React.Component {
       minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 6 )))} 00:00:00`;
       maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
     } else if (r === 2) { // 30天内
+    } else if (r === 3) { // 自定义的时间
+      minTime = this.state.searchBindingBeginTime ? tools.dateToStr(this.state.searchBindingBeginTime._d) : null;
       minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
       maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
-    } else if (r === 3) { // 自定义的时间
-      minTime = this.state.searchrefundBeginTime ? tools.dateToStr(this.state.searchrefundBeginTime._d) : null;
-      maxTime = this.state.searchrefundEndTime ? tools.dateToStr(this.state.searchrefundEndTime._d) : null;
+      maxTime = this.state.searchBindingEndTime ? tools.dateToStr(this.state.searchBindingEndTime._d) : null;
     }
     const params = {
       pageNum,
@@ -552,8 +525,8 @@ class Category extends React.Component {
       minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
       maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
     } else if (r === 3) { // 自定义的时间
-      minTime = this.state.searchrefundBeginTime ? tools.dateToStr(this.state.searchrefundBeginTime._d) : null;
-      maxTime = this.state.searchrefundEndTime ? tools.dateToStr(this.state.searchrefundEndTime._d) : null;
+      minTime = this.state.searchBindingBeginTime ? tools.dateToStr(this.state.searchBindingBeginTime._d) : null;
+      maxTime = this.state.searchBindingEndTime ? tools.dateToStr(this.state.searchBindingEndTime._d) : null;
     }
     const params = {
       pageNum,
@@ -584,8 +557,8 @@ class Category extends React.Component {
       minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
       maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
     } else if (r === 3) { // 自定义的时间
-      minTime = this.state.searchrefundBeginTime ? tools.dateToStr(this.state.searchrefundBeginTime._d) : null;
-      maxTime = this.state.searchrefundEndTime ? tools.dateToStr(this.state.searchrefundEndTime._d) : null;
+      minTime = this.state.searchBindingBeginTime ? tools.dateToStr(this.state.searchBindingBeginTime._d) : null;
+      maxTime = this.state.searchBindingEndTime ? tools.dateToStr(this.state.searchBindingEndTime._d) : null;
     }
     const params = {
       pageNum,
@@ -616,8 +589,8 @@ class Category extends React.Component {
       minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
       maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
     } else if (r === 3) { // 自定义的时间
-      minTime = this.state.searchrefundBeginTime ? tools.dateToStr(this.state.searchrefundBeginTime._d) : null;
-      maxTime = this.state.searchrefundEndTime ? tools.dateToStr(this.state.searchrefundEndTime._d) : null;
+      minTime = this.state.searchBindingBeginTime ? tools.dateToStr(this.state.searchBindingBeginTime._d) : null;
+      maxTime = this.state.searchBindingEndTime ? tools.dateToStr(this.state.searchBindingEndTime._d) : null;
     }
     const params = {
       pageNum,
@@ -835,7 +808,8 @@ class Category extends React.Component {
       return {
         key: index,
         id: item.id,
-        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
+        serial: index + 1 + (this.state.pageNum - 1) ,
+        // serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         date: item.date,
         usedCount: item.usedCount,
         reverseCount: item.reverseCount,
@@ -845,15 +819,13 @@ class Category extends React.Component {
         ycount:item.ycount,//体检次数(Y卡) - Hra体检服务
         day:item.day,//日期 - Hra体检服务
         sendCount:item.sendCount,//赠送次数
-        ratio:item.ratio,//比率
         receiveCount:item.receiveCount,//领取次数
         personCount:item.personCount,//领取人数
         handselTime:item.handselTime,//日期 - 优惠卡赠送
         personCount:item.personCount,//领取人数 - - 优惠卡赠送
         receiveCount:item.receiveCount,//领取次数 - - 优惠卡赠送
         sendCount:item.sendCount,//赠送次数 - - 优惠卡赠送
-        ratio:item.ratio,//比率 - - 优惠卡赠送
-        // ratio:(item.usedCount && item.reverseCount) ? (item.reverseCount)/(item.usedCount) : '',
+        ratio:`${((item.ratio)*100).toFixed(2)}%`,//比率 - - 优惠卡赠送
         reverseRatio:`${((item.reverseRatio)*100).toFixed(3)}%`,
         citys:
           item.province && item.city && item.region
@@ -863,14 +835,13 @@ class Category extends React.Component {
     });
   }
   
-  // 构建体检统计总数的一个显示所需数据
+  // 构建Hra体检服务的一个显示所需数据
   makeDataNum(dataNum) {
     console.log("dataNum是个啥：", dataNum);
     return dataNum.map((item, index) => {
       return {
         key: index,
         id: item.id,
-        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         total: item.total, //体验服务总次数
         Y:item.Y, //体检Y卡
         M: item.M,//体检M卡
@@ -880,14 +851,14 @@ class Category extends React.Component {
         sendCardCoutAllowRepeat:item.sendCardCoutAllowRepeat,//赠送卡次数
         receiveCardCoutNotAllowRepreat:item.receiveCardCoutNotAllowRepreat,//领取卡数
         receiveCardListAllowRepeat:item.receiveCardListAllowRepeat,//领取卡次数
-        receiveRatio:item.receiveRatio,//领取率
-        alltime:this.state.searchrefundBeginTime && this.state.searchrefundEndTime? `${tools.dateToStrD(this.state.searchrefundBeginTime._d)} -- ${tools.dateToStrD(this.state.searchrefundEndTime._d)}` : '---', //时间区间
+        receiveRatio:`${((item.receiveRatio)*100).toFixed(2)}%`,//领取率
         stationArea: this.state.searchAddress[0] && this.state.searchAddress[1] && this.state.searchAddress[2] ? `${this.state.searchAddress[0]}/${this.state.searchAddress[1]}/${this.state.searchAddress[2]}` : "全部",
         ratio:(item.usedTotalNum && item.reverseTotalNum) ? `${((item.reverseTotalNum)/(this.state.usedTotalNum)*100).toFixed(3)}%` : '',
         citys:
           item.province && item.city && item.region
             ? `${item.province}/${item.city}/${item.region}`
-            : ""
+            : "",
+        alltime:this.state.minTime && this.state.maxTime ? `${this.state.minTime}--${this.state.maxTime}` : '', //时间区间
       };
     });
   }
@@ -1006,6 +977,7 @@ class Category extends React.Component {
                   current: this.state.pageNum,
                   pageSize: this.state.pageSize,
                   showQuickJumper: true,
+                  hideOnSinglePage:true,//只有一页展示的时候隐藏页码
                   showTotal: (total, range) => `共 ${total} 条数据`,
                   onChange: (page, pageSize) =>
                     this.onTablePageChange2(page, pageSize)
@@ -1037,6 +1009,7 @@ class Category extends React.Component {
                   current: this.state.pageNum,
                   pageSize: this.state.pageSize,
                   showQuickJumper: true,
+                  hideOnSinglePage:true,//只有一页展示的时候隐藏页码
                   showTotal: (total, range) => `共 ${total} 条数据`,
                   onChange: (page, pageSize) =>
                     this.onTablePageChange3(page, pageSize)

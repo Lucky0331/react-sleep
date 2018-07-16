@@ -544,7 +544,7 @@ class Category extends React.Component {
         ? `${tools.dateToStr(this.state.searchTime2.utc()._d)} `
         : "", // 退款到账时间 - 结束
     };
-    tools.download(tools.clearNull(params),'${Config.baseURL}/manager/export/refund/record','post','退款记录.xls')
+    tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/refund/record`,'post','退款记录.xls')
   }
 
   // 查询某一条数据的详情

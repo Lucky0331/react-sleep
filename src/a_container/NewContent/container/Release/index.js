@@ -206,7 +206,7 @@ class Category extends React.Component {
           addnewRecommend:res.data.recommend ? res.data.recommend ? 1 : 0 : '' ,//是否推荐
           addnewSorts:res.data.sorts ? res.data.sorts : '',//排序
           addnewClassifyOne:res.data.liveType ? String(res.data.liveType.id) : '',//一级分类名称
-          addnewClassifyTwo:res.data.liveType.subList[0] ? String(res.data.liveType.subList[0].id) : '',//二级分类名称
+          addnewClassifyTwo:res.data.liveType && res.data.liveType.subList.id ? String(res.data.liveType.subList[0].id) : '',//二级分类名称
           // addnewProduct:res.data.recommendProductList[0].productName,//推荐产品
           realWatchTimes:res.data.realWatchTimes ? res.data.realWatchTimes : '',
           pcUrl:res.data.pcUrl ? res.data.pcUrl : "",
@@ -377,7 +377,7 @@ class Category extends React.Component {
         const params = {
           liveId: Number(values.addnewLiveId), //添加直播id
           liveTypeId: String(values.addnewClassifyOne), //添加一级分类
-          liveTypeSubId:String(values.addnewClassifyTwo),//添加二级分类
+          liveTypeSubId:values.addnewClassifyTwo,//添加二级分类
           liveStatus: values.addnewLabel, // 添加标签
           recommend: values.addnewRecommend , //添加是否推荐
           sorts: values.addnewSorts, // 添加排序的顺序
@@ -642,7 +642,6 @@ class Category extends React.Component {
   //拉取的视频-操作
   onPull(){
     this.onPullVideo(this.state.pageNum, this.state.pageSize)
-    // console.log('拉取到的是什么：',datapull)    
   }
 
   // 查询某一条数据的详情
