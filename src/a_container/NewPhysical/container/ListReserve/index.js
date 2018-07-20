@@ -69,6 +69,7 @@ class Category extends React.Component {
       searchMobile: "", // 搜索 - 手机号
       searchTicketNo: "", // 搜索 - 体检卡号
       searchDate: undefined, // 搜索 - 预约体检日期
+      searchUserId:'',//搜索 - 用户ID
       // searchBeginTime: "", // 搜索 - 开始时间
       // searchEndTime: "", // 搜索- 结束时间
       searchBeginTime: moment(
@@ -143,6 +144,7 @@ class Category extends React.Component {
       ticketNo: this.state.searchTicketNo.trim(),
       state: this.state.searchState,
       userSource: this.state.searchuserSource,
+      userId:this.state.searchUserId.trim(),//用户id
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2],
@@ -269,6 +271,13 @@ class Category extends React.Component {
       searchMobile: e.target.value
     });
   }
+  
+  //搜索  - 用户id
+  searchUserIdChange(v){
+    this.setState({
+      searchUserId:v.target.value
+    })
+  }
 
   // 搜索 - 体检卡输入框值改变时触发
   searchTicketNoChange(e) {
@@ -350,6 +359,12 @@ class Category extends React.Component {
   emitEmpty2(){
     this.setState({
       searchMobile: ""
+    });
+  }
+  
+  emitEmpty3(){
+    this.setState({
+      searchUserId: ""
     });
   }
   
@@ -466,7 +481,7 @@ class Category extends React.Component {
       upUserName: record.username,
       upIdCard: record.idCard,
       upMobile: record.phone,
-      upSex:record.sex === 1 ? '男':'女',
+      upSex:record.sex,
       upHeight: record.height,
       upWeight: record.weight,
       upReserveForm: record.reserveFrom,
@@ -502,10 +517,6 @@ class Category extends React.Component {
         if (err) {
           return;
         }
-
-        me.setState({
-          upLoading: true
-        });
         const params = {
           custId: me.state.nowData.customerId,
           ticketNo: me.state.nowData.ticketNo,
@@ -558,6 +569,11 @@ class Category extends React.Component {
         key: "serial",
       },
       {
+        title:'用户ID',
+        dataIndex:'userId',
+        key:'userId'
+      },
+      {
         title:'服务站地区',
         dataIndex:'citys',
         key:'citys'
@@ -597,8 +613,6 @@ class Category extends React.Component {
         dataIndex: "sex",
         key: "sex",
         width: 100,
-        render: text =>
-          String(text) === "0" ? <span>女</span> : <span>男</span>
       },
       {
         title: "预约时间",
@@ -667,7 +681,7 @@ class Category extends React.Component {
     console.log("data是个啥：", data);
     
     return data.map((item, index) => {
-      console.log("第一个时间是个啥：", new moment(item.reserveTime.substring(0,10) + " 23:59:59"));
+      // console.log("第一个时间是个啥：", new moment(item.reserveTime.substring(0,10) + " 23:59:59"));
       return {
         key: index,
         id: item.id,
@@ -696,6 +710,7 @@ class Category extends React.Component {
         name: item.station ? item.station.name : null,
         updateTime: item.updateTime,
         updater: item.updater,
+        userId:item.userId,//用户ID
         userSource: item.reserveFrom,
         reserveTime: (item.reserveTime).substring(0,10),
         ticketStatus:new moment(item.reserveTime.substring(0,10) + " 23:59:59") >= new moment(new Date()) ? '已预约' : '已过期',
@@ -721,6 +736,7 @@ class Category extends React.Component {
     const { searchStation } = this.state;
     const { searchTicketNo } = this.state;
     const { searchMobile } = this.state;
+    const { searchUserId } = this.state;
     const suffix = searchStation ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty()} />
     ) : null;
@@ -730,11 +746,23 @@ class Category extends React.Component {
     const suffix2 = searchMobile ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty2()} />
     ) : null;
+    const suffix3 = searchUserId ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty3()} />
+    ) : null;
     console.log("是啥：", form.getFieldValue("addnewTypeId"));
     return (
       <div style={{ width: "100%" }}>
         <div className="system-search">
           <ul className="search-ul">
+            <li>
+              <span style={{marginLeft:'19px'}}>用户ID：</span>
+              <Input
+                suffix={suffix3}
+                value={searchUserId}
+                style={{ width: "172px", marginRight: "10px" }}
+                onChange={e => this.searchUserIdChange(e)}
+              />
+            </li>
             <li>
               <span style={{marginRight:'10px'}}>服务站地区</span>
               <Cascader
@@ -1036,6 +1064,13 @@ class Category extends React.Component {
               {!!this.state.nowData ? this.state.nowData.username : ""}
             </FormItem>
             <FormItem
+              label="用户ID"
+              {...formItemLayout}
+              style={{marginLeft: "20px"}}
+            >
+              {!!this.state.nowData ? this.state.nowData.userId : ''}
+            </FormItem>
+            <FormItem
               label="身份证号"
               {...formItemLayout}
               style={{ marginLeft: "20px" }}
@@ -1061,15 +1096,7 @@ class Category extends React.Component {
               {...formItemLayout}
               style={{ marginLeft: "20px" }}
             >
-              {!!this.state.nowData ? (
-                String(this.state.nowData.sex) === "0" ? (
-                  <span>女</span>
-                ) : (
-                  <span>男</span>
-                )
-              ) : (
-                ""
-              )}
+              {!!this.state.nowData ? this.state.nowData.sex : ""}
             </FormItem>
             <FormItem
               label="身高"
@@ -1116,7 +1143,7 @@ class Category extends React.Component {
           visible={this.state.upModalShow}
           onOk={() => this.onUpOk()}
           onCancel={() => this.onUpClose()}
-          confirmLoading={this.state.upLoading}
+          // confirmLoading={this.state.upLoading}
         >
           <Form>
             <FormItem

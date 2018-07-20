@@ -225,6 +225,8 @@ class Category extends React.Component {
     switch (String(id)) {
       case "1":
         return "未禁用";
+      case "3":
+        return "已禁用";
       case "4":
         return "已禁用";
     }
@@ -667,7 +669,7 @@ class Category extends React.Component {
         dataIndex: "selfStation",
         key: "selfStation",
         render: text =>
-          String(text) === "1" ? (
+          Boolean(text) === true ? (
             <span style={{ color: "red" }}>已限制</span>
           ) : (
             <span style={{ color: "green" }}>未限制</span>
@@ -885,10 +887,7 @@ class Category extends React.Component {
                 onChange={e => this.searchTicketStatusChange(e)}
               >
                 <Option value={1}>未禁用</Option>
-                {/*<Option value={2}>已使用</Option>*/}
-                {/*<Option value={3}>已禁用</Option>*/}
                 <Option value={4}>已禁用</Option>
-                {/*<Option value={5}>已预约</Option>*/}
               </Select>
             </li>
             <li>

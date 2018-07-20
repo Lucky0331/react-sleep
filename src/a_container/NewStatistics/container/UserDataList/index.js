@@ -207,8 +207,8 @@ class Category extends React.Component {
       minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
       maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
     } else if (r === 3) { // 自定义的时间
-      minTime = this.state.searchBindingBeginTime ? `${tools.dateToStr(this.state.searchBindingBeginTime.utc()._d)}` : null;
-      maxTime = this.state.searchBindingEndTime ? `${tools.dateToStr(this.state.searchBindingEndTime.utc()._d)}` : null;
+      minTime = this.state.searchBindingBeginTime ? `${tools.dateToStr(this.state.searchBindingBeginTime.utc()._d)} ` : null;
+      maxTime = this.state.searchBindingEndTime ? `${tools.dateToStr(this.state.searchBindingEndTime.utc()._d)} ` : null;
     }
     const params = {
       pageNum,
@@ -320,14 +320,14 @@ class Category extends React.Component {
   //时间筛选 - 开始时间
   searchBindingBeginTimeChange(e) {
     this.setState({
-      searchBindingBeginTime: e,
+      searchBindingBeginTime: _.cloneDeep(e),
     });
   }
   
   //时间筛选 - 结束时间
   searchBindingEndTimeChange(e) {
     this.setState({
-      searchBindingEndTime: e,
+      searchBindingEndTime: _.cloneDeep(e),
     });
   }
 
@@ -514,8 +514,8 @@ class Category extends React.Component {
       minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
       maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
     } else if (r === 3) { // 自定义的时间
-      minTime = this.state.searchBindingBeginTime ? `${tools.dateToStr(this.state.searchBindingBeginTime.utc()._d)}` : null;
-      maxTime = this.state.searchBindingEndTime ? `${tools.dateToStr(this.state.searchBindingEndTime.utc()._d)}` : null;
+      minTime = this.state.searchBindingBeginTime ? `${tools.dateToStr(this.state.searchBindingBeginTime.utc()._d)} ` : null;
+      maxTime = this.state.searchBindingEndTime ? `${tools.dateToStr(this.state.searchBindingEndTime.utc()._d)} ` : null;
     }
     const params = {
       pageNum,
@@ -546,8 +546,8 @@ class Category extends React.Component {
       minTime = `${tools.dateToStrD(new Date(new Date().setDate(now.getDate() - 30 )))} 00:00:00`;
       maxTime = tools.dateToStr(new Date(new Date().setDate(now.getDate()  )));
     } else if (r === 3) { // 自定义的时间
-      minTime = this.state.searchBindingBeginTime ? `${tools.dateToStr(this.state.searchBindingBeginTime.utc()._d)}` : null;
-      maxTime = this.state.searchBindingEndTime ? `${tools.dateToStr(this.state.searchBindingEndTime.utc()._d)}` : null;
+      minTime = this.state.searchBindingBeginTime ? `${tools.dateToStr(this.state.searchBindingBeginTime.utc()._d)} ` : null;
+      maxTime = this.state.searchBindingEndTime ? `${tools.dateToStr(this.state.searchBindingEndTime.utc()._d)} ` : null;
     }
     const params = {
       pageNum,
@@ -861,18 +861,20 @@ class Category extends React.Component {
                 <Radio value={3}>时间筛选</Radio>
                 <DatePicker
                   disabled={this.state.searchRadio !== 3}
-                  format="YYYY-MM-DD"
-                  placeholder="开始日期"
-                  value={this.state.searchBindingBeginTime}
+                  showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                  format="YYYY-MM-DD HH:mm:ss"
+                  placeholder="开始时间"
                   onChange={e => this.searchBindingBeginTimeChange(e)}
+                  onOk={onOk}
                 />
                 --
                 <DatePicker
                   disabled={this.state.searchRadio !== 3}
-                  format="YYYY-MM-DD"
-                  placeholder="结束日期"
-                  value={this.state.searchBindingEndTime}
+                  showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                  format="YYYY-MM-DD HH:mm:ss"
+                  placeholder="结束时间"
                   onChange={e => this.searchBindingEndTimeChange(e)}
+                  onOk={onOk}
                 />
               </li>
             </ul>

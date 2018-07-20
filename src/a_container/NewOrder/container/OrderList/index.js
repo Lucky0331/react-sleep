@@ -52,6 +52,7 @@ import {
   deleteProductType,
   updateType,
   updateOrderModel,
+  updateGoods,
   onChange,
   onChange3,
   onOk
@@ -78,6 +79,8 @@ class Category extends React.Component {
       searchMaxPrice: undefined, // 搜索- 最大价格
       searchBeginTime: "", // 搜索 - 开始时间
       searchEndTime: "", // 搜索- 结束时间
+      searchPayBeginTime:"",//搜索 - 支付开始时间
+      searchPayEndTime:"",//搜索 - 支付结束时间
       searchAddress: [], // 搜索 - 地址
       searchorderFrom: "", //搜索 - 订单来源
       searchName: "", // 搜索 - 状态
@@ -85,6 +88,8 @@ class Category extends React.Component {
       searchConditions: "", //搜索 - 订单状态
       searchorderNo: "", //搜索 - 子订单号
       searchMainOrderId:"", //搜索 - 主订单号
+      searchPersonName:'',//搜索 - 收货姓名
+      searchPersonMobile:'',//搜索 - 收货手机号
       searchuserSaleFlag:"",//搜索 - 分销商是否享有收益
       searchUserType: "", //搜索 - 用户类型
       searchUserName: "", //搜索 - 经销商账户
@@ -93,7 +98,8 @@ class Category extends React.Component {
       searchDistributorId: "", // 搜索 - 分销商id
       nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
       addnewModalShow: false, // 查看地区模态框是否显示
-      upModalShow: false, // 修改模态框是否显示
+      upModalShow: false, // 修改订单型号信息模态框是否显示
+      upGoodsModalShow: false, // 修改收货信息模态框是否显示
       upLoading: false, // 是否正在修改用户中
       ListLoading:false,//订单列表数据多加载
       pageNum: 1, // 当前第几页
@@ -174,6 +180,8 @@ class Category extends React.Component {
       typeCode: this.state.searchproductType,
       orderFrom: this.state.searchorderFrom,
       mainOrderNo:this.state.searchMainOrderId.trim(),//主订单号查询
+      orderConsignee:this.state.searchPersonName,//收货姓名
+      orderPhone:this.state.searchPersonMobile.trim(),//收货手机号
       orderNo: this.state.searchorderNo.trim(),
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
@@ -185,6 +193,12 @@ class Category extends React.Component {
         : "",
       endTime: this.state.searchEndTime
         ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)}`
+        : "",
+      payBeginTime: this.state.searchPayBeginTime
+        ? `${tools.dateToStr(this.state.searchPayBeginTime.utc()._d)}`
+        : "",
+      payEndTime: this.state.searchPayEndTime
+        ? `${tools.dateToStr(this.state.searchPayEndTime.utc()._d)}`
         : ""
     };
     this.props.actions.findOrderByWhere(tools.clearNull(params)).then(res => {
@@ -217,6 +231,14 @@ class Category extends React.Component {
           });
         }
       });
+  }
+  
+  // 工具 - 根据产品型号查产品名称
+  findModelByName(productModel) {
+    const t = this.state.productTypes.find(
+      item => String(item.productModel) === String(productModel)
+    );
+    return t ? t.productName : '';
   }
 
   // 工具 - 根据产品类型名称查产品类型ID
@@ -438,6 +460,18 @@ class Category extends React.Component {
       searchMainOrderId: ""
     });
   }
+  
+  emitEmpty8() {
+    this.setState({
+      searchPersonName: ""
+    });
+  }
+  
+  emitEmpty9() {
+    this.setState({
+      searchPersonMobile: ""
+    });
+  }
 
   // 点击查看地区模态框出现
   onAddNewShow() {
@@ -451,14 +485,7 @@ class Category extends React.Component {
       addnewModalShow: true
     });
   }
-
-  // 关闭模态框
-  onAddNewClose() {
-    this.setState({
-      addnewModalShow: false
-    });
-  }
-
+  
   // 获取所有的省
   getAllCity0() {
     this.props.actions.findAllProvince();
@@ -549,6 +576,35 @@ class Category extends React.Component {
     });
   }
   
+  // 搜索 - 支付开始时间变化
+  searchPayBeginTimeChange(v) {
+    console.log("是什么：", v);
+    this.setState({
+      searchPayBeginTime: _.cloneDeep(v)
+    });
+  }
+
+  // 搜索 - 支付结束时间变化
+  searchPayEndTimeChange(v) {
+    this.setState({
+      searchPayEndTime: _.cloneDeep(v)
+    });
+  }
+  
+  //收货人姓名
+  searchPersonNameChange(v){
+    this.setState({
+      searchPersonName: v.target.value
+    });
+  }
+  
+  //收货人手机号码
+  searchPersonMobileChange(v){
+    this.setState({
+      searchPersonMobile: v.target.value
+    });
+  }
+  
   //分销商是否享受收益
   searchuserSaleFlagChange(e){
     this.setState({
@@ -570,8 +626,15 @@ class Category extends React.Component {
 // 选不同型号时重置计费方式
   Newproduct2(e) {
     //产品类型改变时，重置产品型号的值位undefined
+    // console.log("产品型号：", e);
     const { form } = this.props;
     form.resetFields(["chargesTypes"]); //计费方式的值
+    
+    const t = this.state.data2.find((item)=>String(item.productModel.id) === String(e));
+    console.log("这里那有什么:", e,t);
+    form.setFieldsValue({
+      formName: t && t.name ? t.name : undefined,
+    });
   }
   // 搜索
   onSearch() {
@@ -599,6 +662,8 @@ class Category extends React.Component {
       ambassadorName: this.state.searchambassadorName,
       productName: this.state.searchProductName,
       modelId: this.state.searchModelId,
+      orderConsignee:this.state.searchPersonName,//收货姓名
+      orderPhone:this.state.searchPersonMobile.trim(),//收货手机号
       refer: this.state.searchRefer.trim(),
       typeCode: this.state.searchproductType,
       orderFrom: this.state.searchorderFrom,
@@ -613,6 +678,12 @@ class Category extends React.Component {
         : "",
       endTime: this.state.searchEndTime
         ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)}`
+        : "",
+      payBeginTime: this.state.searchPayBeginTime
+        ? `${tools.dateToStr(this.state.searchPayBeginTime.utc()._d)}`
+        : "",
+      payEndTime: this.state.searchPayEndTime
+        ? `${tools.dateToStr(this.state.searchPayEndTime.utc()._d)}`
         : ""
     };
     tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/order/list`,'post', '订单列表.xls');
@@ -644,6 +715,10 @@ class Category extends React.Component {
       formName:record.productName,
       formTypeCode:Number.isInteger(record.productModel) ? String(record.productModel) : String(this.findProductModelById(record.productModel)),//型号id
       chargesTypes:record.feeType,
+      upDateAddress:record.orderAddressLast,//收获地址
+      upDateMobile:record.orderPhone,
+      upDateName:record.orderConsignee,
+      upDateSex:record.sex,//收货性别
     });
     me.setState({
       nowData:record,
@@ -652,7 +727,7 @@ class Category extends React.Component {
     });
   }
   
-  //确定修改产品型号  一系列
+  //确定修改订单信息  一系列
   onUpOk() {
     const me = this;
     const { form } = me.props;
@@ -661,7 +736,7 @@ class Category extends React.Component {
       "formTypeCode",
       "formName",
       "formId",
-      "chargesTypes"
+      "chargesTypes",
     ], (err, values) => {
       console.log('走到了吗',err, values)
       if (err) {
@@ -704,7 +779,84 @@ class Category extends React.Component {
   // 关闭修改某一条数据
   onUpNewClose() {
     this.setState({
-      upModalShow: false
+      upModalShow: false,
+      upGoodsModalShow:false
+    });
+  }
+  
+  //修改收货信息 - 模态框出现
+  onUpdateGoodsClick(record){
+    const me = this;
+    const {form} = me.props;
+    form.setFieldsValue({
+      upDateAddress:record.orderAddressLast,//收获地址
+      upDateMobile:record.orderPhone,
+      //upDateCitys:record.orderRegional,//收货省市区
+      upDateName:record.orderConsignee,
+      upDateSex:record.sex,//收货性别
+    });
+    me.setState({
+      nowData:record,
+      upGoodsModalShow:true,
+      productType: record.productType,
+    });
+  }
+  
+  //确定修改收货信息
+  onUpGoodsOk() {
+    const me = this;
+    const { form } = me.props;
+    console.log('这个me是什么',me)
+    form.validateFields([
+      "upDateCitys",
+      "upDateAddress",
+      "upDateMobile",
+      "upDateName",
+      "upDateSex",
+    ], (err, values) => {
+      console.log('走到了吗',err, values)
+      if (err) {
+        return false;
+      }
+      me.setState({
+        upLoading: true
+      });
+      let t = [] ;
+      if(values.upDateCitys && values.upDateCitys.length){
+        t = values.upDateCitys
+      }else if(this.state.nowData.orderRegional){
+        t = this.state.nowData.orderRegional.split('/')
+      }
+      
+      const params = {
+        id: me.state.nowData.orderId,//订单号
+        contact: values.upDateName,//姓名
+        mobile:values.upDateMobile,//手机号
+        sex:values.upDateSex == '男' ? 1 : 2 ,//性别
+        province:t[0],
+        city:t[1],
+        region:t[2],
+        street:values.upDateAddress,
+      };
+      this.props.actions
+          .updateGoods(params)
+          .then(res => {
+            if (res.status === "0") {
+              message.success("修改成功");
+              this.onGetData(this.state.pageNum, this.state.pageSize);
+              this.onUpNewClose();
+            } else {
+              message.error(res.message || "修改失败，请重试");
+            }
+            me.setState({
+              upLoading: false
+            });
+          })
+          .catch(() => {
+            me.setState({
+              upLoading: false
+            });
+          });
     });
   }
   
@@ -759,7 +911,7 @@ class Category extends React.Component {
         fixed: "left",
         dataIndex: "serial",
         key: "serial",
-        width: 50
+        width: 80
       },
       {
         title:'主订单号',
@@ -847,6 +999,11 @@ class Category extends React.Component {
         key: "payStatus",
       },
       {
+        title:'支付时间',
+        dataIndex:'payTime',
+        key:'payTime'
+      },
+      {
         title: "支付方式",
         dataIndex: "payType",
         key: "payType",
@@ -855,6 +1012,16 @@ class Category extends React.Component {
         title:'订单完成时间',
         dataIndex:'completeTime',
         key:'completeTime'
+      },
+      {
+        title:'收货人姓名',
+        dataIndex:'orderConsignee',
+        key:'orderConsignee'
+      },
+      {
+        title:'收货人手机号码',
+        dataIndex:'orderPhone',
+        key:'orderPhone'
       },
       {
         title:'经销商身份',
@@ -866,6 +1033,9 @@ class Category extends React.Component {
         dataIndex: "distributorId",
         key: "distributorId"
       },
+      // {
+      //   title: "经销商省市区",
+      // },
       {
         title: "分销商id",
         dataIndex: "userSaleId",
@@ -880,7 +1050,7 @@ class Category extends React.Component {
         title: "操作",
         key: "control",
         fixed: "right",
-        width: 80,
+        width: 100,
         render: (text, record) => {
           const controls = [];
           record.productType != '健康评估'
@@ -890,14 +1060,26 @@ class Category extends React.Component {
               className="control-btn blue"
               onClick={() => this.onUpdateClick(record)}
             >
-              <Tooltip placement="top" title="修改订单产品型号">
+              <Tooltip placement="top" title="修改订单信息">
                 <Icon type="edit" />
+              </Tooltip>
+            </span>
+          );
+          record.productType != '健康评估'
+          && controls.push(
+              <span
+                key="1"
+                className="control-btn blue"
+                onClick={() => this.onUpdateGoodsClick(record)}
+              >
+              <Tooltip placement="top" title="修改收货信息">
+                <Icon type="setting" />
               </Tooltip>
             </span>
           );
           controls.push(
             <span
-              key="1"
+              key="2"
               className="control-btn green"
               onClick={() => this.onQueryClick(record)}
             >
@@ -934,12 +1116,14 @@ class Category extends React.Component {
           item.province && item.city && item.region
             ? `${item.province}/${item.city}/${item.region}`
             : "",
+        province:(item.orderRegional).substring(0,3),
         count: item.count,
         payTime: item.payTime,//支付时间
         mainOrder: item.mainOrder, //主订单号
         orderId: item.orderId, //子订单号
         orderRegional:item.orderRegional,//用户收货地区
         orderAddress:item.orderAddress ? `${item.orderRegional}/${item.orderAddress}` : '',//用户收货地址
+        orderAddressLast: item.orderAddress,//用户收货地址
         productType:item.productType,//产品类型
         productId:item.productId,//产品id
         productName:item.productName,///产品名称
@@ -955,6 +1139,7 @@ class Category extends React.Component {
         userSaleIsIncome:item.userSaleIsIncome,//分销商是否享有收益
         orderStatus: item.orderStatus,//订单状态
         orderPhone: item.orderPhone, //用户收货手机号
+        orderConsignee:item.orderConsignee,//收货姓名
         refer: item.refer,//云平台工单号
         userIdentity : item.userIdentity, // 用户类型
         distributorIdentity: item.distributorIdentity, //经销商身份
@@ -966,6 +1151,7 @@ class Category extends React.Component {
         orderFrom: item.orderFrom,//订单来源
         completeTime:item.completeTime,//订单完成时间
         feeType:item.feeType,//计费方式
+        sex:item.sex,//收货人性别
         ambassadorName: item.distributor ? item.distributor.mobile : "",
       };
     });
@@ -995,6 +1181,8 @@ class Category extends React.Component {
     const { searchMinPrice } = this.state;
     const { searchMaxPrice } = this.state;
     const { searchMainOrderId } = this.state;
+    const { searchPersonName } = this.state;
+    const { searchPersonMobile } = this.state;
     const suffix = searchorderNo ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty()} />
     ) : null;
@@ -1018,6 +1206,12 @@ class Category extends React.Component {
     ) : null;
     const suffix9 = searchMaxPrice ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty6()} />
+    ) : null;
+    const suffix7 = searchPersonName ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty8()} />
+    ) : null;
+    const suffix10 = searchPersonMobile ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty9()} />
     ) : null;
 
     return (
@@ -1212,6 +1406,35 @@ class Category extends React.Component {
                 onChange={e => this.searchAmbassadorId(e)}
               />
             </li>
+            {/*<li>*/}
+              {/*<span>经销商省市区</span>*/}
+              {/*<Cascader*/}
+                {/*style={{ width: " 172px " }}*/}
+                {/*placeholder="请选择经销商省市区"*/}
+                {/*onChange={v => this.onSearchAddress(v)}*/}
+                {/*options={this.state.citys}*/}
+                {/*loadData={e => this.getAllCitySon(e)}*/}
+                {/*changeOnSelect*/}
+              {/*/>*/}
+            {/*</li>*/}
+            <li>
+              <span>收货人姓名</span>
+              <Input
+                style={{ width: "172px" }}
+                suffix={suffix7}
+                value={searchPersonName}
+                onChange={e => this.searchPersonNameChange(e)}
+              />
+            </li>
+            <li>
+              <span>收货人手机号码</span>
+              <Input
+                style={{ width: "172px" }}
+                suffix={suffix10}
+                value={searchPersonMobile}
+                onChange={e => this.searchPersonMobileChange(e)}
+              />
+            </li>
             <li>
               <span style={{ marginRight: "10px" }}>下单时间</span>
               <DatePicker
@@ -1227,6 +1450,24 @@ class Category extends React.Component {
                 format="YYYY-MM-DD HH:mm:ss"
                 placeholder="结束时间"
                 onChange={e => this.searchEndTime(e)}
+                onOk={onOk}
+              />
+            </li>
+            <li>
+              <span style={{ marginRight: "10px" }}>支付时间</span>
+              <DatePicker
+                showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
+                placeholder="开始时间"
+                onChange={e => this.searchPayBeginTimeChange(e)}
+                onOk={onOk}
+              />
+              --
+              <DatePicker
+                showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
+                placeholder="结束时间"
+                onChange={e => this.searchPayEndTimeChange(e)}
                 onOk={onOk}
               />
             </li>
@@ -1262,7 +1503,7 @@ class Category extends React.Component {
           <Table
             columns={this.makeColumns()}
             dataSource={this.makeData(this.state.data)}
-            scroll={{ x: 3300 }}
+            scroll={{ x: 3700 }}
             loading={this.state.ListLoading}
             pagination={{
               total: this.state.total,
@@ -1275,42 +1516,9 @@ class Category extends React.Component {
             }}
           />
         </div>
-        <Modal
-          title="查看地区"
-          visible={this.state.addnewModalShow}
-          onOk={() => this.onAddNewOk()}
-          onCancel={() => this.onAddNewClose()}
-          confirmLoading={this.state.addnewLoading}
-        >
-          <Form>
-            <FormItem label="服务站地区" {...formItemLayout}>
-              <span style={{ color: "#888" }}>
-                {this.state.nowData &&
-                this.state.addOrUp === "up" &&
-                this.state.nowData.province &&
-                this.state.nowData.city &&
-                this.state.nowData.region
-                  ? `${this.state.nowData.province}/${
-                      this.state.nowData.city
-                    }/${this.state.nowData.region}`
-                  : null}
-              </span>
-              {getFieldDecorator("addnewCitys", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请选择区域" }]
-              })(
-                <Cascader
-                  placeholder="请选择服务区域"
-                  options={this.state.citys}
-                  loadData={e => this.getAllCitySon(e)}
-                />
-              )}
-            </FormItem>
-          </Form>
-        </Modal>
         {/* 编辑模态框 */}
         <Modal
-          title="修改产品型号"
+          title="修改订单信息"
           visible={this.state.upModalShow}
           onOk={() => this.onUpOk()}
           onCancel={() => this.onUpNewClose()}
@@ -1319,13 +1527,12 @@ class Category extends React.Component {
         >
           <Form>
             <FormItem label="产品类型" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {/*{!!this.state.nowData ? this.state.nowData.productType : ''}*/}
               {getFieldDecorator("formTypeId", {
                 initialValue: undefined,
-                rules: [{ required: true, message: "请选择产品类型" }]
               })(
                 <Select
-                  placeholder="请选择产品类型"
-                  onChange={e => this.Newproduct(e)}
+                  disabled={true}
                 >
                   {this.state.productTypes.map((item, index) => (
                     <Option key={index} value={String(item.id)}>
@@ -1335,41 +1542,28 @@ class Category extends React.Component {
                 </Select>
               )}
             </FormItem>
-            <FormItem label="产品名称" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
-              {getFieldDecorator("formName", {
-                initialValue: undefined,
-                rules: [
-                  { required: true, message: "请输入产品名称" },
-                  {
-                    validator: (rule, value, callback) => {
-                      const v = tools.trim(value);
-                      if (v) {
-                        if (v.length > 100) {
-                          callback("最多输入100个字");
-                        }
-                      }
-                      callback();
-                    }
-                  }
-                ]
-              })(<Input disabled={this.state.addOrUp === "look"} placeholder="请输入产品名称" />)}
-            </FormItem>
             <FormItem label="产品型号" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
               {getFieldDecorator("formTypeCode", {
                 initialValue: undefined,
-                rules: [{ required: true, message: "请选择产品型号" }]
               })(
                 <Select placeholder="请选择产品型号" onChange={e => this.Newproduct2(e)}>
                   {(() => {
                     const id = String(form.getFieldValue("formTypeId"));
                     return this.state.productModels.filter(item => String(item.typeId) === id).map((item, index) => (
-                      <Option key={index} value={String(item.id)}>
-                        {item.name}
-                      </Option>
+                        <Option key={index} value={String(item.id)}>
+                          {item.name}
+                        </Option>
                     ))
                   })()
-                }
+                  }
                 </Select>
+              )}
+            </FormItem>
+            <FormItem label="产品名称" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("formName", {
+                initialValue: undefined,
+              })(
+                <Input disabled={true}/>
               )}
             </FormItem>
             <Row>
@@ -1382,8 +1576,8 @@ class Category extends React.Component {
                 {getFieldDecorator("chargesTypes", {
                   initialValue: undefined,
                   rules: [{ required: (()=>{
-                    const type = form.getFieldValue("formTypeId");
-                    return Number(type) === 1;
+                  const type = form.getFieldValue("formTypeId");
+                  return Number(type) === 1;
                   })(), message: "请选择计费方式" }]
                 })(
                   <RadioGroup>
@@ -1407,6 +1601,61 @@ class Category extends React.Component {
                 )}
               </FormItem>
             </Row>
+          </Form>
+        </Modal>
+        {/* 编辑模态框 */}
+        <Modal
+          title="修改收货信息"
+          visible={this.state.upGoodsModalShow}
+          onOk={() => this.onUpGoodsOk()}
+          onCancel={() => this.onUpNewClose()}
+          confirmLoading={this.state.upLoading}
+          wrapClassName={"list"}
+        >
+          <Form>
+            <FormItem label="收货人姓名" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("upDateName", {
+                initialValue: undefined,
+                rules: [
+                  { max: 12, message: "最多输入12个字" }
+                ]
+              })(<Input placeholder="请输入收货人姓名" />)}
+            </FormItem>
+            <FormItem label="收货人性别" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("upDateSex", {
+                initialValue: true,
+              })(
+                <Select placeholder="请选择收货人性别">
+                  <Option value="男">男</Option>
+                  <Option value="女">女</Option>
+                </Select>
+              )}
+            </FormItem>
+            <FormItem label="收货人手机号" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("upDateMobile", {
+                initialValue: undefined,
+                rules: [{whitespace: true,min: 11,max: 11}]
+              })(<Input placeholder="请输入收货人手机号" />)}
+            </FormItem>
+            <FormItem label="收货省市区" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              <span style={{ color: "#888" }}>
+                {!!this.state.nowData ? this.state.nowData.orderRegional : ''}
+              </span>
+              {getFieldDecorator("upDateCitys", {
+                initialValue: undefined,
+              })(
+                <Cascader
+                  placeholder="请选择服务区域"
+                  options={this.state.citys}
+                  loadData={e => this.getAllCitySon(e)}
+                />
+              )}
+            </FormItem>
+            <FormItem label="收货地址" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("upDateAddress", {
+                initialValue: undefined,
+              })(<Input placeholder="请输入收货地址" />)}
+            </FormItem>
           </Form>
         </Modal>
         {/* 查看详情模态框 */}
@@ -1445,6 +1694,20 @@ class Category extends React.Component {
               className={this.state.productType == "健康评估" ? "hide" : ""}
             >
               {!!this.state.nowData ? this.state.nowData.orderPhone : ""}
+            </FormItem>
+            <FormItem
+              label="收货人姓名"
+              {...formItemLayout}
+              className={this.state.productType == "健康评估" ? "hide" : ""}
+            >
+              {!!this.state.nowData ? this.state.nowData.orderConsignee :''}
+            </FormItem>
+            <FormItem
+              label="收货人性别"
+              {...formItemLayout}
+              className={this.state.productType == "健康评估" ? "hide" : ""}
+            >
+              {!!this.state.nowData ? this.state.nowData.sex : ""}
             </FormItem>
             <FormItem
               label="用户收货地区"
@@ -1499,6 +1762,9 @@ class Category extends React.Component {
             <FormItem label="经销商身份" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.distributorIdentity : ""}
             </FormItem>
+            {/*<FormItem label="经销商省市区" {...formItemLayout}>*/}
+            
+            {/*</FormItem>*/}
             <FormItem label="经销商id" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.distributorId : ""}
             </FormItem>
@@ -1583,6 +1849,7 @@ export default connect(
         deleteProductType,
         updateType,
         updateOrderModel,
+        updateGoods,
         onChange,
         onChange3,
         onOk

@@ -558,8 +558,39 @@ class Category extends React.Component {
   }
   // 导出
   onExport() {
-    this.onGetData(this.state.pageNum,this.state.pageSize);
+    this.onExportData(this.state.pageNum,this.state.pageSize);
   }
+  
+  //导出的数据字段
+  onExportData(pageSize,pageNum){
+    const params = {
+      pageNum,
+      pageSize,
+      contract: this.state.searchContract,
+      province: this.state.searchAddress[0],
+      city: this.state.searchAddress[1],
+      region: this.state.searchAddress[2],
+      stationName: this.state.searchStationName,
+      companyName: this.state.searchCompanyName,
+      recommend:this.state.searchRecommend,
+      hraIsOnline:this.state.searchHraIsOnline,
+      addressKeywords:this.state.searchStationKeyWord,
+      minContractStartTime:this.state.searchBeginTime
+        ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)}`
+        : "",
+      maxContractStartTime:this.state.searchBeginEndTime
+        ? `${tools.dateToStr(this.state.searchBeginEndTime.utc()._d)}`
+        : "",
+      maxContractEndTime:this.state.searchEndTime
+        ? `${tools.dateToStr(this.state.searchEndTime.utc()._d)}`
+        : "",
+      minContractEndTime:this.state.searchEndStartTime
+        ? `${tools.dateToStr(this.state.searchEndStartTime.utc()._d)}`
+        : "",
+    };
+    tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/station/info`,'post', '服务站信息管理.xls')
+  }
+  
   // 查询某一条数据的详情
   onQueryClick(record) {
     this.setState({
@@ -1498,12 +1529,13 @@ class Category extends React.Component {
               />
             </li>
             <li style={{width: "80px",marginRight: "15px"}}>
-              <Button
-                type="primary"
-                icon="search"
-                onClick={() => this.onSearch()}
-              >
+              <Button type="primary" icon="search" onClick={() => this.onSearch()}>
                 搜索
+              </Button>
+            </li>
+            <li>
+              <Button icon="download" type="primary" onClick={()=>this.onExport()}>
+                导出
               </Button>
             </li>
           </ul>

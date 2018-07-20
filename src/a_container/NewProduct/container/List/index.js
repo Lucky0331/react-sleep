@@ -52,9 +52,11 @@ class Category extends React.Component {
       loading: false, // 正在获取列表数据、修改、新增数据
       fileList: [], // 产品图片已上传的列表
       fileListDetail: [], // 列表封面图片已上传的列表
+      fileProgram: [],  // 小程序产品详情图的列表
       formCoverVideo: [],  // 表单 - 当前数据的封面视频
       fileLoading: false, // 产品图片正在上传
       fileDetailLoading: false, // 详细图片正在上传
+      fileProgramLoading: false, // 详细图片正在上传
       fileVideoLoading: false,  // 视频上传中
       temp:[],
     };
@@ -234,6 +236,7 @@ class Category extends React.Component {
       });
       this.setState({
         fileList: [],
+        fileProgram:[],
         fileListDetail: [],
         formCoverVideo: [],
         nowData: null,
@@ -255,7 +258,8 @@ class Category extends React.Component {
       this.setState({
         nowData: record,
         code: record.typeId,
-        fileListDetail: record.detailImg ? record.detailImg.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })) : [], // ；列表封面图片已上传的列表
+        fileProgram:record.miniDetailImg ? record.miniDetailImg.split(",").map((item,index) => ({ uid: index, url :item, status: "done"})) : [],//小程序封面图上传列表
+        fileListDetail: record.detailImg ? record.detailImg.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })) : [], // 列表封面图片已上传的列表
         fileList: record.productImg ? record.productImg.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })): [], // 产品封面图片已上传的列表
         formCoverVideo: record.coverVideo ? record.coverVideo.split(",").map((item, index) => ({ uid: index, url: item, status: "done" })): [], // 封面视频
       });
@@ -326,7 +330,7 @@ class Category extends React.Component {
     }
     const me = this;
     const { form } = me.props;
-    if (me.state.fileLoading || me.state.fileDetailLoading) {
+    if (me.state.fileLoading || me.state.fileDetailLoading || me.state.fileProgramLoading) {
       message.warning("有图片正在上传...");
       return;
     }
@@ -356,6 +360,7 @@ class Category extends React.Component {
           activityType: values.formActivityType, // 活动方式ID
           productImg: this.state.fileList.map(item => item.url).join(","), // 产品封面图片们
           detailImg: this.state.fileListDetail.map(item => item.url).join(","), // 列表封面图片们
+          miniDetailImg : this.state.fileProgram.map(item => item.url).join(","),//小程序列表封面图
           productDetail: this.editor.getHTMLContent(), // 详情图片们
           coverVideo: this.state.formCoverVideo.map(item => item.url).join(","), // 视频
           conditions: values.formConditions, // 是否是推荐
@@ -563,6 +568,79 @@ class Category extends React.Component {
     const list = _.cloneDeep(this.state.fileListDetail);
     this.setState({
       fileListDetail: list.filter(item => item.uid !== f.uid)
+    });
+  }
+  
+  /**
+   * 小程序列表封面图 上传相关 3个方法
+   * 1.上传前的校验
+   * 2.上传中
+   * 3.删除某 个已上传的图片
+   * **/
+  // 小程序列表封面图 - 上传前
+  onUploadProgramBefore(f) {
+    console.log('触发了没：', f)
+    if(this.state.addOrUp === 'look'){
+      return false;
+    }
+    if (
+      ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
+    ) {
+      message.error("只能上传jpg、jpeg、png、bmp、gif格式的图片");
+      return false;
+    } else {
+      const newList = _.cloneDeep(this.state.fileProgram);
+      newList.push(f);
+      this.setState({
+        fileProgram: newList
+      });
+      return true;
+    }
+  }
+  
+  // 小程序列表封面图 - 上传中、成功、失败
+  onUpLoadProgramChange(obj) {
+    console.log('触发这个啊：', obj);
+    if (obj.file.status === "done") {
+      // 上传成功后调用,将新的地址加进原list
+      if (obj.file.response.data) {
+        const list = _.cloneDeep(this.state.fileProgram);
+        const t = list.find(item => item.uid === obj.file.uid);
+        console.log('list是什么aaa：',list)
+        t.url = obj.file.response.data;
+        this.setState({
+          fileProgram: list,
+          fileProgramLoading: false
+        });
+      } else {
+        const list = _.cloneDeep(this.state.fileProgram);
+        this.setState({
+          fileProgram: list.filter(item => item.uid !== obj.file.uid),
+          fileProgramLoading: false
+        });
+      }
+    } else if (obj.file.status === "uploading") {
+      this.setState({
+        fileProgramLoading: true
+      });
+    } else if (obj.file.status === "error") {
+      const list = _.cloneDeep(this.state.fileProgram);
+      this.setState({
+        fileProgram: list.filter(item => item.uid !== obj.file.uid),
+        fileLoading: false
+      });
+      message.error("图片上传失败");
+    }
+  }
+  
+  // 小程序列表封面图 - 删除
+  onUpLoadProgramRemove(f) {
+    if(this.state.addOrUp === 'look'){
+      return false;
+    }
+    const list = _.cloneDeep(this.state.fileProgram);
+    this.setState({
+      fileProgram: list.filter(item => item.uid !== f.uid)
     });
   }
 
@@ -897,6 +975,7 @@ class Category extends React.Component {
         creator: item.creator,  // 创建人
         detailImg: item.detailImg,  // 列表图片src
         productImg: item.productImg,//产品图片
+        miniDetailImg:item.miniDetailImg,//小程序img
         itemNum: item.itemNum,  // 不知道什么东西
         newProduct: item.newProduct,    // 
         offShelfTime: item.offShelfTime,
@@ -1246,7 +1325,6 @@ class Category extends React.Component {
             <FormItem label="产品封面图片上传(最多5张)" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>
               <p style={{float:'left',marginTop:'30px',marginLeft:'-195px',color: '#F92A19'}}>(推荐尺寸750*600)</p>
               {getFieldDecorator("upIcon2", {
-                // rules: [{ required: true }]
               })(
                 <Upload
                   name="pImg"
@@ -1287,6 +1365,31 @@ class Category extends React.Component {
                   </div>
                 )}
               </Upload>
+            </FormItem>
+            <FormItem label="小程序产品详情图" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>
+              <p style={{float:'left',marginTop:'30px',marginLeft:'-195px',color: '#F92A19'}}>(推荐尺寸750)</p>
+              {getFieldDecorator("upIcon2", {
+                rules: [{ required: true}]
+              })(
+                <Upload
+                  name="pImg"
+                  disabled={this.state.addOrUp === "look"}
+                  action={`${Config.baseURL}/manager/product/uploadImage`}
+                  listType="picture-card"
+                  withCredentials={true}
+                  fileList={this.state.fileProgram}
+                  beforeUpload={(f, fl) => this.onUploadProgramBefore(f, fl)}
+                  onChange={f => this.onUpLoadProgramChange(f)}
+                  onRemove={f => this.onUpLoadProgramRemove(f)}
+                >
+                  {this.state.fileProgram.length >= 10 ? null : (
+                    <div>
+                      <Icon type="plus" />
+                      <div className="ant-upload-text">选择文件</div>
+                    </div>
+                  )}
+                </Upload>
+              )}
             </FormItem>
             <FormItem label="产品详情" labelCol={{ span: 24 }} wrapperCol={{ span: 24}}>
               <BraftEditor {...editorProps} ref={(dom) => this.editor = dom}/>

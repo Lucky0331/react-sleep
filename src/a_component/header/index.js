@@ -168,7 +168,7 @@ class Header extends React.Component {
           {this.state.adminUser ? (
             [
               <li key="0">
-                <a href={"http://hratest.yimaokeji.com/cms/index"}><Button
+                <a href={"https://cmstest.yimaokeji.com/cms/index"}><Button
                   className="logout"
                   icon="global"
               >

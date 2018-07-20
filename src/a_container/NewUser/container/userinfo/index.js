@@ -236,6 +236,9 @@ class Manager extends React.Component {
       realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 用户姓名
       userId: this.state.searchEId ? this.state.searchEId : "",// 搜索 - 用户ID
       ambassadorId:this.state.searchId,     //搜索 - 健康大使id
+      province: this.state.searchAddress[0],
+      city: this.state.searchAddress[1],
+      region: this.state.searchAddress[2],
       distributorId: this.state.searchDistributorId
         ? this.state.searchDistributorId
         : "", //搜索 - 经销商id
@@ -274,47 +277,6 @@ class Manager extends React.Component {
       UpdateModalShow:false
     });
   }
-  
-  // 确定修改某一条数据
-  onUpdateOk() {
-    const me = this;
-    const { form } = me.props;
-    console.log('是什么是：',me)
-    form.validateFields(
-      ["UpMobile"],
-      (err, values) => {
-        if (err) {
-          return;
-        }
-        console.log("values:", values);
-        me.setState({
-          upLoading: true
-        });
-        const params = {
-          ticketId: me.state.nowData.id,
-        };
-        this.props.actions
-          .alertTicket(params)
-          .then(res => {
-            if (res.status === "0") {
-              me.setState({
-                addnewLoading: false
-              });
-              message.success(res.message || "修改成功");
-              this.onGetData(this.state.pageNum, this.state.pageSize);
-              this.onAddNewClose();
-            } else {
-              message.error(res.message || "修改失败，请重试");
-            }
-          })
-          .catch(() => {
-            me.setState({
-              upLoading: false
-            });
-          });
-      }
-    );
-  }
 
   // 搜索
   onSearch() {
@@ -337,6 +299,9 @@ class Manager extends React.Component {
       realName: this.state.searchName ? this.state.searchName : "", // 搜索 - 用户姓名
       userId: this.state.searchEId ? this.state.searchEId : "",// 搜索 - 用户ID
       ambassadorId:this.state.searchId,     //搜索 - 健康大使id
+      province: this.state.searchAddress[0],
+      city: this.state.searchAddress[1],
+      region: this.state.searchAddress[2],
       distributorId: this.state.searchDistributorId
         ? this.state.searchDistributorId
         : "", //搜索 - 经销商id
@@ -648,6 +613,11 @@ class Manager extends React.Component {
         key: "id2"
       },
       {
+        title:'经销商省市区',
+        dataIndex:'station',
+        key:'station'
+      },
+      {
         title: "操作",
         key: "control",
         fixed: "right",
@@ -835,9 +805,7 @@ class Manager extends React.Component {
         <div className="system-search">
           <ul className="search-ul more-ul">
             <li>
-              <span style={{ marginRight: "4px", marginLeft: "28px" }}>
-                用户id
-              </span>
+              <span>用户id</span>
               <Input
                 style={{ width: "172px" }}
                 suffix={suffix}
@@ -846,9 +814,7 @@ class Manager extends React.Component {
               />
             </li>
             <li>
-              <span style={{ marginRight: "4px", marginLeft: "28px" }}>
-                用户姓名
-              </span>
+              <span>用户姓名</span>
               <Input
                 style={{ width: "172px" }}
                 suffix={suffix2}
@@ -857,9 +823,7 @@ class Manager extends React.Component {
               />
             </li>
             <li>
-              <span style={{ marginRight: "4px", marginLeft: "28px" }}>
-                用户手机号
-              </span>
+              <span>用户手机号</span>
               <Input
                 onChange={e => this.onSearchMobile(e)}
                 suffix={suffix3}
@@ -868,9 +832,7 @@ class Manager extends React.Component {
               />
             </li>
             <li>
-              <span style={{ marginRight: "4px", marginLeft: "28px" }}>
-                用户身份
-              </span>
+              <span>用户身份</span>
               <Select
                 allowClear
                 placeholder="全部"
@@ -883,9 +845,7 @@ class Manager extends React.Component {
               </Select>
             </li>
             <li>
-              <span style={{ marginRight: "10px", marginLeft: "23px" }}>
-                创建时间
-              </span>
+              <span>创建时间</span>
               <DatePicker
                 showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
                 format="YYYY-MM-DD HH:mm:ss"
@@ -903,9 +863,7 @@ class Manager extends React.Component {
               />
             </li>
             <li>
-              <span style={{ marginRight: "10px", marginLeft: "23px" }}>
-                绑定上级关系时间
-              </span>
+              <span>绑定上级关系时间</span>
               <DatePicker
                 showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
                 format="YYYY-MM-DD HH:mm:ss"
@@ -923,9 +881,7 @@ class Manager extends React.Component {
               />
             </li>
             <li>
-              <span style={{ marginRight: "4px" }}>
-                健康大使id
-              </span>
+              <span>健康大使id</span>
               <Input
                 style={{ width: "172px" }}
                 suffix={suffix4}
@@ -934,14 +890,23 @@ class Manager extends React.Component {
               />
             </li>
             <li>
-              <span style={{ marginRight: "4px", marginLeft: "29px" }}>
-                经销商id
-              </span>
+              <span>经销商id</span>
               <Input
                 style={{ width: "172px" }}
                 suffix={suffix8}
                 value={searchDistributorId}
                 onChange={e => this.onSearchDistributorId(e)}
+              />
+            </li>
+            <li>
+              <span>经销商省市区</span>
+              <Cascader
+                style={{ width: " 175px " }}
+                placeholder="请选择经销商省市区"
+                onChange={v => this.onSearchAddress(v)}
+                options={this.state.citys}
+                loadData={e => this.getAllCitySon(e)}
+                changeOnSelect
               />
             </li>
             <li style={{ marginLeft: "5px" }}>

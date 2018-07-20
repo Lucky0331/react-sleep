@@ -70,6 +70,7 @@ class Category extends React.Component {
       stations: [], // 当前服务站地区所对应的服务站
       searchMobile: "", // 搜索 - 手机号
       searchTicketNo: "", // 搜索 - 体检卡号
+      searchUserId:'',//搜索 - 用户ID
       searchDate: undefined, // 搜索 - 预约体检日期
       searchBeginTime: moment(
         (() => {
@@ -140,6 +141,7 @@ class Category extends React.Component {
       ticketNo: this.state.searchTicketNo.trim(),
       state: this.state.searchState,
       userSource: this.state.searchUserSource,
+      userId:this.state.searchUserId.trim(),//用户id
       stationName:this.state.searchStation,//服务站名称
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
@@ -240,6 +242,12 @@ class Category extends React.Component {
   emitEmpty2(){
     this.setState({
       searchMobile: ""
+    });
+  }
+  
+  emitEmpty3(){
+    this.setState({
+      searchUserId: ""
     });
   }
 
@@ -348,6 +356,13 @@ class Category extends React.Component {
     });
   }
   
+  //搜索  - 用户id
+  searchUserIdChange(v){
+    this.setState({
+      searchUserId:v.target.value
+    })
+  }
+  
   //服务站名称搜索
   searchStationChange(e){
     this.setState({
@@ -370,6 +385,11 @@ class Category extends React.Component {
         dataIndex: "serial",
         key: "serial",
         width: 90
+      },
+      {
+        title:'用户ID',
+        dataIndex:'userId',
+        key:'userId'
       },
       {
         title: "服务站名称",
@@ -411,8 +431,6 @@ class Category extends React.Component {
         dataIndex: "sex",
         key: "sex",
         width: 100,
-        render: text =>
-          String(text) === "0" ? <span>女</span> : <span>男</span>
       },
       {
         title: "预约体检日期",
@@ -458,20 +476,7 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
-          // record.ticketStatus === 1 &&
-          //   controls.push(
-          //     <span
-          //       key="3"
-          //       className="control-btn red"
-          //       onClick={() => this.onUpdateClick(record)}
-          //     >
-          //       <Tooltip placement="top" title="再次体检">
-          //         <Icon type="medicine-box" />
-          //       </Tooltip>
-          //     </span>
-          //   );
-            record.reportPdf != "" &&
-            controls.push(
+            record.reportPdf != "" && controls.push(
             <span
                 key="3"
                 className="control-btn red"
@@ -514,6 +519,7 @@ class Category extends React.Component {
         conditions: item.ticketStatus,
         createTime: item.createTime,
         creator: item.creator,
+        userId:item.userId,//用户ID
         idCard: item.hraCustomer ? item.hraCustomer.idcard : null,
         phone: item.hraCustomer ? item.hraCustomer.phone : null,
         username: item.hraCustomer ? item.hraCustomer.username : null,
@@ -553,6 +559,7 @@ class Category extends React.Component {
     const { searchStation } = this.state;
     const { searchTicketNo } = this.state;
     const { searchMobile } = this.state;
+    const { searchUserId } = this.state;
     const suffix = searchStation ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty()} />
     ) : null;
@@ -562,11 +569,22 @@ class Category extends React.Component {
     const suffix2 = searchMobile ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty2()} />
     ) : null;
-    console.log("是啥：", form.getFieldValue("addnewTypeId"));
+    const suffix3 = searchUserId ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty3()} />
+    ) : null;
     return (
       <div style={{ width: "100%" }}>
         <div className="system-search">
           <ul className="search-ul">
+            <li>
+              <span style={{marginLeft:'19px'}}>用户ID：</span>
+              <Input
+                suffix={suffix3}
+                value={searchUserId}
+                style={{ width: "172px", marginRight: "10px" }}
+                onChange={e => this.searchUserIdChange(e)}
+              />
+            </li>
             <li>
               <span style={{marginRight:'10px'}}>服务站地区</span>
               <Cascader
@@ -851,6 +869,13 @@ class Category extends React.Component {
               style={{ marginLeft: "20px" }}
             >
               {!!this.state.nowData ? this.state.nowData.ticketType : ""}
+            </FormItem>
+            <FormItem
+              label="用户ID"
+              {...formItemLayout}
+              style={{marginLeft: "20px"}}
+            >
+              {!!this.state.nowData ? this.state.nowData.userId : ''}
             </FormItem>
             <FormItem
               label="身份证号"

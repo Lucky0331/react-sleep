@@ -127,9 +127,9 @@ class Category extends React.Component {
   }
 
   // 工具 - 根据代言卡类型ID查代言卡类型名称
-  findProductNameById(id) {
+  findProductNameById(typeCode) {
     const t = this.state.productTypes.find(
-      item => String(item.id) === String(id)
+      item => String(item.typeCode) === String(typeCode)
     );
     return t ? t.typeName : "";
   }
@@ -274,7 +274,7 @@ class Category extends React.Component {
     const { form } = me.props;
     console.log("是什么：", record);
     form.setFieldsValue({
-      addnewTypeName: record.cardTypeName,//代言卡类型名称
+      addnewTypeName: record.cardTypeName ? record.cardTypeName : '',//代言卡类型名称
       addnewTypeId: record.cardTypeCode,//代言卡类型
       addnewTitle: String(record.name),
       addnewSlogan: String(record.title),
@@ -515,7 +515,7 @@ class Category extends React.Component {
         title: "代言卡类型",
         dataIndex: "cardTypeCode",
         key: "cardTypeCode",
-        render:text => this.findProductNameById(text)
+        render:(text) => this.findProductNameById(text)
       },
       {
         title: "标题",
@@ -682,7 +682,7 @@ class Category extends React.Component {
         colorOne: item.colorOne,
         colorTwo: item.colorTwo,
         content: item.content,
-        cardTypeName:item.cardTypeName,//代言卡类型
+        cardTypeName:item.cardTypeName,//代言卡类型名称
         cardTypeCode:item.cardTypeCode,//代言卡类型
         id: item.id,
         deleteStatus: item.deleteStatus,
@@ -898,7 +898,7 @@ class Category extends React.Component {
         >
           <Form>
             <FormItem label="代言卡类型" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.cardTypeName : ""}
+              {!!this.state.nowData ? this.findProductNameById(this.state.nowData.cardTypeCode) : ""}
             </FormItem>
             <FormItem label="标题" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.name : ""}

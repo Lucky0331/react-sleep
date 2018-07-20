@@ -213,7 +213,7 @@ class Category extends React.Component {
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2]
     };
-    tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/m/ticket/settleAccounts/record`, '健康评估-服务收益.xls');
+    tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/m/ticket/settleAccounts/record`,'post', '健康评估-服务收益.xls');
   }
 
   // 搜索 - 服务站地区输入框值改变时触发
@@ -1052,9 +1052,6 @@ class Category extends React.Component {
             </li>
             <li style={{ marginLeft: "10px" }}>
               <Button icon="download" type="primary" onClick={() => this.onExport()} >导出</Button>
-              {/*<Button icon="download" type="primary" onClick={warning}>*/}
-                {/*导出*/}
-              {/*</Button>*/}
             </li>
           </ul>
         </div>
@@ -1168,14 +1165,14 @@ class Category extends React.Component {
                   </td>
                 </tr>
                 <tr>
-                  <td style={{ textAlign: "center" }}>服务站（体检卡使用）</td>
                   <td style={{ textAlign: "center" }}>
-                    服务站公司名称（体检卡使用）
+                    {!!this.state.nowData ? this.state.nowData.useArea : ""}
                   </td>
                   <td style={{ textAlign: "center" }}>
-                    {!!this.state.nowData
-                      ? this.state.nowData.supplierMoney
-                      : ""}
+                    {!!this.state.nowData ? this.state.nowData.usedStationName : ""}
+                  </td>
+                  <td style={{ textAlign: "center" }}>
+                    {!!this.state.nowData ? this.state.nowData.stationIncome : ""}
                   </td>
                 </tr>
               </div>

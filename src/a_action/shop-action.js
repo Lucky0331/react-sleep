@@ -374,6 +374,19 @@ export function updateOrderModel(params = {}) {
   };
 }
 
+//确定修改订单收货人地址
+export function updateGoods(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/order/updateOrderAddress", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
 // 修改订单状态
 export function updateOrder(params = {}) {
   return dispatch => {
