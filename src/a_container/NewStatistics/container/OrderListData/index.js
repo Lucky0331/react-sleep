@@ -783,14 +783,13 @@ class Category extends React.Component {
     return columns;
   }
   
-
   //构建table所需数据
   makeData(data) {
     return data.map((item, index) => {
       return {
         key: index,
         id: item.id,
-        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
+        serial: index + 1 ,//如果后台没有做分页 那就直接index+1返回页码
         time: item.time, //日期
         totalCount: item.totalCount, //总订单量
         waterCount: item.waterCount, //净水服务

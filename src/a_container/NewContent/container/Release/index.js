@@ -744,9 +744,9 @@ class Category extends React.Component {
         key:'deleteFlag',
         render:(text) =>
           Boolean(text) === true ?(
-            <span style={{color:"green"}}>已发布</span>
-          ):(
             <span style={{color:"red"}}>未发布</span>
+          ):(
+            <span style={{color:"green"}}>已发布</span>
           )
       },
       {
@@ -776,7 +776,7 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
-          record.deleteFlag === false &&
+          record.deleteFlag === true &&
           controls.push(
             <span
               key="2"
@@ -788,7 +788,7 @@ class Category extends React.Component {
             </Tooltip>
           </span>
           );
-          record.deleteFlag === true &&
+          record.deleteFlag === false &&
           controls.push(
             <span
               key="3"
@@ -963,8 +963,8 @@ class Category extends React.Component {
                 style={{ width: "172px" }}
                 onChange={e => this.searchReleaseChange(e)}
               >
-                <Option value={1}>已发布</Option>
-                <Option value={0}>未发布</Option>
+                <Option value={0}>已发布</Option>
+                <Option value={1}>未发布</Option>
               </Select>
             </li>
             <li style={{ marginLeft: "40px", marginRight: "15px" }}>
@@ -1347,9 +1347,9 @@ class Category extends React.Component {
             <FormItem label="是否发布" {...formItemLayout}>
               {!!this.state.nowData ? (
                 Boolean(this.state.nowData.deleteFlag) === true ? (
-                  <span style={{ color: "green" }}>已发布</span>
-                ) : (
                   <span style={{ color: "red" }}>未发布</span>
+                ) : (
+                  <span style={{ color: "green" }}>已发布</span>
                 )
               ) : (
                 ""

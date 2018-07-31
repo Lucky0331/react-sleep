@@ -813,7 +813,7 @@ class Category extends React.Component {
           confirmLoading={this.state.upLoading}
         >
           <Form>
-            <FormItem label="型号名称" {...formItemLayout}>
+            <FormItem label="型号名称" {...formItemLayout} labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
               {getFieldDecorator("upName", {
                 initialValue: undefined,
                 rules: [
@@ -837,7 +837,7 @@ class Category extends React.Component {
               })(<Input placeholder="请输入产品型号名称" disabled={this.state.disabled}/>)}
               {/*{!!this.state.nowData ? this.state.nowData.name : ""}*/}
             </FormItem>
-            <FormItem label="产品类型" {...formItemLayout}>
+            <FormItem label="产品类型" {...formItemLayout} labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
               {getFieldDecorator("upTypeId", {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请选择产品类型" }]
@@ -856,7 +856,7 @@ class Category extends React.Component {
                 {/*? this.getNameByTypeId(this.state.nowData.typeId)*/}
                 {/*: ""}*/}
             </FormItem>
-            <FormItem label="型号别名" {...formItemLayout}>
+            <FormItem label="型号别名" {...formItemLayout} labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
               {getFieldDecorator("upNickName", {
                 initialValue: undefined,
                 rules: [
@@ -879,13 +879,13 @@ class Category extends React.Component {
                 ]
               })(<Input placeholder="请输入产品型号别名" />)}
             </FormItem>
-            <FormItem label="描述" {...formItemLayout}>
+            <FormItem label="描述" {...formItemLayout} labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
               {getFieldDecorator("upModelDetail", {
                 initialValue: undefined,
                 rules: [{ whitespace: true, message: "请对产品进行描述" }]
-              })(<Input style={{ width: "80%" }} />)}
+              })(<TextArea style={{ width: "80%" }} rows={4}/>)}
             </FormItem>
-            <FormItem label="价格" {...formItemLayout}>
+            <FormItem label="价格" {...formItemLayout} labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
               {getFieldDecorator("upPrice", {
                 initialValue: 0,
                 rules: [{ required: true, message: "请输入价格" }]
@@ -893,7 +893,7 @@ class Category extends React.Component {
             </FormItem>
             <FormItem
               label="运费"
-              {...formItemLayout}
+              {...formItemLayout} labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}
               className={
                 this.state.code == 1 ||
                 this.state.code == 4 ||
@@ -909,7 +909,7 @@ class Category extends React.Component {
             </FormItem>
             <FormItem
               label="开户费"
-              {...formItemLayout}
+              {...formItemLayout} labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}
               className={
                 this.state.code == 2 ||
                 this.state.code == 3 ||
@@ -926,7 +926,7 @@ class Category extends React.Component {
             </FormItem>
             <FormItem
               label="计费方式"
-              {...formItemLayout}
+              {...formItemLayout} labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}
               className={
                 this.state.code == 2 ||
                 this.state.code == 3 ||
@@ -955,7 +955,7 @@ class Category extends React.Component {
             </FormItem>
             <FormItem
               label="有效期"
-              {...formItemLayout}
+              {...formItemLayout} labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}
               className={this.state.code == 1 ? "hide" : ""}
             >
               {getFieldDecorator("upTimeLimitNum", {
@@ -984,24 +984,17 @@ class Category extends React.Component {
           onCancel={() => this.onQueryModalClose()}
         >
           <Form>
-            <FormItem label="产品型号" {...formItemLayout}>
+            <FormItem label="产品型号" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
               {!!this.state.nowData ? this.state.nowData.name : ""}
             </FormItem>
-            <FormItem label="产品类型" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getNameByTypeId(this.state.nowData.typeId)
-                : ""}
+            <FormItem label="产品类型" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
+              {!!this.state.nowData ? this.getNameByTypeId(this.state.nowData.typeId) : ""}
             </FormItem>
-            <FormItem label="价格" {...formItemLayout}>
+            <FormItem label="价格" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
               {!!this.state.nowData ? this.state.nowData.price : ""}
             </FormItem>
-            <FormItem label="有效期" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getNameForInDate(
-                    this.state.nowData.timeLimitNum,
-                    this.state.nowData.timeLimitType
-                  )
-                : ""}
+            <FormItem label="有效期" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
+              {!!this.state.nowData ? this.getNameForInDate(this.state.nowData.timeLimitNum,this.state.nowData.timeLimitType) : ""}
             </FormItem>
           </Form>
         </Modal>

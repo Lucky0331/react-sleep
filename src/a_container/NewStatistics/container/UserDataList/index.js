@@ -123,7 +123,6 @@ class Category extends React.Component {
       };
       this.onGetData(this.state.pageNum,this.state.pageSize)
     }, 16);
-
   }
 
   componentWillReceiveProps(nextP) {
@@ -150,12 +149,6 @@ class Category extends React.Component {
   onTablePageChange(page, pageSize) {
     console.log("页码改变：", page, pageSize);
     this.onGetData(page, pageSize);
-  }
-  
-  // 表单页码改变 - 未绑定用户
-  onTablePageChange2(page, pageSize) {
-    console.log("页码改变：", page, pageSize);
-    this.onGetData2(page, pageSize);
   }
 
   // 搜索 - 申请退款开始时间
@@ -228,7 +221,6 @@ class Category extends React.Component {
           dataNum: [res.data] || "",
           pageNum,
           pageSize,
-          total:res.data.size,
           minTime:(res.data.minTime).substring(0,10),//最小时间
           maxTime:(res.data.maxTime).substring(0,10),//最大时间
         });
@@ -402,78 +394,6 @@ class Category extends React.Component {
     };
     return option;
   }
-  
-  // 处理第二个图表数据
-  makeOption2(data2) {
-    const option = {
-      tooltip: {
-        trigger: "item",
-        formatter: "{a} <br/>{b} : {c}"
-      },
-      legend: {
-        data:['普通用户','分享用户','分销用户','微创版经销商','个人版经销商','企业版经销商','企业版子账号','有效分销商']
-      },
-      grid: {
-        left: "3%",
-        right: "4%",
-        bottom: "3%",
-        containLabel: true
-      },
-      xAxis: {
-        type: "category",
-        name: "x",
-        splitLine: { show: true },  //是否显示X轴线条
-        data: data2.map((item)=> item.time)
-      },
-      yAxis: {
-        type: "value",
-        name: "y"
-      },
-      series:[
-        {
-          name: "普通用户",
-          type: "line",
-          data: data2.map((item)=> item.commonCount),
-        },
-        {
-          name: "分享用户",
-          type: "line",
-          data: data2.map((item)=> item.shareCount)
-        },
-        {
-          name: "分销用户",
-          type: "line",
-          data: data2.map((item)=> item.userSaleCount),
-        },
-        {
-          name: "微创版经销商",
-          type: "line",
-          data: data2.map((item)=> item.miniCount)
-        },
-        {
-          name: "个人版经销商",
-          type: "line",
-          data: data2.map((item)=> item.personCount),
-        },
-        {
-          name: "企业版经销商",
-          type: "line",
-          data: data2.map((item)=> item.mainCount)
-        },
-        {
-          name: "企业版子账号",
-          type: "line",
-          data: data2.map((item)=> item.sonCount),
-        },
-        {
-          name: "有效分销商",
-          type: "line",
-          data: data2.map((item)=> item.effectiveUserSaleCount)
-        },
-      ]
-    };
-    return option;
-  }
 
   // 搜索
   onSearch() {
@@ -621,51 +541,6 @@ class Category extends React.Component {
     return columns;
   }
   
-  // 构建字段 - 未绑定用户
-  makeColumnsUnbound() {
-    const columns = [
-      {
-        title: "序号",
-        dataIndex: "serial",
-        key: "serial",
-        fixed: "left",
-        width: 80
-      },
-      {
-        title: "日期",
-        dataIndex: "time",
-        key: "time",
-      },
-      {
-        title: "分销用户",
-        dataIndex:'userSaleCount',
-        key:'userSaleCount'
-      },
-      {
-        title: "微创版经销商",
-        dataIndex:'miniCount',
-        key:'miniCount'
-      },
-      {
-        title: "个人版经销商",
-        dataIndex:'personCount',
-        key:'personCount'
-      },
-      {
-        title:'企业版经销商',
-        dataIndex:'mainCount',
-        key:'mainCount'
-      },
-      {
-        title:'企业版子账号',
-        dataIndex:'sonCount',
-        key:"sonCount"
-      },
-    ];
-    return columns;
-  }
-  
-  
   // 构建总体字段 - e家用户
   makeColumnsAll() {
     const columns = [
@@ -734,12 +609,6 @@ class Category extends React.Component {
         key: "stationArea",
         width:300,
       },
-      // {
-      //   title: "日期",
-      //   dataIndex: "alltime",
-      //   key: "alltime",
-      //   width:300,
-      // },
       {
         title: "分销用户",
         dataIndex:'userSaleCount',
@@ -775,7 +644,8 @@ class Category extends React.Component {
       return {
         key: index,
         id: item.id,
-        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
+        serial: index + 1 ,//如果后台没有做分页 那就直接index+1返回页码
+        // serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         date: item.date,
         usedCount: item.usedCount,
         time: item.time, //日期
@@ -807,7 +677,6 @@ class Category extends React.Component {
       return {
         key: index,
         id: item.id,
-        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         userSaleCount: item.userSaleCount ? item.userSaleCount : 0, //分销用户
         sonCount:item.sonCount, //企业版子账号
         personCount: item.personCount,//个人版经销商
@@ -828,6 +697,7 @@ class Category extends React.Component {
   }
 
   render() {
+    console.log("AAA",this.state.pageNum, this.state.pageSize);
     const me = this;
     const { form } = me.props;
     const { getFieldDecorator } = form;

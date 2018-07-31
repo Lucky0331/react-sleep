@@ -1061,7 +1061,7 @@ class Category extends React.Component {
       return {
         key: index,
         id: item.id,
-        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
+        serial: index + 1 ,//如果后台没有做分页 那就直接index+1返回页码
         time: item.time,//日期
         totalIncome: item.totalIncome, //总收益
         waterIncome:item.waterIncome,//净水服务
@@ -1085,7 +1085,7 @@ class Category extends React.Component {
       return {
         key: index,
         id: item.id,
-        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
+        serial: index + 1 ,//如果后台没有做分页 那就直接index+1返回页码
         time: item.time,
         totalIncome: item.totalIncome, //总收益
         waterIncome:item.waterIncome,//净水服务
@@ -1108,7 +1108,7 @@ class Category extends React.Component {
       return {
         key: index,
         id: item.id,
-        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
+        serial: index + 1 ,//如果后台没有做分页 那就直接index+1返回页码
         time: item.time,
         totalIncome: item.totalIncome, //总收益
         waterIncome:item.waterIncome,//净水服务
@@ -1131,7 +1131,7 @@ class Category extends React.Component {
       return {
         key: index,
         id: item.id,
-        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
+        serial: index + 1 ,//如果后台没有做分页 那就直接index+1返回页码
         total: item.total ? item.total : 0, //分销提现到账总金额
         water:item["1"] ? item["1"] : 0, //净水服务
         food:item["2"] ? item["2"] : 0, //健康食品

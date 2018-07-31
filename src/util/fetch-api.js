@@ -11,8 +11,8 @@ export default class ApiService {
         url: `${config.baseURL}${url}`,
         method: type,
         contentType: "application/json;charset=UTF-8",
-        crossOrigin: true, //跨域问题都是后台来进行处理 于是注掉这两行
-        withCredentials: true, //跨域问题都是后台来进行处理 于是注掉这两行
+        crossOrigin: true,
+        withCredentials: true,
         data: JSON.stringify(bodyObj),
         type: "json"
       }).then(res => {
@@ -31,8 +31,8 @@ export default class ApiService {
         url: `${config.baseURL}${url}`,
         method: type,
         contentType: "application/x-www-form-urlencoded;charset=UTF-8",
-        crossOrigin: true, //跨域问题都是后台来进行处理 于是注掉这两行
-        withCredentials: true, //跨域问题都是后台来进行处理 于是注掉这两行
+        crossOrigin: true,
+        withCredentials: true,
         data: bodyObj,
       };
 

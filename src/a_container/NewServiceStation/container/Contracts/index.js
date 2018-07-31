@@ -1139,7 +1139,7 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
-          // record.contract === true &&
+          record.contractAllTime != '' &&
           controls.push(
             <span className="control-btn blue" key="1" onClick={() => this.onUpNewShow(record)}>
               <Tooltip placement="top" title="承包信息修改">
@@ -1147,7 +1147,7 @@ class Category extends React.Component {
               </Tooltip>
            </span>
           );
-          // record.contract === false &&
+          record.contractAllTime == '' &&
           controls.push(
             <span className="control-btn blue" key="2" onClick={() => this.onAddNewShow(record)}>
               <Tooltip placement="top" title="承包信息录入">
@@ -1271,7 +1271,7 @@ class Category extends React.Component {
           controls.forEach((item, index) => {
             if (index) {
               result.push(
-                  <span key={`line${index}`} className="ant-divider" />
+                <span key={`line${index}`} className="ant-divider" />
               );
             }
             result.push(item);
@@ -1328,7 +1328,7 @@ class Category extends React.Component {
         ),//当前时间
         contractEndTime: item.contractEndTime,//承包结束时间
         contractStartTime:item.contractStartTime,//承包开始时间
-        contract: new moment(item.contractEndTime) > new moment(item.contractTimeNow) ? '已承包' : '未承包', //承包状态
+        contract: new moment(item.contractEndTime) > new moment(item.contractTimeNow) && new moment(item.contractStartTime) < new moment(item.contractTimeNow) ? '已承包' : '未承包', //承包状态
         contractAllTime:item.contractEndTime ? `${item.contractStartTime}-${item.contractEndTime}` : '',
         contractor:item.contractor,
         contractorPhone:item.contractorPhone ? item.contractorPhone :"",
@@ -1545,7 +1545,7 @@ class Category extends React.Component {
             columns={this.makeColumns()}
             className="my-table"
             dataSource={this.makeData(this.state.data)}
-            scroll={{x:2700}}
+            scroll={{x:2800}}
             pagination={{
               total: this.state.total,
               current: this.state.pageNum,

@@ -55,8 +55,8 @@ class Category extends React.Component {
       fileProgram: [],  // 小程序产品详情图的列表
       formCoverVideo: [],  // 表单 - 当前数据的封面视频
       fileLoading: false, // 产品图片正在上传
-      fileDetailLoading: false, // 详细图片正在上传
-      fileProgramLoading: false, // 详细图片正在上传
+      fileDetailLoading: false, // 列表封面图片正在上传
+      fileProgramLoading: false, // 小程序产品详情图片正在上传
       fileVideoLoading: false,  // 视频上传中
       temp:[],
     };
@@ -244,12 +244,13 @@ class Category extends React.Component {
       });
     } else if (type==="up" || type==="look") {
       form.setFieldsValue({
-        formName: record.name,    // 产品名称
-        formTypeId: String(record.typeId),    // 产品类型ID
-        formTypeCode: String(record.typeCode),    // 产品型号ID
-        formActivityType: record.activityType,    // 活动方式ID
-        formConditions: record.newProduct ? 0 : 1,    // 是否是推荐
-        formSort: record.sorts,  // 排序
+        formName: record.name,// 产品名称
+        formTypeId: String(record.typeId),// 产品类型ID
+        formTypeCode: String(record.typeCode),// 产品型号ID
+        formActivityType: record.activityType,// 活动方式ID
+        formConditions: record.newProduct ? 0 : 1,// 是否是推荐
+        formSort: record.sorts,// 排序
+        formTypeLabel:record.productTagList ? record.productTagList.map((item)=>{return String(item.tagCode)}) : undefined,//产品标签
       });
       setTimeout(()=> { // 产品详情内容
         console.log('详细内容：', record.productDetail);
@@ -429,45 +430,9 @@ class Category extends React.Component {
    * 2.上传中
    * 3.删除某 个已上传的图片
    * **/
-  //列表图片 - 上传中、上传成功、上传失败的回调
-  onUpLoadChange(obj) {
-    console.log("图片上传：", obj);
-    if (obj.file.status === "done") {
-      // 上传成功后调用,将新的地址加进原list
-      if (obj.file.response.data) {
-        const list = _.cloneDeep(this.state.fileList);
-        console.log('list是什么：',list)
-        const t = list.find(item => item.uid === obj.file.uid);
-        t.url = obj.file.response.data;
-        this.setState({
-          fileList: list,
-          fileLoading: false
-        });
-        console.log('t是什么：',t)
-      } else {
-        const list = _.cloneDeep(this.state.fileList);
-        this.setState({
-          fileList: list.filter(item => item.uid !== obj.file.uid),
-          fileLoading: false
-        });
-        message.error("图片上传失败");
-      }
-    } else if (obj.file.status === "uploading") {
-      this.setState({
-        fileLoading: true
-      });
-    } else if (obj.file.status === "error") {
-      const list = _.cloneDeep(this.state.fileList);
-      this.setState({
-        fileList: list.filter(item => item.uid !== obj.file.uid),
-        fileLoading: false
-      });
-      message.error("图片上传失败");
-    }
-  }
-
-  // 产品图片 - 上传前
-  onUploadBefore(f, fl) {
+  //产品封面图片上传 - 上传中、上传成功、上传失败的回调
+  onUploadBefore(f) {
+    console.log('触发了没：', f)
     if(this.state.addOrUp === 'look'){
       return false;
     }
@@ -485,13 +450,47 @@ class Category extends React.Component {
       return true;
     }
   }
-
-  // 产品图片 - 删除一个图片
+  
+  // 产品封面图片上传 - 上传中、成功、失败
+  onUpLoadChange(obj) {
+    console.log('触发这个啊：', obj);
+    if (obj.file.status === "done") {
+      // 上传成功后调用,将新的地址加进原list
+      if (obj.file.response.data) {
+        const list = _.cloneDeep(this.state.fileList);
+        const t = list.find(item => item.uid === obj.file.uid);
+        console.log('list是什么aaa：',list)
+        t.url = obj.file.response.data;
+        this.setState({
+          fileList: list,
+          fileLoading: false
+        });
+      } else {
+        const list = _.cloneDeep(this.state.fileList);
+        this.setState({
+          fileList: list.filter(item => item.uid !== obj.file.uid),
+          fileLoading: false
+        });
+      }
+    } else if (obj.file.status === "uploading") {
+      this.setState({
+        fileLoading: true
+      });
+    } else if (obj.file.status === "error") {
+      const list = _.cloneDeep(this.state.fileList);
+      this.setState({
+        fileList: list.filter(item => item.uid !== obj.file.uid),
+        fileLoading: false
+      });
+      message.error("图片上传失败");
+    }
+  }
+  
+  // 产品封面图片上传 - 删除
   onUpLoadRemove(f) {
     if(this.state.addOrUp === 'look'){
       return false;
     }
-    this.deleteImg(f.url);
     const list = _.cloneDeep(this.state.fileList);
     this.setState({
       fileList: list.filter(item => item.uid !== f.uid)
@@ -554,7 +553,7 @@ class Category extends React.Component {
       const list = _.cloneDeep(this.state.fileListDetail);
       this.setState({
         fileListDetail: list.filter(item => item.uid !== obj.file.uid),
-        fileLoading: false
+        fileDetailLoading: false
       });
       message.error("图片上传失败");
     }
@@ -577,7 +576,7 @@ class Category extends React.Component {
    * 2.上传中
    * 3.删除某 个已上传的图片
    * **/
-  // 小程序列表封面图 - 上传前
+  // 小程序产品详情图 - 上传前
   onUploadProgramBefore(f) {
     console.log('触发了没：', f)
     if(this.state.addOrUp === 'look'){
@@ -598,7 +597,7 @@ class Category extends React.Component {
     }
   }
   
-  // 小程序列表封面图 - 上传中、成功、失败
+  // 小程序产品详情图 - 上传中、成功、失败
   onUpLoadProgramChange(obj) {
     console.log('触发这个啊：', obj);
     if (obj.file.status === "done") {
@@ -627,13 +626,13 @@ class Category extends React.Component {
       const list = _.cloneDeep(this.state.fileProgram);
       this.setState({
         fileProgram: list.filter(item => item.uid !== obj.file.uid),
-        fileLoading: false
+        fileProgramLoading: false
       });
       message.error("图片上传失败");
     }
   }
   
-  // 小程序列表封面图 - 删除
+  // 小程序产品详情图 - 删除
   onUpLoadProgramRemove(f) {
     if(this.state.addOrUp === 'look'){
       return false;
@@ -981,6 +980,9 @@ class Category extends React.Component {
         offShelfTime: item.offShelfTime,
         onShelf: item.onShelf,  // 上架状态
         onShelfTime: item.onShelfTime,  // 上架时间
+        productTag:item.productTag,//产品标签
+        productTagList:item.productTagList,
+        tagCode:item.tagCode,
         price: item.productModel ? item.productModel.price : "",
         sorts:item.sorts,
         productDetail: item.productDetail,
@@ -1300,7 +1302,6 @@ class Category extends React.Component {
             <FormItem label="列表封面图片上传" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>
               <p style={{float:'left',marginTop:'30px',marginLeft:'-195px',color: '#F92A19'}}>(推荐尺寸500*500)</p>
               {getFieldDecorator("upIcon1", {
-                // rules: [{ required: true }]
               })(
                 <Upload
                   name="pImg"
@@ -1368,7 +1369,7 @@ class Category extends React.Component {
             </FormItem>
             <FormItem label="小程序产品详情图" {...formItemLayout} labelCol={{ span: 10 }} wrapperCol={{ span: 12 }}>
               <p style={{float:'left',marginTop:'30px',marginLeft:'-195px',color: '#F92A19'}}>(推荐尺寸750)</p>
-              {getFieldDecorator("upIcon2", {
+              {getFieldDecorator("upIcon3", {
                 rules: [{ required: true}]
               })(
                 <Upload

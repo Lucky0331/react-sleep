@@ -71,6 +71,7 @@ class Category extends React.Component {
       searchMobile: "", // 搜索 - 手机号
       searchTicketNo: "", // 搜索 - 体检卡号
       searchUserId:'',//搜索 - 用户ID
+      searchReport:'',//搜索 - 体检报告是否上传
       searchDate: undefined, // 搜索 - 预约体检日期
       searchBeginTime: moment(
         (() => {
@@ -139,10 +140,11 @@ class Category extends React.Component {
       pageSize,
       mobile: this.state.searchMobile.trim(),
       ticketNo: this.state.searchTicketNo.trim(),
-      state: this.state.searchState,
+      ticketType: this.state.searchState,
       userSource: this.state.searchUserSource,
       userId:this.state.searchUserId.trim(),//用户id
       stationName:this.state.searchStation,//服务站名称
+      hasUpload:this.state.searchReport,//体检报告是否上传
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2],
@@ -299,7 +301,7 @@ class Category extends React.Component {
     });
   }
 
-  // 搜索 - 体检卡状态
+  // 搜索 - 体检卡型号
   searchStateChange(e) {
     this.setState({
       searchState: e
@@ -367,6 +369,13 @@ class Category extends React.Component {
   searchStationChange(e){
     this.setState({
       searchStation:e.target.value
+    })
+  }
+  
+  //体检报告是否上传
+  searchReportChange(e){
+    this.setState({
+      searchReport:e,
     })
   }
 
@@ -613,9 +622,9 @@ class Category extends React.Component {
                 style={{ width: "172px", marginRight: "10px" }}
                 onChange={e => this.searchStateChange(e)}
               >
-                <Option value={1}>Y</Option>
-                <Option value={2}>F</Option>
-                <Option value={3}>M</Option>
+                <Option value="Y">Y</Option>
+                <Option value="F">F</Option>
+                <Option value="M">M</Option>
               </Select>
             </li>
             <li>
@@ -684,10 +693,10 @@ class Category extends React.Component {
                 placeholder="全部"
                 allowClear
                 style={{ width: "172px", marginRight: "10px" }}
-                onChange={e => this.searchStateChange(e)}
+                onChange={e => this.searchReportChange(e)}
               >
                 <Option value={1}>是</Option>
-                <Option value={2}>否</Option>
+                <Option value={0}>否</Option>
               </Select>
             </li>
             <li>

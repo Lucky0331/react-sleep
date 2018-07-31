@@ -125,7 +125,6 @@ class Category extends React.Component {
       dom2.setOption(me.makeOption2(this.state.data2), true);
       dom3.setOption(me.makeOption3(this.state.data3), true);
       window.onresize = () => {
-        // dom1.resize();
         dom2.resize();
         dom3.resize();
       };
@@ -618,37 +617,6 @@ class Category extends React.Component {
       },
       {
         title: "日期",
-        dataIndex: "date",
-        key: "date",
-      },
-      {
-        title: "体检服务次数",
-      },
-      {
-        title: "体检次数（M卡）",
-      },
-      {
-        title: "体检次数（Y卡）",
-      },
-      {
-        title:'体检次数（F卡）'
-      },
-    ];
-    return columns;
-  }
-  
-  // 构建字段 - HRA体检服务
-  makeColumnsHRA() {
-    const columns = [
-      {
-        title: "序号",
-        dataIndex: "serial",
-        key: "serial",
-        fixed: "left",
-        width: 80
-      },
-      {
-        title: "日期",
         dataIndex: "day",
         key: "day",
       },
@@ -809,7 +777,7 @@ class Category extends React.Component {
       return {
         key: index,
         id: item.id,
-        serial: index + 1 + (this.state.pageNum - 1) ,
+        serial: index + 1 ,//如果后台没有做分页 那就直接index+1返回页码
         // serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         date: item.date,
         usedCount: item.usedCount,
@@ -900,7 +868,6 @@ class Category extends React.Component {
                   showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
                   format="YYYY-MM-DD HH:mm:ss"
                   placeholder="开始时间"
-                  // value={this.state.searchBindingBeginTime}
                   onChange={e => this.searchBindingBeginTimeChange(e)}
                   onOk={onOk}
                 />
@@ -910,7 +877,6 @@ class Category extends React.Component {
                   showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
                   format="YYYY-MM-DD HH:mm:ss"
                   placeholder="结束时间"
-                  // value={this.state.searchBindingEndTime}
                   onChange={e => this.searchBindingEndTimeChange(e)}
                   onOk={onOk}
                 />

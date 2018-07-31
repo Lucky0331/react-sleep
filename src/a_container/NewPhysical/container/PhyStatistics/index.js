@@ -569,7 +569,7 @@ class Category extends React.Component {
       return {
         key: index,
         id: item.id,
-        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
+        serial: index + 1 ,//如果后台没有做分页 那就直接index+1返回页码
         date: item.date,
         usedCount: item.usedCount,
         reverseCount: item.reverseCount,
@@ -590,7 +590,7 @@ class Category extends React.Component {
       return {
         key: index,
         id: item.id,
-        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
+        serial: index + 1 ,//如果后台没有做分页 那就直接index+1返回页码
         reverseTotalNum: item.reverseTotalNum,
         usedTotalNum:item.usedTotalNum, //体检用户
         reverseCount: item.reverseCount,//公众号预约用户
@@ -636,52 +636,59 @@ class Category extends React.Component {
                 // changeOnSelect
               />
             </li>
-            {/*<li>*/}
-              {/*<span style={{ marginRight: "10px" }}>服务站关键字</span>*/}
-              {/*<Input*/}
-                {/*placeholder="服务站关键字搜索"*/}
-                {/*style={{ width: "172px" }}*/}
-                {/*onChange={e => this.searchStationKeyWordChange(e)}*/}
-              {/*/>*/}
-            {/*</li>*/}
             <li>
               <span style={{ marginRight: "10px" }}>选择时间</span>
+              {/*<DatePicker*/}
+                {/*style={{ width: "130px" }}*/}
+                {/*dateRender={current => {*/}
+                  {/*const style = {};*/}
+                  {/*if (current.date() === 1) {*/}
+                    {/*style.border = "1px solid #1890ff";*/}
+                    {/*style.borderRadius = "45%";*/}
+                  {/*}*/}
+                  {/*return (*/}
+                    {/*<div className="ant-calendar-date" style={style}>*/}
+                      {/*{current.date()}*/}
+                    {/*</div>*/}
+                  {/*);*/}
+                {/*}}*/}
+                {/*format="YYYY-MM-DD"*/}
+                {/*placeholder="开始时间"*/}
+                {/*onChange={e => this.searchApplyBeginTime(e)}*/}
+              {/*/>*/}
+              {/*--*/}
+              {/*<DatePicker*/}
+                {/*style={{ width: "130px" }}*/}
+                {/*dateRender={current => {*/}
+                  {/*const style = {};*/}
+                  {/*if (current.date() === 1) {*/}
+                    {/*style.border = "1px solid #1890ff";*/}
+                    {/*style.borderRadius = "45%";*/}
+                  {/*}*/}
+                  {/*return (*/}
+                    {/*<div className="ant-calendar-date" style={style}>*/}
+                      {/*{current.date()}*/}
+                    {/*</div>*/}
+                  {/*);*/}
+                {/*}}*/}
+                {/*format="YYYY-MM-DD"*/}
+                {/*placeholder="结束时间"*/}
+                {/*onChange={e => this.searchApplyEndTime(e)}*/}
+              {/*/>*/}
               <DatePicker
-                style={{ width: "130px" }}
-                dateRender={current => {
-                  const style = {};
-                  if (current.date() === 1) {
-                    style.border = "1px solid #1890ff";
-                    style.borderRadius = "45%";
-                  }
-                  return (
-                    <div className="ant-calendar-date" style={style}>
-                      {current.date()}
-                    </div>
-                  );
-                }}
-                format="YYYY-MM-DD"
+                showTime={{ defaultValue: moment("00:00:00", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
                 placeholder="开始时间"
                 onChange={e => this.searchApplyBeginTime(e)}
+                onOk={onOk}
               />
               --
               <DatePicker
-                style={{ width: "130px" }}
-                dateRender={current => {
-                  const style = {};
-                  if (current.date() === 1) {
-                    style.border = "1px solid #1890ff";
-                    style.borderRadius = "45%";
-                  }
-                  return (
-                    <div className="ant-calendar-date" style={style}>
-                      {current.date()}
-                    </div>
-                  );
-                }}
-                format="YYYY-MM-DD"
+                showTime={{ defaultValue: moment("23:59:59", "HH:mm:ss") }}
+                format="YYYY-MM-DD HH:mm:ss"
                 placeholder="结束时间"
                 onChange={e => this.searchApplyEndTime(e)}
+                onOk={onOk}
               />
             </li>
             <li>
