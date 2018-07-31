@@ -256,12 +256,10 @@ const tools = {
     return rex.test(str);
   },
 
-  // 正则 邮箱验证
   checkEmail(str) {
     const rex = /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
     return rex.test(str);
   },
-  // 去掉字符串两端空格
   trim(str) {
     if (!str) return "";
     const reg = /^\s*|\s*$/g;

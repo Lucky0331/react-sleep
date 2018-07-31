@@ -1,22 +1,19 @@
 {
-  "name": "react_luo",
+  "name": "MLM",
   "version": "1.0.0",
-  "description": "react脚手架,最新技术",
+  "description": "MLM SYSTEM",
   "main": "index.js",
   "scripts": {
     "dev": "node server.js",
     "build": "webpack -p --config webpack.production.config.js --progress --profile --colors --display errors-only",
     "dist": "set NODE_ENV=production&& node server.js",
-    "dll": "webpack -p --config webpack.dll.config.js --progress --profile --colors",
-    "cover": "./node_modules/.bin/istanbul cover _mocha",
-    "coveralls": "npm run cover -- --report lcovonly && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
+    "dll": "webpack -p --config webpack.dll.config.js --progress --profile --colors"
   },
-  "author": "luo",
+  "author": "undefined",
   "license": "ISC",
   "private": true,
   "repository": {
-    "type": "git",
-    "url": "git+https://github.com/javaLuo/react-luo.git"
+    "type": "git"
   },
   "dependencies": {
     "antd": "^3.6.5",

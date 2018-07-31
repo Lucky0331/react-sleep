@@ -1,9 +1,8 @@
 const path = require("path");
 const ExtractTextPlugin = require("extract-text-webpack-plugin"); // 为了单独打包css
 const HtmlWebpackPlugin = require("html-webpack-plugin"); // 生成html
-const CleanWebpackPlugin = require("clean-webpack-plugin"); // 每次打包前清除旧的build文件夹
+const CleanWebpackPlugin = require("clean-webpack-plugin");
 const PreloadWebpackPlugin = require("preload-webpack-plugin"); // 预加载所有chunk
-// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin; // 打包分析插件，打包后会自动弹出tree图
 module.exports = {
   mode: "production",
   entry: ["babel-polyfill", path.resolve(__dirname, "src", "index")],
@@ -93,7 +92,6 @@ module.exports = {
   },
   plugins: [
     new CleanWebpackPlugin(["build"]),
-    // 配置了这个插件，再配合上面loader中的配置，将所有样式文件打包为一个单独的css文件
     new ExtractTextPlugin({
       filename: "[name].[hash:6].css", // 生成的文件名
       allChunks: true // 从所有chunk中提取
@@ -109,7 +107,6 @@ module.exports = {
         }
     }),
       new PreloadWebpackPlugin(),
-    // new BundleAnalyzerPlugin() // 打包分析插件，打包后会自动弹出tree图：127.0.0.1:8888
   ],
   // 解析器， webpack提供的各种方便的工具函数
   resolve: {

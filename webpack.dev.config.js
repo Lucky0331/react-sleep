@@ -7,12 +7,12 @@ const HtmlWebpackPlugin = require("html-webpack-plugin"); // 动态生成html插
 module.exports = {
   mode: "development",
   entry: [
-    "webpack-hot-middleware/client?reload=true&path=/__webpack_hmr", // webpack热更新插件，就这么写
+    "webpack-hot-middleware/client?reload=true&path=/__webpack_hmr",
     "babel-polyfill",
     "./src/index.js" // 项目入口
   ],
   output: {
-    path: "/", // 将打包好的文件放在此路径下，dev模式中，只会在内存中存在，不会真正的打包到此路径
+    path: "/",
     publicPath: "/", // 文件解析路径，index.html中引用的路径会被设置为相对于此路径
     filename: "bundle.js", //编译后的文件名字
   },
@@ -43,7 +43,6 @@ module.exports = {
         ]
       },
       {
-        // .less 解析 (用于解析antd的LESS文件)
         test: /\.less$/,
         use: [
           "style-loader",
@@ -97,32 +96,25 @@ module.exports = {
   plugins: [
     new webpack.DllReferencePlugin({
       context: __dirname,
-      /**
-       下面这个地址对应webpack.dll.config.js中生成的那个json文件的路径
-       这样webpack打包时，就先直接去这个json文件中把那些预编译的资源弄进来
-       **/
       manifest: require('./dll/vendor-manifest.json')
     }),
     new HtmlWebpackPlugin({
-      //根据模板插入css/js等生成最终HTML
-      filename: "./index.html", //生成的html存放路径，相对于 output.path
-      favicon: "./favicon.ico", // 自动把根目录下的favicon.ico图片加入html
-      template: "./index.ejs", //html模板路径
-      inject: true, // 是否将js放在body的末尾
+      filename: "./index.html",
+      favicon: "./favicon.ico",
+      template: "./index.ejs",
+      inject: true,
       templateParameters: {
         "dll" : "<script src='/vendor.dll.js'></script>",
       }
     }),
     new webpack.ProvidePlugin({
-      //在react中引用jquery
-      //在$变量挂载到window下面，可以在项目中直接使用$不需要引用
       $:"jquery",
       jQuery:"jquery",
       "window.jQuery":"jquery"
     }),
-    new webpack.HotModuleReplacementPlugin() // 热更新插件
+    new webpack.HotModuleReplacementPlugin()
   ],
   resolve: {
-    extensions: [".js", ".jsx", ".less", ".css", ".scss"] //后缀名自动补全
+    extensions: [".js", ".jsx", ".less", ".css", ".scss"]
   }
 };

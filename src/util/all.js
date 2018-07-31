@@ -59,8 +59,6 @@ const allobj = {
     const reg = /^\s*|\s*$/g;
     return str.replace(reg, "");
   },
-
-  // 给字符串打马赛克
   addMosaic(str) {
     if (!str && str !== 0) {
       return "";
@@ -84,25 +82,20 @@ const allobj = {
       }
       return v;
     });
-    console.log("组装：", ret);
     return ret.join("");
   },
-  /* 字符串加密 */
   compile(code) {
     let c = String.fromCharCode(code.charCodeAt(0) + code.length);
     for (let i = 1; i < code.length; i++) {
       c += String.fromCharCode(code.charCodeAt(i) + code.charCodeAt(i - 1));
     }
-    console.log("加谜：", code, c);
     return c;
   },
-  /* 字符串解谜 */
   uncompile(code) {
     let c = String.fromCharCode(code.charCodeAt(0) - code.length);
     for (let i = 1; i < code.length; i++) {
       c += String.fromCharCode(code.charCodeAt(i) - c.charCodeAt(i - 1));
     }
-    console.log("解谜：", code, c);
     return c;
   }
 };
