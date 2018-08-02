@@ -82,6 +82,7 @@ class Category extends React.Component {
       searchPayBeginTime:"",//搜索 - 支付开始时间
       searchPayEndTime:"",//搜索 - 支付结束时间
       searchAddress: [], // 搜索 - 地址
+      searchDealerAddress:[],//搜索 - 经销商省市区
       searchorderFrom: "", //搜索 - 订单来源
       searchName: "", // 搜索 - 状态
       searchPayType: "", //搜索 - 支付类型
@@ -183,9 +184,12 @@ class Category extends React.Component {
       orderConsignee:this.state.searchPersonName,//收货姓名
       orderPhone:this.state.searchPersonMobile.trim(),//收货手机号
       orderNo: this.state.searchorderNo.trim(),
-      province: this.state.searchAddress[0],
-      city: this.state.searchAddress[1],
-      region: this.state.searchAddress[2],
+      province: this.state.searchAddress[0],//用户收货地区查询
+      city: this.state.searchAddress[1],//用户收货地区查询
+      region: this.state.searchAddress[2],//用户收货地区查询
+      distributorProvince: this.state.searchDealerAddress[0],//经销商省市区
+      distributorCity: this.state.searchDealerAddress[1],//经销商省市区
+      distributorRegion: this.state.searchDealerAddress[2],//经销商省市区
       minPrice: this.state.searchMinPrice,
       maxPrice: this.state.searchMaxPrice,
       beginTime: this.state.searchBeginTime
@@ -526,10 +530,17 @@ class Category extends React.Component {
     });
   }
 
-  // 搜索 - 服务站地区输入框值改变时触发
+  // 搜索 - 用户收货地区输入框值改变时触发
   onSearchAddress(c) {
     this.setState({
       searchAddress: c
+    });
+  }
+  
+  // 搜索 - 经销商省市区输入框值改变时触发
+  onSearchDealerAddress(c) {
+    this.setState({
+      searchDealerAddress: c
     });
   }
 
@@ -671,6 +682,9 @@ class Category extends React.Component {
       province: this.state.searchAddress[0],
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2],
+      distributorProvince: this.state.searchDealerAddress[0],//经销商省市区
+      distributorCity: this.state.searchDealerAddress[1],//经销商省市区
+      distributorRegion: this.state.searchDealerAddress[2],//经销商省市区
       minPrice: this.state.searchMinPrice,
       maxPrice: this.state.searchMaxPrice,
       beginTime: this.state.searchBeginTime
@@ -792,7 +806,6 @@ class Category extends React.Component {
     form.setFieldsValue({
       upDateAddress:record.orderAddressLast,//收获地址
       upDateMobile:record.orderPhone,
-      //upDateCitys:record.orderRegional,//收货省市区
       upDateName:record.orderConsignee,
       upDateSex:record.sex,//收货性别
     });
@@ -1030,13 +1043,15 @@ class Category extends React.Component {
         key:'distributorIdentity',
       },
       {
+        title:'经销商省市区',
+        dataIndex:'distributorcitys',
+        key:'distributorcitys',
+      },
+      {
         title: "经销商id",
         dataIndex: "distributorId",
         key: "distributorId"
       },
-      // {
-      //   title: "经销商省市区",
-      // },
       {
         title: "分销商id",
         dataIndex: "userSaleId",
@@ -1136,6 +1151,13 @@ class Category extends React.Component {
         payStatus:item.payStatus,//支付状态
         payType:item.payType,//支付方式
         distributorId:item.distributorId,//经销商id
+        distributorProvince: item.distributorProvince,//经销商省
+        distributorCity: item.distributorCity,//经销商市
+        distributorRegion: item.distributorRegion,//经销商区
+        distributorcitys:
+          item.distributorProvince && item.distributorCity && item.distributorRegion
+            ? `${item.distributorProvince}/${item.distributorCity}/${item.distributorRegion}`
+            : "",//经销商省市区
         userSaleId:item.userSaleId,//分销商id
         userSaleIsIncome:item.userSaleIsIncome,//分销商是否享有收益
         orderStatus: item.orderStatus,//订单状态
@@ -1408,17 +1430,17 @@ class Category extends React.Component {
                 onChange={e => this.searchAmbassadorId(e)}
               />
             </li>
-            {/*<li>*/}
-              {/*<span>经销商省市区</span>*/}
-              {/*<Cascader*/}
-                {/*style={{ width: " 172px " }}*/}
-                {/*placeholder="请选择经销商省市区"*/}
-                {/*onChange={v => this.onSearchAddress(v)}*/}
-                {/*options={this.state.citys}*/}
-                {/*loadData={e => this.getAllCitySon(e)}*/}
-                {/*changeOnSelect*/}
-              {/*/>*/}
-            {/*</li>*/}
+            <li>
+              <span>经销商省市区</span>
+              <Cascader
+                style={{ width: " 172px " }}
+                placeholder="请选择经销商省市区"
+                onChange={v => this.onSearchDealerAddress(v)}
+                options={this.state.citys}
+                loadData={e => this.getAllCitySon(e)}
+                changeOnSelect
+              />
+            </li>
             <li>
               <span>收货人姓名</span>
               <Input
@@ -1765,9 +1787,9 @@ class Category extends React.Component {
             <FormItem label="经销商身份" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
               {!!this.state.nowData ? this.state.nowData.distributorIdentity : ""}
             </FormItem>
-            {/*<FormItem label="经销商省市区" {...formItemLayout}>*/}
-            
-            {/*</FormItem>*/}
+            <FormItem label="经销商省市区" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
+              {!!this.state.nowData ? this.state.nowData.distributorcitys : ''}
+            </FormItem>
             <FormItem label="经销商id" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
               {!!this.state.nowData ? this.state.nowData.distributorId : ""}
             </FormItem>

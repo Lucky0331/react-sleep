@@ -948,7 +948,6 @@ class Category extends React.Component {
               className="my-table"
               dataSource={this.makeData(this.state.data)}
               pagination={{
-                total: this.state.total,
                 current: this.state.pageNum,
                 pageSize: this.state.pageSize,
                 showQuickJumper: true,
@@ -980,7 +979,6 @@ class Category extends React.Component {
                 className="my-table"
                 dataSource={this.makeData(this.state.data2)}
                 pagination={{
-                  total: this.state.total,
                   current: this.state.pageNum,
                   pageSize: this.state.pageSize,
                   showQuickJumper: true,

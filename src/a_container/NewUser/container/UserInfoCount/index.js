@@ -436,54 +436,54 @@ class Manager extends React.Component {
           </div>
           {/** 上方图表 **/}
           <div className="charts-one">
-              <div className="title">区域分布</div>
-              <div className="charts-box">
-                  <div className="charts" id="echarts-1" />
-                  <div className="charts-data">
-                      <Table
-                          pagination={false}
-                          scroll={{ y: 350 }}
-                          onRow={(record) => {
-                              return {
-                                  onMouseOver: () => {  // 鼠标移入行
-                                      if (!this.echartsDom1 || !record.sf) return;
-                                      this.echartsDom1.dispatchAction({
-                                          type: 'showTip',
-                                          seriesIndex:0,
-                                         name: record.sf.replace('省', ''),
-                                      });
-                                      this.echartsDom1.dispatchAction({
-                                          type: 'highlight',
-                                          name: record.sf.replace('省', ''),
-                                      });
-                                  },
-                                  onMouseOut: () => {
-                                      if (!this.echartsDom1 || !record.sf) return;
-                                      this.echartsDom1.dispatchAction({
-                                          type: 'hideTip',
-                                      });
-                                      this.echartsDom1.dispatchAction({
-                                          type: 'downplay',
-                                          name: record.sf.replace('省', ''),
-                                      });
-                                  }
-                              };
-                          }}
-                        columns={[
-                            { title: ' ', name: 'source', dataIndex: 'source', width: 80},
-                            { title: '省份', name: 'sf', dataIndex: 'sf', width: 80},
-                            { title: this.getNameByBarId(this.state.barType), name: 'num', dataIndex: 'num'},
-                            { title: this.getNameByBarId(this.state.barType).replace('总数', '占比'), name: 'p', dataIndex: 'p', width: 200},
-                        ]}
-                        dataSource={
-                            (() => {
-                                return list.map((item, index) => {
-                                    return { key: index, source: index + 1, sf: item.disBindProvince, num: item.disBindProvinceCount, p: allnum === 0 ? '0%' : ((item.disBindProvinceCount / allnum * 100).toFixed(2) + '%') };
-                                });
-                            })()}
-                      />
-                  </div>
+            <div className="title">区域分布</div>
+            <div className="charts-box">
+              <div className="charts" id="echarts-1" />
+              <div className="charts-data">
+                <Table
+                  pagination={false}
+                  scroll={{ y: 350 }}
+                  onRow={(record) => {
+                    return {
+                      onMouseOver: () => {  // 鼠标移入行
+                            if (!this.echartsDom1 || !record.sf) return;
+                            this.echartsDom1.dispatchAction({
+                              type: 'showTip',
+                              seriesIndex:0,
+                              name: record.sf.replace('省', ''),
+                            });
+                              this.echartsDom1.dispatchAction({
+                                type: 'highlight',
+                                name: record.sf.replace('省', ''),
+                              });
+                            },
+                            onMouseOut: () => {
+                              if (!this.echartsDom1 || !record.sf) return;
+                              this.echartsDom1.dispatchAction({
+                                type: 'hideTip',
+                              });
+                              this.echartsDom1.dispatchAction({
+                                type: 'downplay',
+                                name: record.sf.replace('省', ''),
+                              });
+                            }
+                        };
+                      }}
+                  columns={[
+                    { title: ' ', name: 'source', dataIndex: 'source', width: 80},
+                    { title: '省份', name: 'sf', dataIndex: 'sf', width: 120},
+                    { title: this.getNameByBarId(this.state.barType), name: 'num', dataIndex: 'num'},
+                    { title: this.getNameByBarId(this.state.barType).replace('总数', '占比'), name: 'p', dataIndex: 'p', width: 200},
+                  ]}
+                  dataSource={
+                    (() => {
+                      return list.map((item, index) => {
+                        return { key: index, source: index + 1, sf: item.disBindProvince, num: item.disBindProvinceCount, p: allnum === 0 ? '0%' : ((item.disBindProvinceCount / allnum * 100).toFixed(2) + '%') };
+                      });
+                    })()}
+                  />
               </div>
+            </div>
           </div>
           {/** 下方图表 **/}
           <div className="charts-one">

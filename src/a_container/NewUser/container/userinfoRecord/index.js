@@ -378,7 +378,7 @@ class Manager extends React.Component {
               <span>{ this.getListByModelId(this.props.detail2.userType)}</span>
             </FormItem>
             <FormItem label="绑定上级关系时间" {...formItemLayout} style={{marginLeft:'-41px'}}>
-              <span>{ this.props.detail2.bindTime }</span>
+              <span style={{marginLeft:'35px'}}>{ this.props.detail2.bindTime }</span>
             </FormItem>
             <FormItem label="健康大使id" {...formItemLayout} style={{paddingLeft:'4px'}}>
               <span style={{marginLeft:'5px'}}>{ this.props.detail2.id} </span>
@@ -388,7 +388,7 @@ class Manager extends React.Component {
             </FormItem>
             <FormItem label="经销商id" {...formItemLayout} style={{paddingLeft:'19px'}}
               className={
-                  this.props.detail2.userType == 4 ? "hide" : ""
+                this.props.detail2.userType == 4 ? "hide" : ""
                 }>
                <span style={{marginLeft:'-5px'}}>{ this.props.detail2.id2} </span>
             </FormItem>

@@ -383,7 +383,7 @@ class Manager extends React.Component {
               <span>{ this.props.detail.mid} </span>
             </FormItem>
             <FormItem label="健康大使姓名" {...formItemLayout}>
-              <span style={{marginLeft:'8px'}}>{ this.props.detail.realName} </span>
+              <span style={{marginLeft:'4px'}}>{ this.props.detail.realName} </span>
             </FormItem>
             <FormItem label="健康大使手机号" {...formItemLayout} style={{marginLeft:'-13px'}}>
               <span style={{marginLeft:'13px'}}>{ this.props.detail.mobile} </span>
@@ -395,7 +395,7 @@ class Manager extends React.Component {
               <span style={{marginLeft:'6px'}}>{ this.props.detail.region2 }</span>
             </FormItem>
           </Form>
-          <Form style={{float:'right',width:'320px'}}>
+          <Form style={{float:'right',width:'320px',marginLeft:'10px'}}>
             <FormItem label="经销商昵称" {...formItemLayout} style={{paddingLeft:'12px'}}>
               <span style={{marginLeft:'-7px'}}>{ this.props.detail.nickName2 } </span>
             </FormItem>
