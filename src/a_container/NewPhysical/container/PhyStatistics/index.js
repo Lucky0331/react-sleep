@@ -227,8 +227,8 @@ class Category extends React.Component {
             };
           });
       }
-          targetOption.loading = false;
-          this.setState({
+        targetOption.loading = false;
+        this.setState({
           citys: [...this.state.citys]
         });
       });
@@ -278,7 +278,7 @@ class Category extends React.Component {
           name: "体检用户",
           type: "line",
           data: data.map((item)=> item.usedCount),
-          },
+        },
         {
           name: "公众号预约用户",
           type: "line",

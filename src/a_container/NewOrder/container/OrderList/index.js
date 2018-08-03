@@ -906,11 +906,10 @@ class Category extends React.Component {
     console.log("temp是什么：", temp);
     return temp
       ? {
-       charges: temp.chargeTypes
-         ? temp.chargeTypes.map((item, index) => (
-           <div key={index}>
-             {index + 1}.{item.chargeName}
-           </div>
+       charges: temp.chargeTypes ? temp.chargeTypes.map((item, index) => (
+         <div key={index}>
+           {index + 1}.{item.chargeName}
+         </div>
          ))
         : ""
       }
@@ -1221,10 +1220,10 @@ class Category extends React.Component {
     ) : null; //主订单号
     const suffix5 = searchAmbassadorId ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty3()} />
-    ) : null;
+    ) : null;//经销商id
     const suffix6 = searchDistributorId ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty4()} />
-    ) : null;
+    ) : null;//分销商id
     const suffix8 = searchMinPrice ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty5()} />
     ) : null;
