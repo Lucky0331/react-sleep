@@ -149,7 +149,7 @@ class Header extends React.Component {
             }}
           >
             <Link to="/home" className="logo">
-              <img src={LogoImg} alt="logo" />HRA健康风险评估管理系统
+              <img src={LogoImg} alt="logo" />翼猫商城后台管理系统
             </Link>
           </li>
         </ul>
