@@ -17,8 +17,10 @@ import "./index.scss";
 
 import OperateData from "./container/OperateData"; //运营统计
 import UserDataList from "./container/UserDataList"; //用户统计
-import OrderListData from "./container/OrderListData"; //用户统计
+import OrderListData from "./container/OrderListData"; //订单统计
 import BeneficialListData from "./container/BeneficialListData"; //收益统计
+import UserInfoCount from "./container/UserInfoCount";//用户分布统计
+import PhyStatistics from "./container/PhyStatistics";//体检统计
 // ==================
 // 本页面所需action
 // ==================
@@ -69,6 +71,16 @@ class TheContainer extends React.Component {
             exact
             path={`${this.props.match.path}/beneficialListdata`} //收益数据
             component={BeneficialListData}
+          />
+          <Route
+            exact
+            path={`${this.props.match.path}/userinfocount`} //用户分布统计
+            component={UserInfoCount}
+          />
+          <Route
+            exact
+            path={`${this.props.match.path}/phys`}
+            component={PhyStatistics}
           />
         </Switch>
       </div>

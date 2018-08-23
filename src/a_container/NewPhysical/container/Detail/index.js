@@ -229,19 +229,6 @@ class Category extends React.Component {
     return t ? t.name : "";
   }
 
-  //获取所有的体检卡型号
-  getAllticketModel() {
-    this.props.actions
-      .findticketModelByWhere({ pageNum: 0, pageSize: 9999, typeId: 5 })
-      .then(res => {
-        if (res.status === "0") {
-          this.setState({
-            productModelIds: res.data
-          });
-        }
-      });
-  }
-
   //搜索 - 是否禁用输入框值改变时触发
   searchTicketStatusChange(e) {
     this.setState({

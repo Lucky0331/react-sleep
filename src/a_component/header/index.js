@@ -17,10 +17,17 @@ class Header extends React.Component {
       sourceData: [], // 层级结构的原始数据
       btnDtoList: [], //所有的按钮权限的list
       sessionData: null, // sessionStorage中保存的Menu数据
-      treeDom: [] // 生成的菜单结构
+      treeDom: [], // 生成的菜单结构
+      collapsed: false,
     };
   }
-
+  
+  toggleCollapsed = () => {
+    this.setState({
+      collapsed: !this.state.collapsed,
+    });
+  }
+  
   // 组件初始化完毕时触发
   componentDidMount() {
     console.log("header:", this.props);
@@ -162,25 +169,28 @@ class Header extends React.Component {
           >
             {this.state.treeDom}
           </Menu>
+          {/*<Button type="primary" onClick={this.toggleCollapsed} style={{ marginBottom: 16 }}>*/}
+            {/*<Icon type={this.state.collapsed ? 'menu-unfold' : 'menu-fold'} />*/}
+          {/*</Button>*/}
         </div>
 
         <ul className="header-userinfo">
           {this.state.adminUser ? (
             [
-              <li key="0">
+              <li key="1">
                 <a href={"https://cmstest.yimaokeji.com/cms/index"}><Button
                   className="logout"
                   icon="global"
               >
                 cms系统
-                </Button></a>
+               </Button></a>
               </li> ,
-              <li key="1">
+              <li key="2">
                 <Icon type="smile" style={{ marginRight: ".5em" }} />欢迎，{
                   this.state.adminUser.userName
                 }
               </li>,
-              <li key="2">
+              <li key="3">
                 <Button
                   className="logout"
                   icon="poweroff"

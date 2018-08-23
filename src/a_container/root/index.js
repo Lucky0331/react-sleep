@@ -21,6 +21,8 @@ import NewInvoice from "../NewInvoice"; //发票管理模块
 import NewStatistics from "../NewStatistics"; //数据统计管理模块
 import NewContent from "../NewContent"; //内容管理模块
 import NewUser from "../NewUser"; //用户管理
+import NewCustom from "../NewCustom"; //客服管理
+import NewMarketing from "../NewMarketing"; //营销管理
 
 import NotFound from "../notfound"; // 404页
 
@@ -97,7 +99,6 @@ class RootContainer extends React.Component {
                       menuType={this.props.menuType}
                     />
                   </div>
-
                   <div
                     className="flex-auto"
                     style={{ maxWidth: this._initWidth(props.location) }}
@@ -158,6 +159,14 @@ class RootContainer extends React.Component {
                       <Route
                         path="/usermanage"
                         render={props => this.onEnter(NewUser, props)}
+                      />
+                      <Route
+                        path="/customer"
+                        render={props => this.onEnter(NewCustom, props)}
+                      />
+                      <Route
+                        path="/marketing"
+                        render={props => this.onEnter(NewMarketing, props)}
                       />
                       <Route component={NotFound} />
                     </Switch>

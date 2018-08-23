@@ -20,8 +20,6 @@ import Cardlist from "./container/Cardlist";
 import Release from "./container/Release";
 import Activity from "./container/Activity";
 import H5Card from "./container/H5Card";
-import assistantType from "./container/assistantType";
-import assistant from "./container/assistant";
 import ColumnZB from "./container/ColumnZB";  //直播栏目
 
 
@@ -75,16 +73,6 @@ class TheContainer extends React.Component {
             exact
             path={`${this.props.match.path}/consulting/Release`}  //直播列表
             component={Release}
-          />
-          <Route
-            exact
-            path={`${this.props.match.path}/question/assistantType`}  //智能客服-问答分类
-            component={assistantType}
-          />
-          <Route
-            exact
-            path={`${this.props.match.path}/question/assistant`}   //智能客服-问答列表
-            component={assistant}
           />
           <Route
             exact

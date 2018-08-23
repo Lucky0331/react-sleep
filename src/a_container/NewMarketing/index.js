@@ -15,11 +15,8 @@ import "./index.scss";
 // 所需的所有组件
 // ==================
 
-import UserInfo from "./container/UserInfo";
-import DealerInfo from "./container/DealerInfo";
-import DealerInfoDetail from "./container/DealerInfoDetail";
-import CouponCard from "./container/CouponCard";
-import UserInfoRecord from "./container/UserInfoRecord";
+import Activity from "./container/Activity";//活动管理
+
 
 // ==================
 // 本页面所需action
@@ -50,32 +47,12 @@ class TheContainer extends React.Component {
           <Redirect
             exact
             from={`${this.props.match.path}`}
-            to={`${this.props.match.path}/userinfo`}
+            to={`${this.props.match.path}/activity`}
           />
           <Route
             exact
-            path={`${this.props.match.path}/userinfo`}
-            component={UserInfo}
-          />
-          <Route
-            exact
-            path={`${this.props.match.path}/dealerinfo`}
-            component={DealerInfo}
-          />
-          <Route
-            exact
-            path={`${this.props.match.path}/dealerinfoDetail`}
-            component={DealerInfoDetail}
-          />
-          <Route
-            exact
-            path={`${this.props.match.path}/couponCard`}
-            component={CouponCard}
-          />
-          <Route
-            exact
-            path={`${this.props.match.path}/userinfoRecord`}
-            component={UserInfoRecord}
+            path={`${this.props.match.path}/activity`}
+            component={Activity}
           />
         </Switch>
       </div>

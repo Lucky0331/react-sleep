@@ -18,7 +18,7 @@ import {
   message,
   Modal,
   Tooltip,
-  Checkbox,
+  Alert,
   Row,
   Select,
   Divider,
@@ -43,18 +43,13 @@ import {
   findAllProvince,
   findCityOrCounty,
   findOrderByWhere,
-  addStationList,
-  updateOrder,
+  OrderListDetail,
   findProductTypeByWhere,
   findProductModelByWhere,
-  addProductType,
-  updateProductType,
-  deleteProductType,
   updateType,
   updateOrderModel,
   updateGoods,
   onChange,
-  onChange3,
   onOk
 } from "../../../../a_action/shop-action";
 
@@ -110,6 +105,7 @@ class Category extends React.Component {
       chargeNames:[],//计费方式数组
       chargeTypes: [], //所有的计费方式
       code: undefined, //产品类型所对应的code值
+      value: 1,
     };
   }
 
@@ -174,7 +170,6 @@ class Category extends React.Component {
       userType: this.state.searchUserType,
       userSaleFlag:this.state.searchuserSaleFlag,
       userName: this.state.searchUserName.trim(),
-      ambassadorName: this.state.searchambassadorName,
       productName: this.state.searchProductName,
       modelId: this.state.searchModelId,
       refer: this.state.searchRefer.trim(),
@@ -623,17 +618,6 @@ class Category extends React.Component {
     })
   }
   
-  //根据code值不同显示的字段不同
-  Newproduct(e) {
-    this.setState({
-      code: e
-    });
-    console.log("code的数值是：", e);
-    //产品类型改变时，重置产品型号的值位undefined
-    const { form } = this.props;
-    form.resetFields(["formTypeCode"]);
-    form.resetFields(["chargesTypes"]); //计费方式的值
-  }
 // 选不同型号时重置计费方式
   Newproduct2(e) {
     //产品类型改变时，重置产品型号的值位undefined
@@ -670,7 +654,6 @@ class Category extends React.Component {
       userType: this.state.searchUserType,
       userSaleFlag:this.state.searchuserSaleFlag,
       userName: this.state.searchUserName,
-      ambassadorName: this.state.searchambassadorName,
       productName: this.state.searchProductName,
       modelId: this.state.searchModelId,
       orderConsignee:this.state.searchPersonName,//收货姓名
@@ -877,11 +860,27 @@ class Category extends React.Component {
   // 查询某一条数据的详情
   onQueryClick(record) {
     console.log("是什么：", record);
-    console.log("是什么类型：", record.productType);
+    const d = _.cloneDeep(record);
     this.setState({
-      nowData: record,
-      queryModalShow: true,
-      productType: record.productType,
+      nowData: d,
+      productType: d.productType,
+      queryModalShow: true
+    });
+    this.props.actions.OrderListDetail(d);
+    this.props.history.push("../NewOrder/OrderListDetail");
+    console.log("订单净水服务详情有哪些参数：", d);
+  }
+  
+  //取消订单按钮操作
+  onCloseClick(record){
+    this.setState({
+      queryCloseShow:true,
+    })
+  }
+  
+  onQueryClose(){
+    this.setState({
+      queryCloseShow: false
     });
   }
 
@@ -1065,7 +1064,7 @@ class Category extends React.Component {
         title: "操作",
         key: "control",
         fixed: "right",
-        width: 100,
+        width: 130,
         render: (text, record) => {
           const controls = [];
           record.productType != '健康评估'
@@ -1098,8 +1097,21 @@ class Category extends React.Component {
               className="control-btn green"
               onClick={() => this.onQueryClick(record)}
             >
-              <Tooltip placement="top" title="详情">
-                <Icon type="eye" />
+              <a href="#/order/OrderListDetail">
+                <Tooltip placement="top" title="详情">
+                  <Icon type="eye" />
+                </Tooltip>
+              </a>
+            </span>
+          );
+          controls.push(
+            <span
+              key="3"
+              className="control-btn green"
+              onClick={() => this.onCloseClick(record)}
+            >
+              <Tooltip placement="top" title="取消">
+                <Icon type="close-circle-o" />
               </Tooltip>
             </span>
           );
@@ -1149,6 +1161,7 @@ class Category extends React.Component {
         orderTime: item.orderTime,//下单时间
         payStatus:item.payStatus,//支付状态
         payType:item.payType,//支付方式
+        paymentNo:item.paymentNo,//流水号
         distributorId:item.distributorId,//经销商id
         distributorProvince: item.distributorProvince,//经销商省
         distributorCity: item.distributorCity,//经销商市
@@ -1175,7 +1188,6 @@ class Category extends React.Component {
         feeType:item.feeType,//计费方式
         sex:item.sex,//收货人性别
         productPrice:item.productPrice,//产品价格
-        ambassadorName: item.distributor ? item.distributor.mobile : "",
       };
     });
   }
@@ -1214,7 +1226,7 @@ class Category extends React.Component {
     ) : null;
     const suffix3 = searchUserName ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty2()} />
-    ) : null;
+    ) : null; //用户id
     const suffix4 = searchMainOrderId ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty7()} />
     ) : null; //主订单号
@@ -1522,7 +1534,18 @@ class Category extends React.Component {
             </li>
           </ul>
         </div>
-        <div className="system-table">
+        <Alert
+          showIcon={true}
+          message="操作提示"
+          banner
+        />
+        <Alert
+          showIcon={false}
+          message="取消订单 : 仅待发货状态可以取消订单"
+          banner
+          style={{paddingLeft:'36px'}}
+        />
+        <div className="system-table" style={{ marginTop: "2px" }}>
           <Table
             columns={this.makeColumns()}
             dataSource={this.makeData(this.state.data)}
@@ -1690,35 +1713,6 @@ class Category extends React.Component {
           wrapClassName={"list"}
         >
           <Form>
-            <FormItem label="主订单号" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.mainOrder : ""}
-            </FormItem>
-            <FormItem label="子订单号" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.orderId : ""}
-            </FormItem>
-            <FormItem label="云平台工单号" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.refer : ""}
-            </FormItem>
-            <FormItem label="订单来源" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.orderFrom : ""}
-            </FormItem>
-            <FormItem label="订单状态" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.orderStatus : ""}
-            </FormItem>
-            <FormItem label="用户类型" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.userIdentity  : ""}
-            </FormItem>
-            <FormItem label="用户id" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.userName : ""}
-            </FormItem>
-            <FormItem
-              label="用户收货手机号"
-              {...formItemLayout}
-              className={this.state.productType == "健康评估" ? "hide" : ""}
-              labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}
-            >
-              {!!this.state.nowData ? this.state.nowData.orderPhone : ""}
-            </FormItem>
             <FormItem
               label="收货人姓名"
               {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}
@@ -1727,98 +1721,11 @@ class Category extends React.Component {
               {!!this.state.nowData ? this.state.nowData.orderConsignee :''}
             </FormItem>
             <FormItem
-              label="收货人性别"
-              {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}
-              className={this.state.productType == "健康评估" ? "hide" : ""}
-            >
-              {!!this.state.nowData ? this.state.nowData.sex : ""}
-            </FormItem>
-            <FormItem
-              label="用户收货地区"
-              {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}
-              className={this.state.productType == "健康评估" ? "hide" : ""}
-            >
-              {!!this.state.nowData ? this.state.nowData.orderRegional : ""}
-            </FormItem>
-            <FormItem
               label="用户收货地址"
               {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}
               className={this.state.productType == "健康评估" ? "hide" : ""}
             >
               {!!this.state.nowData ? this.state.nowData.orderAddress : ""}
-            </FormItem>
-            <FormItem label="活动方式" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.activityType: ""}
-            </FormItem>
-            <FormItem label="产品类型" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.productType: ""}
-            </FormItem>
-            <FormItem label="产品公司" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.productCompany: ""}
-            </FormItem>
-            <FormItem label="产品名称" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.productName: ""}
-            </FormItem>
-            <FormItem label="产品型号" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.productModel: ""}
-            </FormItem>
-            <FormItem label="数量" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.count : ""}
-            </FormItem>
-            <FormItem label="订单总金额" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.orderFee : ''}
-            </FormItem>
-            <FormItem label="下单时间" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.orderTime : ""}
-            </FormItem>
-            <FormItem label="支付方式" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.payType: ""}
-            </FormItem>
-            <FormItem label="支付状态" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.payStatus: ""}
-            </FormItem>
-            <FormItem label="支付时间" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.payTime : ""}
-            </FormItem>
-            <FormItem label="订单完成时间" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.completeTime : ""}
-            </FormItem>
-            <FormItem label="经销商身份" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.distributorIdentity : ""}
-            </FormItem>
-            <FormItem label="经销商省市区" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.distributorcitys : ''}
-            </FormItem>
-            <FormItem label="经销商id" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.distributorId : ""}
-            </FormItem>
-            <FormItem label="分销商id" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.userSaleId : ""}
-            </FormItem>
-            <FormItem label="分销商是否有收益" {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}>
-              {!!this.state.nowData ? this.state.nowData.userSaleIsIncome : ""}
-            </FormItem>
-            <FormItem
-              label="安装工姓名"
-              {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}
-              className={
-                this.state.productType == "健康食品" ||
-                this.state.productType == "生物科技" ||
-                this.state.productType == "健康评估" ? "hide" : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.customerName : ""}
-            </FormItem>
-            <FormItem
-              label="安装工电话"
-              {...formItemLayout} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}
-              className={
-                this.state.productType == "健康食品" ||
-                this.state.productType == "生物科技" ||
-                this.state.productType == "健康评估" ? "hide" : ""
-              }
-            >
-              {!!this.state.nowData ? this.state.nowData.customerPhone : ""}
             </FormItem>
             <FormItem
               label="服务站地区（安装工）"
@@ -1830,6 +1737,27 @@ class Category extends React.Component {
               }
             >
               {!!this.state.nowData ? this.state.nowData.customerAddress : ""}
+            </FormItem>
+          </Form>
+        </Modal>
+        {/*取消按钮的点击模态框*/}
+        <Modal
+          title="取消订单"
+          visible={this.state.queryCloseShow}
+          onOk={() => this.onQueryClose()}
+          onCancel={() => this.onQueryClose()}
+          wrapClassName={"list"}
+        >
+          <Form>
+            <FormItem
+              label="退款方式"
+              {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}
+            >
+              <RadioGroup onChange={this.onChange} style={{marginTop:'4px'}}>
+                <Radio style={{display: 'block',height: '30px',lineHeight: '30px'}} value={1}>线下退款</Radio>
+                <Radio style={{display: 'block',height: '30px',lineHeight: '30px'}} value={2}>资金原路返还</Radio>
+                <Radio style={{display: 'block',height: '30px',lineHeight: '30px'}} value={3}>无需退款</Radio>
+              </RadioGroup>
             </FormItem>
           </Form>
         </Modal>
@@ -1863,19 +1791,14 @@ export default connect(
       {
         findAllProvince,
         findCityOrCounty,
-        addStationList,
         findOrderByWhere,
-        updateOrder,
         findProductModelByWhere,
         findProductTypeByWhere,
-        addProductType,
-        updateProductType,
-        deleteProductType,
+        OrderListDetail,
         updateType,
         updateOrderModel,
         updateGoods,
         onChange,
-        onChange3,
         onOk
       },
       dispatch

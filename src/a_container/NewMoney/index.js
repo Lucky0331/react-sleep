@@ -95,17 +95,17 @@ class TheContainer extends React.Component {
           />
           <Route
             exact
-            path={`${this.props.match.path}/account/present/withdrawals`}
+            path={`${this.props.match.path}/withdrawals`}//提现记录
             component={Withdrawals}
           />
           <Route
             exact
-            path={`${this.props.match.path}/account/present/withdrawalsaudit`}
+            path={`${this.props.match.path}/withdrawalsaudit`}//提现审核
             component={WithdrawalsAudit}
           />
           <Route
             exact
-            path={`${this.props.match.path}/account/bill`}
+            path={`${this.props.match.path}/bill`} //订单对账
             component={Bill}
           />
           <Route
@@ -130,12 +130,12 @@ class TheContainer extends React.Component {
           />
           <Route
             exact
-            path={`${this.props.match.path}/account/refundment/refund`}
+            path={`${this.props.match.path}/refund`}//退款记录
             component={Refund}
           />
           <Route
             exact
-            path={`${this.props.match.path}/account/refundment/refundaudit`}
+            path={`${this.props.match.path}/refundaudit`}//退款审核
             component={RefundAudit}
           />
         </Switch>

@@ -15,11 +15,9 @@ import {
   Button,
   Icon,
   Input,
-  InputNumber,
+  Tabs,
   Table,
   message,
-  Popconfirm,
-  Popover,
   Modal,
   Radio,
   Tooltip,
@@ -71,12 +69,14 @@ import {
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
 const Option = Select.Option;
+const TabPane = Tabs.TabPane;
 const { RangePicker } = DatePicker;
 class Category extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       data: [], // 当前页面全部数据
+      data2: [], // 当前页面全部数据 - 分配详情
       productTypes: [], // 所有的产品类型
       productModels: [], // 所有的产品型号
       productModelIds: [], // 所有的体检卡型号
@@ -94,7 +94,8 @@ class Category extends React.Component {
       queryModalShow: false, // 查看详情模态框是否显示
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
-      total: 0, // 数据库总共多少条数据
+      total: 0, // F卡分配总共多少条数据
+      total2: 0, // 分配详情总共多少条数据
       fileList: [], // 产品图片已上传的列表
       fileListDetail: [], // 详细图片已上传的列表
       fileLoading: false, // 产品图片正在上传
@@ -103,7 +104,8 @@ class Category extends React.Component {
       stations: [], // 当前省市区下面的服务站
       searchState: "", // 搜索 - 是否禁用
       searchExpire: "", // 搜索 - 是否到期
-      searchSurplus: "" //搜索剩余可用次数
+      searchSurplus: "" ,//搜索剩余可用次数
+      tabKey:1,//tab值
     };
   }
 
@@ -137,8 +139,20 @@ class Category extends React.Component {
       });
     }
   }
+  
+  //运营数据 tab操作
+  onSearchJump(e){
+    if(e==1){
+      this.onGetData(1, this.state.pageSize);
+    }else if(e==2) {
+      this.onGetDataDetail(1,this.state.pageSize);
+    }
+    this.setState({
+      tabKey:e
+    })
+  }
 
-  // 查询当前页面所需列表数据
+  // 查询当前页面所需列表数据 - F卡分配
   onGetData(pageNum, pageSize) {
     const params = {
       pageNum,
@@ -168,6 +182,43 @@ class Category extends React.Component {
           pageNum,
           pageSize,
           total: res.data.ticketPage.total
+        });
+      } else {
+        message.error(res.message || "获取数据失败，请重试");
+      }
+    });
+  }
+  
+  // 查询当前页面所需列表数据 - F卡分配详情
+  onGetDataDetail(pageNum, pageSize) {
+    const params = {
+      pageNum,
+      pageSize,
+      isExpire: this.state.searchExpire,
+      surplus: this.state.searchSurplus,
+      province: this.state.searchAddress[0],
+      city: this.state.searchAddress[1],
+      region: this.state.searchAddress[2],
+      mobile: this.state.searchMobile,
+      code: this.state.searchCode,
+      state: this.state.searchState,
+      stationName: this.state.searchStationName,
+      ticketNo: this.state.searchTicketNo,
+      ticketModel: this.state.searchTicketModel,
+      beginTime: this.state.searchBeginTime
+        ? `${tools.dateToStrD(this.state.searchBeginTime._d)} 00:00:00`
+        : "",
+      endTime: this.state.searchEndTime
+        ? `${tools.dateToStrD(this.state.searchEndTime._d)} 23:59:59 `
+        : ""
+    };
+    this.props.actions.findReserveList(tools.clearNull(params)).then(res => {
+      if (res.status === "0") {
+        this.setState({
+          data2: res.data.ticketPage.result || [],
+          pageNum,
+          pageSize,
+          total2: res.data.ticketPage.total
         });
       } else {
         message.error(res.message || "获取数据失败，请重试");
@@ -339,18 +390,14 @@ class Category extends React.Component {
     });
   }
 
-  // 搜索 - 体检卡输入框值改变时触发
-  searchCodeChange(e) {
-    if (e.target.value.length < 20) {
-      this.setState({
-        searchCode: e.target.value
-      });
-    }
-  }
-
-  // 搜索
+  // 搜索 - F卡分配
   onSearch() {
     this.onGetData(1, this.state.pageSize);
+  }
+  
+  // 搜索 - F卡分配详情
+  onSearchDetail() {
+    this.onGetDataDetail(1, this.state.pageSize);
   }
 
   //Input中的删除按钮所删除的条件
@@ -556,8 +603,6 @@ class Category extends React.Component {
       });
       const params = {
         ticketId: me.state.nowData.id,
-        // addCount: values.upAddCount, //新增体检卡使用次数
-        // validEnd:`"${tools.dateToStr(values.UpTime._d)}"`, //更新分配时间
         validEnd:`${tools.dateToStr(values.UpTime._d)}`, //更新分配时间
       };
       this.props.actions
@@ -587,6 +632,12 @@ class Category extends React.Component {
   onTablePageChange(page, pageSize) {
     console.log("页码改变：", page, pageSize);
     this.onGetData(page, pageSize);
+  }
+  
+  // 表单页码改变 - F卡分配详情
+  onTablePageChangeDetail(page, pageSize) {
+    console.log("页码改变：", page, pageSize);
+    this.onGetDataDetail(page, pageSize);
   }
 
   // 构建字段
@@ -801,6 +852,169 @@ class Category extends React.Component {
       };
     });
   }
+  
+  // 构建字段 - 分配详情
+  makeColumnsDetail() {
+    const columns = [
+      {
+        title: "序号",
+        dataIndex: "serial",
+        key: "serial"
+      },
+      {
+        title: "服务站名称",
+        dataIndex: "station.name",
+        key: "station.name"
+      },
+      {
+        title: "体检卡号",
+        dataIndex: "ticketNo",
+        key: "ticketNo"
+      },
+      {
+        title: "体检卡型号",
+        dataIndex: "name",
+        key: "name"
+      },
+      {
+        title: "有效期",
+        dataIndex: "timeLimitNum",
+        key: "timeLimitNum",
+        render: (text, record) =>
+            this.getNameForInDate(text, record.timeLimitType)
+      },
+      {
+        title: "到期时间",
+        dataIndex: "validEndTime",
+        key: "validEndTime"
+      },
+      {
+        title: "是否到期",
+        dataIndex: "hasExpire",
+        key: "hasExpire",
+        render: text =>
+          Boolean(text) === true ? (
+            <span style={{ color: "red" }}>已到期</span>
+          ) : (
+            <span style={{ color: "green" }}>未到期</span>
+          )
+      },
+      {
+        title: "总可用次数",
+        dataIndex: "total",
+        key: "total"
+      },
+      {
+        title: "剩余可用次数",
+        dataIndex: "hraCard.productModel.useCount",
+        key: "hraCard.productModel.useCount"
+      },
+      {
+        title: "是否禁用",
+        dataIndex: "ticketStatus",
+        key: "ticketStatus",
+        render: text => this.ticketStatus(text)
+      },
+      {
+        title: "是否限制仅该服务站使用",
+        width: 110,
+        dataIndex: "selfStation",
+        key: "selfStation",
+        render: text =>
+            String(text) === "1" ? (
+                <span style={{ color: "green" }}>已限制</span>
+            ) : (
+                <span style={{ color: "red" }}>未限制</span>
+            )
+      },
+      {
+        title: "分配时间",
+        dataIndex: "createTime",
+        key: "createTime"
+      },
+      {
+        title: "操作",
+        key: "control",
+        fixed: "right",
+        width: 120,
+        render: (text, record) => {
+          const controls = [];
+          controls.push(
+              <span
+                  key="0"
+                  className="control-btn green"
+                  onClick={() => this.onQueryClick(record)}
+              >
+              <Tooltip placement="top" title="查看">
+                <Icon type="eye" />
+              </Tooltip>
+            </span>
+          );
+          const result = [];
+          controls.forEach((item, index) => {
+            if (index) {
+              result.push(<Divider type="vertical" />);
+            }
+            result.push(item);
+          });
+          return result;
+        }
+      }
+    ];
+    return columns;
+  }
+  
+  // 构建table所需数据
+  makeDataDetail(data2) {
+    console.log("data是个啥：", data2);
+    return data2.map((item, index) => {
+      return {
+        key: index,
+        id: item.id,
+        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
+        arriveTime: item.arriveTime,
+        code: item.code,
+        conditions: item.conditions,
+        creator: item.creator,
+        height: item.height,
+        idCard: item.idCard,
+        mobile: item.mobile,
+        name: item.hraCard.productModel.name,
+        reserveTime: item.reserveTime,
+        sex: item.sex,
+        ticketNo: item.ticketNo,
+        ticketNum: item.ticketNum,
+        stationId: this.getStationId,
+        stationName: this.getStationId(item.stationId),
+        updateTime: item.updateTime,
+        updater: item.updater,
+        userSource: item.userSource,
+        weight: item.weight,
+        isExpire: item.isExpire,
+        validEndTime: item.validEndTime,
+        createTime: item.createTime,
+        timeLimitNum: item.hraCard.productModel.timeLimitNum,
+        timeLimitType: item.hraCard.productModel.timeLimitType,
+        ticketStatus: item.ticketStatus,
+        ticketModel: item.ticketModel,
+        disabled: item.disabled,
+        hasExpire: item.hasExpire,
+        selfStation: item.selfStation,
+        station: item.station,
+        total: item.total,
+        productModelId: item.productModelId,
+        cardCount: item.cardCount,
+        hraCard: item.hraCard,
+        ticketId: item.ticketId,
+        ticketType: item.ticketType,
+        surplus: item.surplus,
+        citys:
+            item.province && item.city && item.region
+                ? `${item.province}/${item.city}/${item.region}`
+                : ""
+      };
+    });
+  }
 
   render() {
     const me = this;
@@ -832,376 +1046,572 @@ class Category extends React.Component {
     ) : null;
 
     return (
-      <div style={{ width: "100%" }}>
+      <div>
         <div className="system-search">
-          <ul className="search-ul more-ul">
-            <li>
-              <span>服务站地区</span>
-              <Cascader
-                style={{ width: "172px" }}
-                placeholder="请选择服务区域"
-                onChange={v => this.onSearchAddress(v)}
-                options={this.state.citys}
-                loadData={e => this.getAllCitySon(e)}
-                changeOnSelect
-              />
-            </li>
-            <li>
-              <span>服务站</span>
-              <Input
-                placeholder="请输入关键字"
-                style={{ width: "172px" }}
-                value={searchStationName}
-                suffix={suffix}
-                onChange={e => this.searchStationNameChange(e)}
-              />
-            </li>
-            <li>
-              <span>是否到期</span>
-              <Select
-                placeholder="全部"
-                allowClear
-                style={{ width: "172px" }}
-                onChange={e => this.searchExpireChange(e)}
-              >
-                <Option value={0}>未到期</Option>
-                <Option value={1}>已到期</Option>
-              </Select>
-            </li>
-            <li>
-              <span>剩余可用次数</span>
-              <Input
-                placeholder="请输入剩余可用次数"
-                style={{ width: "172px" }}
-                value={searchSurplus}
-                suffix={suffix2}
-                onChange={e => this.searchSurplusChange(e)}
-              />
-            </li>
-            <li>
-              <span>是否禁用</span>
-              <Select
-                placeholder="全部"
-                allowClear
-                style={{ width: "172px" }}
-                onChange={e => this.searchTicketStatusChange(e)}
-              >
-                <Option value={1}>未禁用</Option>
-                <Option value={4}>已禁用</Option>
-              </Select>
-            </li>
-            <li>
-              <span>体检卡型号</span>
-              <Select
-                allowClear
-                placeholder="全部"
-                value={this.state.searchTicketModel}
-                style={{ width: "172px" }}
-                onChange={e => this.searchTicketModelChange(e)}
-              >
-                {this.state.productModelIds.map((item, index) => {
-                  return (
-                    <Option key={index} value={item.id}>
-                      {item.name}
-                    </Option>
-                  );
-                })}
-              </Select>
-            </li>
-            <li>
-              <span>体检卡号</span>
-              <Input
-                placeholder="请输入体检卡号"
-                style={{ width: "172px" }}
-                value={searchTicketNo}
-                suffix={suffix3}
-                onChange={e => this.searchTicketNo(e)}
-              />
-            </li>
-            <li>
-              <span>分配时间</span>
-              <DatePicker
-                style={{ width: "130px" }}
-                dateRender={current => {
-                  const style = {};
-                  if (current.date() === 1) {
-                    style.border = "1px solid #1890ff";
-                    style.borderRadius = "45%";
-                  }
-                  return (
-                    <div className="ant-calendar-date" style={style}>
-                      {current.date()}
-                    </div>
-                  );
-                }}
-                format="YYYY-MM-DD"
-                placeholder="起始时间"
-                onChange={e => this.searchBeginTime(e)}
-              />
-              --
-              <DatePicker
-                style={{ width: "130px" }}
-                dateRender={current => {
-                  const style = {};
-                  if (current.date() === 1) {
-                    style.border = "1px solid #1890ff";
-                    style.borderRadius = "45%";
-                  }
-                  return (
-                    <div className="ant-calendar-date" style={style}>
-                      {current.date()}
-                    </div>
-                  );
-                }}
-                format="YYYY-MM-DD"
-                placeholder="结束时间"
-                onChange={e => this.searchEndTime(e)}
-              />
-            </li>
-            <li style={{ marginLeft: "10px" }}>
-              <Button
-                icon="search"
-                type="primary"
-                onClick={() => this.onSearch()}
-              >
-                查询
-              </Button>
-            </li>
-            <li style={{ marginLeft: "10px" }}>
-              <Button type="primary" onClick={() => this.onAddNewShow()}>
-                分配体检卡
-              </Button>
-            </li>
-          </ul>
-        </div>
-        <div className="system-table">
-          <Table
-            columns={this.makeColumns()}
-            className="my-table"
-            scroll={{ x: 2000 }}
-            dataSource={this.makeData(this.state.data)}
-            pagination={{
-              total: this.state.total,
-              current: this.state.pageNum,
-              pageSize: this.state.pageSize,
-              showQuickJumper: true,
-              showTotal: (total, range) => `共 ${total} 条数据`,
-              onChange: (page, pageSize) =>
-                this.onTablePageChange(page, pageSize)
-            }}
-          />
-        </div>
-        {/* 添加模态框 */}
-        <Modal
-          title="体检卡分配"
-          visible={this.state.addnewModalShow}
-          onOk={() => this.onAddNewOk()}
-          onCancel={() => this.onAddNewClose()}
-          confirmLoading={this.state.addnewLoading}
-        >
-          <Form>
-            <FormItem label="地区选择" {...formItemLayout}>
-              <span style={{ color: "#888" }}>
-                {this.state.nowData &&
-                this.state.addOrUp === "up" &&
-                this.state.nowData.province &&
-                this.state.nowData.city &&
-                this.state.nowData.region
-                  ? `${this.state.nowData.province}/${
-                      this.state.nowData.city
-                    }/${this.state.nowData.region}`
-                  : null}
-              </span>
-              {getFieldDecorator("addnewCitys", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请选择区域" }]
-              })(
-                <Cascader
-                  placeholder="请选择服务区域"
-                  options={this.state.citys}
-                  loadData={e => this.getAllCitySon(e)}
-                  onChange={v => this.onCascaderChange(v)}
-                />
-              )}
-            </FormItem>
-            <FormItem label="服务站名称" {...formItemLayout}>
-              {getFieldDecorator("addnewStationId", {
-                initialValue: undefined,
-                rules: [
-                  {
-                    required: true,
-                    whitespace: true,
-                    message: "请输入服务站名称"
-                  }
-                ]
-              })(
-                <Select placeholder="请选择服务站名称">
-                  {this.state.stations.map((item, index) => (
-                    <Option key={index} value={`${item.id}`}>
-                      {item.name}
-                    </Option>
-                  ))}
-                </Select>
-              )}
-            </FormItem>
-            <FormItem label="体检卡型号" {...formItemLayout}>
-              {getFieldDecorator("addnewProductModelId", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请选择体检卡型号" }]
-              })(
-                <Select
-                  allowClear
-                  placeholder="全部"
-                  value={this.state.searchTicketModel}
+          <Tabs type="card" onChange={(e) => this.onSearchJump(e)}>
+            <TabPane tab="F卡分配" key="1">
+              <div style={{ width: "100%" }}>
+                <div className="system-search">
+                  <ul className="search-ul more-ul">
+                    <li>
+                      <span>服务站地区</span>
+                      <Cascader
+                        style={{ width: "172px" }}
+                        placeholder="请选择服务区域"
+                        onChange={v => this.onSearchAddress(v)}
+                        options={this.state.citys}
+                        loadData={e => this.getAllCitySon(e)}
+                        changeOnSelect
+                      />
+                    </li>
+                    <li>
+                      <span>服务站</span>
+                      <Input
+                        placeholder="请输入关键字"
+                        style={{ width: "172px" }}
+                        value={searchStationName}
+                        suffix={suffix}
+                        onChange={e => this.searchStationNameChange(e)}
+                      />
+                    </li>
+                    <li>
+                      <span>是否到期</span>
+                      <Select
+                        placeholder="全部"
+                        allowClear
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchExpireChange(e)}
+                      >
+                        <Option value={0}>未到期</Option>
+                        <Option value={1}>已到期</Option>
+                      </Select>
+                    </li>
+                    <li>
+                      <span>剩余可用次数</span>
+                      <Input
+                        placeholder="请输入剩余可用次数"
+                        style={{ width: "172px" }}
+                        value={searchSurplus}
+                        suffix={suffix2}
+                        onChange={e => this.searchSurplusChange(e)}
+                      />
+                    </li>
+                    <li>
+                      <span>是否禁用</span>
+                      <Select
+                        placeholder="全部"
+                        allowClear
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchTicketStatusChange(e)}
+                      >
+                        <Option value={1}>未禁用</Option>
+                        <Option value={4}>已禁用</Option>
+                      </Select>
+                    </li>
+                    <li>
+                      <span>体检卡型号</span>
+                      <Select
+                        allowClear
+                        placeholder="全部"
+                        value={this.state.searchTicketModel}
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchTicketModelChange(e)}
+                      >
+                        {this.state.productModelIds.map((item, index) => {
+                          return (
+                            <Option key={index} value={item.id}>
+                              {item.name}
+                            </Option>
+                          );
+                        })}
+                      </Select>
+                    </li>
+                    <li>
+                      <span>体检卡号</span>
+                      <Input
+                        placeholder="请输入体检卡号"
+                        style={{ width: "172px" }}
+                        value={searchTicketNo}
+                        suffix={suffix3}
+                        onChange={e => this.searchTicketNo(e)}
+                      />
+                    </li>
+                    <li>
+                      <span>分配时间</span>
+                      <DatePicker
+                        style={{ width: "130px" }}
+                        dateRender={current => {
+                          const style = {};
+                          if (current.date() === 1) {
+                            style.border = "1px solid #1890ff";
+                            style.borderRadius = "45%";
+                          }
+                          return (
+                            <div className="ant-calendar-date" style={style}>
+                              {current.date()}
+                            </div>
+                          );
+                        }}
+                        format="YYYY-MM-DD"
+                        placeholder="起始时间"
+                        onChange={e => this.searchBeginTime(e)}
+                      />
+                      --
+                      <DatePicker
+                        style={{ width: "130px" }}
+                        dateRender={current => {
+                          const style = {};
+                          if (current.date() === 1) {
+                            style.border = "1px solid #1890ff";
+                            style.borderRadius = "45%";
+                          }
+                          return (
+                            <div className="ant-calendar-date" style={style}>
+                              {current.date()}
+                            </div>
+                          );
+                        }}
+                        format="YYYY-MM-DD"
+                        placeholder="结束时间"
+                        onChange={e => this.searchEndTime(e)}
+                      />
+                    </li>
+                    <li style={{ marginLeft: "10px" }}>
+                      <Button
+                        icon="search"
+                        type="primary"
+                        onClick={() => this.onSearch()}
+                      >
+                        查询
+                      </Button>
+                    </li>
+                    <li style={{ marginLeft: "10px" }}>
+                      <Button type="primary" onClick={() => this.onAddNewShow()}>
+                        分配体检卡
+                      </Button>
+                    </li>
+                  </ul>
+                </div>
+                <div className="system-table">
+                  <Table
+                    columns={this.makeColumns()}
+                    className="my-table"
+                    scroll={{ x: 2000 }}
+                    dataSource={this.makeData(this.state.data)}
+                    pagination={{
+                      total: this.state.total,
+                      current: this.state.pageNum,
+                      pageSize: this.state.pageSize,
+                      showQuickJumper: true,
+                      showTotal: (total, range) => `共 ${total} 条数据`,
+                      onChange: (page, pageSize) =>
+                        this.onTablePageChange(page, pageSize)
+                    }}
+                  />
+                </div>
+                {/* 添加模态框 */}
+                <Modal
+                  title="体检卡分配"
+                  visible={this.state.addnewModalShow}
+                  onOk={() => this.onAddNewOk()}
+                  onCancel={() => this.onAddNewClose()}
+                  confirmLoading={this.state.addnewLoading}
                 >
-                  {this.state.productModelIds.map((item, index) => {
-                    return (
-                      <Option key={index} value={item.id}>
-                        {item.name}
-                      </Option>
-                    );
-                  })}
-                </Select>
-              )}
-            </FormItem>
-            <FormItem label="体检卡数量" {...formItemLayout}>
-              {getFieldDecorator("addnewCardCount", {
-                initialValue: undefined,
-                rules: [
-                  { required: true, whitespace: true, message: "体检卡数量" }
-                ]
-              })(<Input placeholder="体检卡数量" />)}
-            </FormItem>
-            <FormItem label="是否限制仅该服务站可用" {...formItemLayout}>
-              {getFieldDecorator("addnewSelfStation", {
-                initialValue: undefined,
-                rules: [
-                  { required: true, message: "请选择是否限制仅该服务站可用" }
-                ]
-              })(
-                <Select>
-                  <Option value={1}>是</Option>
-                  <Option value={0}>否</Option>
-                </Select>
-              )}
-            </FormItem>
-            <FormItem label="设置是否禁用" {...formItemLayout}>
-              {getFieldDecorator("addnewDisabled", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请选择是否禁用" }]
-              })(
-                <Select>
-                  <Option value={1}>是</Option>
-                  <Option value={0}>否</Option>
-                </Select>
-              )}
-            </FormItem>
-            <FormItem label="短信通知手机号" {...formItemLayout}>
-              {getFieldDecorator("addnewPhone", {
-                initialValue: undefined,
-                rules: [
-                  {
-                    validator: (rule, value, callback) => {
-                      const v = value;
-                      if (v) {
-                        if (!tools.checkPhone(v)) {
-                          callback("请输入有效的手机号码");
-                        }
-                      }
-                      callback();
-                    }
-                  }
-                ]
-              })(<Input placeholder="请输入手机号码" />)}
-            </FormItem>
-          </Form>
-        </Modal>
-        {/* 修改模态框 */}
-        <Modal
-          title="体检卡分配"
-          visible={this.state.UpdateModalShow}
-          onOk={() => this.onUpdateOk()}
-          onCancel={() => this.onAddNewClose()}
-          confirmLoading={this.state.addnewLoading}
-        >
-          <Form>
-            <FormItem label="体检卡号" {...formItemLayout}>
-              {!! this.state.nowData ? this.state.nowData.ticketNo : ''}
-            </FormItem>
-            <FormItem label="到期时间" {...formItemLayout}>
-              {getFieldDecorator("UpTime", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请修改到期时间" }]
-              })(
-                <DatePicker
-                  style={{ width: "100%" }}
-                  showTime
-                  format="YYYY-MM-DD HH:mm:ss"
-                  placeholder="请修改到期时间"
-                  onChange={onChange}
-                  onOk={onOk}
-                />
-              )}
-            </FormItem>
-          </Form>
-        </Modal>
-        {/* 查看详情模态框 */}
-        <Modal
-          title="查看详情"
-          visible={this.state.queryModalShow}
-          onOk={() => this.onQueryModalClose()}
-          onCancel={() => this.onQueryModalClose()}
-        >
-          <Form>
-            <FormItem label="服务站名称" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.name : ""}
-            </FormItem>
-            <FormItem label="体检卡号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.ticketNo : ""}
-            </FormItem>
-            <FormItem label="分配日期" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.createTime : ""}
-            </FormItem>
-            <FormItem label="到期日期" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.validEndTime : ""}
-            </FormItem>
-            <FormItem label="有效期" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getNameForInDate(
-                    this.state.nowData.timeLimitNum,
-                    this.state.nowData.timeLimitType
-                  )
-                : ""}
-            </FormItem>
-            <FormItem label="是否到期" {...formItemLayout}>
-              {!!this.state.nowData ? (
-                Boolean(this.state.nowData.hasExpire) === true ? (
-                  <span style={{ color: "red" }}>已到期</span>
-                ) : (
-                  <span style={{ color: "green" }}>未到期</span>
-                )
-              ) : (
-                ""
-              )}
-            </FormItem>
-            <FormItem label="是否禁用" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.ticketStatus(this.state.nowData.ticketStatus)
-                : ""}
-            </FormItem>
-            <FormItem label="是否限制仅该服务站使用" {...formItemLayout}>
-              {!!this.state.nowData ? (
-                String(this.state.nowData.selfStation) === "1" ? (
-                  <span style={{ color: "green" }}>已限制</span>
-                ) : (
-                  <span style={{ color: "red" }}>未限制</span>
-                )
-              ) : (
-                ""
-              )}
-            </FormItem>
-          </Form>
-        </Modal>
+                  <Form>
+                    <FormItem label="地区选择" {...formItemLayout}>
+                      <span style={{ color: "#888" }}>
+                        {this.state.nowData &&
+                        this.state.addOrUp === "up" &&
+                        this.state.nowData.province &&
+                        this.state.nowData.city &&
+                        this.state.nowData.region
+                          ? `${this.state.nowData.province}/${
+                              this.state.nowData.city
+                            }/${this.state.nowData.region}`
+                          : null}
+                      </span>
+                      {getFieldDecorator("addnewCitys", {
+                        initialValue: undefined,
+                        rules: [{ required: true, message: "请选择区域" }]
+                      })(
+                        <Cascader
+                          placeholder="请选择服务区域"
+                          options={this.state.citys}
+                          loadData={e => this.getAllCitySon(e)}
+                          onChange={v => this.onCascaderChange(v)}
+                        />
+                      )}
+                    </FormItem>
+                    <FormItem label="服务站名称" {...formItemLayout}>
+                      {getFieldDecorator("addnewStationId", {
+                        initialValue: undefined,
+                        rules: [
+                          {
+                            required: true,
+                            whitespace: true,
+                            message: "请输入服务站名称"
+                          }
+                        ]
+                      })(
+                        <Select placeholder="请选择服务站名称">
+                          {this.state.stations.map((item, index) => (
+                            <Option key={index} value={`${item.id}`}>
+                              {item.name}
+                            </Option>
+                          ))}
+                        </Select>
+                      )}
+                    </FormItem>
+                    <FormItem label="体检卡型号" {...formItemLayout}>
+                      {getFieldDecorator("addnewProductModelId", {
+                        initialValue: undefined,
+                        rules: [{ required: true, message: "请选择体检卡型号" }]
+                      })(
+                        <Select
+                          allowClear
+                          placeholder="全部"
+                          value={this.state.searchTicketModel}
+                        >
+                          {this.state.productModelIds.map((item, index) => {
+                            return (
+                              <Option key={index} value={item.id}>
+                                {item.name}
+                              </Option>
+                            );
+                          })}
+                        </Select>
+                      )}
+                    </FormItem>
+                    <FormItem label="体检卡数量" {...formItemLayout}>
+                      {getFieldDecorator("addnewCardCount", {
+                        initialValue: undefined,
+                        rules: [
+                          { required: true, whitespace: true, message: "体检卡数量" }
+                        ]
+                      })(<Input placeholder="体检卡数量" />)}
+                    </FormItem>
+                    <FormItem label="是否限制仅该服务站可用" {...formItemLayout}>
+                      {getFieldDecorator("addnewSelfStation", {
+                        initialValue: undefined,
+                        rules: [
+                          { required: true, message: "请选择是否限制仅该服务站可用" }
+                        ]
+                      })(
+                        <Select>
+                          <Option value={1}>是</Option>
+                          <Option value={0}>否</Option>
+                        </Select>
+                      )}
+                    </FormItem>
+                    <FormItem label="设置是否禁用" {...formItemLayout}>
+                      {getFieldDecorator("addnewDisabled", {
+                        initialValue: undefined,
+                        rules: [{ required: true, message: "请选择是否禁用" }]
+                      })(
+                        <Select>
+                          <Option value={1}>是</Option>
+                          <Option value={0}>否</Option>
+                        </Select>
+                      )}
+                    </FormItem>
+                    <FormItem label="短信通知手机号" {...formItemLayout}>
+                      {getFieldDecorator("addnewPhone", {
+                        initialValue: undefined,
+                        rules: [
+                          {
+                            validator: (rule, value, callback) => {
+                              const v = value;
+                              if (v) {
+                                if (!tools.checkPhone(v)) {
+                                  callback("请输入有效的手机号码");
+                                }
+                              }
+                              callback();
+                            }
+                          }
+                        ]
+                      })(<Input placeholder="请输入手机号码" />)}
+                    </FormItem>
+                  </Form>
+                </Modal>
+                {/* 修改模态框 */}
+                <Modal
+                  title="体检卡分配"
+                  visible={this.state.UpdateModalShow}
+                  onOk={() => this.onUpdateOk()}
+                  onCancel={() => this.onAddNewClose()}
+                  confirmLoading={this.state.addnewLoading}
+                >
+                  <Form>
+                    <FormItem label="体检卡号" {...formItemLayout}>
+                      {!! this.state.nowData ? this.state.nowData.ticketNo : ''}
+                    </FormItem>
+                    <FormItem label="到期时间" {...formItemLayout}>
+                      {getFieldDecorator("UpTime", {
+                        initialValue: undefined,
+                        rules: [{ required: true, message: "请修改到期时间" }]
+                      })(
+                        <DatePicker
+                          style={{ width: "100%" }}
+                          showTime
+                          format="YYYY-MM-DD HH:mm:ss"
+                          placeholder="请修改到期时间"
+                          onChange={onChange}
+                          onOk={onOk}
+                        />
+                      )}
+                    </FormItem>
+                  </Form>
+                </Modal>
+                {/* 查看详情模态框 */}
+                <Modal
+                  title="F卡分配"
+                  visible={this.state.queryModalShow}
+                  onOk={() => this.onQueryModalClose()}
+                  onCancel={() => this.onQueryModalClose()}
+                >
+                  <Form>
+                    <FormItem label="服务站名称" {...formItemLayout}>
+                      {!!this.state.nowData ? this.state.nowData.name : ""}
+                    </FormItem>
+                    <FormItem label="体检卡号" {...formItemLayout}>
+                      {!!this.state.nowData ? this.state.nowData.ticketNo : ""}
+                    </FormItem>
+                    <FormItem label="分配日期" {...formItemLayout}>
+                      {!!this.state.nowData ? this.state.nowData.createTime : ""}
+                    </FormItem>
+                    <FormItem label="到期日期" {...formItemLayout}>
+                      {!!this.state.nowData ? this.state.nowData.validEndTime : ""}
+                    </FormItem>
+                    <FormItem label="有效期" {...formItemLayout}>
+                      {!!this.state.nowData
+                        ? this.getNameForInDate(
+                            this.state.nowData.timeLimitNum,
+                            this.state.nowData.timeLimitType
+                          )
+                        : ""}
+                    </FormItem>
+                    <FormItem label="是否到期" {...formItemLayout}>
+                      {!!this.state.nowData ? (
+                        Boolean(this.state.nowData.hasExpire) === true ? (
+                          <span style={{ color: "red" }}>已到期</span>
+                        ) : (
+                          <span style={{ color: "green" }}>未到期</span>
+                        )
+                      ) : (
+                        ""
+                      )}
+                    </FormItem>
+                    <FormItem label="是否禁用" {...formItemLayout}>
+                      {!!this.state.nowData
+                        ? this.ticketStatus(this.state.nowData.ticketStatus)
+                        : ""}
+                    </FormItem>
+                    <FormItem label="是否限制仅该服务站使用" {...formItemLayout}>
+                      {!!this.state.nowData ? (
+                        String(this.state.nowData.selfStation) === "1" ? (
+                          <span style={{ color: "green" }}>已限制</span>
+                        ) : (
+                          <span style={{ color: "red" }}>未限制</span>
+                        )
+                      ) : (
+                        ""
+                      )}
+                    </FormItem>
+                  </Form>
+                </Modal>
+              </div>
+            </TabPane>
+            <TabPane tab="F卡分配详情" key="2">
+              <div style={{ width: "100%" }}>
+                <div className="system-search">
+                  <ul className="search-ul more-ul">
+                    <li>
+                      <span>体检卡型号</span>
+                      <Select
+                        allowClear
+                        placeholder="全部"
+                        value={this.state.searchTicketModel}
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchTicketModelChange(e)}
+                      >
+                        {this.state.productModelIds.map((item, index) => {
+                          return (
+                            <Option key={index} value={item.id}>
+                              {item.name}
+                            </Option>
+                          );
+                        })}
+                      </Select>
+                    </li>
+                    <li>
+                      <span>体检卡号</span>
+                      <Input
+                        placeholder="请输入体检卡号"
+                        style={{ width: "172px" }}
+                        value={searchTicketNo}
+                        suffix={suffix3}
+                        onChange={e => this.searchTicketNo(e)}
+                      />
+                    </li>
+                    <li>
+                      <span>是否到期</span>
+                      <Select
+                        placeholder="全部"
+                        allowClear
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchExpireChange(e)}
+                      >
+                        <Option value={0}>未到期</Option>
+                        <Option value={1}>已到期</Option>
+                      </Select>
+                    </li>
+                    <li>
+                      <span>剩余可用次数</span>
+                      <Input
+                        placeholder="请输入剩余可用次数"
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchSurplusChange(e)}
+                        value={searchSurplus}
+                        suffix={suffix2}
+                      />
+                    </li>
+                    <li>
+                      <span>是否禁用</span>
+                      <Select
+                        placeholder="全部"
+                        allowClear
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchTicketStatusChange(e)}
+                      >
+                        <Option value={1}>未禁用</Option>
+                        <Option value={4}>已禁用</Option>
+                      </Select>
+                    </li>
+                    <li>
+                      <span>分配时间</span>
+                      <DatePicker
+                        style={{ width: "130px" }}
+                        dateRender={current => {
+                          const style = {};
+                          if (current.date() === 1) {
+                            style.border = "1px solid #1890ff";
+                            style.borderRadius = "45%";
+                          }
+                          return (
+                            <div className="ant-calendar-date" style={style}>
+                              {current.date()}
+                            </div>
+                          );
+                        }}
+                        format="YYYY-MM-DD"
+                        placeholder="起始时间"
+                        onChange={e => this.searchBeginTime(e)}
+                      />
+                      --
+                      <DatePicker
+                        style={{ width: "130px" }}
+                        dateRender={current => {
+                          const style = {};
+                          if (current.date() === 1) {
+                            style.border = "1px solid #1890ff";
+                            style.borderRadius = "45%";
+                          }
+                          return (
+                            <div className="ant-calendar-date" style={style}>
+                              {current.date()}
+                            </div>
+                          );
+                        }}
+                        format="YYYY-MM-DD"
+                        placeholder="结束时间"
+                        onChange={e => this.searchEndTime(e)}
+                      />
+                    </li>
+                    <li style={{ marginLeft: "10px" }}>
+                      <Button
+                        icon="search"
+                        type="primary"
+                        onClick={() => this.onSearchDetail()}
+                      >
+                        查询
+                      </Button>
+                    </li>
+                  </ul>
+                </div>
+                <div className="system-table">
+                  <Table
+                    columns={this.makeColumnsDetail()}
+                    className="my-table"
+                    dataSource={this.makeDataDetail(this.state.data2)}
+                    pagination={{
+                      total: this.state.total2,
+                      current: this.state.pageNum,
+                      pageSize: this.state.pageSize,
+                      showQuickJumper: true,
+                      showTotal: (total, range) => `共 ${total} 条数据`,
+                      onChange: (page, pageSize) =>
+                        this.onTablePageChangeDetail(page, pageSize)
+                    }}
+                  />
+                </div>
+                {/* 查看详情模态框 */}
+                <Modal
+                  title="F卡分配详情"
+                  visible={this.state.queryModalShow}
+                  onOk={() => this.onQueryModalClose()}
+                  onCancel={() => this.onQueryModalClose()}
+                >
+                  <Form>
+                    <FormItem label="服务站名称" {...formItemLayout}>
+                      {!!this.state.nowData ? this.state.nowData.station.name : ""}
+                    </FormItem>
+                    <FormItem label="体检卡号" {...formItemLayout}>
+                      {!!this.state.nowData ? this.state.nowData.ticketNo : ""}
+                    </FormItem>
+                    <FormItem label="分配日期" {...formItemLayout}>
+                      {!!this.state.nowData ? this.state.nowData.createTime : ""}
+                    </FormItem>
+                    <FormItem label="到期日期" {...formItemLayout}>
+                      {!!this.state.nowData ? this.state.nowData.validEndTime : ""}
+                    </FormItem>
+                    <FormItem label="有效期" {...formItemLayout}>
+                      {!!this.state.nowData
+                        ? this.getNameForInDate(this.state.nowData.timeLimitNum,this.state.nowData.timeLimitType) : ""}
+                    </FormItem>
+                    <FormItem label="是否到期" {...formItemLayout}>
+                      {!!this.state.nowData ? (
+                        Boolean(this.state.nowData.hasExpire) === true ? (
+                          <span style={{ color: "red" }}>已到期</span>
+                        ) : (
+                          <span style={{ color: "green" }}>未到期</span>
+                        )
+                      ) : (
+                        ""
+                      )}
+                    </FormItem>
+                    <FormItem label="是否禁用" {...formItemLayout}>
+                      {!!this.state.nowData
+                        ? this.ticketStatus(this.state.nowData.ticketStatus)
+                        : ""}
+                    </FormItem>
+                    <FormItem label="是否限制仅该服务站使用" {...formItemLayout}>
+                      {!!this.state.nowData ? (
+                        String(this.state.nowData.selfStation) === "1" ? (
+                          <span style={{ color: "green" }}>已限制</span>
+                        ) : (
+                          <span style={{ color: "red" }}>未限制</span>
+                        )
+                      ) : (
+                        ""
+                      )}
+                    </FormItem>
+                  </Form>
+                </Modal>
+              </div>
+            </TabPane>
+          </Tabs>
+        </div>
       </div>
     );
   }

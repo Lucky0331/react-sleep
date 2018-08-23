@@ -15,11 +15,10 @@ import "./index.scss";
 // 所需的所有组件
 // ==================
 
-import UserInfo from "./container/UserInfo";
-import DealerInfo from "./container/DealerInfo";
-import DealerInfoDetail from "./container/DealerInfoDetail";
-import CouponCard from "./container/CouponCard";
-import UserInfoRecord from "./container/UserInfoRecord";
+import ProvincialManager from "./container/ProvincialManager";//省级经销商
+import Messageboard from "./container/Messageboard";//留言咨询
+import assistantType from "./container/assistantType";//智能客服-问答分类
+import assistant from "./container/assistant";//智能客服-问答列表
 
 // ==================
 // 本页面所需action
@@ -50,32 +49,27 @@ class TheContainer extends React.Component {
           <Redirect
             exact
             from={`${this.props.match.path}`}
-            to={`${this.props.match.path}/userinfo`}
+            to={`${this.props.match.path}/provincialManager`}
           />
           <Route
             exact
-            path={`${this.props.match.path}/userinfo`}
-            component={UserInfo}
+            path={`${this.props.match.path}/provincialManager`}
+            component={ProvincialManager}
           />
           <Route
             exact
-            path={`${this.props.match.path}/dealerinfo`}
-            component={DealerInfo}
+            path={`${this.props.match.path}/Messageboard`}
+            component={Messageboard}
           />
           <Route
             exact
-            path={`${this.props.match.path}/dealerinfoDetail`}
-            component={DealerInfoDetail}
+            path={`${this.props.match.path}/question/assistantType`}  //智能客服-问答分类
+            component={assistantType}
           />
           <Route
             exact
-            path={`${this.props.match.path}/couponCard`}
-            component={CouponCard}
-          />
-          <Route
-            exact
-            path={`${this.props.match.path}/userinfoRecord`}
-            component={UserInfoRecord}
+            path={`${this.props.match.path}/question/assistant`}   //智能客服-问答列表
+            component={assistant}
           />
         </Switch>
       </div>

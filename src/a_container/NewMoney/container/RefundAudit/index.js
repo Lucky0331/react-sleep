@@ -306,13 +306,6 @@ class Category extends React.Component {
     });
   }
 
-  //右侧悬浮层显示框
-  hide2() {
-    this.setState({
-      AuditShow: false
-    });
-  }
-
   //悬浮层显示框
   handleVisibleChange() {
     this.setState({
@@ -393,11 +386,6 @@ class Category extends React.Component {
   // 搜索 - 申请退款结束时间
   searchApplyEndTime(v) {
     console.log("触发：", v);
-    // let date = v;
-    // const now = new Date();
-    // if (v._d.getFullYear() === now.getFullYear() && v._d.getMonth() === now.getMonth() && v._d.getDate() === now.getDate()) {
-    //     date = moment();
-    // }
     this.setState({
       searchrefundEndTime: _.cloneDeep(v)
     });
@@ -462,101 +450,7 @@ class Category extends React.Component {
         ? `${tools.dateToStr(this.state.searchrefundEndTime.utc()._d)}`
         : "" //申请退款时间 - 结束
     };
-    let form = document.getElementById("download-form");
-    if (!form) {
-      form = document.createElement("form");
-      document.body.appendChild(form);
-    }
-    else { form.innerHTML="";} form.id = "download-form";
-    form.action = `${Config.baseURL}/manager/export/refund/audit`;
-    form.method = "post";
-    console.log("FORM:", params);
-
-    const newElement = document.createElement("input");
-    newElement.setAttribute("name", "pageNum");
-    newElement.setAttribute("type", "hidden");
-    newElement.setAttribute("value", pageNum);
-    form.appendChild(newElement);
-
-    const newElement2 = document.createElement("input");
-    newElement2.setAttribute("name", "pageSize");
-    newElement2.setAttribute("type", "hidden");
-    newElement2.setAttribute("value", pageSize);
-    form.appendChild(newElement2);
-
-    const newElement3 = document.createElement("input");
-    if (params.activityType) {
-      newElement3.setAttribute("name", "activityType");
-      newElement3.setAttribute("type", "hidden");
-      newElement3.setAttribute("value", params.activityType);
-      form.appendChild(newElement3);
-    }
-
-    const newElement4 = document.createElement("input");
-    if (params.userType) {
-      newElement4.setAttribute("name", "userType");
-      newElement4.setAttribute("type", "hidden");
-      newElement4.setAttribute("value", params.userType);
-      form.appendChild(newElement4);
-    }
-
-    const newElement5 = document.createElement("input");
-    if (params.minAuditTime) {
-      newElement5.setAttribute("name", "minAuditTime");
-      newElement5.setAttribute("type", "hidden");
-      newElement5.setAttribute("value", params.minAuditTime);
-      form.appendChild(newElement5);
-    }
-
-    const newElement6 = document.createElement("input");
-    if (params.maxAuditTime) {
-      newElement6.setAttribute("name", "maxAuditTime");
-      newElement6.setAttribute("type", "hidden");
-      newElement6.setAttribute("value", params.maxAuditTime);
-      form.appendChild(newElement6);
-    }
-
-    const newElement8 = document.createElement("input");
-    if (params.payType) {
-      newElement8.setAttribute("name", "payType");
-      newElement8.setAttribute("type", "hidden");
-      newElement8.setAttribute("value", params.payType);
-      form.appendChild(newElement8);
-    }
-
-    const newElement9 = document.createElement("input");
-    if (params.userId) {
-      newElement9.setAttribute("name", "userId");
-      newElement9.setAttribute("type", "hidden");
-      newElement9.setAttribute("value", params.userId);
-      form.appendChild(newElement9);
-    }
-
-    const newElement10 = document.createElement("input");
-    if (params.productType) {
-      newElement10.setAttribute("name", "productType");
-      newElement10.setAttribute("type", "hidden");
-      newElement10.setAttribute("value", params.productType);
-      form.appendChild(newElement10);
-    }
-
-    const newElement11 = document.createElement("input");
-    if (params.orderNo) {
-      newElement11.setAttribute("name", "orderNo");
-      newElement11.setAttribute("type", "hidden");
-      newElement11.setAttribute("value", params.orderNo);
-      form.appendChild(newElement11);
-    }
-
-    const newElement12 = document.createElement("input");
-    if (params.minPrice) {
-      newElement12.setAttribute("name", "minPrice");
-      newElement12.setAttribute("type", "hidden");
-      newElement12.setAttribute("value", params.minPrice);
-      form.appendChild(newElement12);
-    }
-
-    form.submit();
+    tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/refund/audit`,'post','退款审核.xls')
   }
 
   // 查询某一条数据的详情
@@ -1254,72 +1148,6 @@ class Category extends React.Component {
             onChange: (page, pageSize) => this.onTablePageChange(page, pageSize)
           }}
         />
-        {/* 查看详情模态框 */}
-        <Modal
-          title="查看详情"
-          visible={this.state.queryModalShow}
-          onOk={() => this.onQueryModalClose()}
-          onCancel={() => this.onQueryModalClose()}
-          onChange={() => this.onQueryClick()}
-          wrapClassName={"list"}
-        >
-          <Form>
-            <FormItem label="订单号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.orderNo : ""}
-            </FormItem>
-            <FormItem label="退款状态" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getListByModelId(this.state.nowData.activityStatus)
-                : ""}
-            </FormItem>
-            <FormItem label="用户身份" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getUserType(this.state.nowData.userType)
-                : ""}
-            </FormItem>
-            <FormItem label="用户id" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.userId : ""}
-            </FormItem>
-            <FormItem label="活动方式" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getActivity(this.state.nowData.activityType)
-                : ""}
-            </FormItem>
-            <FormItem label="产品类型" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.findProductNameById(this.state.nowData.typeId)
-                : ""}
-            </FormItem>
-            <FormItem label="产品公司" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.Productcompany(this.state.nowData.company)
-                : ""}
-            </FormItem>
-            <FormItem label="产品型号" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.modelType : ""}
-            </FormItem>
-            <FormItem label="产品名称" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.name : ""}
-            </FormItem>
-            <FormItem label="数量" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.count : ""}
-            </FormItem>
-            <FormItem label="订单总金额" {...formItemLayout}>
-              {!!this.state.nowData ? `￥${this.state.nowData.fee}` : ""}
-            </FormItem>
-            <FormItem label="退款状态" {...formItemLayout}>
-              {!!this.state.nowData
-                ? this.getListByRefund(this.state.nowData.refundStatus)
-                : ""}
-            </FormItem>
-            <FormItem label="申请退款时间" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.auditTime : ""}
-            </FormItem>
-            <FormItem label="审核失败理由" {...formItemLayout}>
-              {!!this.state.nowData ? this.state.nowData.refundDetail : ""}
-            </FormItem>
-          </Form>
-        </Modal>
       </div>
     );
   }

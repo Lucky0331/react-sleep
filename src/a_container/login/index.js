@@ -233,7 +233,7 @@ class LoginContainer extends React.Component {
             <div className="title">
               <img src={LogoImg} alt="logo" />
             </div>
-            <div style={{ width: "55%", display: "block", margin: "auto" }}>
+            <div style={{ display: "block", margin: "auto" ,width:'380px'}}>
               <FormItem>
                 {getFieldDecorator("username", {
                   rules: [
@@ -290,7 +290,7 @@ class LoginContainer extends React.Component {
                 )}
               </FormItem>
               <FormItem
-                style={{ display: "block", margin: "auto", marginTop: "10px" }}
+                style={{ display: "block", margin: "auto",}}
               >
                 {getFieldDecorator("vcode", {
                   rules: [

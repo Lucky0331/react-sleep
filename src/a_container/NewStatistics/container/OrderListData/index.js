@@ -168,9 +168,9 @@ class Category extends React.Component {
   
   //运营数据 tab操作
   onSearchJump(e){
-    if(e==1){
+    if(e==1){ //e家用户
       this.onGetData(1, this.state.pageSize);
-    }else if(e==2){
+    }else if(e==2){ //未绑定用户
       this.onGetData2(1, this.state.pageSize);
     }
     setTimeout(()=>{

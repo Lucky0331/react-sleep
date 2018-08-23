@@ -79,7 +79,7 @@ class TheContainer extends React.Component {
           />
           <Route
             exact
-            path={`${this.props.match.path}/hracard/distribution`}
+            path={`${this.props.match.path}/hracard/distribution`}//F卡分配
             component={Distribution}
           />
           <Route

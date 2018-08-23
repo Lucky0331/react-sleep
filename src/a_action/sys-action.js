@@ -725,3 +725,16 @@ export function reserveSettingUpdate(params = {}) {
       });
   };
 }
+
+// 系统管理 - 操作日志
+export function OperationLog(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/operation/list",params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}

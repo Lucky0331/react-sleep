@@ -1211,6 +1211,14 @@ export function RefundExportList(params = {}) {
   };
 }
 
+//订单列表跳转订单详情所带参数
+export function OrderListDetail(v) {
+  return {
+    type:"Orderdetail::OrderListDetail",
+    payload:v
+  };
+}
+
 
 //计费方式的选择
 export function onChange3(feeType) {

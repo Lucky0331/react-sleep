@@ -22,6 +22,7 @@ import Jurisdiction from "./container/jurisdiction";
 import Menus from "./container/menu";
 import BuyPower from "./container/buypower";
 import MyUserInfo from "./container/myuserinfo";
+import Opelog from "./container/opelog";
 
 import NotFound from "../../a_container/notfound";
 // ==================
@@ -97,6 +98,11 @@ class SystemContainer extends React.Component {
             exact
             path={`/${this.state.baseURL}/buypower`}
             component={BuyPower}
+          />
+          <Route
+            exact
+            path={`/${this.state.baseURL}/opelog`}
+            component={Opelog}
           />
           <Route component={NotFound} />
         </Switch>

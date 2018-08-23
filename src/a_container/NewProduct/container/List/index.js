@@ -802,7 +802,8 @@ class Category extends React.Component {
       {
         title: "产品名称",
         dataIndex: "name",
-        key: "name"
+        key: "name",
+        width:420,
       },
       {
         title: "产品类型",
@@ -915,7 +916,6 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
-          !record.onShelf &&
             controls.push(
               <span
                 key="3"
@@ -1182,24 +1182,6 @@ class Category extends React.Component {
           maskClosable={false}
         >
           <Form>
-            <FormItem label="产品类型" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
-              {getFieldDecorator("formTypeId", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请选择产品类型" }]
-              })(
-                <Select
-                  placeholder="请选择产品类型"
-                  onChange={e => this.Newproduct(e)}
-                  disabled={this.state.addOrUp === "look"}
-                >
-                  {this.state.productTypes.map((item, index) => (
-                    <Option key={index} value={String(item.id)}>
-                      {item.name}
-                    </Option>
-                  ))}
-                </Select>
-              )}
-            </FormItem>
             <FormItem label="产品名称" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
               {getFieldDecorator("formName", {
                 initialValue: undefined,
@@ -1218,6 +1200,43 @@ class Category extends React.Component {
                   }
                 ]
               })(<Input disabled={this.state.addOrUp === "look"} placeholder="请输入产品名称" />)}
+            </FormItem>
+            <FormItem label="产品类型" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("formTypeId", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择产品类型" }]
+              })(
+                <Select
+                  placeholder="请选择产品类型"
+                  onChange={e => this.Newproduct(e)}
+                  disabled={this.state.addOrUp === "look"}
+                >
+                  {this.state.productTypes.map((item, index) => (
+                    <Option key={index} value={String(item.id)}>
+                      {item.name}
+                    </Option>
+                  ))}
+                </Select>
+              )}
+            </FormItem>
+            <FormItem label="二级分类标签" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("formTypeLabel", {
+                initialValue: undefined,
+              })(
+                <Select disabled={this.state.addOrUp === "look"} mode="multiple" placeholder="请选择产品标签">
+                  {(() => {
+                    const id = String(form.getFieldValue("formTypeId"));
+                    return this.state.productLabels.filter(item => String(item.code) === id).map((item, index) => (
+                    (item.productTagList).map((item) =>
+                      <Option key={index} value={String(item.id)}>
+                        {item.tagName}
+                      </Option>
+                      )
+                    ))
+                  })()
+                  }
+                </Select>
+              )}
             </FormItem>
             <FormItem label="产品型号" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
               {getFieldDecorator("formTypeCode", {
@@ -1246,25 +1265,6 @@ class Category extends React.Component {
                 <Select disabled={this.state.addOrUp === "look"} placeholder="请选择活动方式">
                   <Option value={1}>普通商品</Option>
                   <Option value={2}>活动商品</Option>
-                </Select>
-              )}
-            </FormItem>
-            <FormItem label="产品标签" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
-              {getFieldDecorator("formTypeLabel", {
-                initialValue: undefined,
-              })(
-                <Select disabled={this.state.addOrUp === "look"} mode="multiple" placeholder="请选择产品标签">
-                  {(() => {
-                    const id = String(form.getFieldValue("formTypeId"));
-                    return this.state.productLabels.filter(item => String(item.code) === id).map((item, index) => (
-                      (item.productTagList).map((item) =>
-                        <Option key={index} value={String(item.id)}>
-                          {item.tagName}
-                        </Option>
-                      )
-                    ))
-                  })()
-                  }
                 </Select>
               )}
             </FormItem>

@@ -16,7 +16,7 @@ import "./index.scss";
 // ==================
 
 import OrderList from "./container/OrderList";
-import OrderTwo from "./container/OrderTwo";
+import OrderListDetail from "./container/OrderListDetail";
 // ==================
 // 本页面所需action
 // ==================
@@ -55,8 +55,8 @@ class TheContainer extends React.Component {
           />
           <Route
             exact
-            path={`${this.props.match.path}/ordertwo`}
-            component={OrderTwo}
+            path={`${this.props.match.path}/OrderListDetail`}
+            component={OrderListDetail}
           />
         </Switch>
       </div>

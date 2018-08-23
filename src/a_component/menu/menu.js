@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Menu,Popover,} from "antd";
+import { Menu,Button,Icon} from "antd";
 import P from "prop-types";
 import "./menu.scss";
 
@@ -17,7 +17,8 @@ class Menus extends React.Component {
       show: false, // 是否显示
       chosedKey: [], // 当前选中
       openKeys: [], // 需要被打开的项
-      menuType: this.props.menuType
+      menuType: this.props.menuType,
+      collapsed: false,
     };
   }
 
@@ -27,7 +28,13 @@ class Menus extends React.Component {
     console.log("当前location:", location);
     return !(["login"].indexOf(path) > -1);
   }
-
+  
+  toggleCollapsed = () => {
+    this.setState({
+      collapsed: !this.state.collapsed,
+    });
+  }
+  
   // 组件初始化完毕时触发
   componentDidMount() {
     const data = JSON.parse(sessionStorage.getItem("adminMenu"));
@@ -118,19 +125,19 @@ class Menus extends React.Component {
       // console.log('key都是什么：', newKey);
       if (item.children) {
         if(item.parentId === 0){
-              return (
-                  <SubMenu key={newKey}
-                           title={[<img className="small-img" src={item.iconImg} key='0' style={{ marginLeft:'-10px',marginRight:'10px' }}/>,<span key='1'>{item.menuName}</span>]}>
-                      {this.makeTreeDom(item.children, newKey)}
-                  </SubMenu>
-              );
-          }else {
-            return(
-            <SubMenu key={newKey} title={<span key='1'>{item.menuName}</span>}>
+          return (
+            <SubMenu key={newKey}
+               title={[<img className="small-img" src={item.iconImg} key='0' style={{ marginLeft:'-10px',marginRight:'10px' }}/>,<span key='1'>{item.menuName}</span>]}>
               {this.makeTreeDom(item.children, newKey)}
             </SubMenu>
-            )
-          }
+          );
+          }else {
+            return(
+              <SubMenu key={newKey} title={<span key='1'>{item.menuName}</span>}>
+                {this.makeTreeDom(item.children, newKey)}
+              </SubMenu>
+          )
+        }
       } else {
         return (
           <MenuItem key={newKey}>

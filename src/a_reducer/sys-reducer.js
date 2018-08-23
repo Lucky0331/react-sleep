@@ -11,6 +11,7 @@ const initState = {
   detail:{},
   detail2:{},
   cardlist:{},
+  orderdetail:{},//订单列表详情
 };
 
 // ============================================
@@ -72,6 +73,14 @@ const userinfoRecord = (state, action) => {
   });
 };
 
+const OrderListDetail = (state, action) => {
+  const { payload } = action;
+  console.log("跳转到订单详情传的是什么：", payload);
+  return Object.assign({}, state, {
+    orderdetail: payload
+  });
+};
+
 const recordCard = (state,action) => {
   const { payload } = action;
   console.log("优惠卡参数：", payload);
@@ -93,13 +102,15 @@ const reducerFn = (state = initState, action) => {
       return findAllOrganizer(state, action);
     case "SYS::findAllProvince": // 保存所有的省市区
       return findAllProvince(state, action);
-    case "TEST::saveTest":          //结算详情 页面跳转传参
+    case "TEST::saveTest": //结算详情 页面跳转传参
       return saveTest(state, action);
-    case "Detail::detailRecord":    //经销商信息 页面跳转查看详情
+    case "Detail::detailRecord": //经销商信息 页面跳转查看详情
       return detailRecord(state, action);
-    case "Detail2::userinfoRecord":    //用户信息 页面跳转查看详情
+    case "Detail2::userinfoRecord": //用户信息 页面跳转查看详情
       return userinfoRecord(state, action);
-    case "CardList::recordCard":    //经销商id - 优惠卡信息
+    case "Orderdetail::OrderListDetail": //订单列表 页面跳转订单详情
+      return OrderListDetail(state, action);
+    case "CardList::recordCard": //经销商id - 优惠卡信息
       return recordCard(state,action);
     default:
       return actDefault(state, action);

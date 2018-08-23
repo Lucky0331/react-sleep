@@ -113,25 +113,21 @@ class Category extends React.Component {
     }
   }
 
-  warning2 = () =>{
-      message.warning('导出功能尚在开发 敬请期待');
-  };
-
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
     const params = {
       pageNum,
       pageSize,
-      userType: this.state.searchUserType,
+      userType: this.state.searchUserType,//用户身份
       withdrawType: this.state.searchWithdrawType,
-      nickName: this.state.searchUserName,
-      username: this.state.searchRealName,
+      nickName: this.state.searchUserName,//用户昵称
+      username: this.state.searchRealName,//用户姓名
       ambassadorName: this.state.searchambassadorName,
       tradeNo: this.state.searchtradeNo,
       phone: this.state.searchMobile,
       minAmount: this.state.searchMinPrice,
       maxAmount: this.state.searchMaxPrice,
-      userId: this.state.searchUserMallId,
+      userId: this.state.searchUserMallId,//用户iD
       partnerTradeNo: this.state.searchPartnerTradeNo,
       minApplyTime: this.state.searchBeginTime
         ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)}`
@@ -416,11 +412,6 @@ class Category extends React.Component {
 
   // 搜索 - 结束时间变化
   searchEndTime(v) {
-    // let date = v;
-    // const now = new Date();
-    // if (v._d.getFullYear() === now.getFullYear() && v._d.getMonth() === now.getMonth() && v._d.getDate() === now.getDate()) {
-    //     v = moment();
-    // }
     this.setState({
       searchEndTime: _.cloneDeep(v)
     });
