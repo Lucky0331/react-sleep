@@ -231,14 +231,6 @@ class Category extends React.Component {
         }
       });
   }
-  
-  // 工具 - 根据产品型号查产品名称
-  findModelByName(productModel) {
-    const t = this.state.productTypes.find(
-      item => String(item.productModel) === String(productModel)
-    );
-    return t ? t.productName : '';
-  }
 
   // 工具 - 根据产品类型名称查产品类型ID
   findProductNameById(name) {
@@ -618,7 +610,7 @@ class Category extends React.Component {
     })
   }
   
-// 选不同型号时重置计费方式
+  // 选不同型号时重置计费方式
   Newproduct2(e) {
     //产品类型改变时，重置产品型号的值位undefined
     // console.log("产品型号：", e);
@@ -872,7 +864,7 @@ class Category extends React.Component {
   }
   
   //取消订单按钮操作
-  onCloseClick(record){
+  onCloseClick(){
     this.setState({
       queryCloseShow:true,
     })
@@ -895,24 +887,6 @@ class Category extends React.Component {
   onTablePageChange(page, pageSize) {
     console.log("页码改变：", page, pageSize);
     this.onGetData(page, pageSize);
-  }
-  
-  // 产品型号选择时，查对应的计费方式
-  onSelectModels(id) {
-    const temp = this.state.productModels.find(item => {
-      return String(id) === String(item.id);
-    });
-    console.log("temp是什么：", temp);
-    return temp
-      ? {
-       charges: temp.chargeTypes ? temp.chargeTypes.map((item, index) => (
-         <div key={index}>
-           {index + 1}.{item.chargeName}
-         </div>
-         ))
-        : ""
-      }
-      : {};
   }
 
   // 构建字段

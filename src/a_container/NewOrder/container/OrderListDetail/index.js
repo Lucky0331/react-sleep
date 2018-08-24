@@ -22,15 +22,16 @@ import {
   Form,
   Button,
   Layout,
-  Menu,
+  Modal,
   Icon,
   Input,
+  Row,
   Table,
   message,
   Radio,
   Select,
   Tooltip,
-  Alert
+  Cascader
 } from "antd";
 import RoleTree from "../../../../a_component/roleTree"; // 角色树 用于选角色
 
@@ -49,10 +50,10 @@ import {
   findAllOrganizer,
   findAllProvince,
   findCityOrCounty,
-  findStationByArea
+  findStationByArea,
 } from "../../../../a_action/sys-action";
 import { findUserInfo, myCustomers } from "../../../../a_action/info-action";
-import { onOk,findOrderByWhere } from "../../../../a_action/shop-action";
+import { onOk,findOrderByWhere, findProductTypeByWhere,findProductModelByWhere,updateType,updateGoods,updateOrderModel} from "../../../../a_action/shop-action";
 // ==================
 // Definition
 // ==================
@@ -66,13 +67,21 @@ class Manager extends React.Component {
     super(props);
     this.state = {
       data: [], // 当前页面全部数据
+      data2:[],//编辑按钮发起的请求的数据
+      productTypes: [], //所有的产品类型
+      productModels: [], // 所有的产品型号
       nowData: null, // 当前选中用户的信息，用于查看详情
       total: 1, // 数据库总共多少条数据
       userId: "", // 获取用户id
+      upModalShow: false, // 修改订单型号信息模态框是否显示
+      upGoodsModalShow: false, // 修改收货信息模态框是否显示
       pageSize:1,
       pageNum:1,
       citys: [], // 所有的省
       collapsed: false,
+      chargeNames:[],//计费方式数组
+      chargeTypes: [], //所有的计费方式
+      code: undefined, //产品类型所对应的code值
     };
   }
 
@@ -91,6 +100,8 @@ class Manager extends React.Component {
         }))
       });
     }
+    this.getAllProductModel();// 获取所有的产品型号
+    this.getAllProductType(); // 获取所有的产品类型
     this.onGetData(
       this.props.orderdetail.payStatus, //支付状态
       this.props.orderdetail.payType, //支付方式
@@ -122,6 +133,7 @@ class Manager extends React.Component {
       this.props.orderdetail.userSaleIsIncome, //分销商是否有收益
       this.props.orderdetail.userSaleId, //分销商id
       this.props.orderdetail.orderStatus, //订单状态
+      this.props.orderdetail.orderAddressLast, //用户收货地址
     );
   }
 
@@ -136,6 +148,245 @@ class Manager extends React.Component {
         }))
       });
     }
+  }
+  
+  // 获取所有的产品类型，当前页要用
+  getAllProductType() {
+    this.props.actions
+      .findProductTypeByWhere({ pageNum: 0, pageSize: 9999 })
+      .then(res => {
+        if (res.status === "0") {
+          this.setState({
+            productTypes: res.data.result
+          });
+        }
+      });
+  }
+  
+  // 工具 - 根据产品类型名称查产品类型ID
+  findProductNameById(name) {
+    const t = this.state.productTypes.find(
+      item => String(item.name) === String(name)
+    );
+    return t ? t.id : '';
+  }
+  
+  // 工具 - 根据产品型号ID查产品名称型号名称
+  findProductModelByName(id) {
+    const t = this.state.productModels.find(
+        item => String(item.id) === String(id)
+    );
+    return t ? t.name : '';
+  }
+  
+  // 工具 - 根据产品型号ID拿产品ID modelId就是这个
+  findProductNames(id) {
+    const t = this.state.data2.find((item)=> Number(item.productModel.id) === Number(id));
+    return t ? t.id : "";
+  }
+  
+  // 工具 - 根据产品型号名称查产品名称型号ID
+  findProductModelById(name) {
+    const t = this.state.productModels.find(
+      item => String(item.name) === String(name)
+    );
+    return t ? t.id : '';
+  }
+  
+  // 获取所有产品型号，当前页要用
+  getAllProductModel() {
+    this.props.actions
+      .findProductModelByWhere({ pageNum: 0, pageSize: 9999 })
+      .then(res => {
+        console.log("这个有东西么:", res.data.modelList.result);
+        if (res.status === "0") {
+          this.setState({
+            productModels: res.data.modelList.result,
+            chargeTypes: res.data.chargeTypeList,
+          });
+        }
+      });
+  }
+  
+  //修改订单产品型号 - 模态框出现
+  onUpdateClick(){
+    const params = {
+      typeCode:this.findProductNameById(this.props.orderdetail.productType),
+      // productPrice:this.props.orderdetail.productPrice,
+    };
+    this.props.actions.updateType(tools.clearNull(params)).then(res => {
+      console.log('这里的data是什么',res.data)
+      console.log('aaaa',res.data.map(item => (item.id))
+      )
+      if (res.status === "0") {
+        this.setState({
+          data2: res.data || [],
+          productId:res.data.map(item => (item.id))
+        });
+      } else {
+        message.error(res.message || "获取数据失败，请重试");
+      }
+    });
+    const me = this;
+    const {form} = me.props;
+    form.setFieldsValue({
+      formTypeId:String(this.findProductNameById(this.props.orderdetail.productType)),
+      formName:this.props.orderdetail.productName,
+      formTypeCode:Number.isInteger(this.props.orderdetail.productModel) ? String(this.props.orderdetail.productModel) : String(this.findProductModelById(this.props.orderdetail.productModel)),//型号id
+      chargesTypes:this.props.orderdetail.feeType,
+      upDateAddress:this.props.orderdetail.orderAddressLast,//收获地址
+      upDateMobile:this.props.orderdetail.orderPhone,
+      upDateName:this.props.orderdetail.orderConsignee,
+      upDateSex:this.props.orderdetail.sex,//收货性别
+    });
+    me.setState({
+      nowData:this.props.orderdetail,
+      upModalShow:true,
+      productType: this.props.orderdetail.productType,
+    });
+  }
+  
+  // 关闭修改某一条数据
+  onUpNewClose() {
+    this.setState({
+      upModalShow: false,
+      upGoodsModalShow:false
+    });
+  }
+  
+  //确定修改订单信息  一系列
+  onUpOk() {
+    const me = this;
+    const { form } = me.props;
+    console.log('这个me是什么',me)
+    form.validateFields([
+      "formTypeCode",
+      "formName",
+      "formId",
+      "chargesTypes",
+    ], (err, values) => {
+      console.log('走到了吗',err, values)
+      if (err) {
+        return false;
+      }
+      me.setState({
+        upLoading: true
+      });
+      const params = {
+        orderId: me.state.nowData.orderId,//订单号
+        modelId: values.formTypeCode,//产品型号id
+        productId: this.findProductNames(values.formTypeCode),//产品类型id
+        modelName: this.findProductModelByName(values.formTypeCode),//产品型号名称
+        feeType: values.chargesTypes,//计费方式
+      };
+      this.props.actions
+          .updateOrderModel(params)
+          .then(res => {
+            if (res.status === "0") {
+              message.success("修改成功");
+              this.onGetData(this.state.pageNum, this.state.pageSize);
+              this.onUpNewClose();
+            } else {
+              message.error(res.message || "修改失败，请重试");
+            }
+            me.setState({
+              upLoading: false
+            });
+          })
+          .catch(() => {
+            me.setState({
+              upLoading: false
+            });
+          });
+    });
+  }
+  
+  //修改收货信息 - 模态框出现
+  onUpdateGoodsClick(){
+    const me = this;
+    const {form} = me.props;
+    form.setFieldsValue({
+      upDateAddress:this.props.orderdetail.orderAddressLast,//收获地址
+      upDateMobile:this.props.orderdetail.orderPhone,
+      upDateName:this.props.orderdetail.orderConsignee,
+      upDateSex:this.props.orderdetail.sex,//收货性别
+    });
+    me.setState({
+      nowData:this.props.orderdetail,
+      upGoodsModalShow:true,
+      productType: this.props.orderdetail.productType,
+    });
+  }
+  
+  //确定修改收货信息
+  onUpGoodsOk() {
+    const me = this;
+    const { form } = me.props;
+    console.log('这个me是什么',me)
+    form.validateFields([
+      "upDateCitys",
+      "upDateAddress",
+      "upDateMobile",
+      "upDateName",
+      "upDateSex",
+    ], (err, values) => {
+      console.log('走到了吗',err, values)
+      if (err) {
+        return false;
+      }
+      me.setState({
+        upLoading: true
+      });
+      let t = [] ;
+      if(values.upDateCitys && values.upDateCitys.length){
+        t = values.upDateCitys
+      }else if(this.state.nowData.orderRegional){
+        t = this.state.nowData.orderRegional.split('/')
+      }
+      
+      const params = {
+        id: me.state.nowData.orderId,//订单号
+        contact: values.upDateName,//姓名
+        mobile:values.upDateMobile,//手机号
+        sex:values.upDateSex == '男' ? 1 : 2 ,//性别
+        province:t[0],
+        city:t[1],
+        region:t[2],
+        street:values.upDateAddress,
+      };
+      this.props.actions
+          .updateGoods(params)
+          .then(res => {
+            if (res.status === "0") {
+              message.success("修改成功");
+              this.onGetData(this.state.pageNum, this.state.pageSize);
+              this.onUpNewClose();
+            } else {
+              message.error(res.message || "修改失败，请重试");
+            }
+            me.setState({
+              upLoading: false
+            });
+          })
+          .catch(() => {
+            me.setState({
+              upLoading: false
+            });
+          });
+    });
+  }
+  
+  //取消订单按钮操作
+  onCloseClick(){
+    this.setState({
+      queryCloseShow:true,
+    })
+  }
+  
+  onQueryClose(){
+    this.setState({
+      queryCloseShow: false
+    });
   }
 
   // 获取所有的省
@@ -208,7 +459,6 @@ class Manager extends React.Component {
     const params = {
       category: 2,
     };
-
     this.props.actions.findOrderByWhere(tools.clearNull(params)).then(res => {
       if (res.status === "0") {
         this.setState({
@@ -219,7 +469,7 @@ class Manager extends React.Component {
       }
     });
   }
-
+  
   // 获取所有的省
   getAllCity0() {
     this.props.actions.findAllProvince();
@@ -295,6 +545,7 @@ class Manager extends React.Component {
     userSaleIsIncome:this.props.orderdetail.userSaleIsIncome,//分销商是否有收益
     userSaleId:this.props.orderdetail.userSaleId,//分销商id
     orderStatus:this.props.orderdetail.orderStatus,//订单状态
+    orderAddressLast:this.props.orderdetail.orderAddressLast,//用户收货地址
     };
   });
 }
@@ -427,11 +678,36 @@ class Manager extends React.Component {
           </Tooltip>
           <a href="#/order/orderlist" className="title" >订单详情</a>
         </div>
-        <Alert
-            showIcon={true}
-            message="当前订单状态 :"
-            banner
-        />
+        <div className="nowList">
+          <Icon type="exclamation-circle" />
+          <span className="fontnow">当前订单状态:</span><span>{this.props.orderdetail.orderStatus}</span>
+          <div style={{float:'right'}}>
+            <Button
+              icon="close-circle-o"
+              type="primary"
+              onClick={() => this.onCloseClick()}
+              style={{marginRight:'8px'}}
+            >
+              取消订单
+            </Button>
+            <Button
+              icon="edit"
+              type="primary"
+              onClick={() => this.onUpdateClick()}
+              style={{marginRight:'8px'}}
+            >
+              修改型号
+            </Button>
+            <Button
+              icon="setting"
+              type="primary"
+              onClick={() => this.onUpdateGoodsClick()}
+              style={{marginRight:'8px'}}
+            >
+              修改收货信息
+            </Button>
+          </div>
+        </div>
         <div className="infomation">订单信息</div>
         <div className="system-table" style={{ display: 'inline-flex',border:'none',margin:'10px 0px 0px 52px',}}>
           <Form style={{float:'left',width:'370px'}} className={"FormList"}>
@@ -561,6 +837,169 @@ class Manager extends React.Component {
             style={{marginTop:'20px'}}
           />
         </div>
+        {/* 编辑模态框 */}
+        <Modal
+          title="修改收货信息"
+          visible={this.state.upGoodsModalShow}
+          onOk={() => this.onUpGoodsOk()}
+          onCancel={() => this.onUpNewClose()}
+          confirmLoading={this.state.upLoading}
+          wrapClassName={"list"}
+        >
+          <Form>
+            <FormItem label="收货人姓名" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("upDateName", {
+                initialValue: undefined,
+                rules: [
+                  { max: 12, message: "最多输入12个字" }
+                ]
+              })(<Input placeholder="请输入收货人姓名" />)}
+            </FormItem>
+            <FormItem label="收货人性别" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("upDateSex", {
+                initialValue: true,
+              })(
+                <Select placeholder="请选择收货人性别">
+                  <Option value="男">男</Option>
+                  <Option value="女">女</Option>
+                </Select>
+              )}
+            </FormItem>
+            <FormItem label="收货人手机号" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("upDateMobile", {
+                initialValue: undefined,
+                rules: [{whitespace: true,min: 11,max: 11}]
+              })(<Input placeholder="请输入收货人手机号" />)}
+            </FormItem>
+            <FormItem label="收货省市区" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              <span style={{ color: "#888" }}>
+                {!!this.state.nowData ? this.state.nowData.orderRegional : ''}
+              </span>
+              {getFieldDecorator("upDateCitys", {
+                initialValue: undefined,
+              })(
+                <Cascader
+                  placeholder="请选择服务区域"
+                  options={this.state.citys}
+                  loadData={e => this.getAllCitySon(e)}
+                />
+              )}
+            </FormItem>
+            <FormItem label="收货地址" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("upDateAddress", {
+                initialValue: undefined,
+              })(<Input placeholder="请输入收货地址" />)}
+            </FormItem>
+          </Form>
+        </Modal>
+        {/* 编辑模态框 */}
+        <Modal
+          title="修改订单信息"
+          visible={this.state.upModalShow}
+          onOk={() => this.onUpOk()}
+          onCancel={() => this.onUpNewClose()}
+          confirmLoading={this.state.upLoading}
+          wrapClassName={"list"}
+        >
+          <Form>
+            <FormItem label="产品类型" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {/*{!!this.state.this.props.orderdetail ? this.state.this.props.orderdetail.productType : ''}*/}
+              {getFieldDecorator("formTypeId", {
+                initialValue: undefined,
+              })(
+                <Select
+                  disabled={true}
+                >
+                  {this.state.productTypes.map((item, index) => (
+                    <Option key={index} value={String(item.id)}>
+                      {item.name}
+                    </Option>
+                  ))}
+                </Select>
+              )}
+            </FormItem>
+            <FormItem label="产品型号" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("formTypeCode", {
+                initialValue: undefined,
+              })(
+                <Select placeholder="请选择产品型号">
+                  {(() => {
+                    const id = String(form.getFieldValue("formTypeId"));
+                    return this.state.productModels.filter(item => String(item.typeId) === id).map((item, index) => (
+                        <Option key={index} value={String(item.id)}>
+                          {item.name}
+                        </Option>
+                    ))
+                  })()
+                  }
+                </Select>
+              )}
+            </FormItem>
+            <FormItem label="产品名称" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("formName", {
+                initialValue: undefined,
+              })(
+                  <Input disabled={true}/>
+              )}
+            </FormItem>
+            <Row>
+              <FormItem
+                label="计费方式" {...formItemLayout}  labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}
+                className={
+                  this.state.productType == "健康食品" || this.state.productType == "生物科技" || this.state.productType == "健康评估"  ? "hide" : ""
+                }
+              >
+                {getFieldDecorator("chargesTypes", {
+                  initialValue: undefined,
+                  rules: [{ required: (()=>{
+                  const type = form.getFieldValue("formTypeId");
+                  return Number(type) === 1;
+                  })(), message: "请选择计费方式" }]
+                })(
+                  <RadioGroup>
+                    {(()=>{
+                      const type = form.getFieldValue("formTypeCode");
+                      console.log("===", type,this.state.data2);
+                      const t = this.state.data2.find((item)=>String(item.productModel.id) === String(type));
+                      console.log("AAAAAAAAA:", t);
+                      if(t && t.productModel && t.productModel.chargeTypes){
+                        return t.productModel.chargeTypes.map((item, index) => {
+                          return (
+                            <Radio key={index} value={item.feeType}>
+                              {item.chargeName}
+                            </Radio>
+                          );
+                        })
+                      }
+                      return null;
+                    })()}
+                  </RadioGroup>
+                )}
+              </FormItem>
+            </Row>
+          </Form>
+        </Modal>
+        {/*取消按钮的点击模态框*/}
+        <Modal
+            title="取消订单"
+            visible={this.state.queryCloseShow}
+            onOk={() => this.onQueryClose()}
+            onCancel={() => this.onQueryClose()}
+            wrapClassName={"list"}
+        >
+          <Form>
+            <FormItem
+                label="退款方式"
+                {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}
+            >
+              <RadioGroup onChange={this.onChange} style={{marginTop:'4px'}}>
+                <Radio style={{display: 'block',height: '30px',lineHeight: '30px'}} value={1}>线下退款</Radio>
+                <Radio style={{display: 'block',height: '30px',lineHeight: '30px'}} value={2}>资金原路返还</Radio>
+                <Radio style={{display: 'block',height: '30px',lineHeight: '30px'}} value={3}>无需退款</Radio>
+              </RadioGroup>
+            </FormItem>
+          </Form>
+        </Modal>
       </div>
     );
   }
@@ -608,7 +1047,12 @@ export default connect(
         findUserInfo,
         myCustomers,
         onOk,
-        findOrderByWhere
+        findOrderByWhere,
+        findProductTypeByWhere,
+        findProductModelByWhere,
+        updateType,
+        updateGoods,
+        updateOrderModel
       },
       dispatch
     )

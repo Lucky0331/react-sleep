@@ -36,6 +36,18 @@
   color:#000;
 }
 
+.nowList{
+  background-color: #fffbe6;
+  font-weight: 600;
+  font-size:15px;
+  padding:13px 10px;
+  color: darkred;
+  //color: rgb(249, 42, 25);
+  .fontnow{
+    margin-left: 5px;
+  }
+}
+
 a.title:visited,a.title:link {
   text-decoration:none;
 }
