@@ -1,6 +1,7 @@
 .page-login {
   height: calc(100vh - 75px);
   min-height: 250px;
+  background: #353535;//现在改的有颜色背景
   .backImg {
     img {
       height: 902px;
@@ -9,7 +10,8 @@
   }
   .login-box {
     width: 40%;
-    background: #fff;
+    //background: #fff;//之前的白色背景
+    background: #353535;//现在改的有颜色背景
     margin: 0 auto;
     min-height: 400px;
     padding: 10px;
@@ -33,16 +35,18 @@
     .vcode {
       width: 40% ;
       float: right;
-      margin-top: 3px;
+      margin-top: 1px;
       border: solid 1px #d9d9d9;
       border-radius: 4px;
+      color: #a1a1a1;
     }
     .submit-btn {
       float: right;
       width: 60%;
     }
     .login {
-      background: #fff;
+      //background: #fff;//之前的白色背景
+      background: #353535;//现在改的有颜色背景
       margin: 0 auto;
       min-height: 400px;
       padding: 10px;
@@ -61,4 +65,26 @@
       height: 100%;
     }
   }
+}
+//这下面是新写的input颜色
+#password{
+  color: #a1a1a1;
+  background-color: #2a2a2a;
+  box-shadow: 0px 0px 1px 1px #212121 inset;
+  border-color: #2a2a2a;
+}
+
+#username{
+  color: #a1a1a1;
+  background-color: #2a2a2a;
+  box-shadow: 0px 0px 1px 1px #212121 inset;
+  border-color: #2a2a2a;
+}
+
+#vcode{
+  font-size: 13px;
+  color: #a1a1a1;
+  background-color: #2a2a2a;
+  box-shadow: 0px 0px 1px 1px #212121 inset;
+  border-color: #2a2a2a;
 }

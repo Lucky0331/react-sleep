@@ -144,7 +144,7 @@ class Header extends React.Component {
   }
   render() {
     return [
-      <div key="0" className="com-header">
+      <div key="0" className={this.state.adminUser ? 'com-header' : "hide"}>
         <ul className="header-menu">
           <li
             style={{

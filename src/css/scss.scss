@@ -47,6 +47,24 @@ $blue-a: #67daf9; // 标准蓝色active
   text-align: center;
   height: 30px;
   line-height: 30px;
+  background: #353535;//现在改的底部有颜色背景
+  a {
+    color: $blue;
+    &:hover {
+      color: $blue-a;
+      text-decoration: underline;
+    }
+  }
+}
+
+.footerhide{
+  width: 100%;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  height: 30px;
+  line-height: 30px;
+  background: #fff;//除了登录页底部有背景颜色 其他页都没有
   a {
     color: $blue;
     &:hover {

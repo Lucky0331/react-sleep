@@ -71,18 +71,8 @@ class LoginContainer extends React.Component {
     this.setState({
       show: true
     });
-
-    // const menusInfo = JSON.parse(sessionStorage.getItem('adminBtn'));
-    // console.log('是什么：', menusInfo);
-    // this.makeSourceData(menusInfo || []);
+    
   }
-
-  // componentWillReceiveProps(nextP) {
-  //     const menusInfo = JSON.parse(sessionStorage.getItem('adminBtn'));
-  //     if(menusInfo !== this.state.sessionData ) {
-  //         this.makeSourceData(menusInfo || []);
-  //     }
-  // }
 
   async doSubmit(userName, password, callback, me, values) {
     let userInfo = null;
@@ -233,7 +223,7 @@ class LoginContainer extends React.Component {
             <div className="title">
               <img src={LogoImg} alt="logo" />
             </div>
-            <div style={{ display: "block", margin: "auto" ,width:'380px'}}>
+            <div style={{ display: "block", margin: "auto" ,width:'350px'}}>
               <FormItem>
                 {getFieldDecorator("username", {
                   rules: [
@@ -249,21 +239,22 @@ class LoginContainer extends React.Component {
                     prefix={
                       <Icon
                         type="user"
-                        style={{ fontSize: 14, fontWeight: "800" }}
+                        style={{ fontSize: 14, fontWeight: "800",color:'#a1a1a1' }}
                       />
                     }
+                    size="large"
                     placeholder="请输入用户名"
                     id="form_username"
                     onPressEnter={() => this.onSubmit()}
                     style={{
                       display: "block",
                       margin: "auto",
-                      marginTop: "20px"
+                      marginTop: "20px",
                     }}
                   />
                 )}
               </FormItem>
-              <FormItem>
+              <FormItem style={{marginBottom:"24px"}}>
                 {getFieldDecorator("password", {
                   rules: [
                     { required: true, message: "请输入密码" },
@@ -274,9 +265,10 @@ class LoginContainer extends React.Component {
                     prefix={
                       <Icon
                         type="lock"
-                        style={{ fontSize: 14, fontWeight: "800" }}
+                        style={{ fontSize: 14, fontWeight: "800", color:'#a1a1a1'}}
                       />
                     }
+                    size="large"
                     type="password"
                     placeholder="请输入密码"
                     id="form_password"
@@ -284,7 +276,7 @@ class LoginContainer extends React.Component {
                     style={{
                       display: "block",
                       margin: "auto",
-                      marginTop: "10px"
+                      marginTop: "10px",
                     }}
                   />
                 )}
@@ -315,20 +307,33 @@ class LoginContainer extends React.Component {
                   ]
                 })(
                   <Input
-                    style={{ width: "55%" }}
+                    prefix={
+                      <Icon
+                        type="safety"
+                        style={{ fontSize: 14, fontWeight: "800", color:'#a1a1a1'}}
+                      />
+                    }
+                    style={{ width: "55%" ,fontSize:'13px'}}
                     placeholder="请输入验证码"
                     id="form_vcode"
+                    size="large"
                     onPressEnter={() => this.onSubmit()}
                   />
                 )}
                 <Vcode
-                  height={32}
+                  height={38}
                   lineCount={50}
                   onChange={code => this.onVcodeChange(code)}
                   className="vcode"
                   options={{
                     lines: 16,
                     codes:[1,2,3,4,5,6,7,8,9,0]
+                  }}
+                  style={{
+                    backgroundColor:'#353535',
+                    color:'#a1a1a1',
+                    borderColor: '#2a2a2a',
+                    boxShadow: '0px 0px 1px 1px #212121 inset',
                   }}
                 />
               </FormItem>
@@ -337,7 +342,8 @@ class LoginContainer extends React.Component {
                   lineHeight: "28px",
                   margin: "auto",
                   marginTop: "40px",
-                  paddingBottom: "65px"
+                  paddingBottom: "65px",
+                  color:'#a1a1a1'
                 }}
               >
                 <Checkbox
