@@ -134,6 +134,7 @@ class Manager extends React.Component {
       this.props.orderdetail.userSaleId, //分销商id
       this.props.orderdetail.orderStatus, //订单状态
       this.props.orderdetail.orderAddressLast, //用户收货地址
+      this.props.orderdetail.orderFee, //订单总金额
     );
   }
 
@@ -212,7 +213,7 @@ class Manager extends React.Component {
   onUpdateClick(){
     const params = {
       typeCode:this.findProductNameById(this.props.orderdetail.productType),
-      // productPrice:this.props.orderdetail.productPrice,
+      productPrice:this.props.orderdetail.productPrice,
     };
     this.props.actions.updateType(tools.clearNull(params)).then(res => {
       console.log('这里的data是什么',res.data)
@@ -546,6 +547,7 @@ class Manager extends React.Component {
     userSaleId:this.props.orderdetail.userSaleId,//分销商id
     orderStatus:this.props.orderdetail.orderStatus,//订单状态
     orderAddressLast:this.props.orderdetail.orderAddressLast,//用户收货地址
+    orderFee:this.props.orderdetail.orderFee,//订单总金额
     };
   });
 }
@@ -557,32 +559,37 @@ class Manager extends React.Component {
         title: "产品名称",
         dataIndex: "productName",
         key: "productName",
-        width:400,
+        width:320,
       },
       {
         title: "产品类型",
         dataIndex: "productType",
         key: "productType",
+        width:240,
       },
       {
         title: "产品型号",
         dataIndex: "productModel",
         key: "productModel",
+        width:260,
       },
       {
         title: "数量",
         dataIndex: "count",
         key: "count",
+        width:260,
       },
       {
         title:'单价',
         dataIndex:'productPrice',
-        key:'productPrice'
+        key:'productPrice',
+        width:240,
       },
       {
         title:'小计',
         dataIndex:'subtotal',
-        key:'subtotal'
+        key:'subtotal',
+        width:240,
       },
     ];
     return columns;
@@ -593,19 +600,33 @@ class Manager extends React.Component {
     const columns = [
       {
         title: "商品合计",
+        width:320,
       },
       {
         title: "运费",
+        width:240,
       },
       {
         title: "活动优惠",
+        width:260,
       },
       {
         title: "订单总金额",
+        dataIndex:'orderFee',
+        key:'orderFee',
+        width:260,
       },
       {
         title:'实付款金额',
+        dataIndex:'orderFee',
+        key:'orderFee',
+        width:240,
       },
+      {
+        title:' ',
+        width:240,
+      },
+      
     ];
     return columns;
   }
@@ -616,30 +637,36 @@ class Manager extends React.Component {
       {
         title: "经销商id",
         dataIndex:'distributorId',
-        key:'distributorId'
+        key:'distributorId',
+        width:320,
       },
       {
         title: "经销商身份",
         dataIndex:'distributorIdentity',
-        key:'distributorIdentity'
+        key:'distributorIdentity',
+        width:240,
       },
       {
         title: "服务站地区",
         dataIndex:'distributorcitys',
-        key:'distributorcitys'
+        key:'distributorcitys',
+        width:260,
       },
       {
         title: "服务站名称",
+        width:260,
       },
       {
         title:"分销商是否有收益",
         dataIndex:'userSaleIsIncome',
-        key:'userSaleIsIncome'
+        key:'userSaleIsIncome',
+        width:240,
       },
       {
         title:"分销商id",
         dataIndex:'userSaleId',
-        key:'userSaleId'
+        key:'userSaleId',
+        width:240,
       },
     ];
     return columns;
@@ -682,14 +709,14 @@ class Manager extends React.Component {
           <Icon type="exclamation-circle" />
           <span className="fontnow">当前订单状态:</span><span>{this.props.orderdetail.orderStatus}</span>
           <div style={{float:'right'}}>
-            <Button
-              icon="close-circle-o"
-              type="primary"
-              onClick={() => this.onCloseClick()}
-              style={{marginRight:'8px'}}
-            >
-              取消订单
-            </Button>
+            {/*<Button*/}
+              {/*icon="close-circle-o"*/}
+              {/*type="primary"*/}
+              {/*onClick={() => this.onCloseClick()}*/}
+              {/*style={{marginRight:'8px'}}*/}
+            {/*>*/}
+              {/*取消订单*/}
+            {/*</Button>*/}
             <Button
               icon="edit"
               type="primary"
@@ -894,7 +921,7 @@ class Manager extends React.Component {
         </Modal>
         {/* 编辑模态框 */}
         <Modal
-          title="修改订单信息"
+          title="修改商品信息"
           visible={this.state.upModalShow}
           onOk={() => this.onUpOk()}
           onCancel={() => this.onUpNewClose()}
@@ -903,7 +930,6 @@ class Manager extends React.Component {
         >
           <Form>
             <FormItem label="产品类型" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
-              {/*{!!this.state.this.props.orderdetail ? this.state.this.props.orderdetail.productType : ''}*/}
               {getFieldDecorator("formTypeId", {
                 initialValue: undefined,
               })(
@@ -946,7 +972,7 @@ class Manager extends React.Component {
               <FormItem
                 label="计费方式" {...formItemLayout}  labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}
                 className={
-                  this.state.productType == "健康食品" || this.state.productType == "生物科技" || this.state.productType == "健康评估"  ? "hide" : ""
+                  this.props.orderdetail.productType == "健康食品" || this.props.orderdetail.productType == "生物科技" || this.props.orderdetail.productType == "健康评估"  ? "hide" : ""
                 }
               >
                 {getFieldDecorator("chargesTypes", {
@@ -981,16 +1007,16 @@ class Manager extends React.Component {
         </Modal>
         {/*取消按钮的点击模态框*/}
         <Modal
-            title="取消订单"
-            visible={this.state.queryCloseShow}
-            onOk={() => this.onQueryClose()}
-            onCancel={() => this.onQueryClose()}
-            wrapClassName={"list"}
+          title="取消订单"
+          visible={this.state.queryCloseShow}
+          onOk={() => this.onQueryClose()}
+          onCancel={() => this.onQueryClose()}
+          wrapClassName={"list"}
         >
           <Form>
             <FormItem
-                label="退款方式"
-                {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}
+              label="退款方式"
+              {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} style={{marginLeft:'15px'}}
             >
               <RadioGroup onChange={this.onChange} style={{marginTop:'4px'}}>
                 <Radio style={{display: 'block',height: '30px',lineHeight: '30px'}} value={1}>线下退款</Radio>

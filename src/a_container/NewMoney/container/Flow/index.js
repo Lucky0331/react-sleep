@@ -659,29 +659,6 @@ class Category extends React.Component {
         dataIndex: "userId",
         key: "userId"
       },
-      // {
-      //      title:
-      //     <Popover title="提示" content={<div>
-      //         <Table
-      //             columns={this.makeColumnsHint()}
-      //             className="my-table"
-      //             scroll={{ x: 900 }}
-      //             // dataSource={this.makeData(this.state.data)}
-      //             pagination={{
-      //                 total: this.state.total,
-      //                 current: this.state.pageNum,
-      //                 pageSize: this.state.pageSize,
-      //                 showQuickJumper: true,
-      //                 showTotal: (total, range) => `共 ${total} 条数据`,
-      //                 onChange: (page, pageSize) => this.onTablePageChange(page, pageSize)
-      //             }}
-      //         />
-      //     </div>} trigger="hover" placement="bottomLeft">
-      //         <span>分配类型</span><Icon type="question-circle" style={{fontSize:'20px',marginLeft:'5px',marginTop:'3px'}}/>
-      //     </Popover> ,
-      //     dataIndex: 'distributionType',
-      //     key: 'distributionType',
-      // },
       {
         title: "订单总金额",
         dataIndex: "orderTotalFee",
@@ -800,37 +777,6 @@ class Category extends React.Component {
     return columns;
   }
 
-  //构建提示Hint字段
-  makeColumnsHint() {
-    const columns = [
-      {
-        title: "分配类型id"
-      },
-      {
-        title: "产品类型"
-      },
-      {
-        title: "用户是否是经销商"
-      },
-      {
-        title: "经销商所在服务站是否承包体检设备"
-      },
-      {
-        title: "经销商"
-      },
-      {
-        title: "服务商"
-      },
-      {
-        title: "总部"
-      },
-      {
-        title: "提供体检服务服务站"
-      }
-    ];
-    return columns;
-  }
-
   //构建分配详情字段
   columns() {
     const columns = [
@@ -850,27 +796,6 @@ class Category extends React.Component {
       }
     ];
     return columns;
-  }
-
-  //构建子账户显示字段
-  columnschild() {
-    const columnschild = [
-      {
-        title: "经销商身份",
-        dataIndex: "name",
-        render: text => <a href="#">{text}</a>
-      },
-      {
-        title: "经销商id",
-        className: "column-money",
-        dataIndex: "money"
-      },
-      {
-        title: "经销商账户",
-        dataIndex: "address"
-      }
-    ];
-    return columnschild;
   }
 
   // 构建table所需数据
@@ -1033,14 +958,6 @@ class Category extends React.Component {
                 onChange={e => this.searchUserIdChange(e)}
               />
             </li>
-            {/*<li>*/}
-            {/*<span>分配类型</span>*/}
-            {/*<Select allowClear whitespace="true" placeholder="全部" value={this.state.searchDistributionType} onChange={(e) => this.searchDistributionTypeChange(e)} style={{ width: '172px'}}>*/}
-            {/*{this.state.distributionTypes.map((item, index) => {*/}
-            {/*return <Option key={index} value={item.id}>{ item.ruleCode}</Option>*/}
-            {/*})}*/}
-            {/*</Select>*/}
-            {/*</li>*/}
             <li>
               <span>流水号查询</span>
               <Input

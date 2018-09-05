@@ -326,7 +326,8 @@ class Category extends React.Component {
   onDeleteClick(record) {
     const params = {
       id: Number(record.id),
-      deviceStatus: record.deviceStatus ? 2 : 1
+      deviceStatus: record.deviceStatus ? 2 : 1,
+      deviceId:record.deviceId,
     };
     this.props.actions.deleteStation(params).then(res => {
       if (res.status === "0") {
@@ -971,7 +972,7 @@ class Category extends React.Component {
         </div>
         {/* 添加模态框 */}
         <Modal
-          title={this.state.addOrUp === "add" ? "产品上线" : "修改产品上线"}
+          title={this.state.addOrUp === "add" ? "设备上线" : "修改设备上线"}
           visible={this.state.addnewModalShow}
           onOk={() => this.onAddNewOk()}
           onCancel={() => this.onAddNewClose()}

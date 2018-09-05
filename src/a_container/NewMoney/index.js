@@ -90,7 +90,7 @@ class TheContainer extends React.Component {
           />
           <Route
             exact
-            path={`${this.props.match.path}/management/waterpur`}
+            path={`${this.props.match.path}/waterpur`}
             component={Waterpur}
           />
           <Route

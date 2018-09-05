@@ -710,7 +710,7 @@ class Category extends React.Component {
   //工具 - 根据ID拿到退款中的refundId
   getRefundId(selectedKeys) {
     const t = this.state.data.filter((item, index) =>
-        selectedKeys.includes(index)
+      selectedKeys.includes(index)
     );
     console.log("是个什么：", String(t.map(item => item.id).join(",")));
     return String(t.map(item => item.id).join(","));
@@ -1165,21 +1165,21 @@ class Category extends React.Component {
           record.refundStatus === 1 &&
           controls.push(
               <Popconfirm
-                  title={
-                    <div style={{height:'65px'}}>
-                    <TextArea
-                        placeholder="请输入拒绝理由"
-                        autosize={{ minRows: 1, maxRows: 4 }}
-                        value={this.state.refundDetail}
-                        defaultValue="退款审核未通过，如有疑问，请联系客服：4001519999"
-                        onChange={e => this.RefundDetail(e)}
-                    />
-                    </div>
-                  }
-                  trigger="click"
-                  placement="bottom"
-                  onCancel={() => this.onAddNewClose()}
-                  onConfirm={() => this.onAdoptAloneNo(record)}
+                title={
+                  <div style={{height:'65px'}}>
+                  <TextArea
+                    placeholder="请输入拒绝理由"
+                    autosize={{ minRows: 1, maxRows: 4 }}
+                    value={this.state.refundDetail}
+                    defaultValue="退款审核未通过，如有疑问，请联系客服：4001519999"
+                    onChange={e => this.RefundDetail(e)}
+                  />
+                  </div>
+                }
+                trigger="click"
+                placement="bottom"
+                onCancel={() => this.onAddNewClose()}
+                onConfirm={() => this.onAdoptAloneNo(record)}
               >
                 <span key="1" className="control-btn red">
                   <Tooltip placement="top" title="审核拒绝">
@@ -1191,9 +1191,9 @@ class Category extends React.Component {
           record.refundStatus === 3 &&
           controls.push(
               <span
-                  key="2"
-                  className="control-btn red"
-                  onClick={() => this.onAdoptAloneRefuse(record)}
+                key="2"
+                className="control-btn red"
+                onClick={() => this.onAdoptAloneRefuse(record)}
               >
                 <Tooltip placement="top" title="撤销审核">
                   <Icon type="logout" style={{ color: "red" }} />
@@ -1203,9 +1203,9 @@ class Category extends React.Component {
           record.refundStatus === 3 &&
           controls.push(
               <span
-                  key="3"
-                  className="control-btn green"
-                  onClick={() => this.onQueryClick(record)}
+                key="3"
+                className="control-btn green"
+                onClick={() => this.onQueryClick(record)}
               >
                 <Tooltip placement="top" title="详情">
                   <Icon type="eye" style={{ color: "green" }} />
@@ -1271,7 +1271,7 @@ class Category extends React.Component {
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         name: item.product ? item.product.name : "",
         modelId: item.product ? item.product.typeCode : "",
-        typeId: item.product.productType ? item.product.productType.code : "",//产品类型codee值
+        typeId: item.product.productType ? item.product.productType.code : "",//产品类型code值
         company: item.product.productType ? item.product.productType.code : "",//产品公司
         activityStatus: item.orders ? item.orders.activityStatus : "",
         userId: item.orders ? item.orders.userInfo.id : "",

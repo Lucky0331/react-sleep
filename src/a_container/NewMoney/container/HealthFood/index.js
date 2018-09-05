@@ -139,10 +139,6 @@ class Category extends React.Component {
 
   // 查询当前页面所需经营收益列表数据
   onGetData(pageNum, pageSize) {
-    // if (!this.state.searchPayMonth) {
-    //   message.error("请选择需要查询的结算月份", 1);
-    //   return;
-    // }
     const params = {
       pageNum,
       pageSize,
@@ -204,14 +200,14 @@ class Category extends React.Component {
       serialNumber: this.state.searchSerialNumber.trim(),
       distributionType: this.state.searchDistributionType,
       minCompleteTime: this.state.searchMinPayTime
-          ? `${tools.dateToStrD(this.state.searchMinPayTime._d)} 00:00:00`
-          : "",
+        ? `${tools.dateToStrD(this.state.searchMinPayTime._d)} 00:00:00`
+        : "",
       maxCompleteTime: this.state.searchMaxPayTime
-          ? `${tools.dateToStrD(this.state.searchMaxPayTime._d)} 23:59:59`
-          : "",
+        ? `${tools.dateToStrD(this.state.searchMaxPayTime._d)} 23:59:59`
+        : "",
       balanceMonth: this.state.searchPayMonth
-          ? `${tools.dateToStrD(this.state.searchPayMonth._d)} 00:00:00`
-          : "",
+        ? `${tools.dateToStrD(this.state.searchPayMonth._d)} 00:00:00`
+        : "",
       minOrderFee: this.state.searchMinOrderFee,
       maxOrderFee: this.state.searchMaxOrderFee,
       userType: this.state.searchUserType,
@@ -224,7 +220,6 @@ class Category extends React.Component {
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2]
     };
-    
     tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/food/settleAccounts/record`,'post','健康食品.xls')
   }
 
@@ -274,13 +269,6 @@ class Category extends React.Component {
   searchSerialNumberChange(v) {
     this.setState({
       searchSerialNumber: v.target.value
-    });
-  }
-
-  // 搜索 - 分配类型输入框值改变时触发
-  searchDistributionTypeChange(id) {
-    this.setState({
-      searchDistributionType: id
     });
   }
 
@@ -650,7 +638,7 @@ class Category extends React.Component {
     form.resetFields(["addnewTypeCode"]);
   }
 
-  // 构建经营收益字段
+  // 构建健康食品字段
   makeColumns() {
     const columns = [
       {
@@ -689,29 +677,6 @@ class Category extends React.Component {
         dataIndex: "userId",
         key: "userId"
       },
-      // {
-      //     title:
-      //         <Popover title="提示" content={<div>
-      //             <Table
-      //                 columns={this.makeColumnsHint()}
-      //                 className="my-table"
-      //                 scroll={{ x: 900 }}
-      //                 // dataSource={this.makeData(this.state.data)}
-      //                 pagination={{
-      //                     total: this.state.total,
-      //                     current: this.state.pageNum,
-      //                     pageSize: this.state.pageSize,
-      //                     showQuickJumper: true,
-      //                     showTotal: (total, range) => `共 ${total} 条数据`,
-      //                     onChange: (page, pageSize) => this.onTablePageChange(page, pageSize)
-      //                 }}
-      //             />
-      //         </div>} trigger="hover" placement="bottomLeft">
-      //             <span>分配类型</span><Icon type="question-circle" style={{fontSize:'20px',marginLeft:'5px',marginTop:'3px'}}/>
-      //         </Popover> ,
-      //     dataIndex: 'distributionType',
-      //     key: 'distributionType',
-      // },
       {
         title: "订单总金额",
         dataIndex: "orderTotalFee",
@@ -807,9 +772,6 @@ class Category extends React.Component {
         title: "推荐人区县级站长",
         dataIndex: "stationMasterMoney",
         key: "stationMasterMoney"
-        // render:(text)=>{
-        //     return `${text}￥`
-        // }
       },
       {
         title: "服务站（推荐人）",
@@ -1362,7 +1324,7 @@ class Category extends React.Component {
                 : ""}
             </FormItem>
             <FormItem label="经销商账户" {...formItemLayout}>
-                {!!this.state.nowData? this.state.nowData.distributorAccount: ""}
+              {!!this.state.nowData? this.state.nowData.distributorAccount: ""}
             </FormItem>
             <FormItem label="经销商所在服务站名称" {...formItemLayout}>
               {!!this.state.nowData

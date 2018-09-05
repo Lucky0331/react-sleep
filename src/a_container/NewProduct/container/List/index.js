@@ -9,7 +9,7 @@ import { bindActionCreators } from "redux";
 import P from "prop-types";
 import { Router, Route, Link } from "react-router-dom";
 import Config from "../../../../config/config";
-import { Form, Button, Icon, Input, InputNumber, Table, message, Popconfirm, Popover, Modal, Radio, Tooltip, Select, Upload, Divider } from "antd";
+import { Form, Button, Icon, Input, InputNumber, Table, message, Popconfirm, Popover, Modal, Radio, Tooltip, Select, Upload, Divider,Switch } from "antd";
 import "./index.scss";
 import BraftEditor from "braft-editor";
 import "braft-editor/dist/braft.css";
@@ -28,6 +28,7 @@ import {findProductByWhere,findProductTypeByWhere,addProduct,updateProduct,delet
 // ==================
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
+const { TextArea } = Input;
 const Option = Select.Option;
 class Category extends React.Component {
   constructor(props) {
@@ -59,6 +60,7 @@ class Category extends React.Component {
       fileProgramLoading: false, // 小程序产品详情图片正在上传
       fileVideoLoading: false,  // 视频上传中
       temp:[],
+      sorts:'',
     };
     this.editor = null; // 这是新增时候的那个编辑器
   }
@@ -267,7 +269,7 @@ class Category extends React.Component {
     }
   }
 
-  /** 下架或上架 **/
+  /** 上架 **/
   onUpdateClick2(record) {
     const params = {
       id: record.id,
@@ -277,7 +279,8 @@ class Category extends React.Component {
       typeCode: record.typeCode,
       saleMode: Number(record.saleMode),
       marketPrice: record.marketPrice,
-      onShelf: record.onShelf ? 1 : 0,
+      // onShelf: record.onShelf ? 1 : 0,
+      onShelf: 1,
       productImg: record.productImg,
       detailImg: record.detailImg,
       activityType: record.activityType
@@ -287,7 +290,39 @@ class Category extends React.Component {
       .deleteProduct(params)
       .then(res => {
         if (res.status === "0") {
-          message.success("修改成功");
+          message.success(res.message || "修改成功");
+          this.onGetData(this.state.pageNum, this.state.pageSize);
+        } else {
+          message.error(res.message || "修改失败，请重试");
+        }
+      })
+      .catch(() => {
+        message.error("修改失败");
+      });
+  }
+  
+  /** 下架 **/
+  onUpdateClick4(record) {
+    const params = {
+      id: record.id,
+      name: record.name,
+      price: record.price,
+      typeId: Number(record.typeId),
+      typeCode: record.typeCode,
+      saleMode: Number(record.saleMode),
+      marketPrice: record.marketPrice,
+      // onShelf: record.onShelf ? 1 : 0,
+      onShelf: 0,
+      productImg: record.productImg,
+      detailImg: record.detailImg,
+      activityType: record.activityType
+    };
+
+    this.props.actions
+      .deleteProduct(params)
+      .then(res => {
+        if (res.status === "0") {
+          message.success("上架成功！");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
           message.error(res.message || "修改失败，请重试");
@@ -320,6 +355,14 @@ class Category extends React.Component {
       .catch(() => {
         message.error("修改失败");
       });
+  }
+  
+  //修改排序要传进来的值
+  UpdateSorts(e) {
+    console.log('排序序号',e)
+    this.setState({
+      sorts: e
+    });
   }
 
   // 查看、添加或修改确定
@@ -357,7 +400,7 @@ class Category extends React.Component {
           name: values.formName, // 产品名称
           typeId: Number(values.formTypeId), // 产品类型ID
           typeCode: Number(values.formTypeCode), // 产品型号ID
-          productTag: String(values.formTypeLabel), // 产品标签ID
+          productTag: values.formTypeLabel ? String(values.formTypeLabel) : '', // 产品标签ID
           activityType: values.formActivityType, // 活动方式ID
           productImg: this.state.fileList.map(item => item.url).join(","), // 产品封面图片们
           detailImg: this.state.fileListDetail.map(item => item.url).join(","), // 列表封面图片们
@@ -370,32 +413,42 @@ class Category extends React.Component {
         };
         if (this.state.addOrUp === "add") {
           // 新增
-            params.onShelf = 1;
+          params.onShelf = 0;
           me.props.actions.addProduct(tools.clearNull(params)).then(res => {
+            this.onGetData(this.state.pageNum, this.state.pageSize);
+            this.onModalClose();
+            if (res.status === "0") {
+              message.success(res.message || "修改成功");
               this.onGetData(this.state.pageNum, this.state.pageSize);
-              this.onModalClose();
               me.setState({
                 loading: false
               });
-            }).catch((e) => {
+            } else {
+              message.error(res.message || "修改失败，请重试");
               me.setState({
-                  loading: false
+                loading: false
               });
-            });
+            }
+          })
         } else { // 修改
           params.id = this.state.nowData.id;
           params.onShelf = this.state.nowData.OnShelf ? 1 : 0;
           me.props.actions.updateProduct(params).then(res => {
+            this.onGetData(this.state.pageNum, this.state.pageSize);
+            this.onModalClose();
+            if (res.status === "0") {
+              message.success(res.message || "修改成功");
               this.onGetData(this.state.pageNum, this.state.pageSize);
-              this.onModalClose();
-              me.setState({
-                  loading: false
-              });
-            }).catch((e) => {
               me.setState({
                 loading: false
               });
-            });
+            } else {
+              message.error(res.message || "修改失败，请重试");
+              me.setState({
+                loading: false
+              });
+            }
+          })
         }
       }
     );
@@ -748,6 +801,32 @@ class Category extends React.Component {
         }
       : {};
   }
+  
+  //修改排序序号的请求
+  onModalUpdateOk(record) {
+    console.log('排序序号有么',record.sorts)
+    const params = {
+      id: record.id,
+      sorts:this.state.sorts,
+      name:record.name,
+      price:record.price,
+      typeId:record.typeId,
+      typeCode:record.typeCode,
+      activityType:record.activityType,
+    };
+    this.props.actions.updateProduct(params).then(res => {
+        if (res.status === "0") {
+          message.success("修改成功", 1);
+          this.onGetData(this.state.pageNum, this.state.pageSize);
+        } else {
+          message.error(res.message || "修改失败，请重试");
+        }
+      })
+      .catch(() => {
+        message.error("修改失败");
+      });
+  }
+  
   // 构建字段
   makeColumns() {
     const columns = [
@@ -827,11 +906,11 @@ class Category extends React.Component {
         title: "产品状态 ",
         dataIndex: "onShelf",
         key: "onShelf",
-        render: text =>
-          text ? (
-            <span style={{ color: "green" }}>已上架</span>
-          ) : (
-            <span style={{ color: "red" }}>未上架</span>
+        render: (text,record) =>
+          record.onShelf == 0 ? (
+            <Switch onClick={() => this.onUpdateClick4(record)} size="small" />
+          ):(
+            <Switch onClick={() => this.onUpdateClick2(record)} checkedChildren="已上架" size="small" defaultChecked/>
           )
       },
       {
@@ -840,15 +919,43 @@ class Category extends React.Component {
         key:'newProduct',
         render:text =>
           text ? (
-              <span style={{ color: "green" }}>已推荐</span>
+            <span style={{ color: "green" }}>已推荐</span>
           ):(
-              <span style={{ color: "red" }}>未推荐</span>
+            <span style={{ color: "red" }}>未推荐</span>
           )
       },
       {
         title:'排序',
         dataIndex:'sorts',
-        key:'sorts'
+        key:'sorts',
+        render:(text, record) => {
+          const sorts = [];
+          sorts.push(
+            <Popconfirm
+              title={
+                <div style={{height:'25px'}}>
+                  <InputNumber
+                    placeholder="修改排序序号"
+                    onChange={e => this.UpdateSorts(e)}
+                    style={{width:'120px'}}
+                    min={0} max={15}
+                  />
+                </div>
+              }
+              trigger="click"
+              placement="bottomLeft"
+              onCancel={() => this.onModalClose()}
+              onConfirm={() => this.onModalUpdateOk(record)}
+            >
+              <span key="1">
+                <Tooltip placement="top" title="修改排序">
+                 {record.sorts}<Icon type="edit" />
+                </Tooltip>
+              </span>
+            </Popconfirm>
+          );
+          return sorts;
+        }
       },
       {
         title:'操作',
@@ -856,31 +963,30 @@ class Category extends React.Component {
         width: 200,
         render: (text, record) => {
           const controls = [];
-
-          !record.onShelf &&
-            controls.push(
-              <span
-                key="0"
-                className="control-btn blue"
-                onClick={() => this.onUpdateClick2(record)}
-              >
-                <Tooltip placement="top" title="上架">
-                  <Icon type="caret-up" />
-                </Tooltip>
-              </span>
-            );
-          record.onShelf &&
-            controls.push(
-              <span
-                key="1"
-                className="control-btn red"
-                onClick={() => this.onUpdateClick2(record)}
-              >
-                <Tooltip placement="top" title="下架">
-                  <Icon type="caret-down" />
-                </Tooltip>
-              </span>
-            );
+          // !record.onShelf &&
+          //   controls.push(
+          //     <span
+          //       key="0"
+          //       className="control-btn blue"
+          //       onClick={() => this.onUpdateClick2(record)}
+          //     >
+          //       <Tooltip placement="top" title="上架">
+          //         <Icon type="caret-up" />
+          //       </Tooltip>
+          //     </span>
+          //   );
+          // record.onShelf &&
+          //   controls.push(
+          //     <span
+          //       key="1"
+          //       className="control-btn red"
+          //       onClick={() => this.onUpdateClick2(record)}
+          //     >
+          //       <Tooltip placement="top" title="下架">
+          //         <Icon type="caret-down" />
+          //       </Tooltip>
+          //     </span>
+          //   );
           !record.newProduct &&
             controls.push(
               <span
@@ -916,17 +1022,17 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
-            controls.push(
-              <span
-                key="3"
-                className="control-btn blue"
-                onClick={() => this.onModalShow("up", record)}
-              >
-                <Tooltip placement="top" title="编辑">
-                  <Icon type="edit" />
-                </Tooltip>
-              </span>
-            );
+          controls.push(
+            <span
+              key="3"
+              className="control-btn blue"
+              onClick={() => this.onModalShow("up", record)}
+            >
+              <Tooltip placement="top" title="编辑">
+                <Icon type="edit" />
+              </Tooltip>
+            </span>
+          );
           !record.onShelf &&
             controls.push(
               <Popconfirm

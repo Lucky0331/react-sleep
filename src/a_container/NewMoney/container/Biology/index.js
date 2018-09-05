@@ -182,7 +182,7 @@ class Category extends React.Component {
         this.setState({
           data:[],
         })
-        message.warning(res.message || "获取数据失败，请重试" , 1.5);
+        message.warning(res.message || "获取数据失败，请重试", 1.5);
       }
     });
   }
@@ -219,7 +219,6 @@ class Category extends React.Component {
       city: this.state.searchAddress[1],
       region: this.state.searchAddress[2]
     };
-    
     tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/biological/settleAccounts/record`,'post','生物理疗.xls')
   }
 
@@ -262,13 +261,6 @@ class Category extends React.Component {
   searchSerialNumberChange(v) {
     this.setState({
       searchSerialNumber: v.target.value
-    });
-  }
-
-  // 搜索 - 分配类型输入框值改变时触发
-  searchDistributionTypeChange(id) {
-    this.setState({
-      searchDistributionType: id
     });
   }
 
@@ -1000,7 +992,6 @@ class Category extends React.Component {
       }
     };
 
-    // console.log('是啥：', this.state.productModels.filter((item) => String(item.typeId) === String(form.getFieldValue('addnewTypeId'))));
     const modelId = form.getFieldValue("addnewTypeCode");
 
     const { searchOrderId } = this.state;
@@ -1084,14 +1075,6 @@ class Category extends React.Component {
                 onChange={e => this.searchUserIdChange(e)}
               />
             </li>
-            {/*<li>*/}
-            {/*<span style={{marginRight:'10px'}}>分配类型</span>*/}
-            {/*<Select allowClear whitespace="true" placeholder="全部" value={this.state.searchDistributionType} onChange={(e) => this.searchDistributionTypeChange(e)} style={{ width: '172px',marginLeft:'8px'}}>*/}
-            {/*{this.state.distributionTypes.map((item, index) => {*/}
-            {/*return <Option key={index} value={item.id}>{ item.ruleCode}</Option>*/}
-            {/*})}*/}
-            {/*</Select>*/}
-            {/*</li>*/}
             <li>
               <span>流水号查询</span>
               <Input
@@ -1317,12 +1300,6 @@ class Category extends React.Component {
                 ? this.getUserType(this.state.nowData.userType)
                 : ""}
             </FormItem>
-            {/*<FormItem*/}
-            {/*label="分配类型"*/}
-            {/*{...formItemLayout}*/}
-            {/*>*/}
-            {/*{!!this.state.nowData ? this.state.nowData.distributionType : ''}*/}
-            {/*</FormItem>*/}
             <FormItem label="数量" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.orderProductCount : ""}
             </FormItem>

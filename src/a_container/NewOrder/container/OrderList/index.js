@@ -1048,7 +1048,7 @@ class Category extends React.Component {
               className="control-btn blue"
               onClick={() => this.onUpdateClick(record)}
             >
-              <Tooltip placement="top" title="修改订单信息">
+              <Tooltip placement="top" title="修改商品信息">
                 <Icon type="edit" />
               </Tooltip>
             </span>
@@ -1078,17 +1078,17 @@ class Category extends React.Component {
               </a>
             </span>
           );
-          controls.push(
-            <span
-              key="3"
-              className="control-btn green"
-              onClick={() => this.onCloseClick(record)}
-            >
-              <Tooltip placement="top" title="取消">
-                <Icon type="close-circle-o" />
-              </Tooltip>
-            </span>
-          );
+          // controls.push(
+          //   <span
+          //     key="3"
+          //     className="control-btn green"
+          //     onClick={() => this.onCloseClick(record)}
+          //   >
+          //     <Tooltip placement="top" title="取消">
+          //       <Icon type="close-circle-o" />
+          //     </Tooltip>
+          //   </span>
+          // );
           const result = [];
           controls.forEach((item, index) => {
             if (index) {
@@ -1508,17 +1508,18 @@ class Category extends React.Component {
             </li>
           </ul>
         </div>
-        <Alert
-          showIcon={true}
-          message="操作提示"
-          banner
-        />
-        <Alert
-          showIcon={false}
-          message="取消订单 : 仅待发货状态可以取消订单"
-          banner
-          style={{paddingLeft:'36px'}}
-        />
+        {/*等有了取消订单操作再把下面注释的取消掉*/}
+        {/*<Alert*/}
+          {/*showIcon={true}*/}
+          {/*message="操作提示"*/}
+          {/*banner*/}
+        {/*/>*/}
+        {/*<Alert*/}
+          {/*showIcon={false}*/}
+          {/*message="取消订单 : 仅待发货状态可以取消订单"*/}
+          {/*banner*/}
+          {/*style={{paddingLeft:'36px'}}*/}
+        {/*/>*/}
         <div className="system-table" style={{ marginTop: "2px" }}>
           <Table
             columns={this.makeColumns()}
@@ -1538,7 +1539,7 @@ class Category extends React.Component {
         </div>
         {/* 编辑模态框 */}
         <Modal
-          title="修改订单信息"
+          title="修改商品信息"
           visible={this.state.upModalShow}
           onOk={() => this.onUpOk()}
           onCancel={() => this.onUpNewClose()}

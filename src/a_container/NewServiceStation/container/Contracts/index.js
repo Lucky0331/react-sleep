@@ -1559,7 +1559,7 @@ class Category extends React.Component {
         </div>
         {/*承包上线信息录入模态框*/}
         <Modal
-          title={this.state.upOrDown === "up" ? "添加承包相关信息" : "修改承包相关信息"}
+          title={this.state.upOrDown === "up" ? "添加服务站相关信息" : "修改服务站相关信息"}
           visible={this.state.updateModalShow}
           onOk={()=>this.onAddNewOk()}
           onCancel={() => this.onAddNewClose()}
@@ -1894,7 +1894,7 @@ class Category extends React.Component {
         </Modal>
         {/* 修改承包信息录入模态框 */}
         <Modal
-          title="修改承包信息"
+          title="修改服务站信息"
           visible={this.state.upModalShow}
           onOk={() => this.onUpOk()}
           onCancel={() => this.onUpClose()}

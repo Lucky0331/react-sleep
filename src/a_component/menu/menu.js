@@ -17,6 +17,7 @@ class Menus extends React.Component {
       show: false, // 是否显示
       chosedKey: [], // 当前选中
       openKeys: [], // 需要被打开的项
+      rootSubmenuKeys:[],//展开菜单项
       menuType: this.props.menuType,
       collapsed: false,
     };

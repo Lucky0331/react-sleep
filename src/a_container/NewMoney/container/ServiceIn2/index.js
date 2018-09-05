@@ -473,7 +473,6 @@ class Category extends React.Component {
                   columns={this.makeColumnsHint()}
                   className="my-table"
                   scroll={{ x: 900 }}
-                  // dataSource={this.makeData(this.state.data)}
                   pagination={{
                     total: this.state.total,
                     current: this.state.pageNum,

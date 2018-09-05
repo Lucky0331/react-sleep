@@ -902,15 +902,6 @@ class Category extends React.Component {
                 onChange={e => this.searchOrderIdChange(e)}
               />
             </li>
-            {/*<li>*/}
-              {/*<span>云平台工单号查询</span>*/}
-              {/*<Input*/}
-                {/*style={{ width: "165px" }}*/}
-                {/*suffix={suffix5}*/}
-                {/*value={searchRefer}*/}
-                {/*onChange={e => this.searchReferChange(e)}*/}
-              {/*/>*/}
-            {/*</li>*/}
             <li>
               <span>用户类型</span>
               <Select
@@ -1094,12 +1085,6 @@ class Category extends React.Component {
                 ? this.getListByModelId(this.state.nowData.orderFrom)
                 : ""}
             </FormItem>
-            {/*<FormItem*/}
-            {/*label="订单状态"*/}
-            {/*{...formItemLayout}*/}
-            {/*>*/}
-            {/*{!!this.state.nowData ? this.getConditionNameById(this.state.nowData.orderStatus) : ''}*/}
-            {/*</FormItem>*/}
             <FormItem label="产品类型" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.productTypeName : ""}
             </FormItem>
