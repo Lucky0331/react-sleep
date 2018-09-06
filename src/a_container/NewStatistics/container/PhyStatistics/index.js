@@ -553,11 +553,6 @@ class Category extends React.Component {
         dataIndex:'reverseTotalNum',
         key:'reverseTotalNum',
       },
-      // {
-      //   title:'公众号预约用户占比',
-      //   dataIndex:'ratio',
-      //   key:'ratio'
-      // },
     ];
     return columns;
   }

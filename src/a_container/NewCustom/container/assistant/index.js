@@ -434,8 +434,8 @@ class Category extends React.Component {
       },
       {
         title:'最新发布时间',
-        dataIndex:'creatTime',
-        key:'creatTime',
+        dataIndex:'createTime',
+        key:'createTime',
       },
       {
         title:"排序",
@@ -563,6 +563,7 @@ class Category extends React.Component {
         questions: item.questions, //问题
         answers: item.answers,//回答
         recommend:item.recommend,
+        createTime:item.createTime,//最新发布时间
       };
     });
   }

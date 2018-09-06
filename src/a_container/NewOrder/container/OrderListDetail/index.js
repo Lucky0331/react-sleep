@@ -40,20 +40,19 @@ import RoleTree from "../../../../a_component/roleTree"; // 角色树 用于选�
 // ==================
 
 import {
-  findAdminUserByKeys,
-  addAdminUserInfo,
-  deleteAdminUserInfo,
-  updateAdminUserInfo,
-  findAllRole,
-  findAllRoleByUserId,
-  assigningRole,
-  findAllOrganizer,
   findAllProvince,
   findCityOrCounty,
-  findStationByArea,
 } from "../../../../a_action/sys-action";
-import { findUserInfo, myCustomers } from "../../../../a_action/info-action";
-import { onOk,findOrderByWhere, findProductTypeByWhere,findProductModelByWhere,updateType,updateGoods,updateOrderModel} from "../../../../a_action/shop-action";
+import {
+  onOk,
+  updateType,
+  updateGoods,
+  CheckupCard,
+  updateOrderModel,
+  findOrderByWhere,
+  findProductTypeByWhere,
+  findProductModelByWhere,
+} from "../../../../a_action/shop-action";
 // ==================
 // Definition
 // ==================
@@ -68,6 +67,7 @@ class Manager extends React.Component {
     this.state = {
       data: [], // 当前页面全部数据
       data2:[],//编辑按钮发起的请求的数据
+      data3:[],//查看体检卡发起的请求的数据
       productTypes: [], //所有的产品类型
       productModels: [], // 所有的产品型号
       nowData: null, // 当前选中用户的信息，用于查看详情
@@ -75,6 +75,7 @@ class Manager extends React.Component {
       userId: "", // 获取用户id
       upModalShow: false, // 修改订单型号信息模态框是否显示
       upGoodsModalShow: false, // 修改收货信息模态框是否显示
+      queryCardShow:false,//查看体检卡模态框是否显示
       pageSize:1,
       pageNum:1,
       citys: [], // 所有的省
@@ -319,6 +320,27 @@ class Manager extends React.Component {
     });
   }
   
+  //查看体检卡 - 模态框出现
+  onWatchClick(){
+    const me = this;
+    const params = {
+      orderId:this.props.orderdetail.orderId,
+    };
+    this.props.actions.CheckupCard(tools.clearNull(params)).then(res => {
+      console.log('data3是什么：',res.data)
+      if (res.status === "0") {
+        this.setState({
+          data3: res.data || [],
+        });
+      } else {
+        message.error(res.message || "获取数据失败，请重试");
+      }
+    });
+    me.setState({
+      queryCardShow:true,
+    });
+  }
+  
   //确定修改收货信息
   onUpGoodsOk() {
     const me = this;
@@ -384,9 +406,11 @@ class Manager extends React.Component {
     })
   }
   
+  //查看体检卡模态框操作
   onQueryClose(){
     this.setState({
-      queryCloseShow: false
+      queryCloseShow: false,
+      queryCardShow:false,
     });
   }
 
@@ -551,6 +575,34 @@ class Manager extends React.Component {
     };
   });
 }
+
+  //查看体检卡数据
+  makeDataCard(data3){
+    return data3.map((item,index)=>{
+      return{
+        key: index,
+        serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
+        cardM:item
+      }
+    })
+  }
+  
+  //查看体检卡字段
+  makeColumnsCard(){
+    const columns =[
+      {
+        title:'序号',
+        dataIndex:'serial',
+        key:'serial'
+      },
+      {
+        title:'体检卡号',
+        dataIndex:'cardM',
+        key:'cardM',
+      }
+    ]
+    return columns
+  }
   
   // 构建字段 - 商品信息
   makeColumns() {
@@ -708,7 +760,7 @@ class Manager extends React.Component {
         <div className="nowList">
           <Icon type="exclamation-circle" />
           <span className="fontnow">当前订单状态:</span><span>{this.props.orderdetail.orderStatus}</span>
-          <div style={{float:'right'}}>
+          <div style={{float:'right'}} className={this.props.orderdetail.productType == '健康评估' ? 'Updatehide' :'Updateshow'}>
             {/*<Button*/}
               {/*icon="close-circle-o"*/}
               {/*type="primary"*/}
@@ -734,52 +786,62 @@ class Manager extends React.Component {
               修改收货信息
             </Button>
           </div>
+          <div style={{float:'right'}} className={this.props.orderdetail.productType == '健康评估' ? 'Updateshow' :'Updatehide'}>
+            <Button
+              icon="eye"
+              type="primary"
+              onClick={() => this.onWatchClick()}
+              style={{marginRight:'8px'}}
+            >
+              查看体检卡
+            </Button>
+          </div>
         </div>
         <div className="infomation">订单信息</div>
         <div className="system-table" style={{ display: 'inline-flex',border:'none',margin:'10px 0px 0px 52px',}}>
           <Form style={{float:'left',width:'370px'}} className={"FormList"}>
-            <FormItem label="主订单号" {...formItemLayout} style={{paddingLeft:'29px'}}>
-              <span style={{marginLeft:'-13px'}}>{ this.props.orderdetail.mainOrder} </span>
+            <FormItem label="主订单号" {...formItemLayout} style={{paddingLeft:'2px'}}>
+              <span style={{marginLeft:'-45px'}}>{ this.props.orderdetail.mainOrder} </span>
             </FormItem>
-            <FormItem label="子订单号" {...formItemLayout} style={{paddingLeft:'29px'}}>
-              <span style={{marginLeft:'-13px'}}>{ this.props.orderdetail.orderId}</span>
+            <FormItem label="子订单号" {...formItemLayout} style={{paddingLeft:'2px'}}>
+              <span style={{marginLeft:'-45px'}}>{ this.props.orderdetail.orderId}</span>
             </FormItem>
             <FormItem label="云平台工单号" {...formItemLayout} style={{paddingLeft:'2px'}}>
-              <span style={{marginLeft:'4px'}}>{ this.props.orderdetail.refer}</span>
+              <span style={{marginLeft:'-17px'}}>{ this.props.orderdetail.refer}</span>
             </FormItem>
-            <FormItem label="下单时间" {...formItemLayout} style={{paddingLeft:'29px'}}>
-              <span style={{marginLeft:'-13px'}}>{ this.props.orderdetail.orderTime}</span>
+            <FormItem label="下单时间" {...formItemLayout} style={{paddingLeft:'2px'}}>
+              <span style={{marginLeft:'-45px'}}>{ this.props.orderdetail.orderTime}</span>
             </FormItem>
-            <FormItem label="订单来源" {...formItemLayout} style={{paddingLeft:'29px'}}>
-              <span style={{marginLeft:'-13px'}}>{ this.props.orderdetail.orderFrom }</span>
+            <FormItem label="订单来源" {...formItemLayout} style={{paddingLeft:'2px'}}>
+              <span style={{marginLeft:'-45px'}}>{ this.props.orderdetail.orderFrom }</span>
             </FormItem>
           </Form>
           <Form style={{float:'left',width:'370px'}} className={"FormList"}>
-            <FormItem label="下单用户" {...formItemLayout} style={{paddingLeft:'42px'}}>
-              <span style={{marginLeft:'-18px'}}>{ this.props.orderdetail.userName} </span>
+            <FormItem label="下单用户" {...formItemLayout} style={{paddingLeft:'14px'}}>
+              <span style={{marginLeft:'-43px'}}>{ this.props.orderdetail.userName} </span>
             </FormItem>
             <FormItem label="下单用户身份" {...formItemLayout} style={{paddingLeft:'14px'}}>
-              <span>{ this.props.orderdetail.userIdentity}</span>
+              <span style={{marginLeft:'-15px'}}>{ this.props.orderdetail.userIdentity}</span>
             </FormItem>
             <FormItem label="订单完成时间" {...formItemLayout} style={{paddingLeft:'14px'}}>
-              <span>{ this.props.orderdetail.completeTime }</span>
+              <span style={{marginLeft:'-15px'}}>{ this.props.orderdetail.completeTime }</span>
             </FormItem>
-            <FormItem label="活动方式" {...formItemLayout} style={{paddingLeft:'42px'}}>
-              <span style={{marginLeft:'-16px'}}>{ this.props.orderdetail.activityType }</span>
+            <FormItem label="活动方式" {...formItemLayout} style={{paddingLeft:'14px'}}>
+              <span style={{marginLeft:'-43px'}}>{ this.props.orderdetail.activityType }</span>
             </FormItem>
           </Form>
           <Form style={{float:'right',width:'370px'}} className={"FormList"}>
             <FormItem label="支付方式" {...formItemLayout} style={{paddingLeft:'14px'}}>
-              <span style={{marginLeft:'-18px'}}>{ this.props.orderdetail.payType } </span>
+              <span style={{marginLeft:'-40px'}}>{ this.props.orderdetail.payType } </span>
             </FormItem>
             <FormItem label="支付状态" {...formItemLayout} style={{paddingLeft:'14px'}}>
-              <span style={{marginLeft:'-18px'}}>{ this.props.orderdetail.payStatus }</span>
+              <span style={{marginLeft:'-40px'}}>{ this.props.orderdetail.payStatus }</span>
             </FormItem>
             <FormItem label="支付时间" {...formItemLayout} style={{paddingLeft:'14px'}}>
-              <span style={{marginLeft:'-18px'}}>{ this.props.orderdetail.payTime } </span>
+              <span style={{marginLeft:'-40px'}}>{ this.props.orderdetail.payTime } </span>
             </FormItem>
-            <FormItem label="流水号" {...formItemLayout} style={{paddingLeft:'27px'}}>
-              <span style={{marginLeft:'-27px'}}>{ this.props.orderdetail.paymentNo } </span>
+            <FormItem label="流水号" {...formItemLayout} style={{paddingLeft:'14px'}}>
+              <span style={{marginLeft:'-53px'}}>{ this.props.orderdetail.paymentNo } </span>
             </FormItem>
           </Form>
         </div>
@@ -788,30 +850,30 @@ class Manager extends React.Component {
           <div className="infomation">收货信息</div>
           <div className="system-table" style={{ display: 'inline-flex',border:'none',margin:'10px 0px 0px 52px',}}>
             <Form style={{float:'left',width:'370px'}} className={"FormList"}>
-              <FormItem label="收货人" {...formItemLayout} style={{paddingLeft:'42px'}}>
-                <span style={{marginLeft:'-21px'}}>{ this.props.orderdetail.orderConsignee}</span>
+              <FormItem label="收货人" {...formItemLayout} style={{paddingLeft:'29px'}}>
+                <span style={{marginLeft:'-52px'}}>{ this.props.orderdetail.orderConsignee}</span>
               </FormItem>
               <FormItem label="联系方式" {...formItemLayout} style={{paddingLeft:'29px'}}>
-                <span style={{marginLeft:'-13px'}}>{ this.props.orderdetail.orderPhone}</span>
+                <span style={{marginLeft:'-38px'}}>{ this.props.orderdetail.orderPhone}</span>
               </FormItem>
               <FormItem label="收货地址" {...formItemLayout} style={{paddingLeft:'29px'}}>
-                <span style={{marginLeft:'-13px'}}>{ this.props.orderdetail.orderAddress}</span>
+                <span style={{marginLeft:'-40px'}}>{ this.props.orderdetail.orderAddress}</span>
               </FormItem>
             </Form>
           </div>
           </div>
           <div className={this.props.orderdetail.productType == '净水服务' ? 'block' :'none'} style={{marginLeft:'200px'}}>
           <div className="infomation">配送信息</div>
-          <div className="system-table" style={{ display: 'inline-flex',border:'none',margin:'10px 0px 0px 52px',}}>
+          <div className="system-table" style={{ display: 'inline-flex',border:'none',margin:'10px 0px 0px 52px'}}>
             <Form style={{float:'left',width:'370px'}} className={"FormList"}>
-              <FormItem label="安装工" {...formItemLayout} style={{paddingLeft:'42px'}}>
-                <span style={{marginLeft:'-30px'}}>{ this.props.orderdetail.customerName} </span>
+              <FormItem label="安装工" {...formItemLayout} style={{paddingLeft:'16px'}}>
+                <span style={{marginLeft:'-55px'}}>{ this.props.orderdetail.customerName} </span>
               </FormItem>
-              <FormItem label="联系方式" {...formItemLayout} style={{paddingLeft:'29px'}}>
-                <span style={{marginLeft:'-22px'}}>{ this.props.orderdetail.customerPhone}</span>
+              <FormItem label="联系方式" {...formItemLayout} style={{paddingLeft:'16px'}}>
+                <span style={{marginLeft:'-41px'}}>{ this.props.orderdetail.customerPhone}</span>
               </FormItem>
               <FormItem label="服务站地区" {...formItemLayout} style={{paddingLeft:'16px'}}>
-                <span style={{marginLeft:'-13px'}}>{ this.props.orderdetail.customerAddress}</span>
+                <span style={{marginLeft:'-27px'}}>{ this.props.orderdetail.customerAddress}</span>
               </FormItem>
             </Form>
           </div>
@@ -1026,6 +1088,21 @@ class Manager extends React.Component {
             </FormItem>
           </Form>
         </Modal>
+        {/*点击查看体检卡模态框*/}
+        <Modal
+          title="查看体检卡"
+          visible={this.state.queryCardShow}
+          onCancel={() => this.onQueryClose()}
+          onOk={() => this.onQueryClose()}
+        >
+          <Table
+            columns={this.makeColumnsCard()}
+            dataSource={this.makeDataCard(this.state.data3)}
+            pagination={{
+              hideOnSinglePage:true
+            }}
+          />
+        </Modal>
       </div>
     );
   }
@@ -1059,26 +1136,16 @@ export default connect(
   dispatch => ({
     actions: bindActionCreators(
       {
-        findAdminUserByKeys,
-        addAdminUserInfo,
-        deleteAdminUserInfo,
-        updateAdminUserInfo,
-        findAllRole,
-        findAllRoleByUserId,
-        assigningRole,
-        findAllOrganizer,
+        onOk,
+        updateType,
+        CheckupCard,
+        updateGoods,
         findAllProvince,
         findCityOrCounty,
-        findStationByArea,
-        findUserInfo,
-        myCustomers,
-        onOk,
+        updateOrderModel,
         findOrderByWhere,
         findProductTypeByWhere,
         findProductModelByWhere,
-        updateType,
-        updateGoods,
-        updateOrderModel
       },
       dispatch
     )

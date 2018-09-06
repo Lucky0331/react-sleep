@@ -344,6 +344,19 @@ export function findOrderByWhere(params = {}) {
   };
 }
 
+//查看体检卡
+export function CheckupCard(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/ticket/hraTicketListByOrderId",params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("网络错误，请重试");
+      });
+  };
+}
+
 //修改订单产品型号
 export function updateType(params = {}) {
   return dispatch => {
