@@ -232,7 +232,8 @@ class Category extends React.Component {
         const params = {
           questions: values.addnewTitle,//问题
           typeCode:values.addnewTypeCode,//随机typeCode值
-          recommend: values.addnewConditions ? 0 : 1,//是否发布
+          recommend:0,//是否推荐
+          deleteFlag: values.addnewConditions ? 1 : 0,//是否发布
           sorts: values.addnewSorts, //排序
           answers: values.addnewQuestion,//回答
         };

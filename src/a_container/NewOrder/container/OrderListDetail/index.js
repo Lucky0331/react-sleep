@@ -136,6 +136,9 @@ class Manager extends React.Component {
       this.props.orderdetail.orderStatus, //订单状态
       this.props.orderdetail.orderAddressLast, //用户收货地址
       this.props.orderdetail.orderFee, //订单总金额
+      this.props.orderdetail.discount,//活动优惠
+      this.props.orderdetail.freight,//运费
+      this.props.orderdetail.total,//商品合计
     );
   }
 
@@ -289,7 +292,8 @@ class Manager extends React.Component {
               this.onGetData(this.state.pageNum, this.state.pageSize);
               this.onUpNewClose();
             } else {
-              message.error(res.message || "修改失败，请重试");
+              message.error("产品已下架/修改产品价格不符");
+              // message.error(res.message || "修改失败，请重试");
             }
             me.setState({
               upLoading: false
@@ -527,6 +531,17 @@ class Manager extends React.Component {
         });
       });
   }
+  
+  // 选不同型号时重置计费方式
+  Newproduct2(e) {
+    const { form } = this.props;
+    // form.resetFields(["chargesTypes"]); //是否重置计费方式的值
+    const t = this.state.data2.find((item)=>String(item.productModel.id) === String(e));
+    console.log("这里那有什么:", e,t);
+    form.setFieldsValue({
+      formName: t && t.name ? t.name : undefined,
+    });
+  }
 
   // 构建table所需数据
   makeData(data) {
@@ -572,6 +587,9 @@ class Manager extends React.Component {
     orderStatus:this.props.orderdetail.orderStatus,//订单状态
     orderAddressLast:this.props.orderdetail.orderAddressLast,//用户收货地址
     orderFee:this.props.orderdetail.orderFee,//订单总金额
+    discount:this.props.orderdetail.discount,//活动优惠
+    freight:this.props.orderdetail.freight,//运费
+    total:this.props.orderdetail.total,//商品合计
     };
   });
 }
@@ -652,14 +670,20 @@ class Manager extends React.Component {
     const columns = [
       {
         title: "商品合计",
+        dataIndex:'total',
+        key:'total',
         width:320,
       },
       {
         title: "运费",
+        dataIndex:'freight',
+        key:'freight',
         width:240,
       },
       {
         title: "活动优惠",
+        dataIndex:'discount',
+        key:'discount',
         width:260,
       },
       {
@@ -991,6 +1015,13 @@ class Manager extends React.Component {
           wrapClassName={"list"}
         >
           <Form>
+            <FormItem label="产品名称" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("formName", {
+                initialValue: undefined,
+              })(
+                  <Input disabled={true}/>
+              )}
+            </FormItem>
             <FormItem label="产品类型" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
               {getFieldDecorator("formTypeId", {
                 initialValue: undefined,
@@ -1010,24 +1041,17 @@ class Manager extends React.Component {
               {getFieldDecorator("formTypeCode", {
                 initialValue: undefined,
               })(
-                <Select placeholder="请选择产品型号">
+                <Select placeholder="请选择产品型号" onChange={e => this.Newproduct2(e)}>
                   {(() => {
                     const id = String(form.getFieldValue("formTypeId"));
                     return this.state.productModels.filter(item => String(item.typeId) === id).map((item, index) => (
-                        <Option key={index} value={String(item.id)}>
-                          {item.name}
-                        </Option>
+                      <Option key={index} value={String(item.id)}>
+                        {item.name}
+                      </Option>
                     ))
                   })()
                   }
                 </Select>
-              )}
-            </FormItem>
-            <FormItem label="产品名称" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
-              {getFieldDecorator("formName", {
-                initialValue: undefined,
-              })(
-                  <Input disabled={true}/>
               )}
             </FormItem>
             <Row>

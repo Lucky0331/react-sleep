@@ -612,10 +612,8 @@ class Category extends React.Component {
   
   // 选不同型号时重置计费方式
   Newproduct2(e) {
-    //产品类型改变时，重置产品型号的值位undefined
-    // console.log("产品型号：", e);
     const { form } = this.props;
-    form.resetFields(["chargesTypes"]); //计费方式的值
+    // form.resetFields(["chargesTypes"]); //计费方式的值
     
     const t = this.state.data2.find((item)=>String(item.productModel.id) === String(e));
     console.log("这里那有什么:", e,t);
@@ -752,7 +750,8 @@ class Category extends React.Component {
             this.onGetData(this.state.pageNum, this.state.pageSize);
             this.onUpNewClose();
           } else {
-            message.error(res.message || "修改失败，请重试");
+            message.error("产品已下架/修改产品价格不符");
+            // message.error(res.message || "修改失败，请重试");
           }
           me.setState({
             upLoading: false
@@ -1102,9 +1101,13 @@ class Category extends React.Component {
     ];
     return columns;
   }
-  // @connect(({ loading }) => ({
-  //   loading: loading.effects['profile/fetchBasic'],
-  // }))
+  
+  onRadioChange(e) {
+    this.setState({
+      value:e.target.value
+    })
+    console.log('点的是第几个啊', e.target.value);
+  }
 
   // 构建table所需数据
   makeData(data) {
@@ -1162,6 +1165,9 @@ class Category extends React.Component {
         feeType:item.feeType,//计费方式
         sex:item.sex,//收货人性别
         productPrice:item.productPrice,//产品价格
+        discount:0,//活动优惠
+        freight:0,//运费
+        total:item.orderFee
       };
     });
   }
@@ -1547,8 +1553,14 @@ class Category extends React.Component {
           wrapClassName={"list"}
         >
           <Form>
+            <FormItem label="产品名称" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("formName", {
+                initialValue: undefined,
+              })(
+                <Input disabled={true}/>
+              )}
+            </FormItem>
             <FormItem label="产品类型" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
-              {/*{!!this.state.nowData ? this.state.nowData.productType : ''}*/}
               {getFieldDecorator("formTypeId", {
                 initialValue: undefined,
               })(
@@ -1571,20 +1583,13 @@ class Category extends React.Component {
                   {(() => {
                     const id = String(form.getFieldValue("formTypeId"));
                     return this.state.productModels.filter(item => String(item.typeId) === id).map((item, index) => (
-                        <Option key={index} value={String(item.id)}>
-                          {item.name}
-                        </Option>
+                      <Option key={index} value={String(item.id)}>
+                        {item.name}
+                      </Option>
                     ))
                   })()
                   }
                 </Select>
-              )}
-            </FormItem>
-            <FormItem label="产品名称" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
-              {getFieldDecorator("formName", {
-                initialValue: undefined,
-              })(
-                <Input disabled={true}/>
               )}
             </FormItem>
             <Row>
@@ -1599,9 +1604,9 @@ class Category extends React.Component {
                   rules: [{ required: (()=>{
                   const type = form.getFieldValue("formTypeId");
                   return Number(type) === 1;
-                  })(), message: "请选择计费方式" }]
+                  })(), message: "请选择计费方式"}]
                 })(
-                  <RadioGroup>
+                  <RadioGroup onChange={(e) => this.onRadioChange(e)}>
                     {(()=>{
                       const type = form.getFieldValue("formTypeCode");
                       console.log("===", type,this.state.data2);

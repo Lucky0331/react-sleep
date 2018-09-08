@@ -43,7 +43,7 @@ class Category extends React.Component {
       searchNewProduct:'',//搜索 - 推荐状态
       searchProduct:"",//搜索 - 活动方式
       searchName: "", // 搜索 - 名称
-      addOrUp: "add", // 当前操作是新增add还是修改up,还是查看look
+      addOrUp: "add", // 当前操作是新增add还是下线修改up,还是查看look，还是上线修改topup
       modalShow: false, // 模态框是否显示
       nowData: null, // 当前选中用户的信息，用于查看详情、修改、分配菜单
       pageNum: 1, // 当前第几页
@@ -220,7 +220,7 @@ class Category extends React.Component {
 
   /**
    * 模态框出现
-   * @type: look-查看，add新增，up修改
+   * @type: look-查看，add新增，up下线修改，topup上线修改，
    * @record: 当前选择的数据行
    * **/
   onModalShow(type, record) {
@@ -244,7 +244,7 @@ class Category extends React.Component {
         nowData: null,
         code: undefined,
       });
-    } else if (type==="up" || type==="look") {
+    } else if (type==="up" || type==="look" || type==="topup") {
       form.setFieldsValue({
         formName: record.name,// 产品名称
         formTypeId: String(record.typeId),// 产品类型ID
@@ -432,7 +432,7 @@ class Category extends React.Component {
           })
         } else { // 修改
           params.id = this.state.nowData.id;
-          params.onShelf = this.state.nowData.OnShelf ? 1 : 0;
+          params.onShelf = this.state.nowData.onShelf;
           me.props.actions.updateProduct(params).then(res => {
             this.onGetData(this.state.pageNum, this.state.pageSize);
             this.onModalClose();
@@ -907,10 +907,10 @@ class Category extends React.Component {
         dataIndex: "onShelf",
         key: "onShelf",
         render: (text,record) =>
-          record.onShelf == 0 ? (
-            <Switch onClick={() => this.onUpdateClick4(record)} size="small" />
+          record.onShelf == 1 ? (
+              <Switch onClick={() => this.onUpdateClick2(record)} checkedChildren="已上架" size="small" defaultChecked checked={Boolean(record.onShelf) == true ? true : false}/>
           ):(
-            <Switch onClick={() => this.onUpdateClick2(record)} checkedChildren="已上架" size="small" defaultChecked/>
+              <Switch onClick={() => this.onUpdateClick4(record)} size="small" checked={Boolean(record.onShelf) == true ? true : false}/>
           )
       },
       {
@@ -1022,6 +1022,7 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
+          record.onShelf == 0 &&
           controls.push(
             <span
               key="3"
@@ -1033,10 +1034,22 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
+          record.onShelf == 1 &&
+          controls.push(
+            <span
+              key="4"
+              className="control-btn blue"
+              onClick={() => this.onModalShow("topup", record)}
+            >
+              <Tooltip placement="top" title="编辑">
+                <Icon type="edit" />
+              </Tooltip>
+            </span>
+          );
           !record.onShelf &&
             controls.push(
               <Popconfirm
-                key="4"
+                key="7"
                 title="确定删除吗?"
                 onConfirm={() => this.onRemoveClick(record.id)}
                 okText="确定"
@@ -1305,7 +1318,7 @@ class Category extends React.Component {
                     }
                   }
                 ]
-              })(<Input disabled={this.state.addOrUp === "look"} placeholder="请输入产品名称" />)}
+              })(<Input disabled={this.state.addOrUp === "look" || this.state.addOrUp === "topup"} placeholder="请输入产品名称" />)}
             </FormItem>
             <FormItem label="产品类型" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
               {getFieldDecorator("formTypeId", {
@@ -1315,7 +1328,7 @@ class Category extends React.Component {
                 <Select
                   placeholder="请选择产品类型"
                   onChange={e => this.Newproduct(e)}
-                  disabled={this.state.addOrUp === "look"}
+                  disabled={this.state.addOrUp === "look" || this.state.addOrUp === "topup"}
                 >
                   {this.state.productTypes.map((item, index) => (
                     <Option key={index} value={String(item.id)}>
@@ -1329,7 +1342,7 @@ class Category extends React.Component {
               {getFieldDecorator("formTypeLabel", {
                 initialValue: undefined,
               })(
-                <Select disabled={this.state.addOrUp === "look"} mode="multiple" placeholder="请选择产品标签">
+                <Select disabled={this.state.addOrUp === "look" || this.state.addOrUp === "topup"} mode="multiple" placeholder="请选择产品标签">
                   {(() => {
                     const id = String(form.getFieldValue("formTypeId"));
                     return this.state.productLabels.filter(item => String(item.code) === id).map((item, index) => (
@@ -1349,7 +1362,7 @@ class Category extends React.Component {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请选择产品型号" }]
               })(
-                <Select disabled={this.state.addOrUp === "look"} placeholder="请选择产品型号">
+                <Select disabled={this.state.addOrUp === "look" || this.state.addOrUp === "topup"} placeholder="请选择产品型号">
                   {(() => {
                     const id = String(form.getFieldValue("formTypeId"));
                     console.log('走到哪了',id)
@@ -1368,7 +1381,7 @@ class Category extends React.Component {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请选择活动方式" }]
               })(
-                <Select disabled={this.state.addOrUp === "look"} placeholder="请选择活动方式">
+                <Select disabled={this.state.addOrUp === "look" || this.state.addOrUp === "topup"} placeholder="请选择活动方式">
                   <Option value={1}>普通商品</Option>
                   <Option value={2}>活动商品</Option>
                 </Select>
