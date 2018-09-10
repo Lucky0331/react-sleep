@@ -1268,11 +1268,6 @@ class Category extends React.Component {
         width: 50
       },
       {
-        title:'主订单号',
-        dataIndex:'mainOrderId',
-        key:'mainOrderId'
-      },
-      {
         title: "提现单号",
         dataIndex: "partnerTradeNo",
         key: "partnerTradeNo"
@@ -1928,15 +1923,6 @@ class Category extends React.Component {
                 <div className="system-table">
                   <ul className="search-ul more-ul">
                     <li>
-                      <span>主订单号查询</span>
-                      <Input
-                        style={{ width: "172px" }}
-                        onChange={e => this.searchMainOrderIdChange(e)}
-                        suffix={suffix10}
-                        value={searchMainOrderId}
-                      />
-                    </li>
-                    <li>
                       <span>提现单号查询</span>
                       <Input
                         style={{ width: "172px" }}
@@ -2161,11 +2147,6 @@ class Category extends React.Component {
                 wrapClassName={"list"}
               >
                 <Form>
-                  <FormItem label="主订单号" {...formItemLayout}>
-                    {!!this.state.nowData
-                      ? this.state.nowData.mainOrderId
-                      : ""}
-                  </FormItem>
                   <FormItem label="提现单号" {...formItemLayout}>
                     {!!this.state.nowData
                       ? this.state.nowData.partnerTradeNo

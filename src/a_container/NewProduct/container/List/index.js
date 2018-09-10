@@ -1062,7 +1062,6 @@ class Category extends React.Component {
                 </span>
               </Popconfirm>
             );
-
           const result = [];
           controls.forEach((item, index) => {
             if (index) {
@@ -1128,11 +1127,21 @@ class Category extends React.Component {
     const formItemLayout = {
       labelCol: {
         xs: { span: 22 },
-        sm: { span: 6 }
+        sm: { span: 5 }
       },
       wrapperCol: {
         xs: { span: 22 },
         sm: { span: 16 }
+      }
+    };
+    const formItemLayout1 = {
+      labelCol: {
+        xs: { span: 22 },
+        sm: { span: 8 }
+      },
+      wrapperCol: {
+        xs: { span: 22 },
+        sm: { span: 12 }
       }
     };
     const modelId = form.getFieldValue("formTypeCode");
@@ -1300,12 +1309,25 @@ class Category extends React.Component {
           confirmLoading={this.state.loading}
           maskClosable={false}
         >
-          <Form>
+          <Form style={{marginLeft:'10px'}}>
+            <FormItem label="端" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
+              {getFieldDecorator("formEnd", {
+                initialValue: undefined,
+                rules: [
+                  { required: true, message: "请选择所要配置的端" }
+                ]
+              })(
+                <RadioGroup value={this.state.value} disabled={this.state.addOrUp === "look" || this.state.addOrUp === "topup"}>
+                  <Radio value={1}>健康e家</Radio>
+                  <Radio value={2}>小程序</Radio>
+                </RadioGroup>
+              )}
+            </FormItem>
             <FormItem label="产品名称" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
               {getFieldDecorator("formName", {
                 initialValue: undefined,
                 rules: [
-                  { required: true, message: "请输入产品名称" },
+                  { required: true, message: "请输入产品名称"},
                   {
                     validator: (rule, value, callback) => {
                       const v = tools.trim(value);
@@ -1519,6 +1541,28 @@ class Category extends React.Component {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请输入排序序号" }]
               })(<InputNumber disabled={this.state.addOrUp === "look"} placeholder="请输入排序序号" style={{width:'314px'}}/>)}
+            </FormItem>
+            <FormItem label="是否展示当前商品为新品" {...formItemLayout1}>
+              {getFieldDecorator("formNew", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择是否展示当前商品为新品"}]
+              })(
+                <Select placeholder="请选择是否展示当前商品为新品">
+                  <Option value={1}>是</Option>
+                  <Option value={0}>否</Option>
+                </Select>
+              )}
+            </FormItem>
+            <FormItem label="是否展示当前商品为热销" {...formItemLayout1}>
+              {getFieldDecorator("formHot", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请选择是否展示当前商品为热销"}]
+              })(
+                <Select placeholder="请选择是否展示当前商品为热销">
+                  <Option value={1}>是</Option>
+                  <Option value={0}>否</Option>
+                </Select>
+              )}
             </FormItem>
           </Form>
         </Modal>
