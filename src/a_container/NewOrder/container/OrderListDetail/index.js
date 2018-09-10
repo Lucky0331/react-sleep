@@ -535,9 +535,13 @@ class Manager extends React.Component {
   // 选不同型号时重置计费方式
   Newproduct2(e) {
     const { form } = this.props;
-    // form.resetFields(["chargesTypes"]); //是否重置计费方式的值
     const t = this.state.data2.find((item)=>String(item.productModel.id) === String(e));
     console.log("这里那有什么:", e,t);
+    if(t === undefined){
+      message.error("产品已下架/修改产品价格不符",1.5);
+    }else{
+      form.resetFields(["chargesTypes"]); //计费方式的值
+    }
     form.setFieldsValue({
       formName: t && t.name ? t.name : undefined,
     });
