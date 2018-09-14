@@ -576,14 +576,14 @@ class Manager extends React.Component {
       me.props.actions
         .generateFreeCard(tools.clearNull(params)) //添加优惠卡
         .then(res => {
-          if(res.status != '0'){
+          if(res.status == 200){
             me.setState({
               addnewLoading: false
             });
             this.onGetData(this.state.pageNum, this.state.pageSize);
             this.onAddNewClose();
             message.success("优惠卡发放成功");
-          }else{
+          }else if(res.status == 1){
             message.error(res.message || "优惠卡发放失败");
             this.onAddNewClose();
           }

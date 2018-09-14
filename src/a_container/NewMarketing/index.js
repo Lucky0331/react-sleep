@@ -16,6 +16,7 @@ import "./index.scss";
 // ==================
 
 import Activity from "./container/Activity";//活动管理
+import Bargain from "./container/Bargain";//活动管理
 
 
 // ==================
@@ -51,8 +52,13 @@ class TheContainer extends React.Component {
           />
           <Route
             exact
-            path={`${this.props.match.path}/activity`}
+            path={`${this.props.match.path}/activity`} //活动管理
             component={Activity}
+          />
+          <Route
+            exact
+            path={`${this.props.match.path}/bargain`} //砍价活动
+            component={Bargain}
           />
         </Switch>
       </div>

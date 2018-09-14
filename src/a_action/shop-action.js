@@ -1089,6 +1089,7 @@ export function WithdrawalsRevoke(params = {}) {
       });
   };
 }
+
 // 用户数据统计页面获取数据
 export function findUserInfoCount(params = {}) {
   return dispatch => {
@@ -1119,12 +1120,12 @@ export function findColumnCount(params = {}) {
 export function addColumnCount(params = {}) {
   return dispatch => {
     return Fetchapi.newPost("/manager/station/column/add", params,'post',true)
-        .then(msg => {
-          return msg;
-        })
-        .catch(() => {
-          message.error("请求出现网络错误，请重试");
-        });
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("请求出现网络错误，请重试");
+      });
   };
 }
 
@@ -1132,12 +1133,25 @@ export function addColumnCount(params = {}) {
 export function updateColumnCount(params = {}) {
   return dispatch => {
     return Fetchapi.newPost("/manager/station/column/update", params,'post',true)
-        .then(msg => {
-          return msg;
-        })
-        .catch(() => {
-          message.error("请求出现网络错误，请重试");
-        });
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("请求出现网络错误，请重试");
+      });
+  };
+}
+
+//活动产品列表
+export function ActivityProductL(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/ActivityProduct/list", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("请求出现网络错误，请重试");
+      });
   };
 }
 

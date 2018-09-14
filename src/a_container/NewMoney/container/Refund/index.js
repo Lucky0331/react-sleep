@@ -1582,9 +1582,7 @@ class Category extends React.Component {
                       defaultValue="退款审核未通过，如有疑问，请联系客服：4001519999"
                       onChange={e => this.RefundDetail(e)}
                     />
-                    <ul
-                      style={{ display: "flex", justifyContent: "space-between" }}
-                    >
+                    <ul style={{ display: "flex", justifyContent: "space-between" }}>
                       <li style={{ width: "40px" }}>
                         <a onClick={e => this.onAdoptNo()}>确定</a>
                       </li>

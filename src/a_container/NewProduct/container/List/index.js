@@ -16,8 +16,7 @@ import "braft-editor/dist/braft.css";
 import tools from "../../../../util/tools";
 
 
-import Recommend from "../../../../assets/recommend.png";
-import NoPush from "../../../../assets/nopush.png";
+import NewActivity from "../../../../assets/newactivity.png";
 
 import _ from "lodash";
 
@@ -838,13 +837,13 @@ class Category extends React.Component {
         title: "序号",
         dataIndex: "serial",
         key: "serial",
-        width: 100
+        width: 80
       },
       {
         title:'列表缩略图',
         dataIndex: "detailImg",
         key: "detailImg",
-        width: 200,
+        width: 100,
         render: (text, index) => {
           if (text) {
             const img = text.split(",");
@@ -865,7 +864,7 @@ class Category extends React.Component {
         title: "封面缩略图",
         dataIndex: "productImg",
         key: "productImg",
-        width: 200,
+        width: 100,
         render: (text, index) => {
           if (text) {
             const img = text.split(",");
@@ -886,7 +885,7 @@ class Category extends React.Component {
         title: "产品名称",
         dataIndex: "name",
         key: "name",
-        width:420,
+        width:300,
       },
       {
         title: "产品类型",
@@ -964,33 +963,53 @@ class Category extends React.Component {
       {
         title:'操作',
         key: "control",
-        width: 200,
+        width: 270,
         render: (text, record) => {
           const controls = [];
             controls.push(
               <span
                 key="1"
-                className="control-btn blue"
+                className="control-btn red"
               >
                 <Tooltip placement="top" title="热销">
-                   <img src={Recommend} alt="logo" style={{marginBottom:'3px'}}/>
+                  <Icon type="like" />
                 </Tooltip>
               </span>
             );
             controls.push(
               <span
                 key="2"
-                className="control-btn red"
+                className="control-btn blue"
               >
                 <Tooltip placement="top" title="取消热销">
-                 <img src={NoPush} alt="logo" style={{marginBottom:'3px'}}/>
+                <Icon type="dislike" />
+                </Tooltip>
+              </span>
+            );
+            controls.push(
+              <span
+                key="3"
+                className="control-btn red"
+              >
+                <Tooltip placement="top" title="活动">
+                  <Icon type="caret-up"/>
+                </Tooltip>
+              </span>
+            );
+            controls.push(
+              <span
+                key="4"
+                className="control-btn blue"
+              >
+                <Tooltip placement="top" title="取消活动">
+                  <Icon type="caret-down" />
                 </Tooltip>
               </span>
             );
           !record.newProduct &&
             controls.push(
               <span
-                key="3"
+                key="5"
                 className="control-btn blue"
                 onClick={() => this.onUpdateClick3(record)}
               >
@@ -1002,7 +1021,7 @@ class Category extends React.Component {
           record.newProduct &&
             controls.push(
               <span
-                key="4"
+                key="6"
                 className="control-btn red"
                 onClick={() => this.onUpdateClick3(record)}
               >
@@ -1013,7 +1032,7 @@ class Category extends React.Component {
             );
           controls.push(
             <span
-              key="5"
+              key="7"
               className="control-btn green"
               onClick={() => this.onModalShow("look", record)}
             >
@@ -1025,7 +1044,7 @@ class Category extends React.Component {
           record.onShelf == 0 &&
           controls.push(
             <span
-              key="6"
+              key="8"
               className="control-btn blue"
               onClick={() => this.onModalShow("up", record)}
             >
@@ -1037,7 +1056,7 @@ class Category extends React.Component {
           record.onShelf == 1 &&
           controls.push(
             <span
-              key="7"
+              key="9"
               className="control-btn blue"
               onClick={() => this.onModalShow("topup", record)}
             >
@@ -1049,7 +1068,7 @@ class Category extends React.Component {
           !record.onShelf &&
             controls.push(
               <Popconfirm
-                key="8"
+                key="10"
                 title="确定删除吗?"
                 onConfirm={() => this.onRemoveClick(record.id)}
                 okText="确定"

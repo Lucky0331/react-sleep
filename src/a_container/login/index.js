@@ -227,7 +227,7 @@ class LoginContainer extends React.Component {
               <FormItem>
                 {getFieldDecorator("username", {
                   rules: [
-                    { max: 12, message: "最大长度为12位字符" },
+                    { max: 18, message: "最大长度为18位字符" },
                     {
                       required: true,
                       whitespace: true,

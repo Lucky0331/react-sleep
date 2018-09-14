@@ -200,7 +200,7 @@ export function incomeCountList(params = {}) {
 //经销商信息管理 - 发放优惠卡
 export function generateFreeCard(params = {}) {
   return dispatch => {
-    return Fetchapi.newPost("/mall/ticket/generateFreeCard", params,)
+    return Fetchapi.newPost("/manager/ticket/generateFreeCard", params)
       .then(msg => {
         return msg;
       })
@@ -213,7 +213,7 @@ export function generateFreeCard(params = {}) {
 //用户信息管理 - 解绑手机号
 export function UntiePhone(params = {}) {
   return dispatch => {
-    return Fetchapi.newPost("/manager/userInfo/unBindPhone", params,)
+    return Fetchapi.newPost("/manager/userInfo/unBindPhone", params)
       .then(msg => {
         return msg;
       })
