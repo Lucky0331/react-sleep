@@ -1334,7 +1334,7 @@ class Category extends React.Component {
                 initialValue: undefined,
                 rules: [
                   { required: true, message: "请选择所要配置的端" }
-                ]
+              ]
               })(
                 <RadioGroup value={this.state.value} disabled={this.state.addOrUp === "look" || this.state.addOrUp === "topup"}>
                   <Radio value={1}>健康e家</Radio>

@@ -8,6 +8,8 @@ import React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import P from "prop-types";
+import BraftEditor from "braft-editor";
+import "braft-editor/dist/braft.css";
 import Config from "../../../../config/config";
 import {
   Form,
@@ -22,6 +24,7 @@ import {
   Collapse,
   message,
   Modal,
+  Upload,
   Tooltip,
   Popconfirm,
   Select,
@@ -77,7 +80,9 @@ class Category extends React.Component {
       pageNum: 1, // 当前第几页
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
+      fileList:[],//活动图上传
     };
+    this.editor = null; // 这是新增时候的那个编辑器
   }
 
   componentDidMount() {
@@ -515,6 +520,70 @@ class Category extends React.Component {
     };
     
     console.log('这是什么：', this.state.productModels);
+    
+    const editorProps = {
+      height: 400,
+      contentFormat: 'html',    // 内容格式HTML
+      pasteMode: 'text',      // 粘贴只粘贴文本
+     media: {        // 多媒体配置
+        allowPasteImage: false,
+        image: true,
+        video: true,
+        audio: false,
+        validateFn: (f) => {    // 文件校验
+          if(['jpg','jpeg','gif','png','bmp'].includes(f.name.split('.').slice(-1)[0])){ // 用户加入了一张图片
+            if(f.size > 1024 * 1024 * 50){ // 最大上传50MB的图片
+              return false;
+            }
+          } else if (['mp4', 'wma', 'rmvb', 'avi'].includes(f.name.split('.').slice(-1)[0])){  // 用户加入了一个视频
+            if(f.size > 1024 * 1024 * 500){ // 最大上传500MB的视频
+              return false;
+            }
+          } else{
+            message.info('您选择的文件不符合要求');
+            return false;
+          }
+          return true;
+        },
+        uploadFn:(params) => {    // 把图片和视频上传到服务器
+          const serverURL =`${Config.baseURL}/manager/product/uploadImage`; // 上传的接口
+          const xhr = new XMLHttpRequest();
+          const fd = new FormData();
+          const successFn = (response) => {
+            console.log('返回了什么：', response);
+            params.success({
+              url: JSON.parse(xhr.responseText).data,
+              meta: {
+                id: params.libraryId,
+              }
+            });
+          }
+          const progressFn = (event) => {
+            params.progress(event.loaded / event.total * 100);
+          };
+          const errorFn = (response) => {
+            params.error({
+              msg: '上传失败'
+            })
+          };
+        
+          xhr.withCredentials = true;
+          xhr.crossOrigin = true;
+          xhr.upload.addEventListener("progress", progressFn, false);
+          xhr.addEventListener("load", successFn, false);
+          xhr.addEventListener("error", errorFn, false);
+          xhr.addEventListener("abort", errorFn, false);
+        
+          fd.append('pImg', params.file);
+          xhr.open('POST', serverURL, true);
+          xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
+          xhr.send(fd);
+        }
+      },
+      initialContent: '<p>请编写内容...</p>',
+      excludeControls: ['undo','redo','superscript', 'subscript','code']
+    };
+    
     return (
       <div>
         <div className="system-search">
@@ -726,11 +795,69 @@ class Category extends React.Component {
                   )}
                 </FormItem>
                 <FormItem label="10.添加活动商品图文">
-                  {getFieldDecorator("formTime", {
+                  <FormItem label="①" {...formItemLayout} labelCol={{ span: 1 }}>
+                    {getFieldDecorator("formTime", {
+                      initialValue: undefined,
+                    })(
+                      <Input style={{width:'200px',marginLeft:'-25px'}} placeholder="输入活动名称"/>
+                    )}
+                  </FormItem>
+                  <FormItem label="②" {...formItemLayout} labelCol={{ span: 1 }}>
+                    {getFieldDecorator("formTitle", {
+                      initialValue: undefined,
+                    })(
+                      <Input style={{width:'200px',marginLeft:'-25px'}} placeholder="输入活动副标题"/>
+                    )}
+                  </FormItem>
+                  <FormItem label="③添加商品活动图" {...formItemLayout} labelCol={{ span: 2 }}>
+                    {getFieldDecorator("addNewIcon", {
+                    })(
+                      <Upload
+                        name="pImg"
+                        disabled={this.state.addOrUp === "look"}
+                        action={`${Config.baseURL}/manager/product/uploadImage`}
+                        listType="picture-card"
+                        withCredentials={true}
+                        fileList={this.state.fileListDetail}
+                        beforeUpload={(f, fl) => this.onUploadDetailBefore(f, fl)}
+                        onChange={f => this.onUpLoadDetailChange(f)}
+                        onRemove={f => this.onUpLoadDetailRemove(f)}
+                        style={{marginTop:'5px'}}
+                      >
+                        {this.state.fileList.length >= 1 ? null : (
+                          <div>
+                            <Icon type="plus" />
+                            <div className="ant-upload-text">选择文件</div>
+                          </div>
+                        )}
+                      </Upload>
+                    )}
+                  </FormItem>
+                </FormItem>
+                <FormItem label="11.配置单次活动库存限制">
+                  <FormItem label="库存数量" {...formItemLayout} labelCol={{ span: 2 }}>
+                    {getFieldDecorator("formStock", {
+                      initialValue: undefined,
+                    })(
+                      <Input style={{width:'200px',marginLeft:'-35px'}} placeholder="输入单次活动库存数量"/>
+                    )}
+                  </FormItem>
+                  <FormItem style={{marginTop:'-15px'}}>
+                    <span style={{color:'brown'}}>库存数量不足时,经销商与所属分销商水机或优惠卡不满足最低库存时,经销商与所属分销商无法发起活动</span>
+                  </FormItem>
+                </FormItem>
+                <FormItem label="12.命名规则" {...formItemLayout} labelCol={{ span: 2 }}>
+                  {getFieldDecorator("formRule", {
                     initialValue: undefined,
                   })(
-                      <Input style={{width:'200px',marginLeft:'35px'}} placeholder="输入活动名称"/>
+                    <Input style={{width:'200px',marginLeft:'-35px'}} placeholder="给设置的规则起名"/>
                   )}
+                </FormItem>
+                <FormItem label="13.编辑活动规则" labelCol={{ span: 24 }} wrapperCol={{ span: 24}} style={{width:'800px'}}>
+                  <BraftEditor {...editorProps} ref={(dom) => this.editor = dom}/>
+                </FormItem>
+                <FormItem style={{width:'800px',textAlign:'center'}}>
+                  <Button onClick={() => this.onOk()} type="primary" style={{width:'160px'}}>确定</Button>
                 </FormItem>
               </Form>
             </TabPane>
