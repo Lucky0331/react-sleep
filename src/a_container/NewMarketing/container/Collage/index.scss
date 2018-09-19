@@ -1,0 +1,62 @@
+.ant-table-thead > tr > th,
+.ant-table-tbody > tr > td {
+  padding: 10px;
+}
+
+.table-img {
+  max-width: 100px;
+  max-height: 36px;
+  object-fit: cover;
+  margin-right: 4px;
+  border-radius: 4px;
+}
+
+.small-img {
+  max-width: 50px;
+  max-height: 50px;
+  margin-right: 4px;
+  border-radius: 4px;
+}
+.table-img-big {
+  max-width: 350px;
+  max-height: 350px;
+  border-radius: 4px;
+}
+
+.nowList{
+  background-color: #1c5b95;
+  font-weight: 600;
+  font-size:15px;
+  margin-top: -15px;
+  padding:13px 10px;
+  color: #fffbe6;
+  .fontnow{
+    margin-left: 5px;
+  }
+}
+
+.nowWait{
+  background-color: #482425;
+  font-weight: 600;
+  font-size:15px;
+  margin-top: -15px;
+  padding:13px 10px;
+  color: #fffbe6;
+  .fontnow{
+    margin-left: 5px;
+  }
+}
+
+.paneltab{
+  background: #f7f7f7;
+  border-radius:4px;
+  margin-bottom:24px;
+  border: 0;
+  overflow: hidden;
+}
+
+.ant-table-tbody {
+  .ant-table-row {
+    height: 56px;
+  }
+}

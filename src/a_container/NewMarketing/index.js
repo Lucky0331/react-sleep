@@ -17,6 +17,7 @@ import "./index.scss";
 
 import Activity from "./container/Activity";//活动管理
 import Bargain from "./container/Bargain";//活动管理
+import Collage from "./container/Collage";//线上拼团
 
 
 // ==================
@@ -59,6 +60,11 @@ class TheContainer extends React.Component {
             exact
             path={`${this.props.match.path}/bargain`} //砍价活动
             component={Bargain}
+          />
+          <Route
+            exact
+            path={`${this.props.match.path}/collage`} //线上拼团
+            component={Collage}
           />
         </Switch>
       </div>
