@@ -18,6 +18,7 @@ import "./index.scss";
 import Activity from "./container/Activity";//活动管理
 import Bargain from "./container/Bargain";//活动管理
 import Collage from "./container/Collage";//线上拼团
+import Exchange from "./container/Exchange";//兑换码列表
 
 
 // ==================
@@ -53,18 +54,23 @@ class TheContainer extends React.Component {
           />
           <Route
             exact
-            path={`${this.props.match.path}/activity`} //活动管理
+            path={`${this.props.match.path}/activity`} //首页活动
             component={Activity}
           />
           <Route
             exact
-            path={`${this.props.match.path}/bargain`} //砍价活动
-            component={Bargain}
+            path={`${this.props.match.path}/exchange`} //兑换活动
+            component={Exchange}
           />
           <Route
             exact
             path={`${this.props.match.path}/collage`} //线上拼团
             component={Collage}
+          />
+          <Route
+            exact
+            path={`${this.props.match.path}/bargain`} //砍价活动
+            component={Bargain}
           />
         </Switch>
       </div>

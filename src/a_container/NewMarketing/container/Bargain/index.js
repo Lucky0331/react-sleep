@@ -314,10 +314,6 @@ class Category extends React.Component {
   onSearch() {
     this.onGetData(1, this.state.pageSize);
   }
-  //导出
-  onExport() {
-    this.onGetData(this.state.pageNum, this.state.pageSize);
-  }
 
   // 查询某一条数据的详情
   onQueryClick(record) {
@@ -346,65 +342,76 @@ class Category extends React.Component {
     const columns = [
       {
         title: "序号",
-        fixed: "left",
         dataIndex: "serial",
         key: "serial",
+        fixed: "left",
         width: 100
       },
       {
-        title: "活动名称",
-        dataIndex: "title",
-        key: "title"
+        title: "端",
+        dataIndex: "applicationType",
+        key: "applicationType"
       },
       {
-        title: "活动链接",
-        dataIndex: "acUrl",
-        key: "acUrl"
+        title:'操作人',
+        dataIndex:'',
+        key:''
       },
       {
-        title:'发布时间',
-        dataIndex:'updateTime',
-        key:'updateTime'
+        title:"上架时间",
+        dataIndex:'onShelfTime',
+        key:'onShelfTime'
       },
       {
-        title:"活动图片",
-        dataIndex:'acImg',
-        key:'acImg',
-        render: (text, index) => {
-          if (text) {
-            const img = text.split(",");
-            return (
-              <Popover
-                key={index}
-                placement="right"
-                content={<img className="table-img-big" src={img[0]}/>}
-              >
-                <img className="table-img" src={img[0]}/>
-              </Popover>
-            );
-          }
-          return "";
-        }
+        title:'状态'
       },
       {
-        title: "是否发布",
+        title:'创建时间'
+      },
+      {
+        title: "使用权限",
+        dataIndex:'applyUserType',
+        key:'applyUserType'
+      },
+      {
+        title:'单次活动库存限制',
+      },
+      {
+        title:"支持商品",
+        dataIndex:'productModel',
+        key:'productModel',
+      },
+      {
+        title: "保底价",
         dataIndex: "deleteFlag",
         key: "deleteFlag",
-        render: text =>
-          Boolean(text) === true ? (
-            <span style={{ color: "red" }}>未发布</span>
-          ) : (
-            <span style={{ color: "green" }}>已发布</span>
-          )
       },
       {
-        title:'排序',
-        dataIndex:'sorts',
-        key:'sorts'
+        title:'参与砍价用户设置',
+      },
+      {
+        title:'砍价所需人数'
+      },
+      {
+        title:'单次活动起止时间',
+      },
+      {
+        title:'用户发起活动倒计时'
+      },
+      {
+        title:'活动标题',
+      },
+      {
+        title:'活动商品图'
+      },
+      {
+        title:'是否支持循环开启',
       },
       {
         title: "操作",
         key: "control",
+        fixed: "right",
+        width: 100,
         render: (text, record) => {
           const controls = [];
           record.deleteFlag === true &&
@@ -414,7 +421,7 @@ class Category extends React.Component {
               className="control-btn blue"
               onClick={() => this.onUpdateClick2(record)}
             >
-              <Tooltip placement="top" title="发布">
+              <Tooltip placement="top" title="上架">
                 <Icon type="login" />
               </Tooltip>
             </span>
@@ -426,7 +433,7 @@ class Category extends React.Component {
               className="control-btn red"
               onClick={() => this.onUpdateClick2(record)}
             >
-              <Tooltip placement="top" title="回撤">
+              <Tooltip placement="top" title="下架">
                 <Icon type="logout" />
               </Tooltip>
             </span>
@@ -490,14 +497,16 @@ class Category extends React.Component {
       return {
         id: item.id,
         key: index,
-        title: item.title,//活动名称
-        orderNo: item.id,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
-        updateTime: item.updateTime,//发布时间
-        deleteFlag: item.deleteFlag,//是否发布
-        acUrl: item.acUrl,  //链接地址
-        sorts:item.sorts,
-        recommendProductList:item.recommendProductList, //推荐产品有哪些
+        applicationType:item.applicationType,//端
+        applyUserType:item.applyUserType,//使用权限
+        activityType: item.activityType,//活动类型
+        basePrice: item.basePrice,//市场价
+        newProduct: item.newProduct,//是否推荐
+        num: item.num,//数量
+        offShelfTime: item.offShelfTime,  //下架时间
+        onShelfTime:item.onShelfTime,//上架时间
+        onShelf:item.onShelf, //是否上架
         acImg:item.acImg ? item.acImg : '', //活动图片
         productId:item.recommendProductList && item.recommendProductList[0] ? item.recommendProductList[0].productId : '',
       };
@@ -594,30 +603,32 @@ class Category extends React.Component {
                   <span className="fontnow">已上架模板 </span>
                 </div>
                 <div className="system-table">
-                  <Collapse bordered={false} defaultActiveKey={['1']}>
-                    <Panel header="This is panel header 1" key="1" className="paneltab">
-                      <p>111</p>
-                    </Panel>
-                    <Panel header="This is panel header 2" key="2" className="paneltab">
-                      <p>222</p>
-                    </Panel>
-                    <Panel header="This is panel header 3" key="3" className="paneltab">
-                      <p>333</p>
-                    </Panel>
-                  </Collapse>
-                  {/*<Table*/}
-                    {/*columns={this.makeColumns()}*/}
-                    {/*dataSource={this.makeData(this.state.data)}*/}
-                    {/*pagination={{*/}
-                      {/*total: this.state.total,*/}
-                      {/*current: this.state.pageNum,*/}
-                      {/*pageSize: this.state.pageSize,*/}
-                      {/*showQuickJumper: true,*/}
-                      {/*showTotal: (total, range) => `共 ${total} 条数据`,*/}
-                      {/*onChange: (page, pageSize) =>*/}
-                        {/*this.onTablePageChange(page, pageSize)*/}
-                    {/*}}*/}
-                  {/*/>*/}
+                  {/*<Collapse bordered={false} defaultActiveKey={['1']}>*/}
+                    {/*<Panel header="健康风险评估卡砍价规则 -- " key="1" className="paneltab">*/}
+                      {/*<p>111</p>*/}
+                    {/*</Panel>*/}
+                    {/*<Panel header="This is panel header 2" key="2" className="paneltab">*/}
+                      {/*<p>222</p>*/}
+                    {/*</Panel>*/}
+                    {/*<Panel header="This is panel header 3" key="3" className="paneltab">*/}
+                      {/*<p>333</p>*/}
+                    {/*</Panel>*/}
+                  {/*</Collapse>*/}
+                  <Table
+                    columns={this.makeColumns()}
+                    dataSource={this.makeData(this.state.data)}
+                    scroll={{ x: 2200 }}
+                    pagination={{
+                      total: this.state.total,
+                      current: this.state.pageNum,
+                      pageSize: this.state.pageSize,
+                      hideOnSinglePage:true,
+                      showTotal: (total, range) => `共 ${total} 条数据`,
+                      onChange: (page, pageSize) =>
+                        this.onTablePageChange(page, pageSize)
+                    }}
+                    style={{marginBottom:'30px'}}
+                  />
                 </div>
                 {/* 添加模态框 */}
                 <Modal

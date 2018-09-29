@@ -43,11 +43,8 @@ import {
   deleteActivity,
   onChange,
   onOk,
-  ActivityList,
   findProductByWhere,
   upDateOnlineList,
-  deleteImage,
-  activityList,
 } from "../../../../a_action/shop-action";
 
 // ==================
@@ -103,20 +100,19 @@ class Category extends React.Component {
       title: this.state.searchTitle,
       apId: this.state.searchBanner
     };
-    this.props.actions.ActivityList(tools.clearNull(params)).then(res => {
-      // console.log("返回的什么：", res.data.result.recommendProductList);
-      if (res.status === "0") {
-        this.setState({
-          data: res.data.result || [],
-          pageNum,
-          pageSize,
-          total: res.data.total
-        });
-      } else {
-        message.error(res.message || "获取数据失败，请重试");
-      }
-      console.log("啥活动：", res.data.result);
-    });
+    // this.props.actions.ActivityList(tools.clearNull(params)).then(res => {
+    //   if (res.status === "0") {
+    //     this.setState({
+    //       data: res.data.result || [],
+    //       pageNum,
+    //       pageSize,
+    //       total: res.data.total
+    //     });
+    //   } else {
+    //     message.error(res.message || "获取数据失败，请重试");
+    //   }
+    //   console.log("啥活动：", res.data.result);
+    // });
   }
 
   //搜索 - 发布状态输入框值改变时触发
@@ -139,80 +135,6 @@ class Category extends React.Component {
       item => String(item.id) === String(id)
     );
     return t ? t.name : "";
-  }
-  
-  // banner图 - 上传中、上传成功、上传失败的回调
-  onUpLoadChange(obj) {
-    // console.log('图片上传：', obj);
-    if (obj.file.status === "done") {
-      // 上传成功后调用,将新的地址加进原list
-      if (obj.file.response.data) {
-        const list = _.cloneDeep(this.state.fileList);
-        const t = list.find(item => item.uid === obj.file.uid);
-        t.url = obj.file.response.data;
-        this.setState({
-          fileList: list,
-          fileLoading: false
-        });
-      } else {
-        const list = _.cloneDeep(this.state.fileList);
-        this.setState({
-          fileList: list.filter(item => item.uid !== obj.file.uid),
-          fileLoading: false
-        });
-        message.error("图片上传失败");
-      }
-    } else if (obj.file.status === "uploading") {
-      this.setState({
-        fileLoading: true
-      });
-    } else if (obj.file.status === "error") {
-      const list = _.cloneDeep(this.state.fileList);
-      this.setState({
-        fileList: list.filter(item => item.uid !== obj.file.uid),
-        fileLoading: false
-      });
-      message.error("图片上传失败");
-    }
-  }
-  
-  // banner图 - 上传前
-  onUploadBefore(f, fl) {
-    console.log("上传前：", f, fl);
-    if (
-      ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
-    ) {
-      message.error("只能上传jpg、jpeg、png、bmp、gif格式的图片");
-      return false;
-    } else {
-      const newList = _.cloneDeep(this.state.fileList);
-      newList.push(f);
-      this.setState({
-        fileList: newList
-      });
-      return true;
-    }
-  }
-  
-  // banner图 - 删除一个图片
-  onUpLoadRemove(f) {
-    console.log("删除；", f);
-    this.deleteImg(f.url);
-    const list = _.cloneDeep(this.state.fileList);
-    this.setState({
-      fileList: list.filter(item => item.uid !== f.uid)
-    });
-  }
-  
-  // 真正从服务端删除商品的图片
-  deleteImg(uri) {
-    const temp = uri.split("/");
-    const fileName = temp.splice(-1, 1);
-    const params = {
-      path: `${temp.join("/")}${fileName}`,
-    };
-    console.log("删除后的是啥？", temp.join("/"), fileName);
-    this.props.actions.deleteImage(params);
   }
 
   // 添加新活动模态框出现
@@ -336,11 +258,6 @@ class Category extends React.Component {
       nowData: record,
       addOrUp: "up",
       addnewModalShow: true,
-      fileList: record.acImg
-        ? record.acImg
-          .split(",")
-          .map((item, index) => ({ uid: index, url: item, status: "done" }))
-        : [], // 活动图上传的列表
     });
   }
 
@@ -428,62 +345,22 @@ class Category extends React.Component {
         width: 100
       },
       {
-        title: "活动名称",
-        dataIndex: "title",
-        key: "title"
+        title: "文件分类",
       },
       {
-        title: "活动链接",
-        dataIndex: "acUrl",
-        key: "acUrl"
+        title: "文件标题",
       },
       {
-        title:'发布时间',
-        dataIndex:'updateTime',
-        key:'updateTime'
+        title:'状态',
       },
       {
-        title:"活动图片",
-        dataIndex:'acImg',
-        key:'acImg',
-        render: (text, index) => {
-          if (text) {
-            const img = text.split(",");
-            return (
-              <Popover
-                key={index}
-                placement="right"
-                content={<img className="table-img-big" src={img[0]} />}
-              >
-                <img className="table-img" src={img[0]} />
-              </Popover>
-            );
-          }
-          return "";
-        }
-      },
-      {
-        title: "是否发布",
-        dataIndex: "deleteFlag",
-        key: "deleteFlag",
-        render: text =>
-          Boolean(text) === true ? (
-            <span style={{ color: "red" }}>未发布</span>
-          ) : (
-            <span style={{ color: "green" }}>已发布</span>
-          )
-      },
-      {
-        title:'排序',
-        dataIndex:'sorts',
-        key:'sorts'
+        title:"在当前分类下的排序",
       },
       {
         title: "操作",
         key: "control",
         render: (text, record) => {
           const controls = [];
-          record.deleteFlag === true &&
           controls.push(
             <span
               key="0"
@@ -495,14 +372,13 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
-          record.deleteFlag === false &&
           controls.push(
             <span
               key="1"
               className="control-btn red"
               onClick={() => this.onUpdateClick2(record)}
             >
-              <Tooltip placement="top" title="回撤">
+              <Tooltip placement="top" title="撤回">
                 <Icon type="logout" />
               </Tooltip>
             </span>
@@ -513,12 +389,11 @@ class Category extends React.Component {
               className="control-btn green"
               onClick={() => this.onQueryClick(record)}
             >
-              <Tooltip placement="top" title="预览">
+              <Tooltip placement="top" title="详情">
                 <Icon type="eye" />
               </Tooltip>
             </span>
           );
-          record.deleteFlag === true &&
           controls.push(
             <span
               key="3"
@@ -530,7 +405,6 @@ class Category extends React.Component {
               </Tooltip>
             </span>
           );
-          record.deleteFlag === true &&
           controls.push(
             <Popconfirm
               key="4"
@@ -567,27 +441,8 @@ class Category extends React.Component {
       return {
         id: item.id,
         key: index,
-        title: item.title,//活动名称
         orderNo: item.id,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
-        updateTime: item.updateTime,//发布时间
-        deleteFlag: item.deleteFlag,//是否发布
-        acUrl: item.acUrl,  //链接地址
-        sorts:item.sorts,
-        recommendProductList:item.recommendProductList, //推荐产品有哪些
-        acImg:item.acImg ? item.acImg : '', //活动图片
-        productId:item.recommendProductList && item.recommendProductList[0] ? item.recommendProductList[0].productId : '',
-        // productName:item.recommendProductList ? item.recommendProductList.map((item)=>{ return (item.productId)}).join(",") :'',
-        productName:item.recommendProductList && item.recommendProductList[0] ? item.recommendProductList[0].productId : '',
-        productName2:item.recommendProductList && item.recommendProductList[1] ? item.recommendProductList[1].productId : '',
-        productName3:item.recommendProductList && item.recommendProductList[2] ? item.recommendProductList[2].productId : '',
-        productName4:item.recommendProductList && item.recommendProductList[3] ? item.recommendProductList[3].productId : '',
-        productName5:item.recommendProductList && item.recommendProductList[4] ? item.recommendProductList[4].productId : '',
-        productName6:item.recommendProductList && item.recommendProductList[5] ? item.recommendProductList[5].productId : '',
-        productName7:item.recommendProductList && item.recommendProductList[6] ? item.recommendProductList[6].productId : '',
-        productName8:item.recommendProductList && item.recommendProductList[7] ? item.recommendProductList[7].productId : '',
-        productName9:item.recommendProductList && item.recommendProductList[8]? item.recommendProductList[8].productId : '',
-        productName10:item.recommendProductList && item.recommendProductList[9] ? item.recommendProductList[9].productId : '',
       };
     });
   }
@@ -611,7 +466,7 @@ class Category extends React.Component {
 
     const { searchTitle } = this.state;
     const suffix = searchTitle ? (
-        <Icon type="close-circle" onClick={() => this.emitEmpty()} />
+      <Icon type="close-circle" onClick={() => this.emitEmpty()} />
     ) : null;
     console.log('这是什么：', this.state.productModels);
     return (
@@ -619,24 +474,29 @@ class Category extends React.Component {
         <div className="system-search">
           <ul className="search-ul more-ul">
             <li>
-              <span>活动名称</span>
-              <Input
-                style={{ width:"172px" }}
-                suffix={suffix}
-                value={searchTitle}
-                onChange={e => this.searchTitleChange(e)}
-              />
-            </li>
-            <li>
-              <span>是否发布</span>
+              <span>文件分类</span>
               <Select
                 placeholder="全部"
                 allowClear
                 style={{ width: "172px" }}
-                onChange={e => this.searchNameChange(e)}
               >
-                <Option value={0}>已发布</Option>
-                <Option value={1}>未发布</Option>
+              </Select>
+            </li>
+            <li>
+              <span>文件标题</span>
+              <Input
+                style={{ width: "172px", marginRight: "10px" }}
+              />
+            </li>
+            <li>
+              <span>状态</span>
+              <Select
+                placeholder="全部"
+                allowClear
+                style={{ width: "172px" }}
+              >
+                <Option value={1}>已发布</Option>
+                <Option value={2}>未发布</Option>
               </Select>
             </li>
             <li style={{ marginLeft: "40px", marginRight: "15px" }}>
@@ -655,7 +515,7 @@ class Category extends React.Component {
                   type="primary"
                   onClick={() => this.onAddNewShow()}
                 >
-                  添加
+                  新增文件
                 </Button>
               </li>
             </ul>
@@ -678,31 +538,32 @@ class Category extends React.Component {
         </div>
         {/* 添加模态框 */}
         <Modal
-          title={this.state.addOrUp === "add" ? "添加活动" : "修改活动"}
+          title={this.state.addOrUp === "add" ? "新建文件" : "修改文件"}
           visible={this.state.addnewModalShow}
           onOk={() => this.onAddNewOk()}
           onCancel={() => this.onAddNewClose()}
           confirmLoading={this.state.addnewLoading}
         >
           <Form>
-            <FormItem label="端" {...formItemLayout}>
+            <FormItem label="文件分类" {...formItemLayout}>
               {getFieldDecorator("formEnd", {
                 initialValue: undefined,
                 rules: [
-                  { required: true, message: "请选择所要配置的端" }
+                  { required: true, message: "请选择文件分类" }
                 ]
               })(
-                <RadioGroup value={this.state.value}>
-                  <Radio value={1}>健康e家</Radio>
-                  <Radio value={2}>小程序</Radio>
-                </RadioGroup>
+                <Select
+                  placeholder="全部"
+                  allowClear
+                >
+                </Select>
               )}
             </FormItem>
-            <FormItem label="活动名称" {...formItemLayout}>
+            <FormItem label="文件标题" {...formItemLayout}>
               {getFieldDecorator("addnewTitle", {
                 initialValue: undefined,
                 rules: [
-                  { required: true, message: "请输入活动名称" },
+                  { required: true, message: "请输入文件标题" },
                   {
                     validator: (rule, value, callback) => {
                       const v = tools.trim(value);
@@ -717,71 +578,22 @@ class Category extends React.Component {
                 ]
               })(<Input placeholder="请输入活动名称" />)}
             </FormItem>
-            <FormItem label="活动链接" {...formItemLayout}>
+            <FormItem label="链接地址" {...formItemLayout}>
               {getFieldDecorator("addnewUrl", {
                 initialValue: undefined,
                 rules: [{ required: true, message: "请输入链接地址" }]
               })(<Input placeholder="请输入链接地址" />)}
             </FormItem>
-            <FormItem label="推荐产品" {...formItemLayout}>
-              {getFieldDecorator("addnewProduct",{
-                initialValue: undefined,
-              })(
-              <Select
-                mode="multiple"
-                style={{ width: '100%' }}
-                placeholder="请选择所要推荐产品"
-              >
-              {
-                this.state.productModels.map((item) => {
-                  return (
-                    <Option key={String(item.id)}>{item.name}</Option>
-                  );
-                })
-              }
-              </Select>
-             )}
-            </FormItem>
-            <FormItem label="活动图片" {...formItemLayout}>
-              {getFieldDecorator("formTu", {
-                initialValue: undefined,
-                rules: [
-                  { required: true, message: "请选择所要配置的端" }
-                ]
-              })(
-                <RadioGroup value={this.state.value}>
-                  <Radio value={3}>大图</Radio>
-                  <Radio value={4}>小图</Radio>
-                </RadioGroup>
-              )}
-              <Upload
-                name="pImg"
-                action={`${Config.baseURL}/manager/product/uploadImage`}
-                listType="picture-card"
-                withCredentials={true}
-                fileList={this.state.fileList}
-                beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
-                onChange={f => this.onUpLoadChange(f)}
-                onRemove={f => this.onUpLoadRemove(f)}
-              >
-                {this.state.fileList.length >= 1 ? null : (
-                  <div>
-                    <Icon type="plus" />
-                    <div className="ant-upload-text">选择文件</div>
-                  </div>
-                )}
-              </Upload>
-            </FormItem>
             <FormItem label="是否发布" {...formItemLayout}>
-                {getFieldDecorator("addnewDeletFlag", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请选择是否发布" }]
-                })(
-                <Select placeholder="请选择是否发布">
-                  <Option value={1}>否</Option>
-                  <Option value={0}>是</Option>
-                </Select>
-                )}
+              {getFieldDecorator("addnewDeletFlag", {
+              initialValue: undefined,
+              rules: [{ required: true, message: "请选择是否发布" }]
+              })(
+              <Select placeholder="请选择是否发布">
+                <Option value={1}>否</Option>
+                <Option value={0}>是</Option>
+              </Select>
+              )}
             </FormItem>
             <FormItem label="排序" {...formItemLayout}>
               {getFieldDecorator("addnewSorts", {
@@ -807,33 +619,6 @@ class Category extends React.Component {
             </FormItem>
             <FormItem label="发布时间" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.updateTime : ""}
-            </FormItem>
-            <FormItem label="活动图片" {...formItemLayout}>
-              {!!this.state.nowData && this.state.nowData.acImg
-                ? this.state.nowData.acImg.split(",").map((item, index) => {
-                  return (
-                    <Popover
-                      key={index}
-                      placement="right"
-                      content={<img className="table-img-big" src={item} />}
-                    >
-                      <img className="small-img" src={item} />
-                    </Popover>
-                  );
-                })
-              : ""}
-            </FormItem>
-            <FormItem label="推荐产品" {...formItemLayout} >
-              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName) : ''}</p>
-              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName2) : ''}</p>
-              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName3) : ''}</p>
-              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName4) : ''}</p>
-              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName5) : ''}</p>
-              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName6) : ''}</p>
-              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName7) : ''}</p>
-              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName8) : ''}</p>
-              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName9) : ''}</p>
-              <p>{!!this.state.nowData ? this.getNameByModelId(this.state.nowData.productName10) : ''}</p>
             </FormItem>
             <FormItem label="发布状态" {...formItemLayout}>
               {!!this.state.nowData ? (
@@ -881,10 +666,7 @@ export default connect(
         onChange,
         onOk,
         findProductByWhere,
-        ActivityList,
         upDateOnlineList,
-        deleteImage,
-        activityList,
       },
       dispatch
     )

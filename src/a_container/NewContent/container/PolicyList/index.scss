@@ -1,0 +1,30 @@
+.ant-table-thead > tr > th,
+.ant-table-tbody > tr > td {
+  padding: 10px;
+}
+
+.table-img {
+  max-width: 100px;
+  max-height: 36px;
+  object-fit: cover;
+  margin-right: 4px;
+  border-radius: 4px;
+}
+
+.small-img {
+  max-width: 50px;
+  max-height: 50px;
+  margin-right: 4px;
+  border-radius: 4px;
+}
+.table-img-big {
+  max-width: 350px;
+  max-height: 350px;
+  border-radius: 4px;
+}
+
+.ant-table-tbody {
+  .ant-table-row {
+    height: 56px;
+  }
+}

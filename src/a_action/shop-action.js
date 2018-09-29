@@ -1168,6 +1168,83 @@ export function deleteColumnCount(params = {}) {
   };
 }
 
+//营销管理 -- 兑换码列表
+export function hraExchange(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/hraExchange/list", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("请求出现网络错误，请重试");
+      });
+  };
+}
+
+//兑换码列表 -- 添加兑换码
+export function hraExchangeSave(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/hraExchange/save", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("请求出现网络错误，请重试");
+      });
+  };
+}
+//兑换码列表 -- 设置修改确定
+export function upExchangeSave(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/dictionary/update", params,'post',true)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("请求出现网络错误，请重试");
+      });
+  };
+}
+
+//兑换码列表 -- 端
+export function PortFromSave(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/dictionary/listByDicType?dicType=side", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("请求出现网络错误，请重试");
+      });
+  };
+}
+
+//兑换码列表 -- 渠道
+export function ChannelFromSave(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/dictionary/listByDicType?dicType=channel", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("请求出现网络错误，请重试");
+      });
+  };
+}
+
+//兑换码列表 -- 兑换限制
+export function exchangeSave(params = {}) {
+  return dispatch => {
+    return Fetchapi.newPost("/manager/dictionary/listByDicType?dicType=exchange", params)
+      .then(msg => {
+        return msg;
+      })
+      .catch(() => {
+        message.error("请求出现网络错误，请重试");
+      });
+  };
+}
+
 //导出的请求--汇总对账
 export function AllExportList(params = {}) {
   return dispatch => {

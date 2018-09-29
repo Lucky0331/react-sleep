@@ -9,7 +9,7 @@ import { bindActionCreators } from "redux";
 import P from "prop-types";
 import { Router, Route, Link } from "react-router-dom";
 import Config from "../../../../config/config";
-import { Form, Button, Icon, Input, InputNumber, Table, message, Popconfirm, Popover, Modal, Radio, Tooltip, Select, Upload, Divider,Switch } from "antd";
+import {Form, Button, Icon, Input, InputNumber, Table, message, Popconfirm, Popover, Modal, Radio, Tooltip, Select, Upload, Divider,Switch } from "antd";
 import "./index.scss";
 import BraftEditor from "braft-editor";
 import "braft-editor/dist/braft.css";
