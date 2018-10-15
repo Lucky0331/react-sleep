@@ -94,6 +94,18 @@ class Category extends React.Component {
       });
   }
   
+  //端是什么
+  getSideId(type){
+    switch (String(type)){
+    case "1":
+      return "公众号";
+    case "2":
+      return "小程序";
+    default:
+      return "";
+    }
+  }
+  
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
     const params = {
@@ -224,7 +236,8 @@ class Category extends React.Component {
       "addnewUrl",
       "addnewProduct",
       "addnewDeletFlag",
-      "addnewSorts"
+      "addnewSorts",
+      "formEnd"
     ]);
     this.setState({
       addOrUp: "add",
@@ -251,7 +264,8 @@ class Category extends React.Component {
         "addnewProduct",
         "addnewUrl",
         "addnewDeletFlag",
-        "addnewSorts"
+        "addnewSorts",
+        "formEnd"
       ],
       (err, values) => {
         if (err) {
@@ -261,6 +275,7 @@ class Category extends React.Component {
           addnewLoading: true
         });
         const params = {
+          side:values.formEnd,
           title: values.addnewTitle,
           acUrl: values.addnewUrl,
           deleteFlag:values.addnewDeletFlag,
@@ -325,6 +340,7 @@ class Category extends React.Component {
     console.log("是什么：", record);
     form.setFieldsValue({
       addnewTitle: String(record.title),
+      formEnd:this.getSideId(record.side),
       addnewUrl: record.acUrl,
       addnewProduct: record.recommendProductList ? record.recommendProductList.map((item)=>{return String(item.productId)}) : undefined,
       addnewDeletFlag:record.deleteFlag ? 1 : 0,
@@ -426,6 +442,12 @@ class Category extends React.Component {
         dataIndex: "serial",
         key: "serial",
         width: 100
+      },
+      {
+        title:'端',
+        dataIndex:'side',
+        key:'side',
+        render:text => this.getSideId(text)
       },
       {
         title: "活动名称",
@@ -574,6 +596,7 @@ class Category extends React.Component {
         deleteFlag: item.deleteFlag,//是否发布
         acUrl: item.acUrl,  //链接地址
         sorts:item.sorts,
+        side:item.side,//端
         recommendProductList:item.recommendProductList, //推荐产品有哪些
         acImg:item.acImg ? item.acImg : '', //活动图片
         productId:item.recommendProductList && item.recommendProductList[0] ? item.recommendProductList[0].productId : '',
@@ -611,7 +634,7 @@ class Category extends React.Component {
 
     const { searchTitle } = this.state;
     const suffix = searchTitle ? (
-        <Icon type="close-circle" onClick={() => this.emitEmpty()} />
+      <Icon type="close-circle" onClick={() => this.emitEmpty()} />
     ) : null;
     console.log('这是什么：', this.state.productModels);
     return (
@@ -693,7 +716,7 @@ class Category extends React.Component {
                 ]
               })(
                 <RadioGroup value={this.state.value}>
-                  <Radio value={1}>健康e家</Radio>
+                  <Radio value={1}>公众号</Radio>
                   <Radio value={2}>小程序</Radio>
                 </RadioGroup>
               )}
@@ -743,17 +766,6 @@ class Category extends React.Component {
              )}
             </FormItem>
             <FormItem label="活动图片" {...formItemLayout}>
-              {getFieldDecorator("formTu", {
-                initialValue: undefined,
-                rules: [
-                  { required: true, message: "请选择所要配置的端" }
-                ]
-              })(
-                <RadioGroup value={this.state.value}>
-                  <Radio value={3}>大图</Radio>
-                  <Radio value={4}>小图</Radio>
-                </RadioGroup>
-              )}
               <Upload
                 name="pImg"
                 action={`${Config.baseURL}/manager/product/uploadImage`}
@@ -773,15 +785,15 @@ class Category extends React.Component {
               </Upload>
             </FormItem>
             <FormItem label="是否发布" {...formItemLayout}>
-                {getFieldDecorator("addnewDeletFlag", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请选择是否发布" }]
-                })(
-                <Select placeholder="请选择是否发布">
-                  <Option value={1}>否</Option>
-                  <Option value={0}>是</Option>
-                </Select>
-                )}
+              {getFieldDecorator("addnewDeletFlag", {
+              initialValue: undefined,
+              rules: [{ required: true, message: "请选择是否发布" }]
+              })(
+              <Select placeholder="请选择是否发布">
+                <Option value={1}>否</Option>
+                <Option value={0}>是</Option>
+              </Select>
+              )}
             </FormItem>
             <FormItem label="排序" {...formItemLayout}>
               {getFieldDecorator("addnewSorts", {

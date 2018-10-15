@@ -71,6 +71,7 @@ class Category extends React.Component {
       searchBatch:"",//搜索 - 兑换码批次号
       searchStatus:'',//搜索 - 兑换状态
       searchDiscount:'',//搜索 - 关联优惠卡
+      searchDiscountStatus:'',//搜索 - 优惠卡状态
       addnewPersonShow: false, // 添加兑换码模态框是否显示
       addnewSetShow: false, // 设置模态框是否显示
       nowData: null, // 当前选中用户的信息，用于查看详情、修改、分配菜单
@@ -161,12 +162,13 @@ class Category extends React.Component {
     const params = {
       pageNum,
       pageSize,
-      exChangeCode:this.state.searchCode.trim(),//兑换码
+      exchangeCode:this.state.searchCode.trim(),//兑换码
       side:this.state.searchdicCode,//端
       channel:this.state.searchChannel,//渠道
       batchNumber:this.state.searchBatch.trim(),//兑换码批次号
       exchangeStatus:this.state.searchStatus,//兑换状态
       ticketNo:this.state.searchDiscount.trim(),//关联优惠卡
+      ticketStatus:this.state.searchDiscountStatus,//优惠卡状态
     };
     this.props.actions.hraExchange(tools.clearNull(params)).then(res => {
       if (res.status === "0") {
@@ -292,7 +294,23 @@ class Category extends React.Component {
   
   //导出
   onExport(){
-    // this.onExportData(1,this.state.pageSize)
+    this.onExportData(1,this.state.pageSize)
+  }
+  
+  //导出 - 构建字段
+  onExportData(pageSize,pageNum){
+    const params = {
+      pageNum,
+      pageSize,
+      exchangeCode:this.state.searchCode.trim(),//兑换码
+      side:this.state.searchdicCode,//端
+      channel:this.state.searchChannel,//渠道
+      batchNumber:this.state.searchBatch.trim(),//兑换码批次号
+      exchangeStatus:this.state.searchStatus,//兑换状态
+      ticketNo:this.state.searchDiscount.trim(),//关联优惠卡
+      ticketStatus:this.state.searchDiscountStatus,//优惠卡状态
+    };
+    tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/exchange/list`,'post', '兑换码列表.xls');
   }
 
   // 查询某一条数据的详情
@@ -336,7 +354,14 @@ class Category extends React.Component {
   //搜索  - 兑换状态
   searchStatusChange(v){
     this.setState({
-      searchStatus:v.target.value
+      searchStatus:v
+    })
+  }
+  
+  //搜索  - 优惠卡状态
+  searchDiscounStatusChange(v){
+    this.setState({
+      searchDiscountStatus:v
     })
   }
   
@@ -373,9 +398,9 @@ class Category extends React.Component {
     const me = this;
     const { form } = me.props;
     form.resetFields([
-      "addnewCitys",
-      "addnewName",
-      "addnewTypeId",
+      "addnewNum",
+      "addnewBeginTime",
+      "addnewEndTime"
     ]);
     this.setState({
       addOrUp: "add",
@@ -470,7 +495,7 @@ class Category extends React.Component {
   onAddNewClose() {
     this.setState({
       addnewPersonShow: false,
-      addnewSetShow:false
+      addnewSetShow:false,
     });
   }
   
@@ -699,9 +724,9 @@ class Category extends React.Component {
                 onChange={e => this.searchStatusChange(e)}
               >
                 <Option value={1}>未兑换</Option>
-                <Option value={2}>兑换成功</Option>
-                <Option value={3}>兑换失败</Option>
-                <Option value={4}>活动过期</Option>
+                <Option value={2}>已兑换</Option>
+                {/*<Option value={3}>兑换失败</Option>*/}
+                <Option value={4}>兑换过期</Option>
                 <Option value={5}>兑换禁止</Option>
               </Select>
             </li>
@@ -713,6 +738,20 @@ class Category extends React.Component {
                 style={{ width: "172px" }}
                 onChange={e => this.searchDiscountChange(e)}
               />
+            </li>
+            <li>
+              <span>优惠卡状态</span>
+              <Select
+                placeholder="全部"
+                allowClear
+                style={{ width: "172px" }}
+                onChange={e => this.searchDiscounStatusChange(e)}
+              >
+                <Option value={1}>待使用</Option>
+                <Option value={2}>已使用</Option>
+                <Option value={3}>待支付</Option>
+                <Option value={4}>已过期</Option>
+              </Select>
             </li>
             <li>
               <Button
@@ -778,12 +817,11 @@ class Category extends React.Component {
                 initialValue: undefined,
                 rules: [
                   {
-                    // required: true,
                     whitespace: true,
                     message: "请输入兑换数量"
                   }
                 ]
-              })(<Input placeholder="请输入兑换数量" style={{width:'80%'}}/>)}
+              })(<Input placeholder="请输入兑换数量" style={{width:'80%'}} type="number"/>)}
             </FormItem>
             <FormItem label="兑换时间" {...formItemLayout1}>
               <RadioGroup onChange={(e) => this.onRadioChange(e)} value={this.state.radioCode}>
@@ -842,7 +880,6 @@ class Category extends React.Component {
                       <Option value={1}>天</Option>
                       <Option value={2}>周</Option>
                       <Option value={3}>月</Option>
-                      <Option value={4}>年</Option>
                     </Select>
                   )}兑换
                   {getFieldDecorator("addnewPerson", {

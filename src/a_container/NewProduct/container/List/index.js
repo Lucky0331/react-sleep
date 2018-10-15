@@ -966,46 +966,46 @@ class Category extends React.Component {
         width: 270,
         render: (text, record) => {
           const controls = [];
-            controls.push(
-              <span
-                key="1"
-                className="control-btn red"
-              >
-                <Tooltip placement="top" title="热销">
-                  <Icon type="like" />
-                </Tooltip>
-              </span>
-            );
-            controls.push(
-              <span
-                key="2"
-                className="control-btn blue"
-              >
-                <Tooltip placement="top" title="取消热销">
-                <Icon type="dislike" />
-                </Tooltip>
-              </span>
-            );
-            controls.push(
-              <span
-                key="3"
-                className="control-btn red"
-              >
-                <Tooltip placement="top" title="活动">
-                  <Icon type="caret-up"/>
-                </Tooltip>
-              </span>
-            );
-            controls.push(
-              <span
-                key="4"
-                className="control-btn blue"
-              >
-                <Tooltip placement="top" title="取消活动">
-                  <Icon type="caret-down" />
-                </Tooltip>
-              </span>
-            );
+            // controls.push(
+            //   <span
+            //     key="1"
+            //     className="control-btn red"
+            //   >
+            //     <Tooltip placement="top" title="热销">
+            //       <Icon type="like" />
+            //     </Tooltip>
+            //   </span>
+            // );
+            // controls.push(
+            //   <span
+            //     key="2"
+            //     className="control-btn blue"
+            //   >
+            //     <Tooltip placement="top" title="取消热销">
+            //     <Icon type="dislike" />
+            //     </Tooltip>
+            //   </span>
+            // );
+            // controls.push(
+            //   <span
+            //     key="3"
+            //     className="control-btn red"
+            //   >
+            //     <Tooltip placement="top" title="活动">
+            //       <Icon type="caret-up"/>
+            //     </Tooltip>
+            //   </span>
+            // );
+            // controls.push(
+            //   <span
+            //     key="4"
+            //     className="control-btn blue"
+            //   >
+            //     <Tooltip placement="top" title="取消活动">
+            //       <Icon type="caret-down" />
+            //     </Tooltip>
+            //   </span>
+            // );
           !record.newProduct &&
             controls.push(
               <span
@@ -1561,28 +1561,28 @@ class Category extends React.Component {
                 rules: [{ required: true, message: "请输入排序序号" }]
               })(<InputNumber disabled={this.state.addOrUp === "look"} placeholder="请输入排序序号" style={{width:'314px'}}/>)}
             </FormItem>
-            <FormItem label="是否展示当前商品为新品" {...formItemLayout1}>
-              {getFieldDecorator("formNew", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请选择是否展示当前商品为新品"}]
-              })(
-                <Select placeholder="请选择是否展示当前商品为新品">
-                  <Option value={1}>是</Option>
-                  <Option value={0}>否</Option>
-                </Select>
-              )}
-            </FormItem>
-            <FormItem label="是否展示当前商品为热销" {...formItemLayout1}>
-              {getFieldDecorator("formHot", {
-                initialValue: undefined,
-                rules: [{ required: true, message: "请选择是否展示当前商品为热销"}]
-              })(
-                <Select placeholder="请选择是否展示当前商品为热销">
-                  <Option value={1}>是</Option>
-                  <Option value={0}>否</Option>
-                </Select>
-              )}
-            </FormItem>
+            {/*<FormItem label="是否展示当前商品为新品" {...formItemLayout1}>*/}
+              {/*{getFieldDecorator("formNew", {*/}
+                {/*initialValue: undefined,*/}
+                {/*rules: [{ required: true, message: "请选择是否展示当前商品为新品"}]*/}
+              {/*})(*/}
+                {/*<Select placeholder="请选择是否展示当前商品为新品">*/}
+                  {/*<Option value={1}>是</Option>*/}
+                  {/*<Option value={0}>否</Option>*/}
+                {/*</Select>*/}
+              {/*)}*/}
+            {/*</FormItem>*/}
+            {/*<FormItem label="是否展示当前商品为热销" {...formItemLayout1}>*/}
+              {/*{getFieldDecorator("formHot", {*/}
+                {/*initialValue: undefined,*/}
+                {/*rules: [{ required: true, message: "请选择是否展示当前商品为热销"}]*/}
+              {/*})(*/}
+                {/*<Select placeholder="请选择是否展示当前商品为热销">*/}
+                  {/*<Option value={1}>是</Option>*/}
+                  {/*<Option value={0}>否</Option>*/}
+                {/*</Select>*/}
+              {/*)}*/}
+            {/*</FormItem>*/}
           </Form>
         </Modal>
       </div>
