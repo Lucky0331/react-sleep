@@ -21,7 +21,7 @@ import Release from "./container/Release";
 import Activity from "./container/Activity";
 import H5Card from "./container/H5Card";
 import ColumnZB from "./container/ColumnZB";  //直播栏目
-import PolicyList from "./container/PolicyList";//政策 - 文件列表
+// import PolicyList from "./container/PolicyList";//政策 - 文件列表
 
 
 // ==================
@@ -85,11 +85,11 @@ class TheContainer extends React.Component {
             path={`${this.props.match.path}/H5Card`}
             component={H5Card}
           />
-          <Route
-            exact
-            path={`${this.props.match.path}/policy/policyList`} //政策文件 - 文件列表
-            component={PolicyList}
-          />
+          {/*<Route*/}
+            {/*exact*/}
+            {/*path={`${this.props.match.path}/policy/policyList`} //政策文件 - 文件列表*/}
+            {/*component={PolicyList}*/}
+          {/*/>*/}
         </Switch>
       </div>
     );

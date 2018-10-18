@@ -385,7 +385,7 @@ class Category extends React.Component {
           data4: res.data.result || [],
           pageNum,
           pageSize,
-          total: res.data.total
+          total4: res.data.total
         });
       } else if(res.status === "1") {
         this.setState({
