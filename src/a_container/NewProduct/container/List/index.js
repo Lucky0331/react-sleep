@@ -1329,19 +1329,19 @@ class Category extends React.Component {
           maskClosable={false}
         >
           <Form style={{marginLeft:'10px'}}>
-            <FormItem label="端" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
-              {getFieldDecorator("formEnd", {
-                initialValue: undefined,
-                rules: [
-                  { required: true, message: "请选择所要配置的端" }
-              ]
-              })(
-                <RadioGroup value={this.state.value} disabled={this.state.addOrUp === "look" || this.state.addOrUp === "topup"}>
-                  <Radio value={1}>健康e家</Radio>
-                  <Radio value={2}>小程序</Radio>
-                </RadioGroup>
-              )}
-            </FormItem>
+            {/*<FormItem label="端" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>*/}
+              {/*{getFieldDecorator("formEnd", {*/}
+                {/*initialValue: undefined,*/}
+                {/*rules: [*/}
+                  {/*{ required: true, message: "请选择所要配置的端" }*/}
+              {/*]*/}
+              {/*})(*/}
+                {/*<RadioGroup value={this.state.value} disabled={this.state.addOrUp === "look" || this.state.addOrUp === "topup"}>*/}
+                  {/*<Radio value={1}>健康e家</Radio>*/}
+                  {/*<Radio value={2}>小程序</Radio>*/}
+                {/*</RadioGroup>*/}
+              {/*)}*/}
+            {/*</FormItem>*/}
             <FormItem label="产品名称" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
               {getFieldDecorator("formName", {
                 initialValue: undefined,

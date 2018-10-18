@@ -511,6 +511,7 @@ class Category extends React.Component {
     this.setState({
       radioLimit: e.target.value,
     });
+    console.log('次数选择===='+ e)
   }
 
   // 构建字段

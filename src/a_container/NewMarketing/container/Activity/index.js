@@ -708,19 +708,19 @@ class Category extends React.Component {
           confirmLoading={this.state.addnewLoading}
         >
           <Form>
-            <FormItem label="端" {...formItemLayout}>
-              {getFieldDecorator("formEnd", {
-                initialValue: undefined,
-                rules: [
-                  { required: true, message: "请选择所要配置的端" }
-                ]
-              })(
-                <RadioGroup value={this.state.value}>
-                  <Radio value={1}>公众号</Radio>
-                  <Radio value={2}>小程序</Radio>
-                </RadioGroup>
-              )}
-            </FormItem>
+            {/*<FormItem label="端" {...formItemLayout}>*/}
+              {/*{getFieldDecorator("formEnd", {*/}
+                {/*initialValue: undefined,*/}
+                {/*rules: [*/}
+                  {/*{ required: true, message: "请选择所要配置的端" }*/}
+                {/*]*/}
+              {/*})(*/}
+                {/*<RadioGroup value={this.state.value}>*/}
+                  {/*<Radio value={1}>公众号</Radio>*/}
+                  {/*<Radio value={2}>小程序</Radio>*/}
+                {/*</RadioGroup>*/}
+              {/*)}*/}
+            {/*</FormItem>*/}
             <FormItem label="活动名称" {...formItemLayout}>
               {getFieldDecorator("addnewTitle", {
                 initialValue: undefined,
