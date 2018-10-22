@@ -106,6 +106,18 @@ class Category extends React.Component {
     }
   }
   
+  //活动类型
+  getActivityId(type){
+    switch (String(type)){
+    case "1":
+      return "普通活动";
+    case "2":
+      return "兑换活动";
+    default:
+      return "";
+    }
+  }
+  
   // 查询当前页面所需列表数据
   onGetData(pageNum, pageSize) {
     const params = {
@@ -237,7 +249,8 @@ class Category extends React.Component {
       "addnewProduct",
       "addnewDeletFlag",
       "addnewSorts",
-      "formEnd"
+      "formEnd",
+      "formActivityType"
     ]);
     this.setState({
       addOrUp: "add",
@@ -265,7 +278,8 @@ class Category extends React.Component {
         "addnewUrl",
         "addnewDeletFlag",
         "addnewSorts",
-        "formEnd"
+        "formEnd",
+        "formActivityType"
       ],
       (err, values) => {
         if (err) {
@@ -275,11 +289,12 @@ class Category extends React.Component {
           addnewLoading: true
         });
         const params = {
-          side:values.formEnd,
+          side:values.formEnd ? String(values.formEnd) : undefined,
+          acType:values.formActivityType ? String(values.formActivityType) : undefined,
           title: values.addnewTitle,
           acUrl: values.addnewUrl,
           deleteFlag:values.addnewDeletFlag,
-          recommend: values.addnewProduct ? String(values.addnewProduct) :undefined,
+          recommend: values.addnewProduct ? String(values.addnewProduct) : undefined,
           sorts:Number(values.addnewSorts),
           acImg:this.state.fileList.map(item => item.url).join(","),
         };
@@ -340,7 +355,8 @@ class Category extends React.Component {
     console.log("是什么：", record);
     form.setFieldsValue({
       addnewTitle: String(record.title),
-      formEnd:this.getSideId(record.side),
+      formEnd:record.side,
+      formActivityType:record.acType,
       addnewUrl: record.acUrl,
       addnewProduct: record.recommendProductList ? record.recommendProductList.map((item)=>{return String(item.productId)}) : undefined,
       addnewDeletFlag:record.deleteFlag ? 1 : 0,
@@ -595,6 +611,7 @@ class Category extends React.Component {
         updateTime: item.updateTime,//发布时间
         deleteFlag: item.deleteFlag,//是否发布
         acUrl: item.acUrl,  //链接地址
+        acType:item.acType,//活动类型
         sorts:item.sorts,
         side:item.side,//端
         recommendProductList:item.recommendProductList, //推荐产品有哪些
@@ -708,19 +725,19 @@ class Category extends React.Component {
           confirmLoading={this.state.addnewLoading}
         >
           <Form>
-            {/*<FormItem label="端" {...formItemLayout}>*/}
-              {/*{getFieldDecorator("formEnd", {*/}
-                {/*initialValue: undefined,*/}
-                {/*rules: [*/}
-                  {/*{ required: true, message: "请选择所要配置的端" }*/}
-                {/*]*/}
-              {/*})(*/}
-                {/*<RadioGroup value={this.state.value}>*/}
-                  {/*<Radio value={1}>公众号</Radio>*/}
-                  {/*<Radio value={2}>小程序</Radio>*/}
-                {/*</RadioGroup>*/}
-              {/*)}*/}
-            {/*</FormItem>*/}
+            <FormItem label="端" {...formItemLayout}>
+              {getFieldDecorator("formEnd", {
+                initialValue: undefined,
+                rules: [
+                  { required: true, message: "请选择所要配置的端" }
+                ]
+              })(
+                <Select placeholder='请选择所要配置的端'>
+                  <Option value={1}>公众号</Option>
+                  <Option value={2}>小程序</Option>
+                </Select>
+              )}
+            </FormItem>
             <FormItem label="活动名称" {...formItemLayout}>
               {getFieldDecorator("addnewTitle", {
                 initialValue: undefined,
@@ -746,6 +763,19 @@ class Category extends React.Component {
                 rules: [{ required: true, message: "请输入链接地址" }]
               })(<Input placeholder="请输入链接地址" />)}
             </FormItem>
+            <FormItem label="活动类型" {...formItemLayout}>
+              {getFieldDecorator("formActivityType", {
+                initialValue: undefined,
+                rules: [
+                  { required: true, message: "请选择活动类型" }
+                ]
+              })(
+                <Select placeholder='请选择活动类型'>
+                  <Option value={1}>普通活动</Option>
+                  <Option value={2}>兑换活动</Option>
+                </Select>
+              )}
+            </FormItem>
             <FormItem label="推荐产品" {...formItemLayout}>
               {getFieldDecorator("addnewProduct",{
                 initialValue: undefined,
@@ -766,6 +796,17 @@ class Category extends React.Component {
              )}
             </FormItem>
             <FormItem label="活动图片" {...formItemLayout}>
+              {getFieldDecorator("formPhoto", {
+                initialValue: undefined,
+                rules: [
+                  { message: "请选择图片大小" }
+                ]
+              })(
+                <Select placeholder='请选择图片大小'>
+                  <Option value={1}>大图</Option>
+                  <Option value={2}>小图</Option>
+                </Select>
+              )}
               <Upload
                 name="pImg"
                 action={`${Config.baseURL}/manager/product/uploadImage`}
@@ -811,11 +852,17 @@ class Category extends React.Component {
           onCancel={() => this.onQueryModalClose()}
         >
           <Form>
+            <FormItem label="端" {...formItemLayout}>
+              {!!this.state.nowData ? this.getSideId(this.state.nowData.side) :''}
+            </FormItem>
             <FormItem label="活动名称" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.title : ""}
             </FormItem>
             <FormItem label="活动链接" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.acUrl : ""}
+            </FormItem>
+            <FormItem label="活动类型" {...formItemLayout}>
+              {!!this.state.nowData ? this.getActivityId(this.state.nowData.acType) :''}
             </FormItem>
             <FormItem label="发布时间" {...formItemLayout}>
               {!!this.state.nowData ? this.state.nowData.updateTime : ""}
