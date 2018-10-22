@@ -421,29 +421,29 @@ class Category extends React.Component {
                 "addnewEndTime"
             ],
             (err, values) => {
-                if (err) {
-                    return false;
-                }
-                if(!values.addnewNum){
-                    message.error('兑换数量不能为空！');
-                    return
-                }
-                if(values.addnewNum<=0){
-                    message.error('兑换数量不能小于0！')
-                    return
-                }
-                if(this.state.radioCode==2){
-                    if(!values.addnewBeginTime&&!values.addnewEndTime){
-                        message.error('请选择日期！');
-                        return
-                    }
-                    if(!values.addnewBeginTime){
-                        message.error('请选择开始日期！');
-                        return
-                    }
-                    message.error('请选择结束日期！');
-                    return
-                }
+              if (err) {
+                  return false;
+              }
+              if(!values.addnewNum){
+                  message.error('兑换数量不能为空！');
+                  return
+              }
+              if(values.addnewNum<=0){
+                  message.error('兑换数量不能小于0！')
+                  return
+              }
+              if(this.state.radioCode==2){
+                  if(!values.addnewBeginTime&&!values.addnewEndTime){
+                      message.error('请选择日期！');
+                      return
+                  }
+                  if(!values.addnewBeginTime){
+                      message.error('请选择开始日期！');
+                      return
+                  }
+                  message.error('请选择结束日期！');
+                  return
+              }
                 const params = {
                     side:1,//公众号 端
                     channel:1,//京东（JD）渠道
@@ -454,13 +454,13 @@ class Category extends React.Component {
                     // batchNumber:`${'JD'}-${Math.random().toString(36).substr(2)}`, //批次号（可能以后又要传过来了）
                 };
                 me.props.actions.hraExchangeSave(tools.clearNull(params)).then(res => {
-                    if(res.status === "0"){
-                        message.success(res.message || '操作成功')
-                        this.onGetData(1, this.state.pageSize);
-                        this.onAddNewClose();
-                    }else{
-                        message.error(res.message || '操作失败')
-                    }
+                  if(res.status === "0"){
+                      message.success(res.message || '操作成功')
+                      this.onGetData(1, this.state.pageSize);
+                      this.onAddNewClose();
+                  }else{
+                      message.error(res.message || '操作失败')
+                  }
                 })
             }
         );
@@ -496,7 +496,7 @@ class Category extends React.Component {
                 const params = {
                     id:Number(this.state.times.map((item)=>{return Number(item.id)})),
                     dicType:String(this.state.times.map((item)=>{return String(item.dicType)})),
-                    dicCode:this.state.radioLimit==1?values.addnewPerson:'0',
+                    dicCode:this.state.radioLimit==1?'0':values.addnewPerson,
                     dicValue:this.getDicTypeIdExchange(values.addnewTime) || this.getDicTypeIddExchange(values.addnewTime),
                 };
                 me.props.actions.upExchangeSave(tools.clearNull(params)).then(res => {

@@ -1143,9 +1143,15 @@ class Category extends React.Component {
   makeColumns() {
     const columns = [
       {
-        title: "提现单号",
+        title: "主提现单号",
         dataIndex: "partnerTradeNo",
         key: "partnerTradeNo"
+      },
+      {
+        title: "子提现单号",
+      },
+      {
+        title:'产品公司'
       },
       {
         title: "提现金额",
@@ -1703,12 +1709,21 @@ class Category extends React.Component {
                 <div className="system-table">
                   <ul className="search-ul more-ul">
                     <li>
-                      <span>提现单号查询</span>
+                      <span>主提现单号</span>
                       <Input
                         style={{ width: "172px" }}
                         onChange={e => this.searchPartnerTradeNoChange(e)}
                         value={searchPartnerTradeNo}
                         suffix={suffix6}
+                      />
+                    </li>
+                    <li>
+                      <span>子提现单号</span>
+                      <Input
+                        style={{ width: "172px" }}
+                        // onChange={e => this.searchSonNumberChange(e)}
+                        // value={searchSonNumber}
+                        // suffix={suffix1}
                       />
                     </li>
                     <li>
@@ -1923,12 +1938,21 @@ class Category extends React.Component {
                 <div className="system-table">
                   <ul className="search-ul more-ul">
                     <li>
-                      <span>提现单号查询</span>
+                      <span>主提现单号</span>
                       <Input
                         style={{ width: "172px" }}
                         onChange={v => this.searchPartnerTradeNoChange(v)}
                         value={searchPartnerTradeNo}
                         suffix={suffix6}
+                      />
+                    </li>
+                    <li>
+                      <span>子提现单号</span>
+                      <Input
+                        style={{ width: "172px" }}
+                        // onChange={e => this.searchSonNumberChange(e)}
+                        // value={searchSonNumber}
+                        // suffix={suffix1}
                       />
                     </li>
                     <li>
