@@ -141,8 +141,10 @@ class Category extends React.Component {
             console.log('兑换限制有什么：',res.data.result)
             console.log('有什么：',res.data.result.map((item)=>{return (item.dicCode)}))
             if (res.status === "0") {
+              console.log(res.data.result[0].dicValue)
                 this.setState({
                     times: res.data.result || [],
+                    radioLimit:res.data.result[0].dicValue==0?1:2
                 });
             } else {
                 message.error(res.message || "获取数据失败，请重试");
@@ -441,8 +443,10 @@ class Category extends React.Component {
                       message.error('请选择开始日期！');
                       return
                   }
-                  message.error('请选择结束日期！');
-                  return
+                  if(!values.addnewEndTime){
+                    message.error('请选择结束日期！');
+                    return
+                  }
               }
                 const params = {
                     side:1,//公众号 端
@@ -496,8 +500,8 @@ class Category extends React.Component {
                 const params = {
                     id:Number(this.state.times.map((item)=>{return Number(item.id)})),
                     dicType:String(this.state.times.map((item)=>{return String(item.dicType)})),
-                    dicCode:this.state.radioLimit==1?'0':values.addnewPerson,
-                    dicValue:this.getDicTypeIdExchange(values.addnewTime) || this.getDicTypeIddExchange(values.addnewTime),
+                    dicCode:values.addnewPerson,
+                    dicValue:this.state.radioLimit==1?'0':(this.getDicTypeIdExchange(values.addnewTime) || this.getDicTypeIddExchange(values.addnewTime)),
                 };
                 me.props.actions.upExchangeSave(tools.clearNull(params)).then(res => {
                     if(res.status === "0"){
@@ -517,7 +521,6 @@ class Category extends React.Component {
         this.setState({
             addnewPersonShow: false,
             addnewSetShow:false,
-            radioLimit:2
         });
 
     }
