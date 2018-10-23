@@ -193,7 +193,6 @@ class Category extends React.Component {
       withdrawType: this.state.searchWithdrawType, //提现方式
       nickName: this.state.searchUserName, //用户昵称
       username: this.state.searchRealName, //用户姓名
-      ambassadorName: this.state.searchambassadorName,
       paymentNo: this.state.searchtradeNo.trim(), //流水号查询
       flag: this.state.searchFlag, //提现状态
       phone: this.state.searchMobile.trim(), //用户手机号
@@ -203,7 +202,8 @@ class Category extends React.Component {
       mainOrderId:this.state.searchMainOrderId.trim(),//主订单号
       orderId: this.state.searchOrderId.trim(), //子订单号
       userId: this.state.searchUserMallId.trim(), //用户id
-      partnerTradeNo: this.state.searchPartnerTradeNo.trim(), //提现单号查询
+      partnerTradeNo: this.state.searchPartnerTradeNo.trim(), //子提现单号查询
+      mainPartnerTradeNo:this.state.searchMainNumber.trim(),//主提现单号
       minApplyTime: this.state.searchApplyBeginTime
         ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
         : "", //申请提现时间 - 开始
@@ -249,7 +249,6 @@ class Category extends React.Component {
       withdrawType: this.state.searchWithdrawType, //提现方式
       nickName: this.state.searchUserName, //用户昵称
       username: this.state.searchRealName, //用户姓名
-      ambassadorName: this.state.searchambassadorName,
       paymentNo: this.state.searchtradeNo.trim(), //流水号查询
       flag: this.state.searchFlag, //提现状态
       phone: this.state.searchMobile.trim(), //用户手机号
@@ -259,7 +258,8 @@ class Category extends React.Component {
       mainOrderId:this.state.searchMainOrderId.trim(),//主订单号
       orderId: this.state.searchOrderId.trim(), //子订单号
       userId: this.state.searchUserMallId.trim(), //用户id
-      partnerTradeNo: this.state.searchPartnerTradeNo.trim(), //提现单号查询
+      partnerTradeNo: this.state.searchPartnerTradeNo.trim(), //子提现单号查询
+      mainPartnerTradeNo:this.state.searchMainNumber.trim(),//主提现单号
       minApplyTime: this.state.searchApplyBeginTime
         ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
         : "", //申请提现时间 - 开始
@@ -977,13 +977,13 @@ class Category extends React.Component {
       withdrawType: this.state.searchWithdrawType,
       nickName: this.state.searchUserName,
       username: this.state.searchRealName,
-      ambassadorName: this.state.searchambassadorName,
       tradeNo: this.state.searchtradeNo,
       phone: this.state.searchMobile,
       minAmount: this.state.searchMinPrice,
       maxAmount: this.state.searchMaxPrice,
       userId: this.state.searchUserMallId,
-      partnerTradeNo: this.state.searchPartnerTradeNo,
+      partnerTradeNo: this.state.searchPartnerTradeNo.trim(), //子提现单号查询
+      mainPartnerTradeNo:this.state.searchMainNumber.trim(),//主提现单号
       minApplyTime: this.state.searchBeginTime
         ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)}`
         : "",
@@ -1003,7 +1003,6 @@ class Category extends React.Component {
       withdrawType: this.state.searchWithdrawType, //提现方式
       nickName: this.state.searchUserName, //用户昵称
       username: this.state.searchRealName, //用户姓名
-      ambassadorName: this.state.searchambassadorName,
       paymentNo: this.state.searchtradeNo.trim(), //流水号查询
       flag: this.state.searchFlag, //提现状态
       phone: this.state.searchMobile, //用户手机号
@@ -1011,7 +1010,8 @@ class Category extends React.Component {
       maxAmount: this.state.searchMaxPrice, //提现金额 大
       productType: this.state.searchTypeId,
       userId: this.state.searchUserMallId, //用户id
-      partnerTradeNo: this.state.searchPartnerTradeNo, //提现单号查询
+      partnerTradeNo: this.state.searchPartnerTradeNo.trim(), //子提现单号查询
+      mainPartnerTradeNo:this.state.searchMainNumber.trim(),//主提现单号
       minApplyTime: this.state.searchApplyBeginTime
         ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
         : "", //申请提现时间 - 开始
@@ -1044,7 +1044,6 @@ class Category extends React.Component {
       id: this.state.searchId,
       nickName: this.state.searchUserName,
       username: this.state.searchRealName,
-      ambassadorName: this.state.searchambassadorName,
       paymentNo: this.state.searchtradeNo.trim(),
       flag: this.state.searchFlag,
       phone: this.state.searchMobile,
@@ -1053,7 +1052,8 @@ class Category extends React.Component {
       maxAmount: this.state.searchMaxPrice,
       productType: this.state.searchTypeId,
       userId: this.state.searchUserMallId,
-      partnerTradeNo: this.state.searchPartnerTradeNo,
+      partnerTradeNo: this.state.searchPartnerTradeNo.trim(), //子提现单号查询
+      mainPartnerTradeNo:this.state.searchMainNumber.trim(),//主提现单号
       minApplyTime: this.state.searchApplyBeginTime
         ? `${tools.dateToStr(this.state.searchApplyBeginTime.utc()._d)} `
         : "",
@@ -1073,11 +1073,10 @@ class Category extends React.Component {
         ? `${tools.dateToStr(this.state.searchRefundEndTime.utc()._d)} `
         : "",
     };
-  
     tools.download(tools.clearNull(params),`${Config.baseURL}/manager/export/withdraw/detail`,'post', '提现明细.xls');
   }
 
-  // 查询提新纪录某一条数据的详情
+  // 查询提现纪录某一条数据的详情
   onQueryClick(record) {
     console.log("是什么：", record);
     this.setState({
@@ -1153,7 +1152,7 @@ class Category extends React.Component {
     })
   }
   
-  // 构建字段
+  // 构建字段 - 提现审核
   makeColumns() {
     const columns = [
       {
@@ -1279,7 +1278,7 @@ class Category extends React.Component {
     return columns;
   }
   
-  // 构建字段  -- 提现纪录
+  // 构建字段  -- 提现记录
   makeColumnsList() {
     const columns = [
       {
@@ -1290,9 +1289,17 @@ class Category extends React.Component {
         width: 50
       },
       {
-        title: "提现单号",
+        title: "主提现单号",
+        dataIndex:'mainPartnerTradeNo',
+        key:'mainPartnerTradeNo'
+      },
+      {
+        title: "子提现单号",
         dataIndex: "partnerTradeNo",
         key: "partnerTradeNo"
+      },
+      {
+        title:'产品公司'
       },
       {
         title: "提现金额",
@@ -1400,14 +1407,22 @@ class Category extends React.Component {
         width: 50
       },
       {
+        title: "主提现单号",
+        dataIndex:'mainPartnerTradeNo',
+        key:'mainPartnerTradeNo'
+      },
+      {
+        title: "子提现单号",
+        dataIndex: "partnerTradeNo",
+        key: "partnerTradeNo"
+      },
+      {
+        title:'产品公司'
+      },
+      {
         title:'主订单号',
         dataIndex:'mainOrderId',
         key:'mainOrderId'
-      },
-      {
-        title: "提现单号",
-        dataIndex: "partnerTradeNo",
-        key: "partnerTradeNo"
       },
       {
         title: "子订单号",
@@ -1612,11 +1627,13 @@ class Category extends React.Component {
         orderType: item.orderType,
         payTime: item.payTime,
         flag: item.flag,
-        partnerTradeNo: item.partnerTradeNo,
+        partnerTradeNo: item.partnerTradeNo,//子提现单号
+        mainPartnerTradeNo:item.mainPartnerTradeNo,//主提现单号
         paymentNo: item.paymentNo,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         createTime: item.createTime,
-        mainOrderId:item.mainOrderId,//提现主订单号
+        mainOrderId:item.mainOrderId,//主订单号
+        orderId:item.orderId,//子订单号
         pay: item.pay,
         applyTime: item.applyTime,
         paymentTime: item.paymentTime,
@@ -1872,86 +1889,86 @@ class Category extends React.Component {
                   <div style={{ marginTop: "10px", marginBottom: "10px" }}>
             <span style={{ margin: "0 10px" }}>
               <Checkbox
-                  onChange={e => this.onCheckAllChange(e)}
-                  checked={this.state.checkAll}
-                  style={{ margin: "0 10px" }}
+                onChange={e => this.onCheckAllChange(e)}
+                checked={this.state.checkAll}
+                style={{ margin: "0 10px" }}
               />全选
             </span>
-                    <span style={{ margin: "0 10px 0 0" }}>
+            <span style={{ margin: "0 10px 0 0" }}>
               <Checkbox
-                  onChange={e => this.onCheckRuturnChange(e)}
-                  checked={this.state.checkReturnAll}
-                  style={{ margin: "0 20px 0 0" }}
+                onChange={e => this.onCheckRuturnChange(e)}
+                checked={this.state.checkReturnAll}
+                style={{ margin: "0 20px 0 0" }}
               />反选
             </span>
-                    <Popconfirm
-                        title="确定批量审核通过吗?"
-                        placement="bottom"
-                        onConfirm={() => this.onAdopt()}
-                        okText="确定"
-                        cancelText="取消"
-                    >
-                      <Button
-                          type="primary"
-                          style={{ height: "25px", marginRight: "10px" }}
-                      >
-                        批量审核通过
-                      </Button>
-                    </Popconfirm>
-                    <Popover
-                      content={
-                        <div>
-                  <TextArea
-                    autosize={{ minRows: 1, maxRows: 4 }}
-                    value={this.state.reason}
-                    defaultValue="提现审核未通过，如有疑问，请联系客服：4001519999"
-                    onChange={e => this.Reason(e)}
-                  />
-                      <ul
-                        style={{ display: "flex", justifyContent: "space-between" }}
-                      >
-                        <li style={{ width: "40px" }}>
-                          <a onClick={e => this.onAdoptNo()}>确定</a>
-                        </li>
-                        <li style={{ width: "40px" }}>
-                          <a onClick={e => this.hide(e)}>取消</a>
-                        </li>
-                      </ul>
-                      </div>
-                      }
-                      title="请输入拒绝理由"
-                      trigger="click"
-                      placement="bottom"
-                      visible={this.state.visible}
-                      onVisibleChange={e => this.handleVisibleChange(e)}
-                    >
-                      <Button type="primary" style={{ height: "25px" }}>
-                        批量审核不通过
-                      </Button>
-                    </Popover>
-                  </div>
+            <Popconfirm
+              title="确定批量审核通过吗?"
+              placement="bottom"
+              onConfirm={() => this.onAdopt()}
+              okText="确定"
+              cancelText="取消"
+            >
+              <Button
+                type="primary"
+                style={{ height: "25px", marginRight: "10px" }}
+              >
+                批量审核通过
+              </Button>
+            </Popconfirm>
+            <Popover
+              content={
+                <div>
+            <TextArea
+              autosize={{ minRows: 1, maxRows: 4 }}
+              value={this.state.reason}
+              defaultValue="提现审核未通过，如有疑问，请联系客服：4001519999"
+              onChange={e => this.Reason(e)}
+            />
+              <ul
+                style={{ display: "flex", justifyContent: "space-between" }}
+              >
+                <li style={{ width: "40px" }}>
+                  <a onClick={e => this.onAdoptNo()}>确定</a>
+                </li>
+                <li style={{ width: "40px" }}>
+                  <a onClick={e => this.hide(e)}>取消</a>
+                </li>
+              </ul>
+              </div>
+              }
+              title="请输入拒绝理由"
+              trigger="click"
+              placement="bottom"
+              visible={this.state.visible}
+              onVisibleChange={e => this.handleVisibleChange(e)}
+              >
+                <Button type="primary" style={{ height: "25px" }}>
+                  批量审核不通过
+                </Button>
+                </Popover>
                 </div>
-                <div className="system-table">
-                  <Table
-                    columns={this.makeColumns()}
-                    dataSource={this.makeData(this.state.data0)}
-                    rowSelection={this.initChose()}
-                    pagination={{
-                      total: this.state.total0,
-                      current: this.state.pageNum,
-                      pageSize: this.state.pageSize,
-                      showQuickJumper: true,
-                      showSizeChanger: true,
-                      defaultCurrent: 3,
-                      onShowSizeChange: (current, pageSize) =>
-                        this.onShowSizeChange(current, pageSize),
-                      pageSizeOptions: ["10", "30", "50"],
-                      showTotal: (total, range) => `共 ${total} 条数据`,
-                      onChange: (page, pageSize) =>
-                        this.onTablePageChangeAudie(page, pageSize)
-                    }}
-                  />
-                </div>
+              </div>
+              <div className="system-table">
+                <Table
+                  columns={this.makeColumns()}
+                  dataSource={this.makeData(this.state.data0)}
+                  rowSelection={this.initChose()}
+                  pagination={{
+                    total: this.state.total0,
+                    current: this.state.pageNum,
+                    pageSize: this.state.pageSize,
+                    showQuickJumper: true,
+                    showSizeChanger: true,
+                    defaultCurrent: 3,
+                    onShowSizeChange: (current, pageSize) =>
+                      this.onShowSizeChange(current, pageSize),
+                    pageSizeOptions: ["10", "30", "50"],
+                    showTotal: (total, range) => `共 ${total} 条数据`,
+                    onChange: (page, pageSize) =>
+                      this.onTablePageChangeAudie(page, pageSize)
+                  }}
+                />
+              </div>
               </div>
             </TabPane>
             <TabPane tab="提现记录" key="2">
@@ -1962,18 +1979,18 @@ class Category extends React.Component {
                       <span>主提现单号</span>
                       <Input
                         style={{ width: "172px" }}
-                        onChange={v => this.searchPartnerTradeNoChange(v)}
-                        value={searchPartnerTradeNo}
-                        suffix={suffix6}
+                        onChange={e => this.searchMainNumberChange(e)}
+                        value={searchMainNumber}
+                        suffix={suffix1}
                       />
                     </li>
                     <li>
                       <span>子提现单号</span>
                       <Input
                         style={{ width: "172px" }}
-                        // onChange={e => this.searchSonNumberChange(e)}
-                        // value={searchSonNumber}
-                        // suffix={suffix1}
+                        onChange={e => this.searchPartnerTradeNoChange(e)}
+                        value={searchPartnerTradeNo}
+                        suffix={suffix6}
                       />
                     </li>
                     <li>
@@ -2192,10 +2209,11 @@ class Category extends React.Component {
                 wrapClassName={"list"}
               >
                 <Form>
-                  <FormItem label="提现单号" {...formItemLayout}>
-                    {!!this.state.nowData
-                      ? this.state.nowData.partnerTradeNo
-                      : ""}
+                  <FormItem label="主提现单号" {...formItemLayout}>
+                    {!!this.state.nowData? this.state.nowData.mainPartnerTradeNo : ""}
+                  </FormItem>
+                  <FormItem label="子提现单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.partnerTradeNo : ""}
                   </FormItem>
                   <FormItem label="提现金额" {...formItemLayout}>
                     {!!this.state.nowData ? this.state.nowData.amount : ""}
@@ -2257,21 +2275,30 @@ class Category extends React.Component {
                 <div className="system-table">
                   <ul className="search-ul more-ul">
                     <li>
-                      <span>主订单号查询</span>
+                      <span>主提现单号</span>
+                      <Input
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchMainNumberChange(e)}
+                        value={searchMainNumber}
+                        suffix={suffix1}
+                      />
+                    </li>
+                    <li>
+                      <span>子提现单号</span>
+                      <Input
+                        style={{ width: "172px" }}
+                        onChange={e => this.searchPartnerTradeNoChange(e)}
+                        value={searchPartnerTradeNo}
+                        suffix={suffix6}
+                      />
+                    </li>
+                    <li>
+                      <span>主订单号</span>
                       <Input
                         style={{ width: "172px" }}
                         onChange={e => this.searchMainOrderIdChange(e)}
                         suffix={suffix10}
                         value={searchMainOrderId}
-                      />
-                    </li>
-                    <li>
-                      <span>提现单号查询</span>
-                      <Input
-                        style={{ width: "172px" }}
-                        onChange={v => this.searchPartnerTradeNoChange(v)}
-                        value={searchPartnerTradeNo}
-                        suffix={suffix6}
                       />
                     </li>
                     <li>
@@ -2513,15 +2540,14 @@ class Category extends React.Component {
                 wrapClassName={"list"}
               >
                 <Form>
-                  <FormItem label="主订单号" {...formItemLayout}>
-                    {!!this.state.nowData
-                      ? this.state.nowData.mainOrderId
-                      : ""}
+                  <FormItem label="主提现单号" {...formItemLayout}>
+                    {!!this.state.nowData?this.state.nowData.mainPartnerTradeNo : ""}
                   </FormItem>
-                  <FormItem label="提现单号" {...formItemLayout}>
-                    {!!this.state.nowData
-                      ? this.state.nowData.partnerTradeNo
-                      : ""}
+                  <FormItem label="子提现单号" {...formItemLayout}>
+                    {!!this.state.nowData?this.state.nowData.partnerTradeNo : ""}
+                  </FormItem>
+                  <FormItem label="主订单号" {...formItemLayout}>
+                    {!!this.state.nowData ? this.state.nowData.mainOrderId : ""}
                   </FormItem>
                   <FormItem label="子订单号" {...formItemLayout}>
                     {!!this.state.nowData ? this.state.nowData.orderId : ""}
