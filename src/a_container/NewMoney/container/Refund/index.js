@@ -1183,7 +1183,7 @@ class Category extends React.Component {
               >
                 <span key="1" className="control-btn red">
                   <Tooltip placement="top" title="审核拒绝">
-                    <Icon type="cross-circle-o" style={{ color: "red" }} />
+                    <Icon type="close-circle-o" style={{ color: "red" }} />
                   </Tooltip>
                 </span>
               </Popconfirm>

@@ -94,7 +94,8 @@ class Category extends React.Component {
       searchPartnerTradeNo: "", //搜索 - 提现单号
       searchOrderId: "", // 搜索 - 子订单号
       searchMainOrderId: '',//搜索 - 主订单号
-      searchPresentNumber:"", //搜索 - 提现单号
+      searchPresentNumber:"", //搜索 - 子提现单号
+      searchMainNumber:'',//搜索 - 主提现单号
       searchOperationBegin:"",//搜索 - 操作开始时间
       searchOperationEnd:"", //搜索 - 操作结束时间
       searchRefundEndTime:'',//搜索 - 提现审核结束时间
@@ -151,13 +152,13 @@ class Category extends React.Component {
       withdrawType: this.state.searchWithdrawType,
       nickName: this.state.searchUserName,
       username: this.state.searchRealName,
-      ambassadorName: this.state.searchambassadorName,
       tradeNo: this.state.searchtradeNo,
       phone: this.state.searchMobile.trim(), //用户手机号
       minAmount: this.state.searchMinPrice,
       maxAmount: this.state.searchMaxPrice,
       userId: this.state.searchUserMallId,
-      partnerTradeNo: this.state.searchPartnerTradeNo.trim(), //提现单号查询
+      partnerTradeNo: this.state.searchPartnerTradeNo.trim(), //子提现单号查询
+      mainPartnerTradeNo:this.state.searchMainNumber.trim(),//主提现单号
       minApplyTime: this.state.searchBeginTime
         ? `${tools.dateToStr(this.state.searchBeginTime.utc()._d)}`
         : "",
@@ -614,6 +615,12 @@ class Category extends React.Component {
     });
   }
   
+  emitEmpty12() {
+    this.setState({
+      searchMainNumber: ""
+    });
+  }
+  
   //悬浮层显示框
   hide() {
     this.setState({
@@ -810,10 +817,17 @@ class Category extends React.Component {
     });
   }
 
-  //搜索 - 提现单号
+  //搜索 - 子提现单号
   searchPartnerTradeNoChange(e) {
     this.setState({
       searchPartnerTradeNo: e.target.value
+    });
+  }
+  
+  //搜索 - 主提现单号
+  searchMainNumberChange(e) {
+    this.setState({
+      searchMainNumber: e.target.value
     });
   }
 
@@ -1144,11 +1158,13 @@ class Category extends React.Component {
     const columns = [
       {
         title: "主提现单号",
-        dataIndex: "partnerTradeNo",
-        key: "partnerTradeNo"
+        dataIndex:'mainPartnerTradeNo',
+        key:'mainPartnerTradeNo'
       },
       {
         title: "子提现单号",
+        dataIndex: "partnerTradeNo",
+        key: "partnerTradeNo"
       },
       {
         title:'产品公司'
@@ -1244,7 +1260,7 @@ class Category extends React.Component {
             >
               <span key="1" className="control-btn red">
                 <Tooltip placement="top" title="审核不通过">
-                  <Icon type="cross-circle-o" />
+                  <Icon type="close-circle-o" />
                 </Tooltip>
               </span>
             </Popconfirm>
@@ -1551,7 +1567,8 @@ class Category extends React.Component {
         orderType: item.orderType,
         payTime: item.payTime,
         flag: item.flag,
-        partnerTradeNo: item.partnerTradeNo,
+        partnerTradeNo: item.partnerTradeNo,//子提现单号
+        mainPartnerTradeNo:item.mainPartnerTradeNo,//主提现单号
         paymentNo: item.paymentNo,
         serial: index + 1 + (this.state.pageNum - 1) * this.state.pageSize,
         createTime: item.createTime,
@@ -1667,8 +1684,12 @@ class Category extends React.Component {
     const { searchOrderId } = this.state;
     const { searchPresentNumber } = this.state;
     const { searchMainOrderId } = this.state;
+    const { searchMainNumber } = this.state;
     const suffix = searchtradeNo ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty0()} />
+    ) : null;
+    const suffix1 = searchMainNumber ? (
+      <Icon type="close-circle" onClick={() => this.emitEmpty12()} />
     ) : null;
     const suffix2 = searchUserName ? (
       <Icon type="close-circle" onClick={() => this.emitEmpty1()} />
@@ -1712,18 +1733,18 @@ class Category extends React.Component {
                       <span>主提现单号</span>
                       <Input
                         style={{ width: "172px" }}
-                        onChange={e => this.searchPartnerTradeNoChange(e)}
-                        value={searchPartnerTradeNo}
-                        suffix={suffix6}
+                        onChange={e => this.searchMainNumberChange(e)}
+                        value={searchMainNumber}
+                        suffix={suffix1}
                       />
                     </li>
                     <li>
                       <span>子提现单号</span>
                       <Input
                         style={{ width: "172px" }}
-                        // onChange={e => this.searchSonNumberChange(e)}
-                        // value={searchSonNumber}
-                        // suffix={suffix1}
+                        onChange={e => this.searchPartnerTradeNoChange(e)}
+                        value={searchPartnerTradeNo}
+                        suffix={suffix6}
                       />
                     </li>
                     <li>
