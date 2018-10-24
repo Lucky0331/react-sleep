@@ -1166,7 +1166,10 @@ class Category extends React.Component {
         key: "partnerTradeNo"
       },
       {
-        title:'产品公司'
+        title:'产品公司',
+        dataIndex: "company",
+        key: "company",
+        render: text => this.Productcompany(text)
       },
       {
         title: "提现金额",
@@ -1299,7 +1302,10 @@ class Category extends React.Component {
         key: "partnerTradeNo"
       },
       {
-        title:'产品公司'
+        title:'产品公司',
+        dataIndex: "company",
+        key: "company",
+        render: text => this.Productcompany(text)
       },
       {
         title: "提现金额",
@@ -1417,7 +1423,10 @@ class Category extends React.Component {
         key: "partnerTradeNo"
       },
       {
-        title:'产品公司'
+        title:'产品公司',
+        dataIndex: "company",
+        key: "company",
+        render: text => this.Productcompany(text)
       },
       {
         title:'主订单号',
