@@ -279,7 +279,7 @@ class Category extends React.Component {
       case "3":
         return "已禁用";
       case "4":
-        return "已禁用";
+        return "已过期";
     }
   }
 
@@ -732,18 +732,15 @@ class Category extends React.Component {
         key: "createTime"
       },
       {
-        title: "操作人"
-      },
-      {
         title: "操作",
         key: "control",
         fixed: "right",
-        width: 120,
+        width: 150,
         render: (text, record) => {
           const controls = [];
           controls.push(
             <span
-              key="0"
+              key="1"
               className="control-btn green"
               onClick={() => this.onQueryClick(record)}
             >
@@ -754,7 +751,7 @@ class Category extends React.Component {
           );
           controls.push(
             <span
-              key="1"
+              key="2"
               className="control-btn blue"
               onClick={() => this.onUpdateClick(record)}
             >
@@ -766,7 +763,7 @@ class Category extends React.Component {
           record.ticketStatus === 3 &&
             controls.push(
               <span
-                key="1"
+                key="3"
                 className="control-btn blue"
                 onClick={() => this.onUpdateClick2(record)}
               >
@@ -775,10 +772,10 @@ class Category extends React.Component {
                 </Tooltip>
               </span>
             );
-          record.ticketStatus === 2 &&
+          record.ticketStatus === 1 &&
             controls.push(
               <span
-                key="2"
+                key="4"
                 className="control-btn red"
                 onClick={() => this.onUpdateClick2(record)}
               >
