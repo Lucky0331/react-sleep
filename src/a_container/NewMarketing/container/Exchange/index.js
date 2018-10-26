@@ -403,7 +403,9 @@ class Category extends React.Component {
         form.resetFields([
             "addnewNum",
             "addnewBeginTime",
-            "addnewEndTime"
+            "addnewEndTime",
+            "formEnd",
+            "formChannel",
         ]);
         this.setState({
             addOrUp: "add",
@@ -420,7 +422,9 @@ class Category extends React.Component {
             [
                 "addnewNum",
                 "addnewBeginTime",
-                "addnewEndTime"
+                "addnewEndTime",
+                "formEnd",
+                "formChannel",
             ],
             (err, values) => {
               if (err) {
@@ -449,9 +453,9 @@ class Category extends React.Component {
                   }
               }
                 const params = {
-                    side:1,//公众号 端
-                    channel:1,//京东（JD）渠道
-                    channelName:'京东(JD)',//渠道名称
+                    side:values.formEnd ? String(values.formEnd) : undefined,
+                    channel:values.formChannel ? String(values.formChannel) : undefined,
+                    channelName:this.findChannelById(values.formChannel),
                     count: values.addnewNum,
                     beginTime: values.addnewBeginTime ? `${tools.dateToStr(values.addnewBeginTime._d)}` : '',
                     endTime: values.addnewEndTime ? `${tools.dateToStr(values.addnewEndTime._d)}` : '',
@@ -474,6 +478,10 @@ class Category extends React.Component {
     onSetUpShow() {
         const me = this;
         const { form } = me.props;
+        form.resetFields([
+         "formEnd",
+         "formChannel",
+        ]);
         form.setFieldsValue({
             addnewPerson: Number(this.state.times.map((item)=>{return Number(item.dicCode)})),
             addnewTime:String(this.state.times.map((item)=>{return String(this.getDicTypeExchange(item.dicValue))})),
@@ -492,16 +500,20 @@ class Category extends React.Component {
             [
                 "addnewPerson",
                 "addnewTime",
+                "formEnd",
+                "formChannel",
             ],
             (err, values) => {
                 if (err) {
-                    return false;
+                 return false;
                 }
                 const params = {
-                    id:Number(this.state.times.map((item)=>{return Number(item.id)})),
-                    dicType:String(this.state.times.map((item)=>{return String(item.dicType)})),
-                    dicCode:values.addnewPerson,
-                    dicValue:this.state.radioLimit==1?'0':(this.getDicTypeIdExchange(values.addnewTime) || this.getDicTypeIddExchange(values.addnewTime)),
+                 side:values.formEnd ? String(values.formEnd) : undefined,
+                 channel:values.formChannel ? String(values.formChannel) : undefined,
+                 id:Number(this.state.times.map((item)=>{return Number(item.id)})),
+                 dicType:String(this.state.times.map((item)=>{return String(item.dicType)})),
+                 dicCode:values.addnewPerson,
+                 dicValue:this.state.radioLimit==1?'0':(this.getDicTypeIdExchange(values.addnewTime) || this.getDicTypeIddExchange(values.addnewTime)),
                 };
                 me.props.actions.upExchangeSave(tools.clearNull(params)).then(res => {
                     if(res.status === "0"){
@@ -582,6 +594,11 @@ class Category extends React.Component {
                 render:text => this.getExchangeStatus(text)
             },
             {
+               title:'e家号',
+               dataIndex:'userId',
+               key:'userId'
+            },
+            {
                 title:'关联优惠卡',
                 dataIndex:'ticketNo',
                 key:'ticketNo'
@@ -644,7 +661,7 @@ class Category extends React.Component {
                 exchangeStatus: item.exchangeStatus,//兑换状态 1-未兑换 2-兑换成功  3-兑换失败 4-活动过期 5-兑换禁止
                 exchangeTime:item.exchangeTime,//兑换时间
                 num: item.num,//兑换数量
-                userId: item.userId,//兑换人
+                userId:item.userId,//e家号
                 ticketNo:item.ticketNo,//关联优惠卡
                 ticketStatus:item.ticketStatus,//优惠卡使用状态
             };
@@ -875,17 +892,40 @@ class Category extends React.Component {
                     onOk={() => this.onAddNewOk()}
                     onCancel={() => this.onAddNewClose()}
                 >
-                    <Form>
-                        <FormItem label="兑换数量" {...formItemLayout1}>
-                            {getFieldDecorator("addnewNum", {
-                                initialValue: undefined,
-                                rules: [
-                                    {
-                                        whitespace: true,
-                                        message: "请输入兑换数量"
-                                    }
-                                ]
-                            })(<Input placeholder="请输入兑换数量" style={{width:'80%'}} type="number"/>)}
+                <Form>
+                    <FormItem label="端" {...formItemLayout1}>
+                      {getFieldDecorator("formEnd", {
+                        initialValue: undefined,
+                      })(
+                          <Select placeholder='请选择所要配置的端' style={{width:'298px'}}>
+                              <Option value={1}>公众号</Option>
+                              <Option value={2}>小程序</Option>
+                          </Select>
+                      )}
+                    </FormItem>
+                    <FormItem label="渠道" {...formItemLayout1}>
+                      {getFieldDecorator("formChannel", {
+                        initialValue: undefined,
+                      })(
+                          <Select placeholder='请选择所要配置的渠道' style={{width:'298px'}}>
+                            {this.state.channels.map((item) => {
+                              return (
+                                  <Option key={String(item.dicCode)}>{item.dicValue}</Option>
+                              );
+                            })}
+                          </Select>
+                      )}
+                    </FormItem>
+                    <FormItem label="兑换数量" {...formItemLayout1}>
+                        {getFieldDecorator("addnewNum", {
+                            initialValue: undefined,
+                            rules: [
+                                {
+                                    whitespace: true,
+                                    message: "请输入兑换数量"
+                                }
+                            ]
+                        })(<Input placeholder="请输入兑换数量" style={{width:'80%'}} type="number"/>)}
                         </FormItem>
                         <FormItem label="兑换时间" {...formItemLayout1}>
                             <RadioGroup onChange={(e) => this.onRadioChange(e)} value={this.state.radioCode}>
@@ -934,6 +974,29 @@ class Category extends React.Component {
                     onCancel={() => this.onAddNewClose()}
                 >
                     <Form>
+                        <FormItem label="端" {...formItemLayout1}>
+                          {getFieldDecorator("formEnd", {
+                            initialValue: undefined,
+                          })(
+                              <Select placeholder='请选择所要配置的端' style={{width:'298px'}}>
+                                  <Option value={1}>公众号</Option>
+                                  <Option value={2}>小程序</Option>
+                              </Select>
+                          )}
+                        </FormItem>
+                        <FormItem label="渠道" {...formItemLayout1}>
+                          {getFieldDecorator("formChannel", {
+                            initialValue: undefined,
+                          })(
+                              <Select placeholder='请选择所要配置的渠道'style={{width:'298px'}}>
+                                {this.state.channels.map((item) => {
+                                  return (
+                                      <Option key={String(item.dicCode)}>{item.dicValue}</Option>
+                                  );
+                                })}
+                              </Select>
+                          )}
+                        </FormItem>
                         <FormItem label="兑换次数" {...formItemLayout1}>
                             <RadioGroup onChange={(e) => this.onRadioLimitChange(e)} value={this.state.radioLimit}>
                                 <Radio value={1} style={{marginRight:'100px'}}>不限次数</Radio>

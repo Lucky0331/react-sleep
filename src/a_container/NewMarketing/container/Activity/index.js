@@ -21,6 +21,8 @@ import {
   Popconfirm,
   Select,
   Divider,
+  Checkbox,
+  Row, Col,
   Popover,
   Radio,
   Upload
@@ -840,22 +842,6 @@ class Category extends React.Component {
                 </Select>
               )}
             </FormItem>
-            <FormItem label="渠道" {...formItemLayout}>
-              {getFieldDecorator("formChannel", {
-                initialValue: undefined,
-                rules: [
-                  { required: true, message: "请选择所要配置的渠道" }
-                ]
-              })(
-                <Select placeholder='请选择所要配置的渠道'>
-                  {this.state.channels.map((item) => {
-                    return (
-                      <Option key={String(item.dicCode)}>{item.dicValue}</Option>
-                    );
-                  })}
-                </Select>
-              )}
-            </FormItem>
             <FormItem label="活动名称" {...formItemLayout}>
               {getFieldDecorator("addnewTitle", {
                 initialValue: undefined,
@@ -892,6 +878,19 @@ class Category extends React.Component {
                   <Option value={1}>普通活动</Option>
                   <Option value={2}>兑换活动</Option>
                 </Select>
+              )}
+            </FormItem>
+            <FormItem label="渠道" {...formItemLayout}>
+              {getFieldDecorator("formChannel", {
+                initialValue: undefined,
+              })(
+                <Checkbox.Group placeholder='请选择所要配置的渠道'>
+                  {this.state.channels.map((item,index) => {
+                    return (
+                      <Checkbox  value={index} key={String(item.dicCode)}>{item.dicValue}</Checkbox>
+                    );
+                  })}
+                </Checkbox.Group>
               )}
             </FormItem>
             <FormItem label="推荐产品" {...formItemLayout}>
