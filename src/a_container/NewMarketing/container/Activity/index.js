@@ -44,6 +44,7 @@ import {
   onChange,
   onOk,
   ActivityList,
+  ChannelFromSave,
   findProductByWhere,
   upDateOnlineList,
   deleteImage,
@@ -62,6 +63,7 @@ class Category extends React.Component {
     this.state = {
       data: [], // 当前页面全部数据
       productModels: [], // 所有的产品型号
+      channels: [], // 所有的渠道
       searchName: "", // 搜索 - 发布状态
       searchTitle:"" ,//搜索 - 活动名称
       nowData: null, // 当前选中的信息，用于查看详情、修改、分配菜单
@@ -73,11 +75,13 @@ class Category extends React.Component {
       pageSize: 10, // 每页多少条
       total: 0, // 数据库总共多少条数据
       fileList:[] ,//活动图片上传列表
+      fileListBack:[],//背景图片上传列表
     };
   }
 
   componentDidMount() {
     this.getAllProductModel(); // 获取所有的产品型号
+    this.getChannelFrom();//获取所有的渠道
     this.onGetData(this.state.pageNum, this.state.pageSize);
   }
 
@@ -165,7 +169,26 @@ class Category extends React.Component {
     return t ? t.name : "";
   }
   
-  // banner图 - 上传中、上传成功、上传失败的回调
+  //获取渠道有哪些
+  getChannelFrom(){
+    this.props.actions.ChannelFromSave({pageNum:0,pageSize: 10}).then(res=>{
+      if(res.status === "0"){
+        this.setState({
+          channels:res.data.result || []
+        })
+      }
+    })
+  }
+  
+  // 工具 - 根据渠道ID查渠道名称
+  findChannelById(dicCode) {
+    const t = this.state.channels.find(
+        item => String(item.dicCode) === String(dicCode)
+    );
+    return t ? t.dicValue : "";
+  }
+  
+  // 活动图 - 上传中、上传成功、上传失败的回调
   onUpLoadChange(obj) {
     // console.log('图片上传：', obj);
     if (obj.file.status === "done") {
@@ -200,7 +223,7 @@ class Category extends React.Component {
     }
   }
   
-  // banner图 - 上传前
+  // 活动图 - 上传前
   onUploadBefore(f, fl) {
     console.log("上传前：", f, fl);
     if (
@@ -218,13 +241,76 @@ class Category extends React.Component {
     }
   }
   
-  // banner图 - 删除一个图片
+  // 活动图 - 删除一个图片
   onUpLoadRemove(f) {
     console.log("删除；", f);
     this.deleteImg(f.url);
     const list = _.cloneDeep(this.state.fileList);
     this.setState({
       fileList: list.filter(item => item.uid !== f.uid)
+    });
+  }
+  
+  // 背景图 - 上传中、上传成功、上传失败的回调
+  onUpLoadBackChange(obj) {
+    console.log('图片上传：', obj);
+    if (obj.file.status === "done") {
+      // 上传成功后调用,将新的地址加进原list
+      if (obj.file.response.data) {
+        const list = _.cloneDeep(this.state.fileListBack);
+        const t = list.find(item => item.uid === obj.file.uid);
+        t.url = obj.file.response.data;
+        this.setState({
+          fileListBack: list,
+          fileBackLoading: false
+        });
+      } else {
+        const list = _.cloneDeep(this.state.fileListBack);
+        this.setState({
+          fileListBack: list.filter(item => item.uid !== obj.file.uid),
+          fileBackLoading: false
+        });
+        message.error("图片上传失败");
+      }
+    } else if (obj.file.status === "uploading") {
+      this.setState({
+        fileBackLoading: true
+      });
+    } else if (obj.file.status === "error") {
+      const list = _.cloneDeep(this.state.fileListBack);
+      this.setState({
+        fileListBack: list.filter(item => item.uid !== obj.file.uid),
+        fileBackLoading: false
+      });
+      message.error("图片上传失败");
+    }
+  }
+  
+  // 背景图 - 上传前
+  onUploadBackBefore(f, fl) {
+    console.log("上传前：", f, fl);
+    if (
+      ["jpg", "jpeg", "png", "bmp", "gif"].indexOf(f.type.split("/")[1]) < 0
+    ) {
+      message.error("只能上传jpg、jpeg、png、bmp、gif格式的图片");
+      return false;
+    } else {
+      const newList = _.cloneDeep(this.state.fileListBack);
+      newList.push(f);
+      this.setState({
+        fileListBack: newList
+      });
+      return true;
+    }
+  }
+  
+  // 背景图 - 删除一个图片
+  onUpLoadBackRemove(f) {
+    console.log("删除；", f);
+    this.deleteImg(f.url);
+    const list = _.cloneDeep(this.state.fileListBack);
+    this.setState({
+      fileListBack: list.filter(item => item.uid !== f.uid)
     });
   }
   
@@ -250,11 +336,13 @@ class Category extends React.Component {
       "addnewDeletFlag",
       "addnewSorts",
       "formEnd",
+      "formChannel",
       "formActivityType"
     ]);
     this.setState({
       addOrUp: "add",
       fileList: [],
+      fileListBack:[],
       addnewModalShow: true,
       nowData: null
     });
@@ -279,7 +367,9 @@ class Category extends React.Component {
         "addnewDeletFlag",
         "addnewSorts",
         "formEnd",
-        "formActivityType"
+        "formChannel",
+        "formActivityType",
+        "formLayout"
       ],
       (err, values) => {
         if (err) {
@@ -290,13 +380,16 @@ class Category extends React.Component {
         });
         const params = {
           side:values.formEnd ? String(values.formEnd) : undefined,
+          channel:values.formChannel ? String(values.formChannel) : undefined,
           acType:values.formActivityType ? String(values.formActivityType) : undefined,
           title: values.addnewTitle,
           acUrl: values.addnewUrl,
+          layoutType:values.formLayout,//布局 1-单图 2-双图
           deleteFlag:values.addnewDeletFlag,
           recommend: values.addnewProduct ? String(values.addnewProduct) : undefined,
           sorts:Number(values.addnewSorts),
           acImg:this.state.fileList.map(item => item.url).join(","),
+          backImg:this.state.fileListBack.map(item=>item.url).join(",")
         };
         if (this.state.addOrUp === "add") {
           // 新增
@@ -355,9 +448,11 @@ class Category extends React.Component {
     console.log("是什么：", record);
     form.setFieldsValue({
       addnewTitle: String(record.title),
-      formEnd:record.side,
-      formActivityType:record.acType,
+      formEnd:record.side,//端
+      formChannel:record.channel ? String(record.channel) :'',//渠道
+      formActivityType:record.acType,//活动类型
       addnewUrl: record.acUrl,
+      formLayout:record.layoutType ? String(record.layoutType): '',//背景图大图小图
       addnewProduct: record.recommendProductList ? record.recommendProductList.map((item)=>{return String(item.productId)}) : undefined,
       addnewDeletFlag:record.deleteFlag ? 1 : 0,
       addnewSorts:record.sorts,
@@ -370,9 +465,14 @@ class Category extends React.Component {
       addnewModalShow: true,
       fileList: record.acImg
         ? record.acImg
-          .split(",")
-          .map((item, index) => ({ uid: index, url: item, status: "done" }))
+        .split(",")
+        .map((item, index) => ({ uid: index, url: item, status: "done" }))
         : [], // 活动图上传的列表
+      fileListBack:record.backImg ?
+           record.backImg
+           .split(",")
+           .map((item, index) => ({ uid: index, url: item, status: "done" }))
+           :[],//背景图上传的列表
     });
   }
 
@@ -614,6 +714,8 @@ class Category extends React.Component {
         acType:item.acType,//活动类型
         sorts:item.sorts,
         side:item.side,//端
+        backImg:item.backImg ? item.backImg : '',//背景图
+        channel:item.channel,//渠道
         recommendProductList:item.recommendProductList, //推荐产品有哪些
         acImg:item.acImg ? item.acImg : '', //活动图片
         productId:item.recommendProductList && item.recommendProductList[0] ? item.recommendProductList[0].productId : '',
@@ -738,6 +840,22 @@ class Category extends React.Component {
                 </Select>
               )}
             </FormItem>
+            <FormItem label="渠道" {...formItemLayout}>
+              {getFieldDecorator("formChannel", {
+                initialValue: undefined,
+                rules: [
+                  { required: true, message: "请选择所要配置的渠道" }
+                ]
+              })(
+                <Select placeholder='请选择所要配置的渠道'>
+                  {this.state.channels.map((item) => {
+                    return (
+                      <Option key={String(item.dicCode)}>{item.dicValue}</Option>
+                    );
+                  })}
+                </Select>
+              )}
+            </FormItem>
             <FormItem label="活动名称" {...formItemLayout}>
               {getFieldDecorator("addnewTitle", {
                 initialValue: undefined,
@@ -796,34 +914,58 @@ class Category extends React.Component {
              )}
             </FormItem>
             <FormItem label="活动图片" {...formItemLayout}>
-              {getFieldDecorator("formPhoto", {
+              {getFieldDecorator("formLayout", {
                 initialValue: undefined,
-                rules: [
-                  { message: "请选择图片大小" }
-                ]
+                rules: []
               })(
                 <Select placeholder='请选择图片大小'>
                   <Option value={1}>大图</Option>
                   <Option value={2}>小图</Option>
                 </Select>
               )}
-              <Upload
-                name="pImg"
-                action={`${Config.baseURL}/manager/product/uploadImage`}
-                listType="picture-card"
-                withCredentials={true}
-                fileList={this.state.fileList}
-                beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
-                onChange={f => this.onUpLoadChange(f)}
-                onRemove={f => this.onUpLoadRemove(f)}
-              >
-                {this.state.fileList.length >= 1 ? null : (
+              {getFieldDecorator("upIcon", {
+              })(
+                <Upload
+                  name="pImg"
+                  action={`${Config.baseURL}/manager/product/uploadImage`}
+                  listType="picture-card"
+                  withCredentials={true}
+                  fileList={this.state.fileList}
+                  beforeUpload={(f, fl) => this.onUploadBefore(f, fl)}
+                  onChange={f => this.onUpLoadChange(f)}
+                  onRemove={f => this.onUpLoadRemove(f)}
+                >
+                  {this.state.fileList.length >= 1 ? null : (
+                    <div>
+                      <Icon type="plus" />
+                      <div className="ant-upload-text">选择文件</div>
+                    </div>
+                  )}
+                </Upload>
+              )}
+            </FormItem>
+            <FormItem label="背景图片" {...formItemLayout}>
+              {getFieldDecorator("upIcon1", {
+                rules: [{ required: true}]
+              })(
+                <Upload
+                  name="pImg"
+                  action={`${Config.baseURL}/manager/product/uploadImage`}
+                  listType="picture-card"
+                  withCredentials={true}
+                  fileList={this.state.fileListBack}
+                  beforeUpload={(f, fl) => this.onUploadBackBefore(f, fl)}
+                  onChange={f => this.onUpLoadBackChange(f)}
+                  onRemove={f => this.onUpLoadBackRemove(f)}
+                >
+                {this.state.fileListBack.length >= 10 ? null : (
                   <div>
                     <Icon type="plus" />
                     <div className="ant-upload-text">选择文件</div>
                   </div>
                 )}
-              </Upload>
+                </Upload>
+              )}
             </FormItem>
             <FormItem label="是否发布" {...formItemLayout}>
               {getFieldDecorator("addnewDeletFlag", {
@@ -944,6 +1086,7 @@ export default connect(
         upDateOnlineList,
         deleteImage,
         activityList,
+        ChannelFromSave
       },
       dispatch
     )

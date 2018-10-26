@@ -144,7 +144,7 @@ class Category extends React.Component {
               console.log(res.data.result[0].dicValue)
                 this.setState({
                     times: res.data.result || [],
-                    radioLimit:res.data.result[0].dicValue==0?1:2
+                    radioLimit:res.data.result[0].dicValue==0 ? 1 : 2
                 });
             } else {
                 message.error(res.message || "获取数据失败，请重试");

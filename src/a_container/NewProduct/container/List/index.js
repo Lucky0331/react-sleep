@@ -966,46 +966,6 @@ class Category extends React.Component {
         width: 270,
         render: (text, record) => {
           const controls = [];
-            // controls.push(
-            //   <span
-            //     key="1"
-            //     className="control-btn red"
-            //   >
-            //     <Tooltip placement="top" title="热销">
-            //       <Icon type="like" />
-            //     </Tooltip>
-            //   </span>
-            // );
-            // controls.push(
-            //   <span
-            //     key="2"
-            //     className="control-btn blue"
-            //   >
-            //     <Tooltip placement="top" title="取消热销">
-            //     <Icon type="dislike" />
-            //     </Tooltip>
-            //   </span>
-            // );
-            // controls.push(
-            //   <span
-            //     key="3"
-            //     className="control-btn red"
-            //   >
-            //     <Tooltip placement="top" title="活动">
-            //       <Icon type="caret-up"/>
-            //     </Tooltip>
-            //   </span>
-            // );
-            // controls.push(
-            //   <span
-            //     key="4"
-            //     className="control-btn blue"
-            //   >
-            //     <Tooltip placement="top" title="取消活动">
-            //       <Icon type="caret-down" />
-            //     </Tooltip>
-            //   </span>
-            // );
           !record.newProduct &&
             controls.push(
               <span
@@ -1329,19 +1289,6 @@ class Category extends React.Component {
           maskClosable={false}
         >
           <Form style={{marginLeft:'10px'}}>
-            {/*<FormItem label="端" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>*/}
-              {/*{getFieldDecorator("formEnd", {*/}
-                {/*initialValue: undefined,*/}
-                {/*rules: [*/}
-                  {/*{ required: true, message: "请选择所要配置的端" }*/}
-              {/*]*/}
-              {/*})(*/}
-                {/*<RadioGroup value={this.state.value} disabled={this.state.addOrUp === "look" || this.state.addOrUp === "topup"}>*/}
-                  {/*<Radio value={1}>健康e家</Radio>*/}
-                  {/*<Radio value={2}>小程序</Radio>*/}
-                {/*</RadioGroup>*/}
-              {/*)}*/}
-            {/*</FormItem>*/}
             <FormItem label="产品名称" {...formItemLayout} labelCol={{ span: 6 }} wrapperCol={{ span: 15 }}>
               {getFieldDecorator("formName", {
                 initialValue: undefined,
