@@ -302,7 +302,7 @@ class Category extends React.Component {
       pageNum,
       pageSize,
       withdrawType: String(this.state.searchWithdrawType),
-      partnerTradeNo: String(this.state.searchPresentNumber),
+      partnerTradeNo: String(this.state.searchPresentNumber),//子提现单号
       operation:this.state.searchFlag2,
       minTime: this.state.searchMinTime
         ? `${tools.dateToStr(this.state.searchMinTime.utc()._d)}`
@@ -1549,7 +1549,7 @@ class Category extends React.Component {
   makeColumnsJournal(){
     const columns = [
     {
-      title: "提现单号",
+      title: "子提现单号",
       dataIndex:'orderId',
       key:'orderId'
     },
@@ -1672,7 +1672,7 @@ class Category extends React.Component {
     return data3.map((item, index) => {
       return {
         key: index,
-        orderId: String(item.orderId),
+        orderId: String(item.orderId),//子提现单号
         company: item.productType,
         conditions: item.conditions,
         username: item.username,
@@ -2642,7 +2642,7 @@ class Category extends React.Component {
                 <div className="system-table">
                   <ul className="search-ul more-ul">
                     <li>
-                      <span>提现单号查询</span>
+                      <span>子提现单号查询</span>
                       <Input
                         style={{ width: "172px" }}
                         onChange={v => this.searchPresentNumber(v)}
