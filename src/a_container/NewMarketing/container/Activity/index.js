@@ -381,12 +381,12 @@ class Category extends React.Component {
           addnewLoading: true
         });
         const params = {
-          side:values.formEnd ? String(values.formEnd) : undefined,
+          side:values.formEnd ? String(values.formEnd) : undefined,//端
           channel:values.formChannel ? String(values.formChannel) : undefined,
           acType:values.formActivityType ? String(values.formActivityType) : undefined,
           title: values.addnewTitle,
           acUrl: values.addnewUrl,
-          layoutType:values.formLayout,//布局 1-单图 2-双图
+          layoutType:values.formLayout ? String(values.formLayout) : undefined,//布局 1-大图 2-小图
           deleteFlag:values.addnewDeletFlag,
           recommend: values.addnewProduct ? String(values.addnewProduct) : undefined,
           sorts:Number(values.addnewSorts),
@@ -454,7 +454,7 @@ class Category extends React.Component {
       formChannel:record.channel ? String(record.channel) :'',//渠道
       formActivityType:record.acType,//活动类型
       addnewUrl: record.acUrl,
-      formLayout:record.layoutType ? String(record.layoutType): '',//背景图大图小图
+      formLayout:record.layoutType,//背景图大图小图
       addnewProduct: record.recommendProductList ? record.recommendProductList.map((item)=>{return String(item.productId)}) : undefined,
       addnewDeletFlag:record.deleteFlag ? 1 : 0,
       addnewSorts:record.sorts,
@@ -716,6 +716,7 @@ class Category extends React.Component {
         acType:item.acType,//活动类型
         sorts:item.sorts,
         side:item.side,//端
+        layoutType:item.layoutType,//大图 小图
         backImg:item.backImg ? item.backImg : '',//背景图
         channel:item.channel,//渠道
         recommendProductList:item.recommendProductList, //推荐产品有哪些

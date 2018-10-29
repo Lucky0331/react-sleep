@@ -435,7 +435,7 @@ class Category extends React.Component {
       .WithdrawalsAuditEgis(params)
       .then(res => {
         if (res.status === "0") {
-          message.success("修改成功");
+          message.success(res.message || "修改成功");
           this.onGetData(this.state.pageNum, this.state.pageSize);
         } else {
           message.error(res.message || "修改失败，请重试");
@@ -2658,7 +2658,8 @@ class Category extends React.Component {
                         style={{ width: "172px" }}
                         onChange={e => this.searchFlagChange2(e)}
                       >
-                        <Option value={'审核通过'}>审核通过</Option>
+                        <Option value={'审核通过[成功]'}>审核通过[成功]</Option>
+                        <Option value={'审核通过[失败]'}>审核通过[失败]</Option>
                         <Option value={'审核不通过'}>审核不通过</Option>
                       </Select>
                     </li>
