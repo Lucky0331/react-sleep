@@ -958,7 +958,7 @@ class Category extends React.Component {
                   onChange={f => this.onUpLoadBackChange(f)}
                   onRemove={f => this.onUpLoadBackRemove(f)}
                 >
-                {this.state.fileListBack.length >= 10 ? null : (
+                {this.state.fileListBack.length >= 1 ? null : (
                   <div>
                     <Icon type="plus" />
                     <div className="ant-upload-text">选择文件</div>

@@ -513,7 +513,7 @@ class Category extends React.Component {
                  id:Number(this.state.times.map((item)=>{return Number(item.id)})),
                  dicType:String(this.state.times.map((item)=>{return String(item.dicType)})),
                  dicCode:values.addnewPerson,
-                 dicValue:this.state.radioLimit==1?'0':(this.getDicTypeIdExchange(values.addnewTime) || this.getDicTypeIddExchange(values.addnewTime)),
+                 dicValue:this.state.radioLimit == 1 ? '0' :(this.getDicTypeIdExchange(values.addnewTime) || this.getDicTypeIddExchange(values.addnewTime)),
                 };
                 me.props.actions.upExchangeSave(tools.clearNull(params)).then(res => {
                     if(res.status === "0"){
@@ -533,6 +533,7 @@ class Category extends React.Component {
         this.setState({
             addnewPersonShow: false,
             addnewSetShow:false,
+          
         });
 
     }
