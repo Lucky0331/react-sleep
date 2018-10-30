@@ -250,12 +250,12 @@ class Category extends React.Component {
     //工具 - 设置模态框
     getDicTypeExchange(type){
         switch(String(type)){
-            case "0": return "未限制";
+            // case "0": return "未限制";
             case "1": return "天";
             case "2": return "周";
             case "3": return "月";
             case "4": return "年";
-            default: return "";
+            default: return "天";
         }
     }
 
@@ -274,12 +274,12 @@ class Category extends React.Component {
     //工具 - 设置模态框
     getDicTypeIdExchange(type){
         switch(String(type)){
-            case "未限制": return "0";
+            // case "未限制": return "0";
             case "天": return "1";
             case "周": return "2";
             case "月": return "3";
             case "年": return "4";
-            default: return "";
+            default: return "1";
         }
     }
 
@@ -533,7 +533,7 @@ class Category extends React.Component {
         this.setState({
             addnewPersonShow: false,
             addnewSetShow:false,
-          
+
         });
 
     }
