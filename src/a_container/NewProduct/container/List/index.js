@@ -1209,18 +1209,6 @@ class Category extends React.Component {
                 })}
               </Select>
             </li>
-            {/*<li>*/}
-              {/*<span style={{ marginRight: "10px" }}>产品状态</span>*/}
-              {/*<Select*/}
-                {/*allowClear*/}
-                {/*placeholder="全部"*/}
-                {/*style={{ width: "120px", marginRight: "25px" }}*/}
-                {/*onChange={e => this.searchNameChange(e)}*/}
-              {/*>*/}
-                {/*<Option value={0}>未上架</Option>*/}
-                {/*<Option value={1}>已上架</Option>*/}
-              {/*</Select>*/}
-            {/*</li>*/}
             <li>
               <span style={{ marginRight: "10px" }}>是否设为推荐</span>
               <Select

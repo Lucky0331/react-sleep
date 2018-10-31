@@ -1482,12 +1482,6 @@ class Category extends React.Component {
         render: text => this.findProductNameById(text)
       },
       {
-        title: "产品公司",
-        dataIndex: "company",
-        key: "company",
-        render: text => this.Productcompany(text)
-      },
-      {
         title: "用户身份",
         dataIndex: "userType",
         key: "userType",
@@ -1519,7 +1513,6 @@ class Category extends React.Component {
         fixed: "right",
         render: (text, record) => {
           const controls = [];
-
           controls.push(
             <span
               key="0"

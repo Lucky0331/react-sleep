@@ -81,7 +81,7 @@ class Category extends React.Component {
             pageSize: 10, // 每页多少条
             total: 0,// 数据库总共多少条数据
             radioCode:1,//生成兑换码模态框 -- 默认选中第1个
-            radioLimit:2,//设置模态框 -- 默认选中第2个
+            radioLimit:'',//设置模态框 -- 默认选中第2个
         }
     }
 
@@ -135,7 +135,7 @@ class Category extends React.Component {
         })
     }
 
-    //获取设置的天、周、月、年
+    //获取设置的天、周、月
     getCycleFrom(){
         this.props.actions.exchangeSave({pageNum:0,pageSize: 10}).then(res => {
             console.log('兑换限制有什么：',res.data.result)
@@ -250,7 +250,6 @@ class Category extends React.Component {
     //工具 - 设置模态框
     getDicTypeExchange(type){
         switch(String(type)){
-            case "0": return "未限制";
             case "1": return "天";
             case "2": return "周";
             case "3": return "月";
@@ -262,7 +261,6 @@ class Category extends React.Component {
     //工具 - 设置模态框
     getDicTypeIddExchange(type){
         switch(String(type)){
-            case "0": return "0";
             case "1": return "1";
             case "2": return "2";
             case "3": return "3";
@@ -274,7 +272,6 @@ class Category extends React.Component {
     //工具 - 设置模态框
     getDicTypeIdExchange(type){
         switch(String(type)){
-            case "未限制": return "0";
             case "天": return "1";
             case "周": return "2";
             case "月": return "3";
@@ -533,7 +530,6 @@ class Category extends React.Component {
         this.setState({
             addnewPersonShow: false,
             addnewSetShow:false,
-          
         });
 
     }
@@ -550,6 +546,7 @@ class Category extends React.Component {
         this.setState({
             radioLimit: e.target.value,
         });
+        console.log('选中的是哪个radio',e.target.value)
     }
 
     // 构建字段

@@ -78,6 +78,7 @@ class Category extends React.Component {
       total: 0, // 数据库总共多少条数据
       fileList:[] ,//活动图片上传列表
       fileListBack:[],//背景图片上传列表
+      acType: undefined, // 当前选择的兑换类型
     };
   }
 
@@ -180,14 +181,6 @@ class Category extends React.Component {
         })
       }
     })
-  }
-  
-  // 工具 - 根据渠道ID查渠道名称
-  findChannelById(dicCode) {
-    const t = this.state.channels.find(
-        item => String(item.dicCode) === String(dicCode)
-    );
-    return t ? t.dicValue : "";
   }
   
   // 活动图 - 上传中、上传成功、上传失败的回调
@@ -328,7 +321,7 @@ class Category extends React.Component {
   }
 
   // 添加新活动模态框出现
-  onAddNewShow() {
+  onAddNewShow(record) {
     const me = this;
     const { form } = me.props;
     form.resetFields([
@@ -336,6 +329,7 @@ class Category extends React.Component {
       "addnewUrl",
       "addnewProduct",
       "addnewDeletFlag",
+      "addnewbtnColor",
       "addnewSorts",
       "formEnd",
       "formChannel",
@@ -345,8 +339,9 @@ class Category extends React.Component {
       addOrUp: "add",
       fileList: [],
       fileListBack:[],
+      // acType:record.acType,
       addnewModalShow: true,
-      nowData: null
+      nowData: null,
     });
   }
 
@@ -367,6 +362,7 @@ class Category extends React.Component {
         "addnewProduct",
         "addnewUrl",
         "addnewDeletFlag",
+        "addnewbtnColor",
         "addnewSorts",
         "formEnd",
         "formChannel",
@@ -388,6 +384,7 @@ class Category extends React.Component {
           acUrl: values.addnewUrl,
           layoutType:values.formLayout ? String(values.formLayout) : undefined,//布局 1-大图 2-小图
           deleteFlag:values.addnewDeletFlag,
+          backColor:values.addnewbtnColor,//兑换按钮颜色
           recommend: values.addnewProduct ? String(values.addnewProduct) : undefined,
           sorts:Number(values.addnewSorts),
           acImg:this.state.fileList.map(item => item.url).join(","),
@@ -457,6 +454,7 @@ class Category extends React.Component {
       formLayout:record.layoutType,//背景图大图小图
       addnewProduct: record.recommendProductList ? record.recommendProductList.map((item)=>{return String(item.productId)}) : undefined,
       addnewDeletFlag:record.deleteFlag ? 1 : 0,
+      addnewbtnColor:record.backColor,//按钮颜色
       addnewSorts:record.sorts,
       addnewacImg: record.acImg
     });
@@ -716,6 +714,7 @@ class Category extends React.Component {
         acType:item.acType,//活动类型
         sorts:item.sorts,
         side:item.side,//端
+        backColor:item.backColor,//兑换按钮颜色
         layoutType:item.layoutType,//大图 小图
         backImg:item.backImg ? item.backImg : '',//背景图
         channel:item.channel,//渠道
@@ -737,7 +736,13 @@ class Category extends React.Component {
     });
   }
 
-
+  //根据acType值不同 显不显示渠道
+  Newproduct(e) {
+    this.setState({
+      acType: e
+    });
+    console.log("acType的数值是：", e);
+  }
 
   render() {
     const me = this;
@@ -868,20 +873,20 @@ class Category extends React.Component {
                 rules: [{ required: true, message: "请输入链接地址" }]
               })(<Input placeholder="请输入链接地址" />)}
             </FormItem>
-            <FormItem label="活动类型" {...formItemLayout}>
+            <FormItem label="活动类型" {...formItemLayout} >
               {getFieldDecorator("formActivityType", {
                 initialValue: undefined,
                 rules: [
                   { required: true, message: "请选择活动类型" }
                 ]
               })(
-                <Select placeholder='请选择活动类型'>
+                <Select placeholder='请选择活动类型' onChange={e => this.Newproduct(e)}>
                   <Option value={1}>普通活动</Option>
                   <Option value={2}>兑换活动</Option>
                 </Select>
               )}
             </FormItem>
-            <FormItem label="渠道" {...formItemLayout}>
+            <FormItem label="渠道" {...formItemLayout} className={this.state.acType === 1 ? 'hide' : 'show'}>
               {getFieldDecorator("formChannel", {
                 initialValue: undefined,
               })(
@@ -966,6 +971,12 @@ class Category extends React.Component {
                 )}
                 </Upload>
               )}
+            </FormItem>
+            <FormItem label="兑换按钮颜色" {...formItemLayout}>
+              {getFieldDecorator("addnewbtnColor", {
+                initialValue: undefined,
+                rules: [{ required: true, message: "请输入兑换按钮颜色" }]
+              })(<Input placeholder="请输入兑换按钮颜色" />)}
             </FormItem>
             <FormItem label="是否发布" {...formItemLayout}>
               {getFieldDecorator("addnewDeletFlag", {
