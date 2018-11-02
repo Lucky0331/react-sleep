@@ -274,12 +274,11 @@ class Category extends React.Component {
   //工具 - 设置模态框
   getDicTypeIdExchange(type){
     switch(String(type)){
-        // case "未限制": return "0";
       case "天": return "1";
       case "周": return "2";
       case "月": return "3";
       case "年": return "4";
-      default: return "1";
+      default: return "";
     }
   }
   

@@ -893,7 +893,7 @@ class Category extends React.Component {
                 <Checkbox.Group placeholder='请选择所要配置的渠道'>
                   {this.state.channels.map((item,index) => {
                     return (
-                      <Checkbox  value={index} key={String(item.dicCode)}>{item.dicValue}</Checkbox>
+                      <Checkbox value={String(item.dicCode)} key={String(item.dicCode)}>{item.dicValue}</Checkbox>
                     );
                   })}
                 </Checkbox.Group>
