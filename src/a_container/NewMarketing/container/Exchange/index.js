@@ -893,6 +893,9 @@ class Category extends React.Component {
                     <FormItem label="端" {...formItemLayout1}>
                       {getFieldDecorator("formEnd", {
                         initialValue: undefined,
+                        rules: [
+                          { required: true, message: "请选择所要配置的端" }
+                        ]
                       })(
                           <Select placeholder='请选择所要配置的端' style={{width:'298px'}}>
                               <Option value={1}>公众号</Option>
@@ -903,6 +906,9 @@ class Category extends React.Component {
                     <FormItem label="渠道" {...formItemLayout1}>
                       {getFieldDecorator("formChannel", {
                         initialValue: undefined,
+                        rules: [
+                          { required: true, message: "请选择所要配置的渠道" }
+                        ]
                       })(
                           <Select placeholder='请选择所要配置的渠道' style={{width:'298px'}}>
                             {this.state.channels.map((item) => {
