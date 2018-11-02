@@ -949,9 +949,8 @@ class Category extends React.Component {
                 </Upload>
               )}
             </FormItem>
-            <FormItem label="背景图片" {...formItemLayout}>
+            <FormItem label="背景图片" {...formItemLayout} className={this.state.acType === 1 ? 'hide' : 'show'}>
               {getFieldDecorator("upIcon1", {
-                rules: [{ required: true}]
               })(
                 <Upload
                   name="pImg"
@@ -972,10 +971,9 @@ class Category extends React.Component {
                 </Upload>
               )}
             </FormItem>
-            <FormItem label="兑换按钮颜色" {...formItemLayout}>
+            <FormItem label="兑换按钮颜色" {...formItemLayout} className={this.state.acType === 1 ? 'hide' : 'show'}>
               {getFieldDecorator("addnewbtnColor", {
                 initialValue: undefined,
-                rules: [{ required: true, message: "请输入兑换按钮颜色" }]
               })(<Input placeholder="请输入兑换按钮颜色" />)}
             </FormItem>
             <FormItem label="是否发布" {...formItemLayout}>
