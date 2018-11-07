@@ -102,6 +102,19 @@ export function findProductLabel(params = {}) {
   };
 }
 
+//产品活动方式
+export function findActivityType(params = {}) {
+  return dispatch =>{
+    return Fetchapi.newPost("/manager/dictionary/listByDicType?dicType=activityType",params)
+      .then(msg =>{
+        return msg;
+      })
+      .catch(()=>{
+        message.error("网络错误，请重试")
+      })
+  }
+}
+
 // 删除产品类型
 export function hasRecommendProductType(params = {}) {
   return dispatch => {

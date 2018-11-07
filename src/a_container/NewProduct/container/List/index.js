@@ -24,7 +24,7 @@ import _ from "lodash";
 // 本页面所需action
 // ==================
 import {findProductByWhere,findProductTypeByWhere,addProduct,updateProduct,deleteProduct,removeProduct,deleteImage,
-  findProductModelByWhere,hasRecommendProductType,findProductLabel} from "../../../../a_action/shop-action";
+  findProductModelByWhere,hasRecommendProductType,findProductLabel,findActivityType} from "../../../../a_action/shop-action";
 
 // ==================
 // Definition
@@ -41,6 +41,7 @@ class Category extends React.Component {
       productTypes: [], // 所有的产品类型
       productModels: [], // 所有的产品型号
       productLabels:[],//所有产品标签
+      activitys:[],//所有的活动方式
       productprice: "", //产品的价格
       searchTypeId: undefined, // 搜索 - 类型名
       searchNewProduct:'',//搜索 - 推荐状态
@@ -72,6 +73,7 @@ class Category extends React.Component {
     this.getAllProductType(); // 获取所有的产品类型
     this.getAllProductModel(); // 获取所有的产品型号
     this.getAllProductLabel();//获取所有产品标签
+    this.getActivityType();//获取所有的活动方式
     this.onGetData(this.state.pageNum, this.state.pageSize);
   }
 
@@ -139,6 +141,19 @@ class Category extends React.Component {
         }
       });
   }
+  
+  //获取所有的活动方式，添加产品时可用
+  getActivityType(){
+    this.props.actions.findActivityType({pageNum:0,pageSize:9999})
+      .then(res=>{
+        console.log('拿到所有活动方式：',res.data)
+        if(res.status === "0"){
+          this.setState({
+            activitys:res.data.result || []
+          })
+        }
+      })
+  }
 
   // 工具 - 根据产品类型ID查产品类型名称
   findProductNameById(id) {
@@ -154,6 +169,14 @@ class Category extends React.Component {
       item => String(item.id) === String(id)
     );
     return t ? t.name : "";
+  }
+  
+  // 工具 - 根据活动方式ID获取活动方式名称
+  getActivityId(dicCode) {
+    const t = this.state.activitys.find(
+      item => String(item.dicCode) === String(dicCode)
+    );
+    return t ? t.dicValue : "";
   }
 
   // 工具 - 根据有效期type获取有效期名称
@@ -252,7 +275,7 @@ class Category extends React.Component {
         formName: record.name,// 产品名称
         formTypeId: String(record.typeId),// 产品类型ID
         formTypeCode: String(record.typeCode),// 产品型号ID
-        formActivityType: record.activityType,// 活动方式ID
+        formActivityType: String(record.activityType),// 活动方式ID
         formConditions: record.newProduct ? 0 : 1,// 是否是推荐
         formSort: record.sorts,// 排序
         formTypeLabel:record.productTagList ? record.productTagList.map((item)=>{return String(item.tagCode)}) : undefined,//产品标签
@@ -381,7 +404,6 @@ class Category extends React.Component {
       message.warning("有图片正在上传...");
       return;
     }
-
     form.validateFields([
         "formName", // 产品名称
         "formTypeId", // 产品类型ID
@@ -903,7 +925,7 @@ class Category extends React.Component {
         title: "活动方式",
         dataIndex: "activityType",
         key: "activityType",
-        render: text => this.getActivity(text)
+        render: text => this.getActivityId(text)
       },
       {
         title: "产品状态 ",
@@ -1229,8 +1251,11 @@ class Category extends React.Component {
                 style={{ width: "120px", marginRight: "25px" }}
                 onChange={e => this.searchProduct(e)}
               >
-                <Option value={1}>普通产品</Option>
-                <Option value={2}>活动产品</Option>
+                {this.state.activitys.map((item, index) => {
+                  return (
+                    <Option key={index} value={item.dicCode}>{item.dicValue}</Option>
+                  );
+                })}
               </Select>
             </li>
             <li>
@@ -1358,8 +1383,11 @@ class Category extends React.Component {
                 rules: [{ required: true, message: "请选择活动方式" }]
               })(
                 <Select disabled={this.state.addOrUp === "look" || this.state.addOrUp === "topup"} placeholder="请选择活动方式">
-                  <Option value={1}>普通商品</Option>
-                  <Option value={2}>活动商品</Option>
+                  {this.state.activitys.map((item, index) => (
+                    <Option key={index} value={String(item.dicCode)}>
+                      {item.dicValue}
+                    </Option>
+                  ))}
                 </Select>
               )}
             </FormItem>
@@ -1554,7 +1582,8 @@ export default connect(
         findProductModelByWhere,
         updateProduct,
         findProductLabel,
-        hasRecommendProductType
+        hasRecommendProductType,
+        findActivityType
       },
       dispatch
     )
