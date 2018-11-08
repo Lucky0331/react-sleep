@@ -356,73 +356,73 @@ class Category extends React.Component {
   onAddNewOk() {
     const me = this;
     const { form } = me.props;
-    form.validateFields(
-      [
-        "addnewTitle",
-        "addnewProduct",
-        "addnewUrl",
-        "addnewDeletFlag",
-        "addnewbtnColor",
-        "addnewSorts",
-        "formEnd",
-        "formChannel",
-        "formActivityType",
-        "formLayout"
-      ],
-      (err, values) => {
-        if (err) {
-          return false;
-        }
-        me.setState({
-          addnewLoading: true
-        });
-        const params = {
-          side:values.formEnd ? String(values.formEnd) : undefined,//端
-          channel:values.formChannel ? String(values.formChannel) : undefined,
-          acType:values.formActivityType ? String(values.formActivityType) : undefined,
-          title: values.addnewTitle,
-          acUrl: values.addnewUrl,
-          layoutType:values.formLayout ? String(values.formLayout) : undefined,//布局 1-大图 2-小图
-          deleteFlag:values.addnewDeletFlag,
-          backColor:values.addnewbtnColor,//兑换按钮颜色
-          recommend: values.addnewProduct ? String(values.addnewProduct) : undefined,
-          sorts:Number(values.addnewSorts),
-          acImg:this.state.fileList.map(item => item.url).join(","),
-          backImg:this.state.fileListBack.map(item=>item.url).join(",")
-        };
-        if (this.state.addOrUp === "add") {
-          // 新增
-          me.props.actions
-            .NewActivityList(tools.clearNull(params))
-            .then(res => {
-              me.setState({
-                addnewLoading: false
-              });
-              this.onGetData(1, this.state.pageSize);
-              this.onAddNewClose();
-            })
-            .catch(() => {
-              me.setState({
-                addnewLoading: false
-              });
+    const acTypeTwo = [
+      "addnewTitle",
+      "addnewProduct",
+      "addnewUrl",
+      "addnewDeletFlag",
+      "addnewSorts",
+      "formEnd",
+      "formActivityType",
+      "formLayout"
+    ];
+    if ([2].includes(this.state.acType)) {
+      acTypeTwo.push("formChannel", "addnewbtnColor");
+    }
+    form.validateFields(acTypeTwo,(err, values) => {
+      if (err) {
+        return false;
+      }
+      me.setState({
+        addnewLoading: true
+      });
+      const params = {
+        side:values.formEnd ? String(values.formEnd) : undefined,//端
+        channel:values.formChannel ? String(values.formChannel) : undefined,//渠道
+        acType:values.formActivityType ? String(values.formActivityType) : undefined,
+        title: values.addnewTitle,
+        acUrl: values.addnewUrl,
+        layoutType:values.formLayout ? String(values.formLayout) : undefined,//布局 1-大图 2-小图
+        deleteFlag:values.addnewDeletFlag,
+        backColor:values.addnewbtnColor,//兑换按钮颜色
+        recommend: values.addnewProduct ? String(values.addnewProduct) : undefined,
+        sorts:Number(values.addnewSorts),
+        acImg:this.state.fileList.map(item => item.url).join(","),
+        backImg:this.state.fileListBack.map(item=>item.url).join(",")
+      };
+      if (this.state.addOrUp === "add") {
+        // 新增
+        me.props.actions
+          .NewActivityList(tools.clearNull(params))
+          .then(res => {
+            me.setState({
+              addnewLoading: false
             });
-        } else {
-          params.id = this.state.nowData.id;
-          me.props.actions
-            .upDateActivityList(params)
-            .then(res => {
-              // 修改
-              me.setState({
-                addnewLoading: false
-              });
-              this.onGetData(this.state.pageNum, this.state.pageSize);
-              this.onAddNewClose();
-            })
-            .catch(() => {
-              me.setState({
-                addnewLoading: false
-              });
+            this.onGetData(1, this.state.pageSize);
+            this.onAddNewClose();
+          })
+          .catch(() => {
+            me.setState({
+              addnewLoading: false
             });
+          });
+      } else {
+        params.id = this.state.nowData.id;
+        me.props.actions
+          .upDateActivityList(params)
+          .then(res => {
+            // 修改
+            me.setState({
+              addnewLoading: false
+            });
+            this.onGetData(this.state.pageNum, this.state.pageSize);
+            this.onAddNewClose();
+          })
+          .catch(() => {
+            me.setState({
+              addnewLoading: false
+            });
+          });
         }
       }
     );
@@ -448,7 +448,7 @@ class Category extends React.Component {
     form.setFieldsValue({
       addnewTitle: String(record.title),
       formEnd:record.side,//端
-      formChannel:record.channel ? String(record.channel) :'',//渠道
+      formChannel:record.channel ? record.channel.split(",").map((item)=>{return String(item)}) :undefined,//渠道
       formActivityType:record.acType,//活动类型
       addnewUrl: record.acUrl,
       formLayout:record.layoutType,//背景图大图小图
@@ -461,6 +461,7 @@ class Category extends React.Component {
     console.log("是什么：", record);
     me.setState({
       nowData: record,
+      acType:record.acType,
       addOrUp: "up",
       addnewModalShow: true,
       fileList: record.acImg
@@ -469,10 +470,10 @@ class Category extends React.Component {
         .map((item, index) => ({ uid: index, url: item, status: "done" }))
         : [], // 活动图上传的列表
       fileListBack:record.backImg ?
-           record.backImg
-           .split(",")
-           .map((item, index) => ({ uid: index, url: item, status: "done" }))
-           :[],//背景图上传的列表
+         record.backImg
+         .split(",")
+         .map((item, index) => ({ uid: index, url: item, status: "done" }))
+         :[],//背景图上传的列表
     });
   }
 
@@ -890,13 +891,19 @@ class Category extends React.Component {
               {getFieldDecorator("formChannel", {
                 initialValue: undefined,
               })(
-                <Checkbox.Group placeholder='请选择所要配置的渠道'>
-                  {this.state.channels.map((item,index) => {
+                <Select
+                  mode="multiple"
+                  style={{ width: '100%' }}
+                  placeholder="请选择所要配置的渠道"
+                  >
+                  {
+                    this.state.channels.map((item) => {
                     return (
-                      <Checkbox value={String(item.dicCode)} key={String(item.dicCode)}>{item.dicValue}</Checkbox>
-                    );
-                  })}
-                </Checkbox.Group>
+                       <Option key={String(item.dicCode)}>{item.dicValue}</Option>
+                     );
+                    })
+                  }
+              </Select>
               )}
             </FormItem>
             <FormItem label="推荐产品" {...formItemLayout}>
@@ -951,6 +958,7 @@ class Category extends React.Component {
             </FormItem>
             <FormItem label="背景图片" {...formItemLayout} className={this.state.acType === 1 ? 'hide' : 'show'}>
               {getFieldDecorator("upIcon1", {
+                rules: [{required: true, message: "请选择背景图片"}]
               })(
                 <Upload
                   name="pImg"
@@ -974,6 +982,7 @@ class Category extends React.Component {
             <FormItem label="兑换按钮颜色" {...formItemLayout} className={this.state.acType === 1 ? 'hide' : 'show'}>
               {getFieldDecorator("addnewbtnColor", {
                 initialValue: undefined,
+                rules: [{required: true, message: "请选择兑换按钮颜色"}]
               })(<Input placeholder="请输入兑换按钮颜色" />)}
             </FormItem>
             <FormItem label="是否发布" {...formItemLayout}>
